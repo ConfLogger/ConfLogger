@@ -53,8 +53,8 @@ These files will be named as `Method-Wise-CCH_<xxx>.out`, where `<xxx>` indicate
 ### activate the logging statement generation
 To activate the logging statement generation phase, please ensure the CCH blocks are captured during the program analysis.
 
-The core functionality is achieved in [llm_interaction](PythonCode/llm_interatction.py) file. 
-We call the python file through `genLog` function in the [Main](src/main/java/org/example/Main.java) file. 
+The core functionality is achieved in [llm_interaction](src/PYTHON/llm_interatction.py) file. 
+We call the python file through `genLog` function in the [Main](src/JAVA/main/java/org/example/Main.java) file. 
 We employ gpt-4o to achieve the goal of logging statement generation, *plase specify the api key first in [llm_interaction](PythonCode/llm_interatction.py) file*. 
 
 Specified the OPENAI Key, please overwrite the `main` function and directly call to the `genLog` function with the directory holding the `Method-Wise-CCH_<xxx>.out` files as parameter.
