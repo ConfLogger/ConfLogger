@@ -1,0 +1,99 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	JobHistoryUtils.java	methodSinagture:	org.apache.hadoop.mapreduce.v2.jobhistory.JobHistoryUtils.getConfiguredHistoryServerDoneDirPrefix(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;	methodLines:	242:249
+blockLines:	244:-1
+paras:	null
+TaintedStat:	NORMAL getConfiguredHistoryServerDoneDirPrefix:conditional branch(ne, to iindex=19) 5,6 Node: < Application, Lorg/apache/hadoop/mapreduce/v2/jobhistory/JobHistoryUtils, getConfiguredHistoryServerDoneDirPrefix(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/mapreduce/v2/jobhistory/JobHistoryUtils, getConfiguredHistoryServerDoneDirPrefix(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere[2]5 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 1,3 @3 exception:4
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/mapreduce/v2/jobhistory/JobHistoryUtils, getConfiguredHistoryServerDoneDirPrefix(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere[2]5 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 1,3 @3 exception:4
+NORMAL getConfiguredHistoryServerDoneDirPrefix:conditional branch(ne, to iindex=19) 5,6 Node: < Application, Lorg/apache/hadoop/mapreduce/v2/jobhistory/JobHistoryUtils, getConfiguredHistoryServerDoneDirPrefix(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+      Configuration conf) {
+    String doneDirPrefix = conf.get(JHAdminConfig.MR_HISTORY_DONE_DIR);
+    if (doneDirPrefix == null) {
+      doneDirPrefix = conf.get(MRJobConfig.MR_AM_STAGING_DIR,
+          MRJobConfig.DEFAULT_MR_AM_STAGING_DIR)
+          + "/history/done";
+    }
+    return ensurePathInDefaultFileSystem(doneDirPrefix, conf);
+  }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/mapreduce/v2/hs/HistoryFileManager, tryCreatingHistoryDirs(Z)Z > Context: Everywhere, blocks=[BB[SSA:4..4]2 - org.apache.hadoop.mapreduce.v2.hs.HistoryFileManager.tryCreatingHistoryDirs(Z)Z, BB[SSA:0..3]1 - org.apache.hadoop.mapreduce.v2.hs.HistoryFileManager.tryCreatingHistoryDirs(Z)Z, BB[SSA:5..8]3 - org.apache.hadoop.mapreduce.v2.hs.HistoryFileManager.tryCreatingHistoryDirs(Z)Z, BB[SSA:-1..-2]116 - org.apache.hadoop.mapreduce.v2.hs.HistoryFileManager.tryCreatingHistoryDirs(Z)Z], numberOfBasicBlocks=4, firstLineNumber=675, lastLineNumber=679, firstMethodNumber=674, lastMethodNumber=736, isFirstLineValid=true, methodSrcCode=
+  boolean tryCreatingHistoryDirs(boolean logWait) throws IOException {
+    boolean succeeded = true;
+    String doneDirPrefix = JobHistoryUtils.
+        getConfiguredHistoryServerDoneDirPrefix(conf);
+    try {
+      doneDirPrefixPath = FileContext.getFileContext(conf).makeQualified(
+          new Path(doneDirPrefix));
+      doneDirFc = FileContext.getFileContext(doneDirPrefixPath.toUri(), conf);
+      doneDirFc.setUMask(JobHistoryUtils.HISTORY_DONE_DIR_UMASK);
+      mkdir(doneDirFc, doneDirPrefixPath, new FsPermission(
+          JobHistoryUtils.HISTORY_DONE_DIR_PERMISSION));
+    } catch (ConnectException ex) {
+      if (logWait) {
+        LOG.info("Waiting for FileSystem at " +
+            doneDirPrefixPath.toUri().getAuthority()  + "to be available");
+      }
+      succeeded = false;
+    } catch (IOException e) {
+      if (isNameNodeStillNotStarted(e)) {
+        succeeded = false;
+        if (logWait) {
+          LOG.info("Waiting for FileSystem at " +
+              doneDirPrefixPath.toUri().getAuthority() +
+              "to be out of safe mode");
+        }
+      } else {
+        throw new YarnRuntimeException("Error creating done directory: ["
+            + doneDirPrefixPath + "]", e);
+      }
+    }
+    if (succeeded) {
+      String intermediateDoneDirPrefix = JobHistoryUtils.
+          getConfiguredHistoryIntermediateDoneDirPrefix(conf);
+      try {
+        intermediateDoneDirPath = FileContext.getFileContext(conf).makeQualified(
+            new Path(intermediateDoneDirPrefix));
+        intermediateDoneDirFc = FileContext.getFileContext(
+            intermediateDoneDirPath.toUri(), conf);
+        mkdir(intermediateDoneDirFc, intermediateDoneDirPath, new FsPermission(
+            JobHistoryUtils.HISTORY_INTERMEDIATE_DONE_DIR_PERMISSIONS.toShort()));
+      } catch (ConnectException ex) {
+        succeeded = false;
+        if (logWait) {
+          LOG.info("Waiting for FileSystem at " +
+              intermediateDoneDirPath.toUri().getAuthority() +
+              "to be available");
+        }
+      } catch (IOException e) {
+        if (isNameNodeStillNotStarted(e)) {
+          succeeded = false;
+          if (logWait) {
+            LOG.info("Waiting for FileSystem at " +
+                intermediateDoneDirPath.toUri().getAuthority() +
+                "to be out of safe mode");
+          }
+        } else {
+          throw new YarnRuntimeException(
+              "Error creating intermediate done directory: ["
+              + intermediateDoneDirPath + "]", e);
+        }
+      }
+    }
+    return succeeded;
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/mapred/YARNRunner, getJobHistoryDir()Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:2..2]2 - org.apache.hadoop.mapred.YARNRunner.getJobHistoryDir()Ljava/lang/String;, BB[SSA:0..1]1 - org.apache.hadoop.mapred.YARNRunner.getJobHistoryDir()Ljava/lang/String;, BB[SSA:3..3]3 - org.apache.hadoop.mapred.YARNRunner.getJobHistoryDir()Ljava/lang/String;, BB[SSA:-1..-2]4 - org.apache.hadoop.mapred.YARNRunner.getJobHistoryDir()Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=866, lastLineNumber=866, firstMethodNumber=865, lastMethodNumber=866, isFirstLineValid=true, methodSrcCode=
+  public String getJobHistoryDir() throws IOException, InterruptedException {
+    return JobHistoryUtils.getConfiguredHistoryServerDoneDirPrefix(conf);
+  }
+}

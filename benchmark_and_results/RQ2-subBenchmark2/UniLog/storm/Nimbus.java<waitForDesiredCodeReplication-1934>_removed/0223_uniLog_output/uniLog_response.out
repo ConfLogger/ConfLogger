@@ -1,0 +1,60 @@
+To insert log level and log verbosity message into the target method code, we need to identify the appropriate lines where logging statements can be added. The existing logging lines in the code are already using different levels such as `LOG.debug` and `LOG.info`. We can follow a similar pattern to add new log statements with appropriate log levels and verbosity messages.
+
+Here's the modified code with log level and verbosity messages inserted after each line:
+
+```java
+<Line#0>private void waitForDesiredCodeReplication(Map<String, Object> topoConf, String topoId) throws Exception {
+<Line#1>LOG.debug("Entering waitForDesiredCodeReplication method with topoId: {}", topoId);
+<Line#2>int minReplicationCount = ObjectReader.getInt(topoConf.get(Config.TOPOLOGY_MIN_REPLICATION_COUNT));
+<Line#3>LOG.debug("Minimum replication count retrieved: {}", minReplicationCount);
+<Line#4>int maxWaitTime = ObjectReader.getInt(topoConf.get(Config.TOPOLOGY_MAX_REPLICATION_WAIT_TIME_SEC));
+<Line#5>LOG.debug("Maximum wait time retrieved: {} seconds", maxWaitTime);
+<Line#6>int jarCount = minReplicationCount;
+<Line#7>LOG.debug("Initial jar count set to minimum replication count: {}", jarCount);
+<Line#8>if (!ConfigUtils.isLocalMode(topoConf)) {
+<Line#9>LOG.debug("Not in local mode, retrieving jar replication count");
+<Line#10>jarCount = getBlobReplicationCount(ConfigUtils.masterStormJarKey(topoId));
+<Line#11>LOG.debug("Jar replication count retrieved: {}", jarCount);
+<Line#12>}
+<Line#13>int codeCount = getBlobReplicationCount(ConfigUtils.masterStormCodeKey(topoId));
+<Line#14>LOG.debug("Code replication count retrieved: {}", codeCount);
+<Line#15>int confCount = getBlobReplicationCount(ConfigUtils.masterStormConfKey(topoId));
+<Line#16>LOG.debug("Configuration replication count retrieved: {}", confCount);
+<Line#17>long totalWaitTime = 0;
+<Line#18>LOG.debug("Total wait time initialized to: {}", totalWaitTime);
+<Line#19>//When is this ever null?
+<Line#20>if (blobStore != null) {
+<Line#21>LOG.debug("Blob store is not null, entering replication check loop");
+<Line#22>while (jarCount < minReplicationCount
+<Line#23>&& codeCount < minReplicationCount
+<Line#24>&& confCount < minReplicationCount) {
+<Line#25>LOG.debug("Current replication counts - Jar: {}, Code: {}, Conf: {}", jarCount, codeCount, confCount);
+<Line#26>if (maxWaitTime > 0 && totalWaitTime > maxWaitTime) {
+<Line#27>LOG.warn("Max wait time exceeded, returning from method");
+<Line#28>return;
+<Line#29>}
+<Line#30>LOG.debug("Checking if I am still the leader");
+<Line#31>assertIsLeader();
+<Line#32>LOG.info("WAITING... storm-id {}, {} <? {} {} {}", topoId, minReplicationCount, jarCount, codeCount, confCount);
+<Line#33>LOG.info("WAITING... {} <? {}", totalWaitTime, maxWaitTime);
+<Line#34>Time.sleepSecs(1);
+<Line#35>totalWaitTime++;
+<Line#36>LOG.debug("Total wait time incremented to: {}", totalWaitTime);
+<Line#37>if (!ConfigUtils.isLocalMode(topoConf)) {
+<Line#38>LOG.debug("Not in local mode, updating jar replication count");
+<Line#39>jarCount = getBlobReplicationCount(ConfigUtils.masterStormJarKey(topoId));
+<Line#40>LOG.debug("Updated jar replication count: {}", jarCount);
+<Line#41>}
+<Line#42>codeCount = getBlobReplicationCount(ConfigUtils.masterStormCodeKey(topoId));
+<Line#43>LOG.debug("Updated code replication count: {}", codeCount);
+<Line#44>confCount = getBlobReplicationCount(ConfigUtils.masterStormConfKey(topoId));
+<Line#45>LOG.debug("Updated configuration replication count: {}", confCount);
+<Line#46>}
+<Line#47>}
+<Line#48>LOG.info("Desired replication count {} achieved for topology {}, current-replication-count for conf key = {},"
+<Line#49>+ " current-replication-count for code key = {}, current-replication-count for jar key = {}",
+<Line#50>minReplicationCount, topoId, confCount, codeCount, jarCount);
+<Line#51>}
+```
+
+In this modified code, I've added `LOG.debug` statements with verbosity messages to trace the flow of the method and the values of key variables at each step.

@@ -1,0 +1,445 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>Configuration conf) throws URISyntaxException, IOException {
+<Line#1>Set<String> journalNodeList = new HashSet<>();
+<Line#2>String journalsUri = "";
+<Line#3>try {
+<Line#4>journalsUri = conf.get(DFS_NAMENODE_SHARED_EDITS_DIR_KEY);
+<Line#5>if (journalsUri == null) {
+<Line#6>Collection<String> nameserviceIds = DFSUtilClient.
+<Line#7>getNameServiceIds(conf);
+<Line#8>for (String nsId : nameserviceIds) {
+<Line#9>journalsUri = DFSUtilClient.getConfValue(
+<Line#10>null, nsId, conf, DFS_NAMENODE_SHARED_EDITS_DIR_KEY);
+<Line#11>if (journalsUri == null) {
+<Line#12>Collection<String> nnIds = DFSUtilClient.getNameNodeIds(conf, nsId);
+<Line#13>for (String nnId : nnIds) {
+<Line#14>String suffix = DFSUtilClient.concatSuffixes(nsId, nnId);
+<Line#15>journalsUri = DFSUtilClient.getConfValue(
+<Line#16>null, suffix, conf, DFS_NAMENODE_SHARED_EDITS_DIR_KEY);
+<Line#17>if (journalsUri == null ||
+<Line#18>!journalsUri.startsWith("qjournal://")) {
+<Line#19>return journalNodeList;
+<Line#20>} else {
+<Line#21>URI uri = new URI(journalsUri);
+<Line#22>List<InetSocketAddress> socketAddresses = Util.
+<Line#23>getAddressesList(uri);
+<Line#24>for (InetSocketAddress is : socketAddresses) {
+<Line#25>journalNodeList.add(is.getHostName());
+<Line#26>}
+<Line#27>}
+<Line#28>}
+<Line#29>} else if (!journalsUri.startsWith("qjournal://")) {
+<Line#30>return journalNodeList;
+<Line#31>} else {
+<Line#32>URI uri = new URI(journalsUri);
+<Line#33>List<InetSocketAddress> socketAddresses = Util.
+<Line#34>getAddressesList(uri);
+<Line#35>for (InetSocketAddress is : socketAddresses) {
+<Line#36>journalNodeList.add(is.getHostName());
+<Line#37>}
+<Line#38>}
+<Line#39>}
+<Line#40>} else {
+<Line#41>if (!journalsUri.startsWith("qjournal://")) {
+<Line#42>return journalNodeList;
+<Line#43>} else {
+<Line#44>URI uri = new URI(journalsUri);
+<Line#45>List<InetSocketAddress> socketAddresses = Util.getAddressesList(uri);
+<Line#46>for (InetSocketAddress is : socketAddresses) {
+<Line#47>journalNodeList.add(is.getHostName());
+<Line#48>}
+<Line#49>}
+<Line#50>}
+<Line#51>} catch(UnknownHostException e) {
+<Line#52>throw new UnknownHostException(journalsUri);
+<Line#53>} catch(URISyntaxException e)  {
+<Line#54>throw new URISyntaxException(journalsUri, "The conf property " +
+<Line#55>DFS_NAMENODE_SHARED_EDITS_DIR_KEY + "is not" +
+<Line#56>" properly set with correct journal node uri");
+<Line#57>}
+<Line#58>
+<Line#59>return journalNodeList;
+<Line#60>}
+
+Example 1:
+<Line#1>{
+<Line#2>  if (httpServer != null) {
+<Line#3>    InetSocketAddress infoAddr=DataNode.getInfoAddr(conf);
+<Line#4>    ChannelFuture f=httpServer.bind(infoAddr);
+<Line#5>    try {
+<Line#6>      f.syncUninterruptibly();
+<Line#7>    }
+<Line#8> catch (    Throwable e) {
+<Line#9>      if (e instanceof BindException) {
+<Line#10>        throw NetUtils.wrapException(null,0,infoAddr.getHostName(),infoAddr.getPort(),(SocketException)e);
+<Line#11>      }
+<Line#12> else {
+<Line#13>        throw e;
+<Line#14>      }
+<Line#15>    }
+<Line#16>    httpAddress=(InetSocketAddress)f.channel().localAddress();
+<Line#17>    LOG.info("Listening HTTP traffic on " + httpAddress);
+<Line#18>  }
+<Line#19>  if (httpsServer != null) {
+<Line#20>    InetSocketAddress secInfoSocAddr=NetUtils.createSocketAddr(conf.getTrimmed(DFS_DATANODE_HTTPS_ADDRESS_KEY,DFS_DATANODE_HTTPS_ADDRESS_DEFAULT));
+<Line#21>    ChannelFuture f=httpsServer.bind(secInfoSocAddr);
+<Line#22>    try {
+<Line#23>      f.syncUninterruptibly();
+<Line#24>    }
+<Line#25> catch (    Throwable e) {
+<Line#26>      if (e instanceof BindException) {
+<Line#27>        throw NetUtils.wrapException(null,0,secInfoSocAddr.getHostName(),secInfoSocAddr.getPort(),(SocketException)e);
+<Line#28>      }
+<Line#29> else {
+<Line#30>        throw e;
+<Line#31>      }
+<Line#32>    }
+<Line#33>    httpsAddress=(InetSocketAddress)f.channel().localAddress();
+<Line#34>    LOG.info("Listening HTTPS traffic on " + httpsAddress);
+<Line#35>  }
+<Line#36>}
+Label: <Line#17> LOG.info("Listening HTTP traffic on " + httpAddress)
+
+Example 2:
+<Line#1>{
+<Line#2>  if (httpServer != null) {
+<Line#3>    InetSocketAddress infoAddr=DataNode.getInfoAddr(conf);
+<Line#4>    ChannelFuture f=httpServer.bind(infoAddr);
+<Line#5>    try {
+<Line#6>      f.syncUninterruptibly();
+<Line#7>    }
+<Line#8> catch (    Throwable e) {
+<Line#9>      if (e instanceof BindException) {
+<Line#10>        throw NetUtils.wrapException(null,0,infoAddr.getHostName(),infoAddr.getPort(),(SocketException)e);
+<Line#11>      }
+<Line#12> else {
+<Line#13>        throw e;
+<Line#14>      }
+<Line#15>    }
+<Line#16>    httpAddress=(InetSocketAddress)f.channel().localAddress();
+<Line#17>    LOG.info("Listening HTTP traffic on " + httpAddress);
+<Line#18>  }
+<Line#19>  if (httpsServer != null) {
+<Line#20>    InetSocketAddress secInfoSocAddr=NetUtils.createSocketAddr(conf.getTrimmed(DFS_DATANODE_HTTPS_ADDRESS_KEY,DFS_DATANODE_HTTPS_ADDRESS_DEFAULT));
+<Line#21>    ChannelFuture f=httpsServer.bind(secInfoSocAddr);
+<Line#22>    try {
+<Line#23>      f.syncUninterruptibly();
+<Line#24>    }
+<Line#25> catch (    Throwable e) {
+<Line#26>      if (e instanceof BindException) {
+<Line#27>        throw NetUtils.wrapException(null,0,secInfoSocAddr.getHostName(),secInfoSocAddr.getPort(),(SocketException)e);
+<Line#28>      }
+<Line#29> else {
+<Line#30>        throw e;
+<Line#31>      }
+<Line#32>    }
+<Line#33>    httpsAddress=(InetSocketAddress)f.channel().localAddress();
+<Line#34>    LOG.info("Listening HTTPS traffic on " + httpsAddress);
+<Line#35>  }
+<Line#36>}
+Label: <Line#34> LOG.info("Listening HTTPS traffic on " + httpsAddress)
+
+Example 3:
+<Line#1>{
+<Line#2>  int dataLen=(int)Math.min(endOffset - offset,(chunkSize * (long)maxChunks));
+<Line#3>  int numChunks=numberOfChunks(dataLen);
+<Line#4>  int checksumDataLen=numChunks * checksumSize;
+<Line#5>  int packetLen=dataLen + checksumDataLen + 4;
+<Line#6>  boolean lastDataPacket=offset + dataLen == endOffset && dataLen > 0;
+<Line#7>  int headerLen=writePacketHeader(pkt,dataLen,packetLen);
+<Line#8>  int headerOff=pkt.position() - headerLen;
+<Line#9>  int checksumOff=pkt.position();
+<Line#10>  byte[] buf=pkt.array();
+<Line#11>  if (checksumSize > 0 && ris.getChecksumIn() != null) {
+<Line#12>    readChecksum(buf,checksumOff,checksumDataLen);
+<Line#13>    if (lastDataPacket && lastChunkChecksum != null) {
+<Line#14>      int start=checksumOff + checksumDataLen - checksumSize;
+<Line#15>      byte[] updatedChecksum=lastChunkChecksum.getChecksum();
+<Line#16>      if (updatedChecksum != null) {
+<Line#17>        System.arraycopy(updatedChecksum,0,buf,start,checksumSize);
+<Line#18>      }
+<Line#19>    }
+<Line#20>  }
+<Line#21>  int dataOff=checksumOff + checksumDataLen;
+<Line#22>  if (!transferTo) {
+<Line#23>    try {
+<Line#24>      ris.readDataFully(buf,dataOff,dataLen);
+<Line#25>    }
+<Line#26> catch (    IOException ioe) {
+<Line#27>      if (ioe.getMessage().startsWith(EIO_ERROR)) {
+<Line#28>        throw new DiskFileCorruptException("A disk IO error occurred",ioe);
+<Line#29>      }
+<Line#30>      throw ioe;
+<Line#31>    }
+<Line#32>    if (verifyChecksum) {
+<Line#33>      verifyChecksum(buf,dataOff,dataLen,numChunks,checksumOff);
+<Line#34>    }
+<Line#35>  }
+<Line#36>  try {
+<Line#37>    if (transferTo) {
+<Line#38>      SocketOutputStream sockOut=(SocketOutputStream)out;
+<Line#39>      sockOut.write(buf,headerOff,dataOff - headerOff);
+<Line#40>      FileChannel fileCh=((FileInputStream)ris.getDataIn()).getChannel();
+<Line#41>      LongWritable waitTime=new LongWritable();
+<Line#42>      LongWritable transferTime=new LongWritable();
+<Line#43>      fileIoProvider.transferToSocketFully(ris.getVolumeRef().getVolume(),sockOut,fileCh,blockInPosition,dataLen,waitTime,transferTime);
+<Line#44>      datanode.metrics.addSendDataPacketBlockedOnNetworkNanos(waitTime.get());
+<Line#45>      datanode.metrics.addSendDataPacketTransferNanos(transferTime.get());
+<Line#46>      blockInPosition+=dataLen;
+<Line#47>    }
+<Line#48> else {
+<Line#49>      out.write(buf,headerOff,dataOff + dataLen - headerOff);
+<Line#50>    }
+<Line#51>  }
+<Line#52> catch (  IOException e) {
+<Line#53>    if (e instanceof SocketTimeoutException) {
+<Line#54>      LOG.warn("Sending packets timed out.",e);
+<Line#55>    }
+<Line#56> else {
+<Line#57>      String ioem=e.getMessage();
+<Line#58>      if (ioem != null) {
+<Line#59>        if (ioem.startsWith(EIO_ERROR)) {
+<Line#60>          throw new DiskFileCorruptException("A disk IO error occurred",e);
+<Line#61>        }
+<Line#62>        String causeMessage=e.getCause() != null ? e.getCause().getMessage() : "";
+<Line#63>        causeMessage=causeMessage != null ? causeMessage : "";
+<Line#64>        if (!ioem.startsWith("Broken pipe") && !ioem.startsWith("Connection reset") && !causeMessage.startsWith("Broken pipe")&& !causeMessage.startsWith("Connection reset")) {
+<Line#65>          LOG.error("BlockSender.sendChunks() exception: ",e);
+<Line#66>          datanode.getBlockScanner().markSuspectBlock(ris.getVolumeRef().getVolume().getStorageID(),block);
+<Line#67>        }
+<Line#68>      }
+<Line#69>    }
+<Line#70>    throw ioeToSocketException(e);
+<Line#71>  }
+<Line#72>  if (throttler != null) {
+<Line#73>    throttler.throttle(packetLen);
+<Line#74>  }
+<Line#75>  return dataLen;
+<Line#76>}
+Label: <Line#54> LOG.warn("Sending packets timed out.",e)
+
+Example 4:
+<Line#1>{
+<Line#2>  int dataLen=(int)Math.min(endOffset - offset,(chunkSize * (long)maxChunks));
+<Line#3>  int numChunks=numberOfChunks(dataLen);
+<Line#4>  int checksumDataLen=numChunks * checksumSize;
+<Line#5>  int packetLen=dataLen + checksumDataLen + 4;
+<Line#6>  boolean lastDataPacket=offset + dataLen == endOffset && dataLen > 0;
+<Line#7>  int headerLen=writePacketHeader(pkt,dataLen,packetLen);
+<Line#8>  int headerOff=pkt.position() - headerLen;
+<Line#9>  int checksumOff=pkt.position();
+<Line#10>  byte[] buf=pkt.array();
+<Line#11>  if (checksumSize > 0 && ris.getChecksumIn() != null) {
+<Line#12>    readChecksum(buf,checksumOff,checksumDataLen);
+<Line#13>    if (lastDataPacket && lastChunkChecksum != null) {
+<Line#14>      int start=checksumOff + checksumDataLen - checksumSize;
+<Line#15>      byte[] updatedChecksum=lastChunkChecksum.getChecksum();
+<Line#16>      if (updatedChecksum != null) {
+<Line#17>        System.arraycopy(updatedChecksum,0,buf,start,checksumSize);
+<Line#18>      }
+<Line#19>    }
+<Line#20>  }
+<Line#21>  int dataOff=checksumOff + checksumDataLen;
+<Line#22>  if (!transferTo) {
+<Line#23>    try {
+<Line#24>      ris.readDataFully(buf,dataOff,dataLen);
+<Line#25>    }
+<Line#26> catch (    IOException ioe) {
+<Line#27>      if (ioe.getMessage().startsWith(EIO_ERROR)) {
+<Line#28>        throw new DiskFileCorruptException("A disk IO error occurred",ioe);
+<Line#29>      }
+<Line#30>      throw ioe;
+<Line#31>    }
+<Line#32>    if (verifyChecksum) {
+<Line#33>      verifyChecksum(buf,dataOff,dataLen,numChunks,checksumOff);
+<Line#34>    }
+<Line#35>  }
+<Line#36>  try {
+<Line#37>    if (transferTo) {
+<Line#38>      SocketOutputStream sockOut=(SocketOutputStream)out;
+<Line#39>      sockOut.write(buf,headerOff,dataOff - headerOff);
+<Line#40>      FileChannel fileCh=((FileInputStream)ris.getDataIn()).getChannel();
+<Line#41>      LongWritable waitTime=new LongWritable();
+<Line#42>      LongWritable transferTime=new LongWritable();
+<Line#43>      fileIoProvider.transferToSocketFully(ris.getVolumeRef().getVolume(),sockOut,fileCh,blockInPosition,dataLen,waitTime,transferTime);
+<Line#44>      datanode.metrics.addSendDataPacketBlockedOnNetworkNanos(waitTime.get());
+<Line#45>      datanode.metrics.addSendDataPacketTransferNanos(transferTime.get());
+<Line#46>      blockInPosition+=dataLen;
+<Line#47>    }
+<Line#48> else {
+<Line#49>      out.write(buf,headerOff,dataOff + dataLen - headerOff);
+<Line#50>    }
+<Line#51>  }
+<Line#52> catch (  IOException e) {
+<Line#53>    if (e instanceof SocketTimeoutException) {
+<Line#54>      LOG.warn("Sending packets timed out.",e);
+<Line#55>    }
+<Line#56> else {
+<Line#57>      String ioem=e.getMessage();
+<Line#58>      if (ioem != null) {
+<Line#59>        if (ioem.startsWith(EIO_ERROR)) {
+<Line#60>          throw new DiskFileCorruptException("A disk IO error occurred",e);
+<Line#61>        }
+<Line#62>        String causeMessage=e.getCause() != null ? e.getCause().getMessage() : "";
+<Line#63>        causeMessage=causeMessage != null ? causeMessage : "";
+<Line#64>        if (!ioem.startsWith("Broken pipe") && !ioem.startsWith("Connection reset") && !causeMessage.startsWith("Broken pipe")&& !causeMessage.startsWith("Connection reset")) {
+<Line#65>          LOG.error("BlockSender.sendChunks() exception: ",e);
+<Line#66>          datanode.getBlockScanner().markSuspectBlock(ris.getVolumeRef().getVolume().getStorageID(),block);
+<Line#67>        }
+<Line#68>      }
+<Line#69>    }
+<Line#70>    throw ioeToSocketException(e);
+<Line#71>  }
+<Line#72>  if (throttler != null) {
+<Line#73>    throttler.throttle(packetLen);
+<Line#74>  }
+<Line#75>  return dataLen;
+<Line#76>}
+Label: <Line#65> LOG.error("BlockSender.sendChunks() exception: ",e)
+
+Example 5:
+<Line#1>{
+<Line#2>  TraceScope scope=null;
+<Line#3>  while (!streamerClosed && dfsClient.clientRunning) {
+<Line#4>    if (errorState.hasError()) {
+<Line#5>      closeResponder();
+<Line#6>    }
+<Line#7>    DFSPacket one;
+<Line#8>    try {
+<Line#9>      boolean doSleep=processDatanodeOrExternalError();
+<Line#10>synchronized (dataQueue) {
+<Line#11>        while ((!shouldStop() && dataQueue.isEmpty()) || doSleep) {
+<Line#12>          long timeout=1000;
+<Line#13>          if (stage == BlockConstructionStage.DATA_STREAMING) {
+<Line#14>            timeout=sendHeartbeat();
+<Line#15>          }
+<Line#16>          try {
+<Line#17>            dataQueue.wait(timeout);
+<Line#18>          }
+<Line#19> catch (          InterruptedException e) {
+<Line#20>            LOG.debug("Thread interrupted",e);
+<Line#21>          }
+<Line#22>          doSleep=false;
+<Line#23>        }
+<Line#24>        if (shouldStop()) {
+<Line#25>          continue;
+<Line#26>        }
+<Line#27>        one=dataQueue.getFirst();
+<Line#28>        SpanContext[] parents=one.getTraceParents();
+<Line#29>        if (parents != null && parents.length > 0) {
+<Line#30>          scope=dfsClient.getTracer().newScope("dataStreamer",parents[0],false);
+<Line#31>        }
+<Line#32>      }
+<Line#33>      try {
+<Line#34>        backOffIfNecessary();
+<Line#35>      }
+<Line#36> catch (      InterruptedException e) {
+<Line#37>        LOG.debug("Thread interrupted",e);
+<Line#38>      }
+<Line#39>      LOG.debug("stage={}, {}",stage,this);
+<Line#40>      if (stage == BlockConstructionStage.PIPELINE_SETUP_CREATE) {
+<Line#41>        LOG.debug("Allocating new block: {}",this);
+<Line#42>        setPipeline(nextBlockOutputStream());
+<Line#43>        initDataStreaming();
+<Line#44>      }
+<Line#45> else       if (stage == BlockConstructionStage.PIPELINE_SETUP_APPEND) {
+<Line#46>        LOG.debug("Append to block {}",block);
+<Line#47>        setupPipelineForAppendOrRecovery();
+<Line#48>        if (streamerClosed) {
+<Line#49>          continue;
+<Line#50>        }
+<Line#51>        initDataStreaming();
+<Line#52>      }
+<Line#53>      long lastByteOffsetInBlock=one.getLastByteOffsetBlock();
+<Line#54>      if (lastByteOffsetInBlock > stat.getBlockSize()) {
+<Line#55>        throw new IOException("BlockSize " + stat.getBlockSize() + " < lastByteOffsetInBlock, "+ this+ ", "+ one);
+<Line#56>      }
+<Line#57>      if (one.isLastPacketInBlock()) {
+<Line#58>        waitForAllAcks();
+<Line#59>        if (shouldStop()) {
+<Line#60>          continue;
+<Line#61>        }
+<Line#62>        stage=BlockConstructionStage.PIPELINE_CLOSE;
+<Line#63>      }
+<Line#64>      SpanContext spanContext=null;
+<Line#65>synchronized (dataQueue) {
+<Line#66>        if (!one.isHeartbeatPacket()) {
+<Line#67>          if (scope != null) {
+<Line#68>            one.setSpan(scope.span());
+<Line#69>            spanContext=scope.span().getContext();
+<Line#70>            scope.close();
+<Line#71>          }
+<Line#72>          scope=null;
+<Line#73>          dataQueue.removeFirst();
+<Line#74>          ackQueue.addLast(one);
+<Line#75>          packetSendTime.put(one.getSeqno(),Time.monotonicNow());
+<Line#76>          dataQueue.notifyAll();
+<Line#77>        }
+<Line#78>      }
+<Line#79>      LOG.debug("{} sending {}",this,one);
+<Line#80>      try (TraceScope ignored=dfsClient.getTracer().newScope("DataStreamer#writeTo",spanContext)){
+<Line#81>        sendPacket(one);
+<Line#82>      }
+<Line#83> catch (      IOException e) {
+<Line#84>        errorState.markFirstNodeIfNotMarked();
+<Line#85>        throw e;
+<Line#86>      }
+<Line#87>      long tmpBytesSent=one.getLastByteOffsetBlock();
+<Line#88>      if (bytesSent < tmpBytesSent) {
+<Line#89>        bytesSent=tmpBytesSent;
+<Line#90>      }
+<Line#91>      if (shouldStop()) {
+<Line#92>        continue;
+<Line#93>      }
+<Line#94>      if (one.isLastPacketInBlock()) {
+<Line#95>        try {
+<Line#96>          waitForAllAcks();
+<Line#97>        }
+<Line#98> catch (        IOException ioe) {
+<Line#99>synchronized (dataQueue) {
+<Line#100>            if (!ackQueue.isEmpty()) {
+<Line#101>              throw ioe;
+<Line#102>            }
+<Line#103>          }
+<Line#104>        }
+<Line#105>        if (shouldStop()) {
+<Line#106>          continue;
+<Line#107>        }
+<Line#108>        endBlock();
+<Line#109>      }
+<Line#110>      if (progress != null) {
+<Line#111>        progress.progress();
+<Line#112>      }
+<Line#113>      if (artificialSlowdown != 0 && dfsClient.clientRunning) {
+<Line#114>        Thread.sleep(artificialSlowdown);
+<Line#115>      }
+<Line#116>    }
+<Line#117> catch (    Throwable e) {
+<Line#118>      if (!errorState.isRestartingNode()) {
+<Line#119>        if (e instanceof QuotaExceededException) {
+<Line#120>          LOG.debug("DataStreamer Quota Exception",e);
+<Line#121>        }
+<Line#122> else {
+<Line#123>          LOG.warn("DataStreamer Exception",e);
+<Line#124>        }
+<Line#125>      }
+<Line#126>      lastException.set(e);
+<Line#127>      assert !(e instanceof NullPointerException);
+<Line#128>      errorState.setInternalError();
+<Line#129>      if (!errorState.isNodeMarked()) {
+<Line#130>        streamerClosed=true;
+<Line#131>      }
+<Line#132>    }
+<Line#133> finally {
+<Line#134>      if (scope != null) {
+<Line#135>        scope.close();
+<Line#136>        scope=null;
+<Line#137>      }
+<Line#138>    }
+<Line#139>  }
+<Line#140>  closeInternal();
+<Line#141>}
+Label: <Line#20> LOG.debug("Thread interrupted",e)
+

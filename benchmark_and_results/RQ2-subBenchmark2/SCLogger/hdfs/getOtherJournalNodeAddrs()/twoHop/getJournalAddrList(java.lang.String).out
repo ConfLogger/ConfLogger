@@ -1,0 +1,8 @@
+@VisibleForTesting protected List<InetSocketAddress> getJournalAddrList(String uriStr) throws URISyntaxException, IOException {
+  URI uri=new URI(uriStr);
+  InetSocketAddress boundIpcAddress=jn.getBoundIpcAddress();
+  Set<InetSocketAddress> excluded=Sets.newHashSet(boundIpcAddress);
+  List<InetSocketAddress> addrList=Util.getLoggerAddresses(uri,excluded);
+  addrList.removeIf(addr -> !addr.isUnresolved() && addr.getAddress().isAnyLocalAddress() && boundIpcAddress.getPort() == addr.getPort());
+  return addrList;
+}

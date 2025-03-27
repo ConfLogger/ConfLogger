@@ -1,0 +1,5 @@
+<Line#6>:# LOG.info("Array length: " + array.length);:#
+<Line#14>:# LOG.debug("Current count: " + currCount);:#
+<Line#18>:# LOG.warn("Location length is greater than max block locations");:#
+<Line#23>:# LOG.debug("Offset after processing: " + offset);:#
+<Line#26>:# LOG.info("Returning split meta info array");:#

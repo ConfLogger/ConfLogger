@@ -1,0 +1,321 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Login.java	methodSinagture:	org.apache.zookeeper.Login.<init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Lorg/apache/zookeeper/common/ZKConfig;)V	methodLines:	99:275
+blockLines:	116:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(eq, to iindex=111) 49,7 Node: < Application, Lorg/apache/zookeeper/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Lorg/apache/zookeeper/common/ZKConfig;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Lorg/apache/zookeeper/common/ZKConfig;)V > Context: Everywhere[100]49 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 46,47 @200 exception:48
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Lorg/apache/zookeeper/common/ZKConfig;)V > Context: Everywhere[100]49 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 46,47 @200 exception:48
+NORMAL <init>:conditional branch(eq, to iindex=111) 49,7 Node: < Application, Lorg/apache/zookeeper/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Lorg/apache/zookeeper/common/ZKConfig;)V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	Login.java	methodSinagture:	org.apache.zookeeper.Login.<init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Lorg/apache/zookeeper/common/ZKConfig;)V	methodLines:	99:275
+blockLines:	110:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(eq, to iindex=97) 36,7 Node: < Application, Lorg/apache/zookeeper/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Lorg/apache/zookeeper/common/ZKConfig;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Lorg/apache/zookeeper/common/ZKConfig;)V > Context: Everywhere[80]36 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 33,34 @153 exception:35
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Lorg/apache/zookeeper/common/ZKConfig;)V > Context: Everywhere[80]36 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 33,34 @153 exception:35
+NORMAL <init>:conditional branch(eq, to iindex=97) 36,7 Node: < Application, Lorg/apache/zookeeper/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Lorg/apache/zookeeper/common/ZKConfig;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+     */
+    public Login(final String loginContextName, CallbackHandler callbackHandler, final ZKConfig zkConfig) throws LoginException {
+        this.zkConfig = zkConfig;
+        this.callbackHandler = callbackHandler;
+        login = login(loginContextName);
+        this.loginContextName = loginContextName;
+        subject = login.getSubject();
+        isKrbTicket = !subject.getPrivateCredentials(KerberosTicket.class).isEmpty();
+        AppConfigurationEntry[] entries = Configuration.getConfiguration().getAppConfigurationEntry(loginContextName);
+        for (AppConfigurationEntry entry : entries) {
+            // there will only be a single entry, so this for() loop will only be iterated through once.
+            if (entry.getOptions().get("useTicketCache") != null) {
+                String val = (String) entry.getOptions().get("useTicketCache");
+                if (val.equals("true")) {
+                    isUsingTicketCache = true;
+                }
+            }
+            if (entry.getOptions().get("principal") != null) {
+                principal = (String) entry.getOptions().get("principal");
+            }
+            break;
+        }
+
+        if (!isKrbTicket) {
+            // if no TGT, do not bother with ticket management.
+            return;
+        }
+
+        // Refresh the Ticket Granting Ticket (TGT) periodically. How often to refresh is determined by the
+        // TGT's existing expiry date and the configured MIN_TIME_BEFORE_RELOGIN. For testing and development,
+        // you can decrease the interval of expiration of tickets (for example, to 3 minutes) by running :
+        //  "modprinc -maxlife 3mins <principal>" in kadmin.
+        t = new Thread(new Runnable() {
+            public void run() {
+                LOG.info("TGT refresh thread started.");
+                while (true) {  // renewal thread's main loop. if it exits from here, thread will exit.
+                    KerberosTicket tgt = getTGT();
+                    long now = Time.currentWallTime();
+                    long nextRefresh;
+                    Date nextRefreshDate;
+                    if (tgt == null) {
+                        nextRefresh = now + MIN_TIME_BEFORE_RELOGIN;
+                        nextRefreshDate = new Date(nextRefresh);
+                        LOG.warn("No TGT found: will try again at {}", nextRefreshDate);
+                    } else {
+                        nextRefresh = getRefreshTime(tgt);
+                        long expiry = tgt.getEndTime().getTime();
+                        Date expiryDate = new Date(expiry);
+                        if ((isUsingTicketCache) && (tgt.getEndTime().equals(tgt.getRenewTill()))) {
+                            LOG.error(
+                                "The TGT cannot be renewed beyond the next expiry date: {}."
+                                    + "This process will not be able to authenticate new SASL connections after that "
+                                    + "time (for example, it will not be authenticate a new connection with a Zookeeper "
+                                    + "Quorum member).  Ask your system administrator to either increase the "
+                                    + "'renew until' time by doing : 'modprinc -maxrenewlife {}' within "
+                                    + "kadmin, or instead, to generate a keytab for {}. Because the TGT's "
+                                    + "expiry cannot be further extended by refreshing, exiting refresh thread now.",
+                                expiryDate,
+                                principal,
+                                principal);
+                            return;
+                        }
+                        // determine how long to sleep from looking at ticket's expiry.
+                        // We should not allow the ticket to expire, but we should take into consideration
+                        // MIN_TIME_BEFORE_RELOGIN. Will not sleep less than MIN_TIME_BEFORE_RELOGIN, unless doing so
+                        // would cause ticket expiration.
+                        if ((nextRefresh > expiry) || ((now + MIN_TIME_BEFORE_RELOGIN) > expiry)) {
+                            // expiry is before next scheduled refresh).
+                            nextRefresh = now;
+                        } else {
+                            if (nextRefresh < (now + MIN_TIME_BEFORE_RELOGIN)) {
+                                // next scheduled refresh is sooner than (now + MIN_TIME_BEFORE_LOGIN).
+                                Date until = new Date(nextRefresh);
+                                Date newuntil = new Date(now + MIN_TIME_BEFORE_RELOGIN);
+                                LOG.warn(
+                                    "TGT refresh thread time adjusted from : {} to : {} since "
+                                        + "the former is sooner than the minimum refresh interval ("
+                                        + "{} seconds) from now.",
+                                    until,
+                                    newuntil,
+                                    (MIN_TIME_BEFORE_RELOGIN / 1000));
+                            }
+                            nextRefresh = Math.max(nextRefresh, now + MIN_TIME_BEFORE_RELOGIN);
+                        }
+                        nextRefreshDate = new Date(nextRefresh);
+                        if (nextRefresh > expiry) {
+                            LOG.error(
+                                "next refresh: {} is later than expiry {}."
+                                    + " This may indicate a clock skew problem."
+                                    + " Check that this host and the KDC's "
+                                    + "hosts' clocks are in sync. Exiting refresh thread.",
+                                nextRefreshDate,
+                                expiryDate);
+                            return;
+                        }
+                    }
+                    if (now == nextRefresh) {
+                        LOG.info("refreshing now because expiry is before next scheduled refresh time.");
+                    } else if (now < nextRefresh) {
+                        Date until = new Date(nextRefresh);
+                        LOG.info("TGT refresh sleeping until: {}", until.toString());
+                        try {
+                            Thread.sleep(nextRefresh - now);
+                        } catch (InterruptedException ie) {
+                            LOG.warn("TGT renewal thread has been interrupted and will exit.");
+                            break;
+                        }
+                    } else {
+                        LOG.error(
+                            "nextRefresh:{} is in the past: exiting refresh thread. Check"
+                                + " clock sync between this host and KDC - (KDC's clock is likely ahead of this host)."
+                                + " Manual intervention will be required for this client to successfully authenticate."
+                                + " Exiting refresh thread.",
+                            nextRefreshDate);
+                        break;
+                    }
+                    if (isUsingTicketCache) {
+                        String cmd = zkConfig.getProperty(ZKConfig.KINIT_COMMAND, KINIT_COMMAND_DEFAULT);
+                        String kinitArgs = "-R";
+                        int retry = 1;
+                        while (retry >= 0) {
+                            try {
+                                LOG.debug("running ticket cache refresh command: {} {}", cmd, kinitArgs);
+                                Shell.execCommand(cmd, kinitArgs);
+                                break;
+                            } catch (Exception e) {
+                                if (retry > 0) {
+                                    --retry;
+                                    // sleep for 10 seconds
+                                    try {
+                                        sleepBeforeRetryFailedRefresh();
+                                    } catch (InterruptedException ie) {
+                                        LOG.error("Interrupted while renewing TGT, exiting Login thread");
+                                        return;
+                                    }
+                                } else {
+                                    LOG.warn(
+                                        "Could not renew TGT due to problem running shell command: '{} {}'."
+                                            + " Exiting refresh thread.",
+                                        cmd,
+                                        kinitArgs,
+                                        e);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    try {
+                        int retry = 1;
+                        while (retry >= 0) {
+                            try {
+                                reLogin();
+                                break;
+                            } catch (LoginException le) {
+                                if (retry > 0) {
+                                    --retry;
+                                    // sleep for 10 seconds.
+                                    try {
+                                        sleepBeforeRetryFailedRefresh();
+                                    } catch (InterruptedException e) {
+                                        LOG.error("Interrupted during login retry after LoginException:", le);
+                                        throw le;
+                                    }
+                                } else {
+                                    LOG.error("Could not refresh TGT for principal: {}.", principal, le);
+                                }
+                            }
+                        }
+                    } catch (LoginException le) {
+                        LOG.error("Failed to refresh TGT: refresh thread exiting now.", le);
+                        break;
+                    }
+                }
+            }
+        });
+        t.setDaemon(true);
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/auth/SaslQuorumAuthServer, <init>(ZLjava/lang/String;Ljava/util/Set;)V > Context: Everywhere, blocks=[BB[SSA:43..43]20 - org.apache.zookeeper.server.quorum.auth.SaslQuorumAuthServer.<init>(ZLjava/lang/String;Ljava/util/Set;)V, BB[SSA:41..42]19 - org.apache.zookeeper.server.quorum.auth.SaslQuorumAuthServer.<init>(ZLjava/lang/String;Ljava/util/Set;)V, BB[SSA:44..44]21 - org.apache.zookeeper.server.quorum.auth.SaslQuorumAuthServer.<init>(ZLjava/lang/String;Ljava/util/Set;)V], numberOfBasicBlocks=3, firstLineNumber=60, lastLineNumber=60, firstMethodNumber=48, lastMethodNumber=65, isFirstLineValid=true, methodSrcCode=
+
+    public SaslQuorumAuthServer(boolean quorumRequireSasl, String loginContext, Set<String> authzHosts) throws SaslException {
+        this.quorumRequireSasl = quorumRequireSasl;
+        try {
+            AppConfigurationEntry[] entries = Configuration.getConfiguration().getAppConfigurationEntry(loginContext);
+            if (entries == null || entries.length == 0) {
+                throw new LoginException(String.format(
+                    "SASL-authentication failed because the specified JAAS configuration section '%s' could not be found.",
+                    loginContext));
+            }
+            SaslQuorumServerCallbackHandler saslServerCallbackHandler = new SaslQuorumServerCallbackHandler(
+                Configuration.getConfiguration(), loginContext, authzHosts);
+            serverLogin = new Login(loginContext, saslServerCallbackHandler, new ZKConfig());
+            serverLogin.startThreadIfNeeded();
+        } catch (Throwable e) {
+            throw new SaslException("Failed to initialize authentication mechanism using SASL", e);
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, configureSaslLogin()V > Context: Everywhere, blocks=[BB[SSA:97..97]47 - org.apache.zookeeper.server.ServerCnxnFactory.configureSaslLogin()V, BB[SSA:95..96]46 - org.apache.zookeeper.server.ServerCnxnFactory.configureSaslLogin()V, BB[SSA:98..98]48 - org.apache.zookeeper.server.ServerCnxnFactory.configureSaslLogin()V, BB[SSA:-1..-2]64 - org.apache.zookeeper.server.ServerCnxnFactory.configureSaslLogin()V], numberOfBasicBlocks=4, firstLineNumber=273, lastLineNumber=273, firstMethodNumber=236, lastMethodNumber=281, isFirstLineValid=true, methodSrcCode=
+    protected void configureSaslLogin() throws IOException {
+        String serverSection = System.getProperty(ZooKeeperSaslServer.LOGIN_CONTEXT_NAME_KEY, ZooKeeperSaslServer.DEFAULT_LOGIN_CONTEXT_NAME);
+
+        // Note that 'Configuration' here refers to javax.security.auth.login.Configuration.
+        AppConfigurationEntry[] entries = null;
+        SecurityException securityException = null;
+        try {
+            entries = Configuration.getConfiguration().getAppConfigurationEntry(serverSection);
+        } catch (SecurityException e) {
+            // handle below: might be harmless if the user doesn't intend to use JAAS authentication.
+            securityException = e;
+        }
+
+        // No entries in jaas.conf
+        // If there's a configuration exception fetching the jaas section and
+        // the user has required sasl by specifying a LOGIN_CONTEXT_NAME_KEY or a jaas file
+        // we throw an exception otherwise we continue without authentication.
+        if (entries == null) {
+            String jaasFile = System.getProperty(Environment.JAAS_CONF_KEY);
+            String loginContextName = System.getProperty(ZooKeeperSaslServer.LOGIN_CONTEXT_NAME_KEY);
+            if (securityException != null && (loginContextName != null || jaasFile != null)) {
+                String errorMessage = "No JAAS configuration section named '" + serverSection + "' was found";
+                if (jaasFile != null) {
+                    errorMessage += " in '" + jaasFile + "'.";
+                }
+                if (loginContextName != null) {
+                    errorMessage += " But " + ZooKeeperSaslServer.LOGIN_CONTEXT_NAME_KEY + " was set.";
+                }
+                LOG.error(errorMessage);
+                throw new IOException(errorMessage);
+            }
+            return;
+        }
+
+        // jaas.conf entry available
+        try {
+            saslServerCallbackHandler = new SaslServerCallbackHandler(Configuration.getConfiguration());
+            login = new Login(serverSection, saslServerCallbackHandler, new ZKConfig());
+            setLoginUser(login.getUserName());
+            login.startThreadIfNeeded();
+        } catch (LoginException e) {
+            throw new IOException("Could not configure server because SASL configuration did not allow the "
+                                  + " ZooKeeper server to authenticate itself properly: "
+                                  + e);
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/client/ZooKeeperSaslClient, createSaslClient(Ljava/lang/String;Ljava/lang/String;Ljava/util/concurrent/atomic/AtomicReference;)Ljavax/security/sasl/SaslClient; > Context: Everywhere, blocks=[BB[SSA:18..18]8 - org.apache.zookeeper.client.ZooKeeperSaslClient.createSaslClient(Ljava/lang/String;Ljava/lang/String;Ljava/util/concurrent/atomic/AtomicReference;)Ljavax/security/sasl/SaslClient;, BB[SSA:16..17]7 - org.apache.zookeeper.client.ZooKeeperSaslClient.createSaslClient(Ljava/lang/String;Ljava/lang/String;Ljava/util/concurrent/atomic/AtomicReference;)Ljavax/security/sasl/SaslClient;, BB[SSA:19..23]9 - org.apache.zookeeper.client.ZooKeeperSaslClient.createSaslClient(Ljava/lang/String;Ljava/lang/String;Ljava/util/concurrent/atomic/AtomicReference;)Ljavax/security/sasl/SaslClient;, BB[SSA:-1..-2]20 - org.apache.zookeeper.client.ZooKeeperSaslClient.createSaslClient(Ljava/lang/String;Ljava/lang/String;Ljava/util/concurrent/atomic/AtomicReference;)Ljavax/security/sasl/SaslClient;], numberOfBasicBlocks=4, firstLineNumber=245, lastLineNumber=246, firstMethodNumber=240, lastMethodNumber=258, isFirstLineValid=true, methodSrcCode=
+        try {
+            if (loginRef.get() == null) {
+                LOG.debug("JAAS loginContext is: {}", loginContext);
+                // note that the login object is static: it's shared amongst all zookeeper-related connections.
+                // in order to ensure the login is initialized only once, it must be synchronized the code snippet.
+                Login l = new Login(loginContext, new SaslClientCallbackHandler(null, "Client"), clientConfig);
+                if (loginRef.compareAndSet(null, l)) {
+                    l.startThreadIfNeeded();
+                }
+            }
+            return SecurityUtils.createSaslClient(loginRef.get().getSubject(),
+                servicePrincipal, "zookeeper", "zk-sasl-md5", LOG, "Client");
+        } catch (LoginException e) {
+            // We throw LoginExceptions...
+            throw e;
+        } catch (Exception e) {
+            // ...but consume (with a log message) all other types of exceptions.
+            LOG.error("Exception while trying to create SASL client.", e);
+            return null;
+        }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/auth/SaslQuorumAuthLearner, <init>(ZLjava/lang/String;Ljava/lang/String;)V > Context: Everywhere, blocks=[BB[SSA:43..43]20 - org.apache.zookeeper.server.quorum.auth.SaslQuorumAuthLearner.<init>(ZLjava/lang/String;Ljava/lang/String;)V, BB[SSA:41..42]19 - org.apache.zookeeper.server.quorum.auth.SaslQuorumAuthLearner.<init>(ZLjava/lang/String;Ljava/lang/String;)V, BB[SSA:44..44]21 - org.apache.zookeeper.server.quorum.auth.SaslQuorumAuthLearner.<init>(ZLjava/lang/String;Ljava/lang/String;)V, BB[SSA:-1..-2]29 - org.apache.zookeeper.server.quorum.auth.SaslQuorumAuthLearner.<init>(ZLjava/lang/String;Ljava/lang/String;)V], numberOfBasicBlocks=4, firstLineNumber=65, lastLineNumber=65, firstMethodNumber=54, lastMethodNumber=73, isFirstLineValid=true, methodSrcCode=
+        String quorumServicePrincipal,
+        String loginContext) throws SaslException {
+        this.quorumRequireSasl = quorumRequireSasl;
+        this.quorumServicePrincipal = quorumServicePrincipal;
+        try {
+            AppConfigurationEntry[] entries = Configuration.getConfiguration().getAppConfigurationEntry(loginContext);
+            if (entries == null || entries.length == 0) {
+                throw new LoginException(String.format(
+                    "SASL-authentication failed because the specified JAAS configuration section '%s' could not be found.",
+                    loginContext));
+            }
+            this.learnerLogin = new Login(
+                loginContext,
+                new SaslClientCallbackHandler(null, "QuorumLearner"),
+                new ZKConfig());
+            this.learnerLogin.startThreadIfNeeded();
+        } catch (LoginException e) {
+            throw new SaslException("Failed to initialize authentication mechanism using SASL", e);
+        }
+    }
+
+}

@@ -1,0 +1,3 @@
+public DataNode getNode(String path){
+  return nodes.get(path);
+}

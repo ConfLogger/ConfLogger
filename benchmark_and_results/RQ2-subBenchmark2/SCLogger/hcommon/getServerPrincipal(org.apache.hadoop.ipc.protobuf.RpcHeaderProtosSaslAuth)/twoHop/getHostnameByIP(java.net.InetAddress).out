@@ -1,0 +1,6 @@
+/** 
+ * Reverse lookup an IP address and get the fully qualified domain name(fqdn).
+ * @param address input address.
+ * @return fully qualified domain name
+ */
+String getHostnameByIP(InetAddress address);

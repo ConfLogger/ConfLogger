@@ -1,0 +1,42 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	MultiLatencyStat.java	methodSinagture:	org.apache.storm.metric.internal.MultiLatencyStat.getTimeLatAvg()Ljava/util/Map;	methodLines:	59:74
+blockLines:	67:-1
+paras:	null
+TaintedStat:	NORMAL getTimeLatAvg:conditional branch(ne, to iindex=58) 37,38 Node: < Application, Lorg/apache/storm/metric/internal/MultiLatencyStat, getTimeLatAvg()Ljava/util/Map; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/metric/internal/MultiLatencyStat, getTimeLatAvg()Ljava/util/Map; > Context: Everywhere[43]36 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,34 @113 exception:35
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/metric/internal/MultiLatencyStat, getTimeLatAvg()Ljava/util/Map; > Context: Everywhere[43]36 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,34 @113 exception:35
+NORMAL getTimeLatAvg:37 = checkcast <Application,Ljava/util/Map>36 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/metric/internal/MultiLatencyStat, getTimeLatAvg()Ljava/util/Map; > Context: Everywhere
+NORMAL getTimeLatAvg:conditional branch(ne, to iindex=58) 37,38 Node: < Application, Lorg/apache/storm/metric/internal/MultiLatencyStat, getTimeLatAvg()Ljava/util/Map; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public Map<String, Map<T, Double>> getTimeLatAvg() {
+        Map<String, Map<T, Double>> ret = new HashMap<>();
+        for (Map.Entry<T, LatencyStat> entry : lat.entrySet()) {
+            T key = entry.getKey();
+            Map<String, Double> toFlip = entry.getValue().getTimeLatAvg();
+            for (Map.Entry<String, Double> subEntry : toFlip.entrySet()) {
+                String time = subEntry.getKey();
+                Map<T, Double> tmp = ret.get(time);
+                if (tmp == null) {
+                    tmp = new HashMap<>();
+                    ret.put(time, tmp);
+                }
+                tmp.put(key, subEntry.getValue());
+            }
+        }
+        return ret;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/stats/CommonStats, valueStat(Lorg/apache/storm/metric/internal/MultiLatencyStat;)Ljava/util/Map; > Context: Everywhere, blocks=[BB[SSA:0..1]1 - org.apache.storm.stats.CommonStats.valueStat(Lorg/apache/storm/metric/internal/MultiLatencyStat;)Ljava/util/Map;, BB[SSA:-1..-2]0 - org.apache.storm.stats.CommonStats.valueStat(Lorg/apache/storm/metric/internal/MultiLatencyStat;)Ljava/util/Map;, BB[SSA:2..2]2 - org.apache.storm.stats.CommonStats.valueStat(Lorg/apache/storm/metric/internal/MultiLatencyStat;)Ljava/util/Map;, BB[SSA:-1..-2]3 - org.apache.storm.stats.CommonStats.valueStat(Lorg/apache/storm/metric/internal/MultiLatencyStat;)Ljava/util/Map;], numberOfBasicBlocks=4, firstLineNumber=75, lastLineNumber=76, firstMethodNumber=75, lastMethodNumber=76, isFirstLineValid=false, methodSrcCode=
+    protected Map<String, Map<String, Double>> valueStat(MultiLatencyStat metric) {
+        return metric.getTimeLatAvg();
+    }
+}

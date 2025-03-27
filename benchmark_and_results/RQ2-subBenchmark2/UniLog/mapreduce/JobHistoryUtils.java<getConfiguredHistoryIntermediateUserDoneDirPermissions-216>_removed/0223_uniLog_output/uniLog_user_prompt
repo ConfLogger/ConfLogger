@@ -1,0 +1,568 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>Configuration conf) {
+<Line#1>String userDoneDirPermissions = conf.get(
+<Line#2>JHAdminConfig.MR_HISTORY_INTERMEDIATE_USER_DONE_DIR_PERMISSIONS);
+<Line#3>if (userDoneDirPermissions == null) {
+<Line#4>return new FsPermission(
+<Line#5>JHAdminConfig.DEFAULT_MR_HISTORY_INTERMEDIATE_USER_DONE_DIR_PERMISSIONS);
+<Line#6>}
+<Line#7>FsPermission permission = new FsPermission(userDoneDirPermissions);
+<Line#8>if (permission.getUserAction() != FsAction.ALL ||
+<Line#9>permission.getGroupAction() != FsAction.ALL) {
+<Line#10>permission = new FsPermission(FsAction.ALL, FsAction.ALL,
+<Line#11>permission.getOtherAction(), permission.getStickyBit());
+<Line#12>}
+<Line#13>return permission;
+<Line#14>}
+
+Example 1:
+<Line#1>{
+<Line#2>  if (LOG.isDebugEnabled()) {
+<Line#3>    LOG.debug("Storing master key " + masterKey.getKeyId());
+<Line#4>  }
+<Line#5>  ByteArrayOutputStream memStream=new ByteArrayOutputStream();
+<Line#6>  DataOutputStream dataStream=new DataOutputStream(memStream);
+<Line#7>  try {
+<Line#8>    masterKey.write(dataStream);
+<Line#9>    dataStream.close();
+<Line#10>    dataStream=null;
+<Line#11>  }
+<Line#12>  finally {
+<Line#13>    IOUtils.cleanupWithLogger(LOG,dataStream);
+<Line#14>  }
+<Line#15>  String dbKey=getTokenMasterKeyDatabaseKey(masterKey);
+<Line#16>  try {
+<Line#17>    db.put(bytes(dbKey),memStream.toByteArray());
+<Line#18>  }
+<Line#19> catch (  DBException e) {
+<Line#20>    throw new IOException(e);
+<Line#21>  }
+<Line#22>}
+Label: <Line#3> LOG.debug("Storing master key " + masterKey.getKeyId())
+
+Example 2:
+<Line#1>{
+<Line#2>  createJobClassLoader(conf);
+<Line#3>  initJobCredentialsAndUGI(conf);
+<Line#4>  dispatcher=createDispatcher();
+<Line#5>  addIfService(dispatcher);
+<Line#6>  taskAttemptFinishingMonitor=createTaskAttemptFinishingMonitor(dispatcher.getEventHandler());
+<Line#7>  addIfService(taskAttemptFinishingMonitor);
+<Line#8>  context=new RunningAppContext(conf,taskAttemptFinishingMonitor);
+<Line#9>  appName=conf.get(MRJobConfig.JOB_NAME,"<missing app name>");
+<Line#10>  conf.setInt(MRJobConfig.APPLICATION_ATTEMPT_ID,appAttemptID.getAttemptId());
+<Line#11>  newApiCommitter=false;
+<Line#12>  jobId=MRBuilderUtils.newJobId(appAttemptID.getApplicationId(),appAttemptID.getApplicationId().getId());
+<Line#13>  int numReduceTasks=conf.getInt(MRJobConfig.NUM_REDUCES,0);
+<Line#14>  if ((numReduceTasks > 0 && conf.getBoolean("mapred.reducer.new-api",false)) || (numReduceTasks == 0 && conf.getBoolean("mapred.mapper.new-api",false))) {
+<Line#15>    newApiCommitter=true;
+<Line#16>    LOG.info("Using mapred newApiCommitter.");
+<Line#17>  }
+<Line#18>  boolean copyHistory=false;
+<Line#19>  committer=createOutputCommitter(conf);
+<Line#20>  try {
+<Line#21>    String user=UserGroupInformation.getCurrentUser().getShortUserName();
+<Line#22>    Path stagingDir=MRApps.getStagingAreaDir(conf,user);
+<Line#23>    FileSystem fs=getFileSystem(conf);
+<Line#24>    boolean stagingExists=fs.exists(stagingDir);
+<Line#25>    Path startCommitFile=MRApps.getStartJobCommitFile(conf,user,jobId);
+<Line#26>    boolean commitStarted=fs.exists(startCommitFile);
+<Line#27>    Path endCommitSuccessFile=MRApps.getEndJobCommitSuccessFile(conf,user,jobId);
+<Line#28>    boolean commitSuccess=fs.exists(endCommitSuccessFile);
+<Line#29>    Path endCommitFailureFile=MRApps.getEndJobCommitFailureFile(conf,user,jobId);
+<Line#30>    boolean commitFailure=fs.exists(endCommitFailureFile);
+<Line#31>    if (!stagingExists) {
+<Line#32>      isLastAMRetry=true;
+<Line#33>      LOG.info("Attempt num: " + appAttemptID.getAttemptId() + " is last retry: "+ isLastAMRetry+ " because the staging dir doesn't exist.");
+<Line#34>      errorHappenedShutDown=true;
+<Line#35>      forcedState=JobStateInternal.ERROR;
+<Line#36>      shutDownMessage="Staging dir does not exist " + stagingDir;
+<Line#37>      LOG.error(shutDownMessage);
+<Line#38>    }
+<Line#39> else     if (commitStarted) {
+<Line#40>      errorHappenedShutDown=true;
+<Line#41>      isLastAMRetry=true;
+<Line#42>      LOG.info("Attempt num: " + appAttemptID.getAttemptId() + " is last retry: "+ isLastAMRetry+ " because a commit was started.");
+<Line#43>      copyHistory=true;
+<Line#44>      if (commitSuccess) {
+<Line#45>        shutDownMessage="Job commit succeeded in a prior MRAppMaster attempt " + "before it crashed. Recovering.";
+<Line#46>        forcedState=JobStateInternal.SUCCEEDED;
+<Line#47>      }
+<Line#48> else       if (commitFailure) {
+<Line#49>        shutDownMessage="Job commit failed in a prior MRAppMaster attempt " + "before it crashed. Not retrying.";
+<Line#50>        forcedState=JobStateInternal.FAILED;
+<Line#51>      }
+<Line#52> else {
+<Line#53>        if (isCommitJobRepeatable()) {
+<Line#54>          errorHappenedShutDown=false;
+<Line#55>          cleanupInterruptedCommit(conf,fs,startCommitFile);
+<Line#56>        }
+<Line#57> else {
+<Line#58>          shutDownMessage="Job commit from a prior MRAppMaster attempt is " + "potentially in progress. Preventing multiple commit executions";
+<Line#59>          forcedState=JobStateInternal.ERROR;
+<Line#60>        }
+<Line#61>      }
+<Line#62>    }
+<Line#63>  }
+<Line#64> catch (  IOException e) {
+<Line#65>    throw new YarnRuntimeException("Error while initializing",e);
+<Line#66>  }
+<Line#67>  if (errorHappenedShutDown) {
+<Line#68>    NoopEventHandler eater=new NoopEventHandler();
+<Line#69>    dispatcher.register(JobEventType.class,eater);
+<Line#70>    EventHandler<JobHistoryEvent> historyService=null;
+<Line#71>    if (copyHistory) {
+<Line#72>      historyService=createJobHistoryHandler(context);
+<Line#73>      dispatcher.register(org.apache.hadoop.mapreduce.jobhistory.EventType.class,historyService);
+<Line#74>    }
+<Line#75> else {
+<Line#76>      dispatcher.register(org.apache.hadoop.mapreduce.jobhistory.EventType.class,eater);
+<Line#77>    }
+<Line#78>    if (copyHistory) {
+<Line#79>      addService(createStagingDirCleaningService());
+<Line#80>    }
+<Line#81>    containerAllocator=createContainerAllocator(null,context);
+<Line#82>    addIfService(containerAllocator);
+<Line#83>    dispatcher.register(ContainerAllocator.EventType.class,containerAllocator);
+<Line#84>    if (copyHistory) {
+<Line#85>      addIfService(historyService);
+<Line#86>      JobHistoryCopyService cpHist=new JobHistoryCopyService(appAttemptID,dispatcher.getEventHandler());
+<Line#87>      addIfService(cpHist);
+<Line#88>    }
+<Line#89>  }
+<Line#90> else {
+<Line#91>    clientService=createClientService(context);
+<Line#92>    clientService.init(conf);
+<Line#93>    containerAllocator=createContainerAllocator(clientService,context);
+<Line#94>    committerEventHandler=createCommitterEventHandler(context,committer);
+<Line#95>    addIfService(committerEventHandler);
+<Line#96>    callWithJobClassLoader(conf,new Action<Void>(){
+<Line#97>      public Void call(      Configuration conf){
+<Line#98>        preemptionPolicy=createPreemptionPolicy(conf);
+<Line#99>        preemptionPolicy.init(context);
+<Line#100>        return null;
+<Line#101>      }
+<Line#102>    }
+<Line#103>);
+<Line#104>    taskAttemptListener=createTaskAttemptListener(context,preemptionPolicy);
+<Line#105>    addIfService(taskAttemptListener);
+<Line#106>    EventHandler<JobHistoryEvent> historyService=createJobHistoryHandler(context);
+<Line#107>    dispatcher.register(org.apache.hadoop.mapreduce.jobhistory.EventType.class,historyService);
+<Line#108>    this.jobEventDispatcher=new JobEventDispatcher();
+<Line#109>    dispatcher.register(JobEventType.class,jobEventDispatcher);
+<Line#110>    dispatcher.register(TaskEventType.class,new TaskEventDispatcher());
+<Line#111>    dispatcher.register(TaskAttemptEventType.class,new TaskAttemptEventDispatcher());
+<Line#112>    dispatcher.register(CommitterEventType.class,committerEventHandler);
+<Line#113>    if (conf.getBoolean(MRJobConfig.MAP_SPECULATIVE,false) || conf.getBoolean(MRJobConfig.REDUCE_SPECULATIVE,false)) {
+<Line#114>      speculator=createSpeculator(conf,context);
+<Line#115>      addIfService(speculator);
+<Line#116>    }
+<Line#117>    speculatorEventDispatcher=new SpeculatorEventDispatcher(conf);
+<Line#118>    dispatcher.register(Speculator.EventType.class,speculatorEventDispatcher);
+<Line#119>    addService(createStagingDirCleaningService());
+<Line#120>    addIfService(containerAllocator);
+<Line#121>    dispatcher.register(ContainerAllocator.EventType.class,containerAllocator);
+<Line#122>    containerLauncher=createContainerLauncher(context);
+<Line#123>    addIfService(containerLauncher);
+<Line#124>    dispatcher.register(ContainerLauncher.EventType.class,containerLauncher);
+<Line#125>    addIfService(historyService);
+<Line#126>  }
+<Line#127>  super.serviceInit(conf);
+<Line#128>}
+Label: <Line#16> LOG.info("Using mapred newApiCommitter.")
+
+Example 3:
+<Line#1>{
+<Line#2>  createJobClassLoader(conf);
+<Line#3>  initJobCredentialsAndUGI(conf);
+<Line#4>  dispatcher=createDispatcher();
+<Line#5>  addIfService(dispatcher);
+<Line#6>  taskAttemptFinishingMonitor=createTaskAttemptFinishingMonitor(dispatcher.getEventHandler());
+<Line#7>  addIfService(taskAttemptFinishingMonitor);
+<Line#8>  context=new RunningAppContext(conf,taskAttemptFinishingMonitor);
+<Line#9>  appName=conf.get(MRJobConfig.JOB_NAME,"<missing app name>");
+<Line#10>  conf.setInt(MRJobConfig.APPLICATION_ATTEMPT_ID,appAttemptID.getAttemptId());
+<Line#11>  newApiCommitter=false;
+<Line#12>  jobId=MRBuilderUtils.newJobId(appAttemptID.getApplicationId(),appAttemptID.getApplicationId().getId());
+<Line#13>  int numReduceTasks=conf.getInt(MRJobConfig.NUM_REDUCES,0);
+<Line#14>  if ((numReduceTasks > 0 && conf.getBoolean("mapred.reducer.new-api",false)) || (numReduceTasks == 0 && conf.getBoolean("mapred.mapper.new-api",false))) {
+<Line#15>    newApiCommitter=true;
+<Line#16>    LOG.info("Using mapred newApiCommitter.");
+<Line#17>  }
+<Line#18>  boolean copyHistory=false;
+<Line#19>  committer=createOutputCommitter(conf);
+<Line#20>  try {
+<Line#21>    String user=UserGroupInformation.getCurrentUser().getShortUserName();
+<Line#22>    Path stagingDir=MRApps.getStagingAreaDir(conf,user);
+<Line#23>    FileSystem fs=getFileSystem(conf);
+<Line#24>    boolean stagingExists=fs.exists(stagingDir);
+<Line#25>    Path startCommitFile=MRApps.getStartJobCommitFile(conf,user,jobId);
+<Line#26>    boolean commitStarted=fs.exists(startCommitFile);
+<Line#27>    Path endCommitSuccessFile=MRApps.getEndJobCommitSuccessFile(conf,user,jobId);
+<Line#28>    boolean commitSuccess=fs.exists(endCommitSuccessFile);
+<Line#29>    Path endCommitFailureFile=MRApps.getEndJobCommitFailureFile(conf,user,jobId);
+<Line#30>    boolean commitFailure=fs.exists(endCommitFailureFile);
+<Line#31>    if (!stagingExists) {
+<Line#32>      isLastAMRetry=true;
+<Line#33>      LOG.info("Attempt num: " + appAttemptID.getAttemptId() + " is last retry: "+ isLastAMRetry+ " because the staging dir doesn't exist.");
+<Line#34>      errorHappenedShutDown=true;
+<Line#35>      forcedState=JobStateInternal.ERROR;
+<Line#36>      shutDownMessage="Staging dir does not exist " + stagingDir;
+<Line#37>      LOG.error(shutDownMessage);
+<Line#38>    }
+<Line#39> else     if (commitStarted) {
+<Line#40>      errorHappenedShutDown=true;
+<Line#41>      isLastAMRetry=true;
+<Line#42>      LOG.info("Attempt num: " + appAttemptID.getAttemptId() + " is last retry: "+ isLastAMRetry+ " because a commit was started.");
+<Line#43>      copyHistory=true;
+<Line#44>      if (commitSuccess) {
+<Line#45>        shutDownMessage="Job commit succeeded in a prior MRAppMaster attempt " + "before it crashed. Recovering.";
+<Line#46>        forcedState=JobStateInternal.SUCCEEDED;
+<Line#47>      }
+<Line#48> else       if (commitFailure) {
+<Line#49>        shutDownMessage="Job commit failed in a prior MRAppMaster attempt " + "before it crashed. Not retrying.";
+<Line#50>        forcedState=JobStateInternal.FAILED;
+<Line#51>      }
+<Line#52> else {
+<Line#53>        if (isCommitJobRepeatable()) {
+<Line#54>          errorHappenedShutDown=false;
+<Line#55>          cleanupInterruptedCommit(conf,fs,startCommitFile);
+<Line#56>        }
+<Line#57> else {
+<Line#58>          shutDownMessage="Job commit from a prior MRAppMaster attempt is " + "potentially in progress. Preventing multiple commit executions";
+<Line#59>          forcedState=JobStateInternal.ERROR;
+<Line#60>        }
+<Line#61>      }
+<Line#62>    }
+<Line#63>  }
+<Line#64> catch (  IOException e) {
+<Line#65>    throw new YarnRuntimeException("Error while initializing",e);
+<Line#66>  }
+<Line#67>  if (errorHappenedShutDown) {
+<Line#68>    NoopEventHandler eater=new NoopEventHandler();
+<Line#69>    dispatcher.register(JobEventType.class,eater);
+<Line#70>    EventHandler<JobHistoryEvent> historyService=null;
+<Line#71>    if (copyHistory) {
+<Line#72>      historyService=createJobHistoryHandler(context);
+<Line#73>      dispatcher.register(org.apache.hadoop.mapreduce.jobhistory.EventType.class,historyService);
+<Line#74>    }
+<Line#75> else {
+<Line#76>      dispatcher.register(org.apache.hadoop.mapreduce.jobhistory.EventType.class,eater);
+<Line#77>    }
+<Line#78>    if (copyHistory) {
+<Line#79>      addService(createStagingDirCleaningService());
+<Line#80>    }
+<Line#81>    containerAllocator=createContainerAllocator(null,context);
+<Line#82>    addIfService(containerAllocator);
+<Line#83>    dispatcher.register(ContainerAllocator.EventType.class,containerAllocator);
+<Line#84>    if (copyHistory) {
+<Line#85>      addIfService(historyService);
+<Line#86>      JobHistoryCopyService cpHist=new JobHistoryCopyService(appAttemptID,dispatcher.getEventHandler());
+<Line#87>      addIfService(cpHist);
+<Line#88>    }
+<Line#89>  }
+<Line#90> else {
+<Line#91>    clientService=createClientService(context);
+<Line#92>    clientService.init(conf);
+<Line#93>    containerAllocator=createContainerAllocator(clientService,context);
+<Line#94>    committerEventHandler=createCommitterEventHandler(context,committer);
+<Line#95>    addIfService(committerEventHandler);
+<Line#96>    callWithJobClassLoader(conf,new Action<Void>(){
+<Line#97>      public Void call(      Configuration conf){
+<Line#98>        preemptionPolicy=createPreemptionPolicy(conf);
+<Line#99>        preemptionPolicy.init(context);
+<Line#100>        return null;
+<Line#101>      }
+<Line#102>    }
+<Line#103>);
+<Line#104>    taskAttemptListener=createTaskAttemptListener(context,preemptionPolicy);
+<Line#105>    addIfService(taskAttemptListener);
+<Line#106>    EventHandler<JobHistoryEvent> historyService=createJobHistoryHandler(context);
+<Line#107>    dispatcher.register(org.apache.hadoop.mapreduce.jobhistory.EventType.class,historyService);
+<Line#108>    this.jobEventDispatcher=new JobEventDispatcher();
+<Line#109>    dispatcher.register(JobEventType.class,jobEventDispatcher);
+<Line#110>    dispatcher.register(TaskEventType.class,new TaskEventDispatcher());
+<Line#111>    dispatcher.register(TaskAttemptEventType.class,new TaskAttemptEventDispatcher());
+<Line#112>    dispatcher.register(CommitterEventType.class,committerEventHandler);
+<Line#113>    if (conf.getBoolean(MRJobConfig.MAP_SPECULATIVE,false) || conf.getBoolean(MRJobConfig.REDUCE_SPECULATIVE,false)) {
+<Line#114>      speculator=createSpeculator(conf,context);
+<Line#115>      addIfService(speculator);
+<Line#116>    }
+<Line#117>    speculatorEventDispatcher=new SpeculatorEventDispatcher(conf);
+<Line#118>    dispatcher.register(Speculator.EventType.class,speculatorEventDispatcher);
+<Line#119>    addService(createStagingDirCleaningService());
+<Line#120>    addIfService(containerAllocator);
+<Line#121>    dispatcher.register(ContainerAllocator.EventType.class,containerAllocator);
+<Line#122>    containerLauncher=createContainerLauncher(context);
+<Line#123>    addIfService(containerLauncher);
+<Line#124>    dispatcher.register(ContainerLauncher.EventType.class,containerLauncher);
+<Line#125>    addIfService(historyService);
+<Line#126>  }
+<Line#127>  super.serviceInit(conf);
+<Line#128>}
+Label: <Line#33> LOG.info("Attempt num: " + appAttemptID.getAttemptId() + " is last retry: "+ isLastAMRetry+ " because the staging dir doesn't exist.")
+
+Example 4:
+<Line#1>{
+<Line#2>  createJobClassLoader(conf);
+<Line#3>  initJobCredentialsAndUGI(conf);
+<Line#4>  dispatcher=createDispatcher();
+<Line#5>  addIfService(dispatcher);
+<Line#6>  taskAttemptFinishingMonitor=createTaskAttemptFinishingMonitor(dispatcher.getEventHandler());
+<Line#7>  addIfService(taskAttemptFinishingMonitor);
+<Line#8>  context=new RunningAppContext(conf,taskAttemptFinishingMonitor);
+<Line#9>  appName=conf.get(MRJobConfig.JOB_NAME,"<missing app name>");
+<Line#10>  conf.setInt(MRJobConfig.APPLICATION_ATTEMPT_ID,appAttemptID.getAttemptId());
+<Line#11>  newApiCommitter=false;
+<Line#12>  jobId=MRBuilderUtils.newJobId(appAttemptID.getApplicationId(),appAttemptID.getApplicationId().getId());
+<Line#13>  int numReduceTasks=conf.getInt(MRJobConfig.NUM_REDUCES,0);
+<Line#14>  if ((numReduceTasks > 0 && conf.getBoolean("mapred.reducer.new-api",false)) || (numReduceTasks == 0 && conf.getBoolean("mapred.mapper.new-api",false))) {
+<Line#15>    newApiCommitter=true;
+<Line#16>    LOG.info("Using mapred newApiCommitter.");
+<Line#17>  }
+<Line#18>  boolean copyHistory=false;
+<Line#19>  committer=createOutputCommitter(conf);
+<Line#20>  try {
+<Line#21>    String user=UserGroupInformation.getCurrentUser().getShortUserName();
+<Line#22>    Path stagingDir=MRApps.getStagingAreaDir(conf,user);
+<Line#23>    FileSystem fs=getFileSystem(conf);
+<Line#24>    boolean stagingExists=fs.exists(stagingDir);
+<Line#25>    Path startCommitFile=MRApps.getStartJobCommitFile(conf,user,jobId);
+<Line#26>    boolean commitStarted=fs.exists(startCommitFile);
+<Line#27>    Path endCommitSuccessFile=MRApps.getEndJobCommitSuccessFile(conf,user,jobId);
+<Line#28>    boolean commitSuccess=fs.exists(endCommitSuccessFile);
+<Line#29>    Path endCommitFailureFile=MRApps.getEndJobCommitFailureFile(conf,user,jobId);
+<Line#30>    boolean commitFailure=fs.exists(endCommitFailureFile);
+<Line#31>    if (!stagingExists) {
+<Line#32>      isLastAMRetry=true;
+<Line#33>      LOG.info("Attempt num: " + appAttemptID.getAttemptId() + " is last retry: "+ isLastAMRetry+ " because the staging dir doesn't exist.");
+<Line#34>      errorHappenedShutDown=true;
+<Line#35>      forcedState=JobStateInternal.ERROR;
+<Line#36>      shutDownMessage="Staging dir does not exist " + stagingDir;
+<Line#37>      LOG.error(shutDownMessage);
+<Line#38>    }
+<Line#39> else     if (commitStarted) {
+<Line#40>      errorHappenedShutDown=true;
+<Line#41>      isLastAMRetry=true;
+<Line#42>      LOG.info("Attempt num: " + appAttemptID.getAttemptId() + " is last retry: "+ isLastAMRetry+ " because a commit was started.");
+<Line#43>      copyHistory=true;
+<Line#44>      if (commitSuccess) {
+<Line#45>        shutDownMessage="Job commit succeeded in a prior MRAppMaster attempt " + "before it crashed. Recovering.";
+<Line#46>        forcedState=JobStateInternal.SUCCEEDED;
+<Line#47>      }
+<Line#48> else       if (commitFailure) {
+<Line#49>        shutDownMessage="Job commit failed in a prior MRAppMaster attempt " + "before it crashed. Not retrying.";
+<Line#50>        forcedState=JobStateInternal.FAILED;
+<Line#51>      }
+<Line#52> else {
+<Line#53>        if (isCommitJobRepeatable()) {
+<Line#54>          errorHappenedShutDown=false;
+<Line#55>          cleanupInterruptedCommit(conf,fs,startCommitFile);
+<Line#56>        }
+<Line#57> else {
+<Line#58>          shutDownMessage="Job commit from a prior MRAppMaster attempt is " + "potentially in progress. Preventing multiple commit executions";
+<Line#59>          forcedState=JobStateInternal.ERROR;
+<Line#60>        }
+<Line#61>      }
+<Line#62>    }
+<Line#63>  }
+<Line#64> catch (  IOException e) {
+<Line#65>    throw new YarnRuntimeException("Error while initializing",e);
+<Line#66>  }
+<Line#67>  if (errorHappenedShutDown) {
+<Line#68>    NoopEventHandler eater=new NoopEventHandler();
+<Line#69>    dispatcher.register(JobEventType.class,eater);
+<Line#70>    EventHandler<JobHistoryEvent> historyService=null;
+<Line#71>    if (copyHistory) {
+<Line#72>      historyService=createJobHistoryHandler(context);
+<Line#73>      dispatcher.register(org.apache.hadoop.mapreduce.jobhistory.EventType.class,historyService);
+<Line#74>    }
+<Line#75> else {
+<Line#76>      dispatcher.register(org.apache.hadoop.mapreduce.jobhistory.EventType.class,eater);
+<Line#77>    }
+<Line#78>    if (copyHistory) {
+<Line#79>      addService(createStagingDirCleaningService());
+<Line#80>    }
+<Line#81>    containerAllocator=createContainerAllocator(null,context);
+<Line#82>    addIfService(containerAllocator);
+<Line#83>    dispatcher.register(ContainerAllocator.EventType.class,containerAllocator);
+<Line#84>    if (copyHistory) {
+<Line#85>      addIfService(historyService);
+<Line#86>      JobHistoryCopyService cpHist=new JobHistoryCopyService(appAttemptID,dispatcher.getEventHandler());
+<Line#87>      addIfService(cpHist);
+<Line#88>    }
+<Line#89>  }
+<Line#90> else {
+<Line#91>    clientService=createClientService(context);
+<Line#92>    clientService.init(conf);
+<Line#93>    containerAllocator=createContainerAllocator(clientService,context);
+<Line#94>    committerEventHandler=createCommitterEventHandler(context,committer);
+<Line#95>    addIfService(committerEventHandler);
+<Line#96>    callWithJobClassLoader(conf,new Action<Void>(){
+<Line#97>      public Void call(      Configuration conf){
+<Line#98>        preemptionPolicy=createPreemptionPolicy(conf);
+<Line#99>        preemptionPolicy.init(context);
+<Line#100>        return null;
+<Line#101>      }
+<Line#102>    }
+<Line#103>);
+<Line#104>    taskAttemptListener=createTaskAttemptListener(context,preemptionPolicy);
+<Line#105>    addIfService(taskAttemptListener);
+<Line#106>    EventHandler<JobHistoryEvent> historyService=createJobHistoryHandler(context);
+<Line#107>    dispatcher.register(org.apache.hadoop.mapreduce.jobhistory.EventType.class,historyService);
+<Line#108>    this.jobEventDispatcher=new JobEventDispatcher();
+<Line#109>    dispatcher.register(JobEventType.class,jobEventDispatcher);
+<Line#110>    dispatcher.register(TaskEventType.class,new TaskEventDispatcher());
+<Line#111>    dispatcher.register(TaskAttemptEventType.class,new TaskAttemptEventDispatcher());
+<Line#112>    dispatcher.register(CommitterEventType.class,committerEventHandler);
+<Line#113>    if (conf.getBoolean(MRJobConfig.MAP_SPECULATIVE,false) || conf.getBoolean(MRJobConfig.REDUCE_SPECULATIVE,false)) {
+<Line#114>      speculator=createSpeculator(conf,context);
+<Line#115>      addIfService(speculator);
+<Line#116>    }
+<Line#117>    speculatorEventDispatcher=new SpeculatorEventDispatcher(conf);
+<Line#118>    dispatcher.register(Speculator.EventType.class,speculatorEventDispatcher);
+<Line#119>    addService(createStagingDirCleaningService());
+<Line#120>    addIfService(containerAllocator);
+<Line#121>    dispatcher.register(ContainerAllocator.EventType.class,containerAllocator);
+<Line#122>    containerLauncher=createContainerLauncher(context);
+<Line#123>    addIfService(containerLauncher);
+<Line#124>    dispatcher.register(ContainerLauncher.EventType.class,containerLauncher);
+<Line#125>    addIfService(historyService);
+<Line#126>  }
+<Line#127>  super.serviceInit(conf);
+<Line#128>}
+Label: <Line#37> LOG.error(shutDownMessage)
+
+Example 5:
+<Line#1>{
+<Line#2>  createJobClassLoader(conf);
+<Line#3>  initJobCredentialsAndUGI(conf);
+<Line#4>  dispatcher=createDispatcher();
+<Line#5>  addIfService(dispatcher);
+<Line#6>  taskAttemptFinishingMonitor=createTaskAttemptFinishingMonitor(dispatcher.getEventHandler());
+<Line#7>  addIfService(taskAttemptFinishingMonitor);
+<Line#8>  context=new RunningAppContext(conf,taskAttemptFinishingMonitor);
+<Line#9>  appName=conf.get(MRJobConfig.JOB_NAME,"<missing app name>");
+<Line#10>  conf.setInt(MRJobConfig.APPLICATION_ATTEMPT_ID,appAttemptID.getAttemptId());
+<Line#11>  newApiCommitter=false;
+<Line#12>  jobId=MRBuilderUtils.newJobId(appAttemptID.getApplicationId(),appAttemptID.getApplicationId().getId());
+<Line#13>  int numReduceTasks=conf.getInt(MRJobConfig.NUM_REDUCES,0);
+<Line#14>  if ((numReduceTasks > 0 && conf.getBoolean("mapred.reducer.new-api",false)) || (numReduceTasks == 0 && conf.getBoolean("mapred.mapper.new-api",false))) {
+<Line#15>    newApiCommitter=true;
+<Line#16>    LOG.info("Using mapred newApiCommitter.");
+<Line#17>  }
+<Line#18>  boolean copyHistory=false;
+<Line#19>  committer=createOutputCommitter(conf);
+<Line#20>  try {
+<Line#21>    String user=UserGroupInformation.getCurrentUser().getShortUserName();
+<Line#22>    Path stagingDir=MRApps.getStagingAreaDir(conf,user);
+<Line#23>    FileSystem fs=getFileSystem(conf);
+<Line#24>    boolean stagingExists=fs.exists(stagingDir);
+<Line#25>    Path startCommitFile=MRApps.getStartJobCommitFile(conf,user,jobId);
+<Line#26>    boolean commitStarted=fs.exists(startCommitFile);
+<Line#27>    Path endCommitSuccessFile=MRApps.getEndJobCommitSuccessFile(conf,user,jobId);
+<Line#28>    boolean commitSuccess=fs.exists(endCommitSuccessFile);
+<Line#29>    Path endCommitFailureFile=MRApps.getEndJobCommitFailureFile(conf,user,jobId);
+<Line#30>    boolean commitFailure=fs.exists(endCommitFailureFile);
+<Line#31>    if (!stagingExists) {
+<Line#32>      isLastAMRetry=true;
+<Line#33>      LOG.info("Attempt num: " + appAttemptID.getAttemptId() + " is last retry: "+ isLastAMRetry+ " because the staging dir doesn't exist.");
+<Line#34>      errorHappenedShutDown=true;
+<Line#35>      forcedState=JobStateInternal.ERROR;
+<Line#36>      shutDownMessage="Staging dir does not exist " + stagingDir;
+<Line#37>      LOG.error(shutDownMessage);
+<Line#38>    }
+<Line#39> else     if (commitStarted) {
+<Line#40>      errorHappenedShutDown=true;
+<Line#41>      isLastAMRetry=true;
+<Line#42>      LOG.info("Attempt num: " + appAttemptID.getAttemptId() + " is last retry: "+ isLastAMRetry+ " because a commit was started.");
+<Line#43>      copyHistory=true;
+<Line#44>      if (commitSuccess) {
+<Line#45>        shutDownMessage="Job commit succeeded in a prior MRAppMaster attempt " + "before it crashed. Recovering.";
+<Line#46>        forcedState=JobStateInternal.SUCCEEDED;
+<Line#47>      }
+<Line#48> else       if (commitFailure) {
+<Line#49>        shutDownMessage="Job commit failed in a prior MRAppMaster attempt " + "before it crashed. Not retrying.";
+<Line#50>        forcedState=JobStateInternal.FAILED;
+<Line#51>      }
+<Line#52> else {
+<Line#53>        if (isCommitJobRepeatable()) {
+<Line#54>          errorHappenedShutDown=false;
+<Line#55>          cleanupInterruptedCommit(conf,fs,startCommitFile);
+<Line#56>        }
+<Line#57> else {
+<Line#58>          shutDownMessage="Job commit from a prior MRAppMaster attempt is " + "potentially in progress. Preventing multiple commit executions";
+<Line#59>          forcedState=JobStateInternal.ERROR;
+<Line#60>        }
+<Line#61>      }
+<Line#62>    }
+<Line#63>  }
+<Line#64> catch (  IOException e) {
+<Line#65>    throw new YarnRuntimeException("Error while initializing",e);
+<Line#66>  }
+<Line#67>  if (errorHappenedShutDown) {
+<Line#68>    NoopEventHandler eater=new NoopEventHandler();
+<Line#69>    dispatcher.register(JobEventType.class,eater);
+<Line#70>    EventHandler<JobHistoryEvent> historyService=null;
+<Line#71>    if (copyHistory) {
+<Line#72>      historyService=createJobHistoryHandler(context);
+<Line#73>      dispatcher.register(org.apache.hadoop.mapreduce.jobhistory.EventType.class,historyService);
+<Line#74>    }
+<Line#75> else {
+<Line#76>      dispatcher.register(org.apache.hadoop.mapreduce.jobhistory.EventType.class,eater);
+<Line#77>    }
+<Line#78>    if (copyHistory) {
+<Line#79>      addService(createStagingDirCleaningService());
+<Line#80>    }
+<Line#81>    containerAllocator=createContainerAllocator(null,context);
+<Line#82>    addIfService(containerAllocator);
+<Line#83>    dispatcher.register(ContainerAllocator.EventType.class,containerAllocator);
+<Line#84>    if (copyHistory) {
+<Line#85>      addIfService(historyService);
+<Line#86>      JobHistoryCopyService cpHist=new JobHistoryCopyService(appAttemptID,dispatcher.getEventHandler());
+<Line#87>      addIfService(cpHist);
+<Line#88>    }
+<Line#89>  }
+<Line#90> else {
+<Line#91>    clientService=createClientService(context);
+<Line#92>    clientService.init(conf);
+<Line#93>    containerAllocator=createContainerAllocator(clientService,context);
+<Line#94>    committerEventHandler=createCommitterEventHandler(context,committer);
+<Line#95>    addIfService(committerEventHandler);
+<Line#96>    callWithJobClassLoader(conf,new Action<Void>(){
+<Line#97>      public Void call(      Configuration conf){
+<Line#98>        preemptionPolicy=createPreemptionPolicy(conf);
+<Line#99>        preemptionPolicy.init(context);
+<Line#100>        return null;
+<Line#101>      }
+<Line#102>    }
+<Line#103>);
+<Line#104>    taskAttemptListener=createTaskAttemptListener(context,preemptionPolicy);
+<Line#105>    addIfService(taskAttemptListener);
+<Line#106>    EventHandler<JobHistoryEvent> historyService=createJobHistoryHandler(context);
+<Line#107>    dispatcher.register(org.apache.hadoop.mapreduce.jobhistory.EventType.class,historyService);
+<Line#108>    this.jobEventDispatcher=new JobEventDispatcher();
+<Line#109>    dispatcher.register(JobEventType.class,jobEventDispatcher);
+<Line#110>    dispatcher.register(TaskEventType.class,new TaskEventDispatcher());
+<Line#111>    dispatcher.register(TaskAttemptEventType.class,new TaskAttemptEventDispatcher());
+<Line#112>    dispatcher.register(CommitterEventType.class,committerEventHandler);
+<Line#113>    if (conf.getBoolean(MRJobConfig.MAP_SPECULATIVE,false) || conf.getBoolean(MRJobConfig.REDUCE_SPECULATIVE,false)) {
+<Line#114>      speculator=createSpeculator(conf,context);
+<Line#115>      addIfService(speculator);
+<Line#116>    }
+<Line#117>    speculatorEventDispatcher=new SpeculatorEventDispatcher(conf);
+<Line#118>    dispatcher.register(Speculator.EventType.class,speculatorEventDispatcher);
+<Line#119>    addService(createStagingDirCleaningService());
+<Line#120>    addIfService(containerAllocator);
+<Line#121>    dispatcher.register(ContainerAllocator.EventType.class,containerAllocator);
+<Line#122>    containerLauncher=createContainerLauncher(context);
+<Line#123>    addIfService(containerLauncher);
+<Line#124>    dispatcher.register(ContainerLauncher.EventType.class,containerLauncher);
+<Line#125>    addIfService(historyService);
+<Line#126>  }
+<Line#127>  super.serviceInit(conf);
+<Line#128>}
+Label: <Line#42> LOG.info("Attempt num: " + appAttemptID.getAttemptId() + " is last retry: "+ isLastAMRetry+ " because a commit was started.")
+

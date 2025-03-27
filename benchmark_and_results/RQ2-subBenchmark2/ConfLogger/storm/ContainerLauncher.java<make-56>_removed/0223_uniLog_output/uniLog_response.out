@@ -1,0 +1,37 @@
+To insert a log level and log verbosity message into the given code, you can follow the examples provided. Let's add log messages to your target method code:
+
+```java
+<Line#0>org.apache.storm.generated.Supervisor.Iface localSupervisor) throws IOException {
+<Line#1>if (ConfigUtils.isLocalMode(conf)) {
+<Line#1.1>  LOG.info("Local mode detected. Initializing LocalContainerLauncher.");
+<Line#2>return new LocalContainerLauncher(conf, supervisorId, supervisorPort, sharedContext, metricsRegistry, containerMemoryTracker,
+<Line#3>localSupervisor);
+<Line#4>}
+<Line#5>
+<Line#6>ResourceIsolationInterface resourceIsolationManager;
+<Line#7>if (ObjectReader.getBoolean(conf.get(DaemonConfig.STORM_RESOURCE_ISOLATION_PLUGIN_ENABLE), false)) {
+<Line#7.1>  LOG.info("Resource isolation plugin enabled. Initializing custom ResourceIsolationManager.");
+<Line#8>resourceIsolationManager = ReflectionUtils.newInstance((String) conf.get(DaemonConfig.STORM_RESOURCE_ISOLATION_PLUGIN));
+<Line#9>
+<Line#10>} else {
+<Line#10.1>  LOG.info("Resource isolation plugin not enabled. Using DefaultResourceIsolationManager.");
+<Line#11>resourceIsolationManager = new DefaultResourceIsolationManager();
+<Line#12>
+<Line#13>}
+<Line#14>
+<Line#15>resourceIsolationManager.prepare(conf);
+<Line#15.1>  LOG.debug("ResourceIsolationManager prepared with configuration.");
+<Line#16>
+<Line#17>return new BasicContainerLauncher(conf, supervisorId, supervisorPort, resourceIsolationManager, metricsRegistry,
+<Line#18>containerMemoryTracker);
+```
+
+**Explanation:**
+
+- **Line#1.1**: Added a log message at the `info` level to indicate that the system is initializing a `LocalContainerLauncher` because it detected local mode.
+  
+- **Line#7.1**: Added a log message at the `info` level to indicate that the resource isolation plugin is enabled and a custom `ResourceIsolationManager` is being initialized.
+
+- **Line#10.1**: Added a log message at the `info` level to indicate that the default `ResourceIsolationManager` is being used because the resource isolation plugin is not enabled.
+
+- **Line#15.1**: Added a log message at the `debug` level to indicate that the `ResourceIsolationManager` has been prepared with the configuration. This message is at the `debug` level because it's more detailed and might be useful for developers when debugging.

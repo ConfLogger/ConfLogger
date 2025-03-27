@@ -1,0 +1,98 @@
+To add log level and log verbosity message to the given code, we will follow the pattern demonstrated in the examples. Here, we'll identify key points in the code where logging is appropriate and insert log statements accordingly.
+
+Let's add logging to your provided code snippet:
+
+```java
+<Line#0>boolean force, boolean interactive) throws IOException {
+<Line#1>String nsId = DFSUtil.getNamenodeNameServiceId(conf);
+<Line#2>LOG.debug("Namespace ID obtained: {}", nsId);
+<Line#3>String namenodeId = HAUtil.getNameNodeId(conf, nsId);
+<Line#4>LOG.debug("Namenode ID obtained: {}", namenodeId);
+<Line#5>initializeGenericKeys(conf, nsId, namenodeId);
+<Line#6>LOG.info("Initialized generic keys for namespace ID: {} and namenode ID: {}", nsId, namenodeId);
+<Line#7>
+<Line#8>if (conf.get(DFSConfigKeys.DFS_NAMENODE_SHARED_EDITS_DIR_KEY) == null) {
+<Line#9>LOG.warn("Shared edits directory is not configured.");
+<Line#10>return false;
+<Line#11>}
+<Line#12>
+<Line#13>if (UserGroupInformation.isSecurityEnabled()) {
+<Line#14>InetSocketAddress socAddr = DFSUtilClient.getNNAddress(conf);
+<Line#15>LOG.info("Security is enabled. Logging in with principal: {}", socAddr.getHostName());
+<Line#16>SecurityUtil.login(conf, DFS_NAMENODE_KEYTAB_FILE_KEY,
+<Line#17>DFS_NAMENODE_KERBEROS_PRINCIPAL_KEY, socAddr.getHostName());
+<Line#18>}
+<Line#19>
+<Line#20>NNStorage existingStorage = null;
+<Line#21>FSImage sharedEditsImage = null;
+<Line#22>try {
+<Line#23>FSNamesystem fsns =
+<Line#24>FSNamesystem.loadFromDisk(getConfigurationWithoutSharedEdits(conf));
+<Line#25>LOG.info("Loaded FSNamesystem from disk.");
+<Line#26>
+<Line#27>existingStorage = fsns.getFSImage().getStorage();
+<Line#28>NamespaceInfo nsInfo = existingStorage.getNamespaceInfo();
+<Line#29>LOG.debug("Namespace info obtained: {}", nsInfo);
+<Line#30>
+<Line#31>List<URI> sharedEditsDirs = FSNamesystem.getSharedEditsDirs(conf);
+<Line#32>LOG.info("Shared edits directories obtained: {}", sharedEditsDirs);
+<Line#33>
+<Line#34>sharedEditsImage = new FSImage(conf,
+<Line#35>Lists.<URI>newArrayList(),
+<Line#36>sharedEditsDirs);
+<Line#37>sharedEditsImage.getEditLog().initJournalsForWrite();
+<Line#38>LOG.info("Initialized journals for shared edits.");
+<Line#39>
+<Line#40>if (!sharedEditsImage.confirmFormat(force, interactive)) {
+<Line#41>LOG.warn("Format confirmation failed.");
+<Line#42>return true; // abort
+<Line#43>}
+<Line#44>
+<Line#45>NNStorage newSharedStorage = sharedEditsImage.getStorage();
+<Line#46>newSharedStorage.format(nsInfo);
+<Line#47>LOG.info("Formatted new shared storage with namespace info.");
+<Line#48>sharedEditsImage.getEditLog().formatNonFileJournals(nsInfo, force);
+<Line#49>LOG.info("Formatted non-file journals.");
+<Line#50>
+<Line#51>// Need to make sure the edit log segments are in good shape to initialize
+<Line#52>// the shared edits dir.
+<Line#53>fsns.getFSImage().getEditLog().close();
+<Line#54>fsns.getFSImage().getEditLog().initJournalsForWrite();
+<Line#55>fsns.getFSImage().getEditLog().recoverUnclosedStreams();
+<Line#56>LOG.info("Recovered unclosed edit log streams.");
+<Line#57>
+<Line#58>copyEditLogSegmentsToSharedDir(fsns, sharedEditsDirs, newSharedStorage,
+<Line#59>conf);
+<Line#60>LOG.info("Copied edit log segments to shared directory.");
+<Line#61>} catch (IOException ioe) {
+<Line#62>LOG.error("Could not initialize shared edits dir", ioe);
+<Line#63>return true; // aborted
+<Line#64>} finally {
+<Line#65>if (sharedEditsImage != null) {
+<Line#66>try {
+<Line#67>sharedEditsImage.close();
+<Line#68>LOG.info("Closed sharedEditsImage.");
+<Line#69>}  catch (IOException ioe) {
+<Line#70>LOG.warn("Could not close sharedEditsImage", ioe);
+<Line#71>}
+<Line#72>}
+<Line#73>// Have to unlock storage explicitly for the case when we're running in a
+<Line#74>// unit test, which runs in the same JVM as NNs.
+<Line#75>if (existingStorage != null) {
+<Line#76>try {
+<Line#77>existingStorage.unlockAll();
+<Line#78>LOG.info("Unlocked all storage directories.");
+<Line#79>} catch (IOException ioe) {
+<Line#80>LOG.warn("Could not unlock storage directories", ioe);
+<Line#81>return true; // aborted
+<Line#82>}
+<Line#83>}
+<Line#84>}
+<Line#85>return false; // did not abort
+<Line#86>}
+```
+
+In this updated code:
+- I've added `LOG.debug`, `LOG.info`, `LOG.warn`, and `LOG.error` statements to capture different levels of events.
+- The messages provide context about the operation being performed, which is useful for tracing and debugging.
+- The log messages are strategically placed to capture the flow of operations, including successful completions and exceptions.

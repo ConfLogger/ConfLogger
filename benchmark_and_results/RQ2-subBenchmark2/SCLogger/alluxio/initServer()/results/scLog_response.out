@@ -1,0 +1,37 @@
+<Line#0>:# LOG.info("Initializing server");:#
+<Line#4>:# LOG.debug("Creating new JournalStateMachine");:#
+<Line#6>:# LOG.debug("Creating new RaftProperties");:#
+<Line#7>:# LOG.debug("Creating new Parameters");:#
+<Line#10>:# LOG.debug("Setting RPC type");:#
+<Line#13>:# LOG.debug("Setting server port");:#
+<Line#16>:# LOG.debug("Migrating old journal if necessary");:#
+<Line#18>:# LOG.debug("Setting storage directory");:#
+<Line#21>:# LOG.debug("Setting segment size");:#
+<Line#24>:# LOG.debug("Segment size exceeds Integer.MAX_VALUE, setting to Integer.MAX_VALUE");:#
+<Line#26>:# LOG.debug("Setting max segment size");:#
+<Line#30>:# LOG.debug("Setting buffer byte limit");:#
+<Line#37>:# LOG.debug("Setting byte limit for write");:#
+<Line#44>:# LOG.debug("Setting queue byte limit");:#
+<Line#47>:# LOG.debug("Overriding election/heartbeat timeouts for single master cluster");:#
+<Line#56>:# LOG.debug("Setting election timeout");:#
+<Line#58>:# LOG.debug("Setting max election timeout");:#
+<Line#65>:# LOG.debug("Setting min RPC timeout");:#
+<Line#67>:# LOG.debug("Setting max RPC timeout");:#
+<Line#71>:# LOG.debug("Setting request timeout");:#
+<Line#75>:# LOG.debug("Setting retry cache expiry time");:#
+<Line#80>:# LOG.debug("Setting snapshot retention file number");:#
+<Line#83>:# LOG.debug("Setting unsafe flush");:#
+<Line#87>:# LOG.debug("Enabling auto trigger for snapshot");:#
+<Line#91>:# LOG.debug("Setting auto trigger threshold for snapshot");:#
+<Line#94>:# LOG.debug("Setting creation gap for snapshot");:#
+<Line#96>:# LOG.debug("Enabling local log compaction");:#
+<Line#98>:# LOG.debug("Setting purge upto snapshot index");:#
+<Line#101>:# LOG.debug("Setting purge gap");:#
+<Line#104>:# LOG.debug("Disabling install snapshot");:#
+<Line#118>:# LOG.debug("Disabling system exit");:#
+<Line#127>:# LOG.debug("Setting slowness timeout");:#
+<Line#129>:# LOG.debug("Setting leader step down wait time");:#
+<Line#134>:# LOG.debug("Setting max inbound message size");:#
+<Line#138>:# LOG.debug("Merging Alluxio Ratis configuration");:#
+<Line#142>:# LOG.debug("Building RaftServer");:#
+<Line#149>:# LOG.debug("Registering metrics");:#

@@ -1,0 +1,149 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	RMProxy.java	methodSinagture:	org.apache.hadoop.yarn.client.RMProxy.createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy;	methodLines:	224:303
+blockLines:	259:-1
+paras:	null
+TaintedStat:	NORMAL createRetryPolicy:conditional branch(ne, to iindex=68) 74,72 Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere[52]74 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getInt(Ljava/lang/String;I)I > 1,71,72 @94 exception:73
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere[52]74 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getInt(Ljava/lang/String;I)I > 1,71,72 @94 exception:73
+NORMAL createRetryPolicy:conditional branch(ne, to iindex=68) 74,72 Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	RMProxy.java	methodSinagture:	org.apache.hadoop.yarn.client.RMProxy.createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy;	methodLines:	224:303
+blockLines:	228:-1
+paras:	null
+TaintedStat:	NORMAL createRetryPolicy:conditional branch(ne, to iindex=11) 7,8 Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;Z)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere[3]7 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getLong(Ljava/lang/String;J)J > 1,4,5 @6 exception:6
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;Z)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere[3]7 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getLong(Ljava/lang/String;J)J > 1,4,5 @6 exception:6
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;Z)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere[14]13 = invokestatic < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy; > 1,7,11,2 @26 exception:12 v7
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere v2
+NORMAL createRetryPolicy:7 = compare 2,6 opcode=cmp Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere
+NORMAL createRetryPolicy:conditional branch(ne, to iindex=11) 7,8 Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	RMProxy.java	methodSinagture:	org.apache.hadoop.yarn.client.RMProxy.createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy;	methodLines:	224:303
+blockLines:	237:-1
+paras:	null
+TaintedStat:	NORMAL createRetryPolicy:conditional branch(ge, to iindex=36) 13,8 Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;Z)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere[8]11 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getLong(Ljava/lang/String;J)J > 1,8,9 @16 exception:10
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;Z)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere[8]11 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getLong(Ljava/lang/String;J)J > 1,8,9 @16 exception:10
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;Z)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere[14]13 = invokestatic < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy; > 1,7,11,2 @26 exception:12 v11
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere v3
+NORMAL createRetryPolicy:13 = compare 2,3 opcode=cmp Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere
+NORMAL createRetryPolicy:conditional branch(ge, to iindex=36) 13,8 Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;JJZ)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+      long retryTime, long retryInterval, boolean isHAEnabled) {
+    long rmConnectWaitMS = retryTime;
+    long rmConnectionRetryIntervalMS = retryInterval;
+
+    boolean waitForEver = (rmConnectWaitMS == -1);
+    if (!waitForEver) {
+      if (rmConnectWaitMS < 0) {
+        throw new YarnRuntimeException("Invalid Configuration. "
+            + YarnConfiguration.RESOURCEMANAGER_CONNECT_MAX_WAIT_MS
+            + " can be -1, but can not be other negative numbers");
+      }
+
+      // try connect once
+      if (rmConnectWaitMS < rmConnectionRetryIntervalMS) {
+        LOG.warn(YarnConfiguration.RESOURCEMANAGER_CONNECT_MAX_WAIT_MS
+            + " is smaller than "
+            + YarnConfiguration.RESOURCEMANAGER_CONNECT_RETRY_INTERVAL_MS
+            + ". Only try connect once.");
+        rmConnectWaitMS = 0;
+      }
+    }
+
+    // Handle HA case first
+    if (isHAEnabled) {
+      final long failoverSleepBaseMs = conf.getLong(
+          YarnConfiguration.CLIENT_FAILOVER_SLEEPTIME_BASE_MS,
+          rmConnectionRetryIntervalMS);
+
+      final long failoverSleepMaxMs = conf.getLong(
+          YarnConfiguration.CLIENT_FAILOVER_SLEEPTIME_MAX_MS,
+          rmConnectionRetryIntervalMS);
+
+      int maxFailoverAttempts = conf.getInt(
+          YarnConfiguration.CLIENT_FAILOVER_MAX_ATTEMPTS, -1);
+
+      if (maxFailoverAttempts == -1) {
+        if (waitForEver) {
+          maxFailoverAttempts = Integer.MAX_VALUE;
+        } else {
+          maxFailoverAttempts = (int) (rmConnectWaitMS / failoverSleepBaseMs);
+        }
+      }
+
+      return RetryPolicies.failoverOnNetworkException(
+          RetryPolicies.TRY_ONCE_THEN_FAIL, maxFailoverAttempts,
+          failoverSleepBaseMs, failoverSleepMaxMs);
+    }
+
+    if (rmConnectionRetryIntervalMS < 0) {
+      throw new YarnRuntimeException("Invalid Configuration. " +
+          YarnConfiguration.RESOURCEMANAGER_CONNECT_RETRY_INTERVAL_MS +
+          " should not be negative.");
+    }
+
+    RetryPolicy retryPolicy = null;
+    if (waitForEver) {
+      retryPolicy = RetryPolicies.retryForeverWithFixedSleep(
+          rmConnectionRetryIntervalMS, TimeUnit.MILLISECONDS);
+    } else {
+      retryPolicy =
+          RetryPolicies.retryUpToMaximumTimeWithFixedSleep(rmConnectWaitMS,
+              rmConnectionRetryIntervalMS, TimeUnit.MILLISECONDS);
+    }
+
+    Map<Class<? extends Exception>, RetryPolicy> exceptionToPolicyMap =
+        new HashMap<Class<? extends Exception>, RetryPolicy>();
+
+    exceptionToPolicyMap.put(EOFException.class, retryPolicy);
+    exceptionToPolicyMap.put(ConnectException.class, retryPolicy);
+    exceptionToPolicyMap.put(NoRouteToHostException.class, retryPolicy);
+    exceptionToPolicyMap.put(UnknownHostException.class, retryPolicy);
+    exceptionToPolicyMap.put(ConnectTimeoutException.class, retryPolicy);
+    exceptionToPolicyMap.put(RetriableException.class, retryPolicy);
+    exceptionToPolicyMap.put(SocketException.class, retryPolicy);
+    exceptionToPolicyMap.put(SocketTimeoutException.class, retryPolicy);
+    exceptionToPolicyMap.put(StandbyException.class, retryPolicy);
+    // YARN-4288: local IOException is also possible.
+    exceptionToPolicyMap.put(IOException.class, retryPolicy);
+    // Not retry on remote IO exception.
+    return RetryPolicies.retryOtherThanRemoteException(
+        RetryPolicies.TRY_ONCE_THEN_FAIL, exceptionToPolicyMap);
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRMProxy(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/Class;Lorg/apache/hadoop/yarn/client/RMProxy;JJ)Ljava/lang/Object; > Context: Everywhere, blocks=[BB[SSA:17..17]7 - org.apache.hadoop.yarn.client.RMProxy.createRMProxy(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/Class;Lorg/apache/hadoop/yarn/client/RMProxy;JJ)Ljava/lang/Object;, BB[SSA:11..16]6 - org.apache.hadoop.yarn.client.RMProxy.createRMProxy(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/Class;Lorg/apache/hadoop/yarn/client/RMProxy;JJ)Ljava/lang/Object;, BB[SSA:18..23]8 - org.apache.hadoop.yarn.client.RMProxy.createRMProxy(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/Class;Lorg/apache/hadoop/yarn/client/RMProxy;JJ)Ljava/lang/Object;, BB[SSA:-1..-2]10 - org.apache.hadoop.yarn.client.RMProxy.createRMProxy(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/Class;Lorg/apache/hadoop/yarn/client/RMProxy;JJ)Ljava/lang/Object;], numberOfBasicBlocks=4, firstLineNumber=117, lastLineNumber=122, firstMethodNumber=116, lastMethodNumber=122, isFirstLineValid=true, methodSrcCode=
+      final long retryInterval) throws IOException {
+    YarnConfiguration conf = (configuration instanceof YarnConfiguration)
+        ? (YarnConfiguration) configuration
+        : new YarnConfiguration(configuration);
+    RetryPolicy retryPolicy = createRetryPolicy(conf, retryTime, retryInterval,
+        HAUtil.isHAEnabled(conf));
+    return newProxyInstance(conf, protocol, instance, retryPolicy);
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;Z)Lorg/apache/hadoop/io/retry/RetryPolicy; > Context: Everywhere, blocks=[BB[SSA:9..14]3 - org.apache.hadoop.yarn.client.RMProxy.createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;Z)Lorg/apache/hadoop/io/retry/RetryPolicy;, BB[SSA:4..8]2 - org.apache.hadoop.yarn.client.RMProxy.createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;Z)Lorg/apache/hadoop/io/retry/RetryPolicy;, BB[SSA:15..15]4 - org.apache.hadoop.yarn.client.RMProxy.createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;Z)Lorg/apache/hadoop/io/retry/RetryPolicy;, BB[SSA:-1..-2]5 - org.apache.hadoop.yarn.client.RMProxy.createRetryPolicy(Lorg/apache/hadoop/conf/Configuration;Z)Lorg/apache/hadoop/io/retry/RetryPolicy;], numberOfBasicBlocks=4, firstLineNumber=206, lastLineNumber=215, firstMethodNumber=204, lastMethodNumber=215, isFirstLineValid=true, methodSrcCode=
+      boolean isHAEnabled) {
+    long rmConnectWaitMS =
+        conf.getLong(
+            YarnConfiguration.RESOURCEMANAGER_CONNECT_MAX_WAIT_MS,
+            YarnConfiguration.DEFAULT_RESOURCEMANAGER_CONNECT_MAX_WAIT_MS);
+    long rmConnectionRetryIntervalMS =
+        conf.getLong(
+            YarnConfiguration.RESOURCEMANAGER_CONNECT_RETRY_INTERVAL_MS,
+            YarnConfiguration
+                .DEFAULT_RESOURCEMANAGER_CONNECT_RETRY_INTERVAL_MS);
+
+    return createRetryPolicy(conf, rmConnectWaitMS, rmConnectionRetryIntervalMS,
+        isHAEnabled);
+}

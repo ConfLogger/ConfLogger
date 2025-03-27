@@ -1,0 +1,6 @@
+<Line#2>:# LOG.debug("Tick time in seconds: {}", tickTimeSecs);:#
+<Line#4>:# LOG.debug("Is Acker: {}", isAcker);:#
+<Line#9>:# LOG.debug("Initializing StormTimer task");:#
+<Line#18>:# LOG.debug("Publishing tick tuple to receive queue");:#
+<Line#19>:# LOG.debug("Flushing receive queue");:#
+<Line#22>:# LOG.debug("Thread interrupted");:#

@@ -1,0 +1,7 @@
+/** 
+ * Get units for the resource.
+ * @return units for the resource
+ */
+public String getUnits(){
+  return units;
+}

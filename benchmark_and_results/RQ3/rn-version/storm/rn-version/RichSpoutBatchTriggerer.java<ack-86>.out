@@ -1,0 +1,32 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	RichSpoutBatchTriggerer.java	methodSinagture:	org.apache.storm.trident.spout.RichSpoutBatchTriggerer.ack(Ljava/lang/Object;)V	methodLines:	86:96
+blockLines:	89:-1
+paras:	null
+TaintedStat:	NORMAL ack:conditional branch(eq, to iindex=37) 12,13 Node: < Application, Lorg/apache/storm/trident/spout/RichSpoutBatchTriggerer, ack(Ljava/lang/Object;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/trident/spout/RichSpoutBatchTriggerer, ack(Ljava/lang/Object;)V > Context: Everywhere[10]11 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 9,8 @22 exception:10
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/trident/spout/RichSpoutBatchTriggerer, ack(Ljava/lang/Object;)V > Context: Everywhere[10]11 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 9,8 @22 exception:10
+NORMAL ack:12 = checkcast <Application,Lorg/apache/storm/trident/spout/RichSpoutBatchTriggerer$FinishCondition>11 <Application,Lorg/apache/storm/trident/spout/RichSpoutBatchTriggerer$FinishCondition> Node: < Application, Lorg/apache/storm/trident/spout/RichSpoutBatchTriggerer, ack(Ljava/lang/Object;)V > Context: Everywhere
+NORMAL ack:conditional branch(eq, to iindex=37) 12,13 Node: < Application, Lorg/apache/storm/trident/spout/RichSpoutBatchTriggerer, ack(Ljava/lang/Object;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public void ack(Object msgId) {
+        Long batchId = msgIdToBatchId.remove((Long) msgId);
+        FinishCondition cond = finishConditions.get(batchId);
+        if (cond != null) {
+            cond.vals.remove((Long) msgId);
+            if (cond.vals.isEmpty()) {
+                finishConditions.remove(batchId);
+                delegate.ack(cond.msgId);
+            }
+        }
+    }
+
+
+
+====================ctx:=======================

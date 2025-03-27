@@ -1,0 +1,7 @@
+/** 
+ * Returns the bucket suffix component of the log dir.
+ * @return the bucket suffix which appended to user log dir
+ */
+public static String getBucketSuffix(){
+  return BUCKET_SUFFIX;
+}

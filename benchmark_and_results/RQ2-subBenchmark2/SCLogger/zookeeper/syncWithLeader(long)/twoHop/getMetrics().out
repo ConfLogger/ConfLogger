@@ -1,0 +1,7 @@
+/** 
+ * Access current ServerMetrics.
+ * @return a reference to the current Metrics
+ */
+public static ServerMetrics getMetrics(){
+  return CURRENT;
+}

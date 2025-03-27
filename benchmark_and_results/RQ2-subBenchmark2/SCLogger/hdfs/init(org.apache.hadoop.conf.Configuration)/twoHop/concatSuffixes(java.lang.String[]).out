@@ -1,0 +1,9 @@
+/** 
+ * Concatenate list of suffix strings '.' separated 
+ */
+static String concatSuffixes(String... suffixes){
+  if (suffixes == null) {
+    return null;
+  }
+  return Joiner.on(".").skipNulls().join(suffixes);
+}

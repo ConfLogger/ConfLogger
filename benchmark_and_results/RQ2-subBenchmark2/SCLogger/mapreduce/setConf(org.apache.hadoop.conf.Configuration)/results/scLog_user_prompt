@@ -1,0 +1,235 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> public void setConf(Configuration conf) {
+<Line#1> this.conf = conf;
+<Line#2> keyFieldHelper = new KeyFieldHelper();
+<Line#3> String keyFieldSeparator =
+<Line#4> conf.get(MRJobConfig.MAP_OUTPUT_KEY_FIELD_SEPARATOR, "\t");
+<Line#5> keyFieldHelper.setKeyFieldSeparator(keyFieldSeparator);
+<Line#6> if (conf.get("num.key.fields.for.partition") != null) {
+<Line#7> this.numOfPartitionFields = conf.getInt("num.key.fields.for.partition",0);
+<Line#8> keyFieldHelper.setKeyFieldSpec(1,numOfPartitionFields);
+<Line#9> } else {
+<Line#10> String option = conf.get(PARTITIONER_OPTIONS);
+<Line#11> keyFieldHelper.parseOption(option);
+<Line#12> }
+<Line#13> }
+
+Related Context:
+Method A:
+<Line#0> public void parseOption(String option){
+<Line#1>   if (option == null || option.equals("")) {
+<Line#2>     return;
+<Line#3>   }
+<Line#4>   StringTokenizer args=new StringTokenizer(option);
+<Line#5>   KeyDescription global=new KeyDescription();
+<Line#6>   while (args.hasMoreTokens()) {
+<Line#7>     String arg=args.nextToken();
+<Line#8>     if (arg.equals("-n")) {
+<Line#9>       global.numeric=true;
+<Line#10>     }
+<Line#11>     if (arg.equals("-r")) {
+<Line#12>       global.reverse=true;
+<Line#13>     }
+<Line#14>     if (arg.equals("-nr")) {
+<Line#15>       global.numeric=true;
+<Line#16>       global.reverse=true;
+<Line#17>     }
+<Line#18>     if (arg.startsWith("-k")) {
+<Line#19>       KeyDescription k=parseKey(arg,args);
+<Line#20>       if (k != null) {
+<Line#21>         allKeySpecs.add(k);
+<Line#22>         keySpecSeen=true;
+<Line#23>       }
+<Line#24>     }
+<Line#25>   }
+<Line#26>   for (  KeyDescription key : allKeySpecs) {
+<Line#27>     if (!(key.reverse | key.numeric)) {
+<Line#28>       key.reverse=global.reverse;
+<Line#29>       key.numeric=global.numeric;
+<Line#30>     }
+<Line#31>   }
+<Line#32>   if (allKeySpecs.size() == 0) {
+<Line#33>     allKeySpecs.add(global);
+<Line#34>   }
+<Line#35> }
+<Line#36> 
+Method B:
+<Line#0> public void setKeyFieldSeparator(String keyFieldSeparator){
+<Line#1>   try {
+<Line#2>     this.keyFieldSeparator=keyFieldSeparator.getBytes("UTF-8");
+<Line#3>   }
+<Line#4>  catch (  UnsupportedEncodingException e) {
+<Line#5>     throw new RuntimeException("The current system does not " + "support UTF-8 encoding!",e);
+<Line#6>   }
+<Line#7> }
+<Line#8> 
+
+Relevant Logging Patterns:
+Example 1:
+File: mapreduce__createNativeObject-81__.json
+Code:
+<Line#1>{
+<Line#2>  assertNativeLibraryLoaded();
+<Line#3>  final long ret=JNICreateNativeObject(clazz.getBytes(Charsets.UTF_8));
+<Line#4>  if (ret == 0) {
+<Line#5>    LOG.warn("Can't create NativeObject for class " + clazz + ", probably not exist.");
+<Line#6>  }
+<Line#7>  return ret;
+<Line#8>}
+Log: <Line#5>:# LOG.warn("Can't create NativeObject for class " + clazz + ", probably not exist."):#
+
+Example 2:
+File: mapreduce__createControlFile-122__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("creating control file: " + fileSize + " mega bytes, "+ nrFiles+ " files");
+<Line#3>  fs.delete(CONTROL_DIR,true);
+<Line#4>  for (int i=0; i < nrFiles; i++) {
+<Line#5>    String name=getFileName(i);
+<Line#6>    Path controlFile=new Path(CONTROL_DIR,"in_file_" + name);
+<Line#7>    SequenceFile.Writer writer=null;
+<Line#8>    try {
+<Line#9>      writer=SequenceFile.createWriter(fs,fsConfig,controlFile,Text.class,LongWritable.class,CompressionType.NONE);
+<Line#10>      writer.append(new Text(name),new LongWritable(fileSize));
+<Line#11>    }
+<Line#12> catch (    Exception e) {
+<Line#13>      throw new IOException(e.getLocalizedMessage());
+<Line#14>    }
+<Line#15> finally {
+<Line#16>      if (writer != null)       writer.close();
+<Line#17>      writer=null;
+<Line#18>    }
+<Line#19>  }
+<Line#20>  LOG.info("created control files for: " + nrFiles + " files");
+<Line#21>}
+Log: <Line#2>:# LOG.info("creating control file: " + fileSize + " mega bytes, "+ nrFiles+ " files"):#
+
+Example 3:
+File: mapreduce__createControlFile-122__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("creating control file: " + fileSize + " mega bytes, "+ nrFiles+ " files");
+<Line#3>  fs.delete(CONTROL_DIR,true);
+<Line#4>  for (int i=0; i < nrFiles; i++) {
+<Line#5>    String name=getFileName(i);
+<Line#6>    Path controlFile=new Path(CONTROL_DIR,"in_file_" + name);
+<Line#7>    SequenceFile.Writer writer=null;
+<Line#8>    try {
+<Line#9>      writer=SequenceFile.createWriter(fs,fsConfig,controlFile,Text.class,LongWritable.class,CompressionType.NONE);
+<Line#10>      writer.append(new Text(name),new LongWritable(fileSize));
+<Line#11>    }
+<Line#12> catch (    Exception e) {
+<Line#13>      throw new IOException(e.getLocalizedMessage());
+<Line#14>    }
+<Line#15> finally {
+<Line#16>      if (writer != null)       writer.close();
+<Line#17>      writer=null;
+<Line#18>    }
+<Line#19>  }
+<Line#20>  LOG.info("created control files for: " + nrFiles + " files");
+<Line#21>}
+Log: <Line#20>:# LOG.info("created control files for: " + nrFiles + " files"):#
+
+Example 4:
+File: mapreduce__addMap-1106__.json
+Code:
+<Line#1>{
+<Line#2>  ContainerRequest request=null;
+<Line#3>  if (event.getEarlierAttemptFailed()) {
+<Line#4>    earlierFailedMaps.add(event.getAttemptID());
+<Line#5>    request=new ContainerRequest(event,PRIORITY_FAST_FAIL_MAP,mapNodeLabelExpression);
+<Line#6>    LOG.info("Added " + event.getAttemptID() + " to list of failed maps");
+<Line#7>    maps.put(event.getAttemptID(),request);
+<Line#8>    addContainerReq(request);
+<Line#9>  }
+<Line#10> else {
+<Line#11>    if (mapsMod100 < numOpportunisticMapsPercent) {
+<Line#12>      request=new ContainerRequest(event,PRIORITY_OPPORTUNISTIC_MAP,mapNodeLabelExpression);
+<Line#13>      maps.put(event.getAttemptID(),request);
+<Line#14>      addOpportunisticResourceRequest(request.priority,request.capability);
+<Line#15>    }
+<Line#16> else {
+<Line#17>      request=new ContainerRequest(event,PRIORITY_MAP,mapNodeLabelExpression);
+<Line#18>      for (      String host : event.getHosts()) {
+<Line#19>        LinkedList<TaskAttemptId> list=mapsHostMapping.get(host);
+<Line#20>        if (list == null) {
+<Line#21>          list=new LinkedList<TaskAttemptId>();
+<Line#22>          mapsHostMapping.put(host,list);
+<Line#23>        }
+<Line#24>        list.add(event.getAttemptID());
+<Line#25>        if (LOG.isDebugEnabled()) {
+<Line#26>          LOG.debug("Added attempt req to host " + host);
+<Line#27>        }
+<Line#28>      }
+<Line#29>      for (      String rack : event.getRacks()) {
+<Line#30>        LinkedList<TaskAttemptId> list=mapsRackMapping.get(rack);
+<Line#31>        if (list == null) {
+<Line#32>          list=new LinkedList<TaskAttemptId>();
+<Line#33>          mapsRackMapping.put(rack,list);
+<Line#34>        }
+<Line#35>        list.add(event.getAttemptID());
+<Line#36>        if (LOG.isDebugEnabled()) {
+<Line#37>          LOG.debug("Added attempt req to rack " + rack);
+<Line#38>        }
+<Line#39>      }
+<Line#40>      maps.put(event.getAttemptID(),request);
+<Line#41>      addContainerReq(request);
+<Line#42>    }
+<Line#43>    mapsMod100++;
+<Line#44>    mapsMod100%=100;
+<Line#45>  }
+<Line#46>}
+Log: <Line#6>:# LOG.info("Added " + event.getAttemptID() + " to list of failed maps"):#
+
+Example 5:
+File: mapreduce__addMap-1106__.json
+Code:
+<Line#1>{
+<Line#2>  ContainerRequest request=null;
+<Line#3>  if (event.getEarlierAttemptFailed()) {
+<Line#4>    earlierFailedMaps.add(event.getAttemptID());
+<Line#5>    request=new ContainerRequest(event,PRIORITY_FAST_FAIL_MAP,mapNodeLabelExpression);
+<Line#6>    LOG.info("Added " + event.getAttemptID() + " to list of failed maps");
+<Line#7>    maps.put(event.getAttemptID(),request);
+<Line#8>    addContainerReq(request);
+<Line#9>  }
+<Line#10> else {
+<Line#11>    if (mapsMod100 < numOpportunisticMapsPercent) {
+<Line#12>      request=new ContainerRequest(event,PRIORITY_OPPORTUNISTIC_MAP,mapNodeLabelExpression);
+<Line#13>      maps.put(event.getAttemptID(),request);
+<Line#14>      addOpportunisticResourceRequest(request.priority,request.capability);
+<Line#15>    }
+<Line#16> else {
+<Line#17>      request=new ContainerRequest(event,PRIORITY_MAP,mapNodeLabelExpression);
+<Line#18>      for (      String host : event.getHosts()) {
+<Line#19>        LinkedList<TaskAttemptId> list=mapsHostMapping.get(host);
+<Line#20>        if (list == null) {
+<Line#21>          list=new LinkedList<TaskAttemptId>();
+<Line#22>          mapsHostMapping.put(host,list);
+<Line#23>        }
+<Line#24>        list.add(event.getAttemptID());
+<Line#25>        if (LOG.isDebugEnabled()) {
+<Line#26>          LOG.debug("Added attempt req to host " + host);
+<Line#27>        }
+<Line#28>      }
+<Line#29>      for (      String rack : event.getRacks()) {
+<Line#30>        LinkedList<TaskAttemptId> list=mapsRackMapping.get(rack);
+<Line#31>        if (list == null) {
+<Line#32>          list=new LinkedList<TaskAttemptId>();
+<Line#33>          mapsRackMapping.put(rack,list);
+<Line#34>        }
+<Line#35>        list.add(event.getAttemptID());
+<Line#36>        if (LOG.isDebugEnabled()) {
+<Line#37>          LOG.debug("Added attempt req to rack " + rack);
+<Line#38>        }
+<Line#39>      }
+<Line#40>      maps.put(event.getAttemptID(),request);
+<Line#41>      addContainerReq(request);
+<Line#42>    }
+<Line#43>    mapsMod100++;
+<Line#44>    mapsMod100%=100;
+<Line#45>  }
+<Line#46>}
+Log: <Line#26>:# LOG.debug("Added attempt req to host " + host):#

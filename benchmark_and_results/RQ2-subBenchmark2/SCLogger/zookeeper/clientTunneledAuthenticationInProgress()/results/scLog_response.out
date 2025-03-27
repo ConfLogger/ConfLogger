@@ -1,0 +1,5 @@
+<Line#16>:# LOG.info("Authentication in progress, successful, or failed."):#
+<Line#20>:# LOG.info("Authentication hasn't finished yet."):#
+<Line#27>:# LOG.info("SASL authentication still in progress."):#
+<Line#33>:# LOG.info("Client not configured to use a tunnelled authentication scheme, or authentication has completed."):#
+<Line#38>:# LOG.info("SecurityException caught, returning false."):#

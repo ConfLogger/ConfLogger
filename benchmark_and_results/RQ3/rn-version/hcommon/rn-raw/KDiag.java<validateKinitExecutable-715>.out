@@ -1,0 +1,177 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	KDiag.java	methodSinagture:	org.apache.hadoop.security.KDiag.validateKinitExecutable()V	methodLines:	715:727
+blockLines:	717:-1
+paras:	null
+TaintedStat:	NORMAL validateKinitExecutable:conditional branch(ne, to iindex=51) 10,11 Node: < Application, Lorg/apache/hadoop/security/KDiag, validateKinitExecutable()V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/KDiag, validateKinitExecutable()V > Context: Everywhere[4]8 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getTrimmed(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 4,5,6 @8 exception:7
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/KDiag, validateKinitExecutable()V > Context: Everywhere[4]8 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getTrimmed(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 4,5,6 @8 exception:7
+NORMAL validateKinitExecutable:10 = invokevirtual < Application, Ljava/lang/String, isEmpty()Z > 8 @13 exception:9 Node: < Application, Lorg/apache/hadoop/security/KDiag, validateKinitExecutable()V > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, isEmpty()Z > Context: Everywhere
+NORMAL isEmpty:return 7 Node: < Primordial, Ljava/lang/String, isEmpty()Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, isEmpty()Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/KDiag, validateKinitExecutable()V > Context: Everywhere[7]10 = invokevirtual < Application, Ljava/lang/String, isEmpty()Z > 8 @13 exception:9
+NORMAL validateKinitExecutable:conditional branch(ne, to iindex=51) 10,11 Node: < Application, Lorg/apache/hadoop/security/KDiag, validateKinitExecutable()V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  private void validateKinitExecutable() {
+    String kinit = getConf().getTrimmed(KERBEROS_KINIT_COMMAND, "");
+    if (!kinit.isEmpty()) {
+      File kinitPath = new File(kinit);
+      println("%s = %s", KERBEROS_KINIT_COMMAND, kinitPath);
+      if (kinitPath.isAbsolute()) {
+        verifyFileIsValid(kinitPath, CAT_KERBEROS, KERBEROS_KINIT_COMMAND);
+      } else {
+        println("Executable %s is relative -must be on the PATH", kinit);
+        printEnv("PATH");
+      }
+    }
+  }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/security/KDiag, execute()Z > Context: Everywhere, blocks=[BB[SSA:405..406]143 - org.apache.hadoop.security.KDiag.execute()Z, BB[SSA:400..401]141 - org.apache.hadoop.security.KDiag.execute()Z, BB[SSA:402..404]142 - org.apache.hadoop.security.KDiag.execute()Z, BB[SSA:407..409]144 - org.apache.hadoop.security.KDiag.execute()Z], numberOfBasicBlocks=4, firstLineNumber=388, lastLineNumber=392, firstMethodNumber=284, lastMethodNumber=419, isFirstLineValid=true, methodSrcCode=
+
+    title("Kerberos Diagnostics scan at %s",
+        new Date(System.currentTimeMillis()));
+
+    // check that the machine has a name
+    println("Hostname = %s",
+        InetAddress.getLocalHost().getCanonicalHostName());
+
+    println("%s = %d", ARG_KEYLEN, minKeyLength);
+    println("%s = %s", ARG_KEYTAB, keytab);
+    println("%s = %s", ARG_PRINCIPAL, principal);
+    println("%s = %s", ARG_VERIFYSHORTNAME, checkShortName);
+
+    // Fail fast on a JVM without JCE installed.
+    validateKeyLength();
+
+    // look at realm
+    println("JVM Kerberos Login Module = %s", getKrb5LoginModuleName());
+
+    title("Core System Properties");
+    for (String prop : new String[]{
+      "user.name",
+      "java.version",
+      "java.vendor",
+      JAVA_SECURITY_KRB5_CONF,
+      JAVA_SECURITY_KRB5_REALM,
+      JAVA_SECURITY_KRB5_KDC_ADDRESS,
+      SUN_SECURITY_KRB5_DEBUG,
+      SUN_SECURITY_SPNEGO_DEBUG,
+      SUN_SECURITY_JAAS_FILE
+    }) {
+      printSysprop(prop);
+    }
+    endln();
+
+    title("All System Properties");
+    ArrayList<String> propList = new ArrayList<>(
+        System.getProperties().stringPropertyNames());
+    Collections.sort(propList, String.CASE_INSENSITIVE_ORDER);
+    for (String s : propList) {
+      printSysprop(s);
+    }
+    endln();
+
+    title("Environment Variables");
+    for (String env : new String[]{
+        HADOOP_JAAS_DEBUG,
+        KRB5_CCNAME,
+        KRB5_CONFIG,
+        HADOOP_USER_NAME,
+        HADOOP_PROXY_USER,
+        HADOOP_TOKEN_FILE_LOCATION,
+        "HADOOP_SECURE_LOG",
+        "HADOOP_OPTS",
+        "HADOOP_CLIENT_OPTS",
+    }) {
+      printEnv(env);
+    }
+    endln();
+
+    title("Configuration Options");
+    for (String prop : new String[]{
+      KERBEROS_KINIT_COMMAND,
+      HADOOP_SECURITY_AUTHENTICATION,
+      HADOOP_SECURITY_AUTHORIZATION,
+      "hadoop.kerberos.min.seconds.before.relogin",    // not in 2.6
+      "hadoop.security.dns.interface",   // not in 2.6
+      "hadoop.security.dns.nameserver",  // not in 2.6
+      HADOOP_RPC_PROTECTION,
+      HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS,
+      HADOOP_SECURITY_CRYPTO_CODEC_CLASSES_KEY_PREFIX,
+      HADOOP_SECURITY_GROUP_MAPPING,
+      "hadoop.security.impersonation.provider.class",    // not in 2.6
+      DFS_DATA_TRANSFER_PROTECTION, // HDFS
+      DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS // HDFS
+    }) {
+      printConfOpt(prop);
+    }
+
+    // check that authentication is enabled
+    Configuration conf = getConf();
+    if (isSimpleAuthentication(conf)) {
+      println(HADOOP_AUTHENTICATION_IS_DISABLED);
+      failif(securityRequired, CAT_CONFIG, HADOOP_AUTHENTICATION_IS_DISABLED);
+      // no security, warn
+      LOG.warn("Security is not enabled for the Hadoop cluster");
+    } else {
+      if (isSimpleAuthentication(new Configuration())) {
+        LOG.warn("The default cluster security is insecure");
+        failif(securityRequired, CAT_CONFIG, HADOOP_AUTHENTICATION_IS_DISABLED);
+      }
+    }
+
+
+    // now the big test: login, then try again
+    boolean krb5Debug = getAndSet(SUN_SECURITY_KRB5_DEBUG);
+    boolean spnegoDebug = getAndSet(SUN_SECURITY_SPNEGO_DEBUG);
+
+    try {
+      UserGroupInformation.setConfiguration(conf);
+      validateHadoopTokenFiles(conf);
+      validateKrb5File();
+      printDefaultRealm();
+      validateSasl(HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS);
+      if (conf.get(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS) != null) {
+        validateSasl(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS);
+      }
+      validateKinitExecutable();
+      validateJAAS(jaas);
+      validateNTPConf();
+      if (checkShortName) {
+        validateShortName();
+      }
+
+      if (!nologin) {
+        title("Logging in");
+        if (keytab != null) {
+          dumpKeytab(keytab);
+          loginFromKeytab();
+        } else {
+          UserGroupInformation loginUser = getLoginUser();
+          dumpUGI("Log in user", loginUser);
+          validateUGI("Login user", loginUser);
+          println("Ticket based login: %b", isLoginTicketBased());
+          println("Keytab based login: %b", isLoginKeytabBased());
+        }
+      }
+
+      return true;
+    } finally {
+      // restore original system properties
+      System.setProperty(SUN_SECURITY_KRB5_DEBUG,
+        Boolean.toString(krb5Debug));
+      System.setProperty(SUN_SECURITY_SPNEGO_DEBUG,
+        Boolean.toString(spnegoDebug));
+    }
+  }
+}

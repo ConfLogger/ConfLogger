@@ -1,0 +1,42 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	MultiCountStat.java	methodSinagture:	org.apache.storm.metric.internal.MultiCountStat.getTimeCounts()Ljava/util/Map;	methodLines:	71:86
+blockLines:	79:-1
+paras:	null
+TaintedStat:	NORMAL getTimeCounts:conditional branch(ne, to iindex=58) 37,38 Node: < Application, Lorg/apache/storm/metric/internal/MultiCountStat, getTimeCounts()Ljava/util/Map; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/metric/internal/MultiCountStat, getTimeCounts()Ljava/util/Map; > Context: Everywhere[43]36 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,34 @113 exception:35
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/metric/internal/MultiCountStat, getTimeCounts()Ljava/util/Map; > Context: Everywhere[43]36 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,34 @113 exception:35
+NORMAL getTimeCounts:37 = checkcast <Application,Ljava/util/Map>36 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/metric/internal/MultiCountStat, getTimeCounts()Ljava/util/Map; > Context: Everywhere
+NORMAL getTimeCounts:conditional branch(ne, to iindex=58) 37,38 Node: < Application, Lorg/apache/storm/metric/internal/MultiCountStat, getTimeCounts()Ljava/util/Map; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public Map<String, Map<T, Long>> getTimeCounts() {
+        Map<String, Map<T, Long>> ret = new HashMap<>();
+        for (Map.Entry<T, CountStat> entry : counts.entrySet()) {
+            T key = entry.getKey();
+            Map<String, Long> toFlip = entry.getValue().getTimeCounts();
+            for (Map.Entry<String, Long> subEntry : toFlip.entrySet()) {
+                String time = subEntry.getKey();
+                Map<T, Long> tmp = ret.get(time);
+                if (tmp == null) {
+                    tmp = new HashMap<>();
+                    ret.put(time, tmp);
+                }
+                tmp.put(key, subEntry.getValue());
+            }
+        }
+        return ret;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/stats/CommonStats, valueStat(Lorg/apache/storm/metric/internal/MultiCountStat;)Ljava/util/Map; > Context: Everywhere, blocks=[BB[SSA:0..1]1 - org.apache.storm.stats.CommonStats.valueStat(Lorg/apache/storm/metric/internal/MultiCountStat;)Ljava/util/Map;, BB[SSA:-1..-2]0 - org.apache.storm.stats.CommonStats.valueStat(Lorg/apache/storm/metric/internal/MultiCountStat;)Ljava/util/Map;, BB[SSA:2..2]2 - org.apache.storm.stats.CommonStats.valueStat(Lorg/apache/storm/metric/internal/MultiCountStat;)Ljava/util/Map;, BB[SSA:-1..-2]3 - org.apache.storm.stats.CommonStats.valueStat(Lorg/apache/storm/metric/internal/MultiCountStat;)Ljava/util/Map;], numberOfBasicBlocks=4, firstLineNumber=71, lastLineNumber=72, firstMethodNumber=71, lastMethodNumber=72, isFirstLineValid=false, methodSrcCode=
+    protected Map<String, Map<String, Long>> valueStat(MultiCountStat metric) {
+        return metric.getTimeCounts();
+    }
+}

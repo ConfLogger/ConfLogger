@@ -1,0 +1,266 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Login.java	methodSinagture:	org.apache.storm.messaging.netty.Login.<init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Ljava/lang/String;)V	methodLines:	82:254
+blockLines:	102:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(eq, to iindex=119) 47,7 Node: < Application, Lorg/apache/storm/messaging/netty/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Ljava/lang/String;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/messaging/netty/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Ljava/lang/String;)V > Context: Everywhere[108]47 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 44,45 @212 exception:46
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/messaging/netty/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Ljava/lang/String;)V > Context: Everywhere[108]47 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 44,45 @212 exception:46
+NORMAL <init>:conditional branch(eq, to iindex=119) 47,7 Node: < Application, Lorg/apache/storm/messaging/netty/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Ljava/lang/String;)V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	Login.java	methodSinagture:	org.apache.storm.messaging.netty.Login.<init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Ljava/lang/String;)V	methodLines:	82:254
+blockLines:	96:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(eq, to iindex=105) 34,7 Node: < Application, Lorg/apache/storm/messaging/netty/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Ljava/lang/String;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/messaging/netty/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Ljava/lang/String;)V > Context: Everywhere[88]34 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 31,32 @165 exception:33
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/messaging/netty/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Ljava/lang/String;)V > Context: Everywhere[88]34 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 31,32 @165 exception:33
+NORMAL <init>:conditional branch(eq, to iindex=105) 34,7 Node: < Application, Lorg/apache/storm/messaging/netty/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Ljava/lang/String;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public Login(final String loginContextName, CallbackHandler callbackHandler, String jaasConfFile)
+        throws LoginException {
+        this.loginContextName = loginContextName;
+        this.callbackHandler = callbackHandler;
+        this.jaasConfFile = jaasConfFile;
+        this.configuration = getConfiguration(jaasConfFile);
+
+        this.login = login();
+        this.subject = login.getSubject();
+        this.isKrbTicket = !subject.getPrivateCredentials(KerberosTicket.class).isEmpty();
+
+        AppConfigurationEntry[] entries = configuration.getAppConfigurationEntry(loginContextName);
+        for (AppConfigurationEntry entry : entries) {
+            // there will only be a single entry, so this for() loop will only be iterated through once.
+            if (entry.getOptions().get("useTicketCache") != null) {
+                String val = (String) entry.getOptions().get("useTicketCache");
+                if (val.equals("true")) {
+                    isUsingTicketCache = true;
+                }
+            }
+            if (entry.getOptions().get("principal") != null) {
+                principal = (String) entry.getOptions().get("principal");
+            }
+            break;
+        }
+
+        if (!isKrbTicket) {
+            // if no TGT, do not bother with ticket management.
+            return;
+        }
+
+        // Refresh the Ticket Granting Ticket (TGT) periodically. How often to refresh is determined by the
+        // TGT's existing expiry date and the configured MIN_TIME_BEFORE_RELOGIN. For testing and development,
+        // you can decrease the interval of expiration of tickets (for example, to 3 minutes) by running :
+        //  "modprinc -maxlife 3mins <principal>" in kadmin.
+        this.thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                LOG.info("TGT refresh thread started.");
+                while (true) {  // renewal thread's main loop. if it exits from here, thread will exit.
+                    KerberosTicket tgt = getTGT();
+                    long now = System.currentTimeMillis();
+                    long nextRefresh;
+                    Date nextRefreshDate;
+                    if (tgt == null) {
+                        nextRefresh = now + MIN_TIME_BEFORE_RELOGIN;
+                        nextRefreshDate = new Date(nextRefresh);
+                        LOG.warn("No TGT found: will try again at " + nextRefreshDate);
+                    } else {
+                        nextRefresh = getRefreshTime(tgt);
+                        long expiry = tgt.getEndTime().getTime();
+                        Date expiryDate = new Date(expiry);
+                        if ((isUsingTicketCache) && (tgt.getEndTime().equals(tgt.getRenewTill()))) {
+                            LOG.error("The TGT cannot be renewed beyond the next expiry date: " + expiryDate + "."
+                                    + "This process will not be able to authenticate new SASL connections after that "
+                                    + "time (for example, it will not be authenticate a new connection with a Zookeeper "
+                                    + "Quorum member).  Ask your system administrator to either increase the "
+                                    + "'renew until' time by doing : 'modprinc -maxrenewlife " + principal + "' within "
+                                    + "kadmin, or instead, to generate a keytab for " + principal + ". Because the TGT's "
+                                    + "expiry cannot be further extended by refreshing, exiting refresh thread now.");
+                            return;
+                        }
+                        // determine how long to sleep from looking at ticket's expiry.
+                        // We should not allow the ticket to expire, but we should take into consideration
+                        // MIN_TIME_BEFORE_RELOGIN. Will not sleep less than MIN_TIME_BEFORE_RELOGIN, unless doing so
+                        // would cause ticket expiration.
+                        if ((nextRefresh > expiry)
+                                || ((now + MIN_TIME_BEFORE_RELOGIN) > expiry)) {
+                            // expiry is before next scheduled refresh).
+                            nextRefresh = now;
+                        } else {
+                            if (nextRefresh < (now + MIN_TIME_BEFORE_RELOGIN)) {
+                                // next scheduled refresh is sooner than (now + MIN_TIME_BEFORE_LOGIN).
+                                Date until = new Date(nextRefresh);
+                                Date newuntil = new Date(now + MIN_TIME_BEFORE_RELOGIN);
+                                LOG.warn("TGT refresh thread time adjusted from : " + until + " to : " + newuntil + " since "
+                                         + "the former is sooner than the minimum refresh interval ("
+                                         + MIN_TIME_BEFORE_RELOGIN / 1000 + " seconds) from now.");
+                            }
+                            nextRefresh = Math.max(nextRefresh, now + MIN_TIME_BEFORE_RELOGIN);
+                        }
+                    }
+                    if (tgt != null && now > tgt.getEndTime().getTime()) {
+                        if ((now - tgt.getEndTime().getTime()) < (10 * MIN_TIME_BEFORE_RELOGIN)) {
+                            Date until = new Date(now + MIN_TIME_BEFORE_RELOGIN);
+                            LOG.info("TGT already expired but giving additional 10 minutes past TGT expiry, refresh "
+                                    + "sleeping until: "
+                                    + until.toString());
+                            try {
+                                Thread.sleep(MIN_TIME_BEFORE_RELOGIN);
+                            } catch (InterruptedException ie) {
+                                LOG.warn("TGT renewal thread has been interrupted and will exit.");
+                                return;
+                            }
+                        } else {
+                            LOG.error("nextRefresh:" + new Date(nextRefresh) + " is in the past: exiting refresh thread. Check"
+                                      + " clock sync between this host and KDC - (KDC's clock is likely ahead of this host)."
+                                      + " Manual intervention will be required for this client to successfully authenticate."
+                                      + " Exiting worker!.");
+                            Runtime.getRuntime().exit(-3);
+                        }
+                    } else if (now < nextRefresh) {
+                        Date until = new Date(nextRefresh);
+                        LOG.info("TGT refresh sleeping until: " + until.toString());
+                        try {
+                            Thread.sleep(nextRefresh - now);
+                        } catch (InterruptedException ie) {
+                            LOG.warn("TGT renewal thread has been interrupted and will exit.");
+                            return;
+                        }
+                    }
+
+                    if (isUsingTicketCache) {
+                        String cmd = "/usr/bin/kinit";
+                        if (System.getProperty("zookeeper.kinit") != null) {
+                            cmd = System.getProperty("zookeeper.kinit");
+                        }
+                        String kinitArgs = "-R";
+                        int retry = 1;
+                        while (retry >= 0) {
+                            try {
+                                LOG.debug("running ticket cache refresh command: " + cmd + " " + kinitArgs);
+                                Shell.execCommand(cmd, kinitArgs);
+                                break;
+                            } catch (Exception e) {
+                                if (retry > 0) {
+                                    --retry;
+                                    // sleep for 10 seconds
+                                    try {
+                                        Thread.sleep(10 * 1000);
+                                    } catch (InterruptedException ie) {
+                                        LOG.error("Interrupted while renewing TGT, exiting Login thread");
+                                        return;
+                                    }
+                                } else {
+                                    LOG.warn("Could not renew TGT due to problem running shell command: '" + cmd
+                                             + " " + kinitArgs + "'" + "; exception was:" + e + ". Exiting refresh thread.", e);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    try {
+                        int retry = 1;
+                        while (retry >= 0) {
+                            try {
+                                reLogin();
+                                break;
+                            } catch (LoginException le) {
+                                if (retry > 0) {
+                                    --retry;
+                                    // sleep for 10 seconds.
+                                    try {
+                                        Thread.sleep(10 * 1000);
+                                    } catch (InterruptedException e) {
+                                        LOG.error("Interrupted during login retry after LoginException:", le);
+                                        throw le;
+                                    }
+                                } else {
+                                    LOG.error("Could not refresh TGT for principal: " + principal + ".", le);
+                                }
+                            }
+                        }
+                    } catch (LoginException le) {
+                        LOG.error("Failed to refresh TGT: refresh thread exiting now.", le);
+                        break;
+                    }
+                }
+            }
+        });
+        thread.setName("Refresh-TGT");
+        thread.setDaemon(true);
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/security/auth/kerberos/KerberosSaslTransportPlugin, mkLogin()Lorg/apache/storm/messaging/netty/Login; > Context: Everywhere, blocks=[BB[SSA:13..13]7 - org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin.mkLogin()Lorg/apache/storm/messaging/netty/Login;, BB[SSA:12..12]6 - org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin.mkLogin()Lorg/apache/storm/messaging/netty/Login;, BB[SSA:14..16]8 - org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin.mkLogin()Lorg/apache/storm/messaging/netty/Login;, BB[SSA:-1..-2]15 - org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin.mkLogin()Lorg/apache/storm/messaging/netty/Login;], numberOfBasicBlocks=4, firstLineNumber=111, lastLineNumber=112, firstMethodNumber=108, lastMethodNumber=116, isFirstLineValid=true, methodSrcCode=
+            //create an authentication callback handler
+            ClientCallbackHandler clientCallbackHandler = new ClientCallbackHandler(conf);
+            //now login
+            Login login = new Login(ClientAuthUtils.LOGIN_CONTEXT_CLIENT, clientCallbackHandler, ClientAuthUtils.getJaasConf(conf));
+            login.startThreadIfNeeded();
+            return login;
+        } catch (LoginException ex) {
+            LOG.error("Server failed to login in principal:" + ex, ex);
+            throw new RuntimeException(ex);
+        }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/security/auth/kerberos/KerberosSaslTransportPlugin, getServerTransportFactory(Z)Lorg/apache/storm/thrift/transport/TTransportFactory; > Context: Everywhere, blocks=[BB[SSA:27..31]14 - org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin.getServerTransportFactory(Z)Lorg/apache/storm/thrift/transport/TTransportFactory;, BB[SSA:23..26]13 - org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin.getServerTransportFactory(Z)Lorg/apache/storm/thrift/transport/TTransportFactory;, BB[SSA:32..34]15 - org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin.getServerTransportFactory(Z)Lorg/apache/storm/thrift/transport/TTransportFactory;, BB[SSA:-1..-2]56 - org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin.getServerTransportFactory(Z)Lorg/apache/storm/thrift/transport/TTransportFactory;], numberOfBasicBlocks=4, firstLineNumber=62, lastLineNumber=69, firstMethodNumber=55, lastMethodNumber=103, isFirstLineValid=true, methodSrcCode=
+    public TTransportFactory getServerTransportFactory(boolean impersonationAllowed) throws IOException {
+        if (workerTokenAuthorizer == null) {
+            workerTokenAuthorizer = new WorkerTokenAuthorizer(conf, type);
+        }
+        //create an authentication callback handler
+        CallbackHandler serverCallbackHandler = new ServerCallbackHandler(conf, impersonationAllowed);
+
+        String jaasConfFile = ClientAuthUtils.getJaasConf(conf);
+
+        //login our principal
+        Subject subject = null;
+        try {
+            //now login
+            Login login = new Login(ClientAuthUtils.LOGIN_CONTEXT_SERVER, serverCallbackHandler, jaasConfFile);
+            subject = login.getSubject();
+            login.startThreadIfNeeded();
+        } catch (LoginException ex) {
+            LOG.error("Server failed to login in principal:" + ex, ex);
+            throw new RuntimeException(ex);
+        }
+
+        //check the credential of our principal
+        if (subject.getPrivateCredentials(KerberosTicket.class).isEmpty()) {
+            throw new RuntimeException("Fail to verify user principal with section \""
+                                       + ClientAuthUtils.LOGIN_CONTEXT_SERVER + "\" in login configuration file " + jaasConfFile);
+        }
+
+        String principal = ClientAuthUtils.get(conf, ClientAuthUtils.LOGIN_CONTEXT_SERVER, "principal");
+        LOG.debug("principal:" + principal);
+        KerberosName serviceKerberosName = new KerberosName(principal);
+        String serviceName = serviceKerberosName.getServiceName();
+        String hostName = serviceKerberosName.getHostName();
+        Map<String, String> props = new TreeMap<>();
+        props.put(Sasl.QOP, "auth");
+        props.put(Sasl.SERVER_AUTH, "false");
+
+        //create a transport factory that will invoke our auth callback for digest
+        TSaslServerTransport.Factory factory = new TSaslServerTransport.Factory();
+        factory.addServerDefinition(KERBEROS, serviceName, hostName, props, serverCallbackHandler);
+
+        //Also add in support for worker tokens
+        factory.addServerDefinition(DIGEST, ClientAuthUtils.SERVICE, hostName, null,
+                                    new SimpleSaslServerCallbackHandler(impersonationAllowed, workerTokenAuthorizer));
+
+        //create a wrap transport factory so that we could apply user credential during connections
+        TUGIAssumingTransportFactory wrapFactory = new TUGIAssumingTransportFactory(factory, subject);
+
+        LOG.info("SASL GSSAPI transport factory will be used");
+        return wrapFactory;
+    }
+}

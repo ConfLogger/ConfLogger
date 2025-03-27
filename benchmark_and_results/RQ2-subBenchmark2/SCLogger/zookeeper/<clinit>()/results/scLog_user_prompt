@@ -1,0 +1,182 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> public static final int TXNLOG_MAGIC = ByteBuffer.wrap("ZKLG".getBytes()).getInt();
+<Line#1> 
+<Line#2> public static final int VERSION = 2;
+<Line#3> 
+<Line#4> public static final String LOG_FILE_PREFIX = "log";
+<Line#5> 
+<Line#6> static final String FSYNC_WARNING_THRESHOLD_MS_PROPERTY = "fsync.warningthresholdms";
+<Line#7> static final String ZOOKEEPER_FSYNC_WARNING_THRESHOLD_MS_PROPERTY = "zookeeper." + FSYNC_WARNING_THRESHOLD_MS_PROPERTY;
+<Line#8> 
+<Line#9> /** Maximum time we allow for elapsed fsync before WARNing */
+<Line#10> private static final long fsyncWarningThresholdMS;
+<Line#11> 
+<Line#12> /**
+<Line#13> * This parameter limit the size of each txnlog to a given limit (KB).
+<Line#14> * It does not affect how often the system will take a snapshot [zookeeper.snapCount]
+<Line#15> * We roll the txnlog when either of the two limits are reached.
+<Line#16> * Also since we only roll the logs at transaction boundaries, actual file size can exceed
+<Line#17> * this limit by the maximum size of a serialized transaction.
+<Line#18> * The feature is disabled by default (-1)
+<Line#19> */
+<Line#20> private static final String txnLogSizeLimitSetting = "zookeeper.txnLogSizeLimitInKb";
+<Line#21> 
+<Line#22> /**
+<Line#23> * The actual txnlog size limit in bytes.
+<Line#24> */
+<Line#25> private static long txnLogSizeLimit = -1;
+<Line#26> 
+<Line#27> static {
+<Line#28> LOG = LoggerFactory.getLogger(FileTxnLog.class);
+<Line#29> 
+<Line#30> /** Local variable to read fsync.warningthresholdms into */
+<Line#31> Long fsyncWarningThreshold;
+<Line#32> if ((fsyncWarningThreshold = Long.getLong(ZOOKEEPER_FSYNC_WARNING_THRESHOLD_MS_PROPERTY)) == null) {
+<Line#33> fsyncWarningThreshold = Long.getLong(FSYNC_WARNING_THRESHOLD_MS_PROPERTY, 1000);
+<Line#34> }
+<Line#35> fsyncWarningThresholdMS = fsyncWarningThreshold;
+<Line#36> 
+<Line#37> Long logSize = Long.getLong(txnLogSizeLimitSetting, -1);
+<Line#38> if (logSize > 0) {
+<Line#39> // Convert to bytes
+<Line#40> logSize = logSize * 1024;
+<Line#41> txnLogSizeLimit = logSize;
+<Line#42> }
+<Line#43> }
+
+Relevant Logging Patterns:
+Example 1:
+File: zookeeper__run-199__.json
+Code:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    currentInterval=Time.currentElapsedTime() / INTERVAL;
+<Line#4>    Thread.sleep(INTERVAL * 2);
+<Line#5>    long min=99999;
+<Line#6>    long max=0;
+<Line#7>    long total=0;
+<Line#8>    int number=0;
+<Line#9>    while (true) {
+<Line#10>      long now=Time.currentElapsedTime();
+<Line#11>      long lastInterval=currentInterval;
+<Line#12>      currentInterval+=1;
+<Line#13>      long count=remove(lastInterval);
+<Line#14>      count=count * 1000 / INTERVAL;
+<Line#15>      if (lastChange != 0 && (lastChange + INTERVAL * 3) < now) {
+<Line#16>        if (count < min) {
+<Line#17>          min=count;
+<Line#18>        }
+<Line#19>        if (count > max) {
+<Line#20>          max=count;
+<Line#21>        }
+<Line#22>        total+=count;
+<Line#23>        number++;
+<Line#24>        Calendar calendar=Calendar.getInstance();
+<Line#25>        calendar.setTimeInMillis(lastInterval * INTERVAL);
+<Line#26>        String report=lastInterval + " " + calendar.get(Calendar.HOUR_OF_DAY)+ ":"+ calendar.get(Calendar.MINUTE)+ ":"+ calendar.get(Calendar.SECOND)+ " "+ percentage+ "% "+ count+ " "+ min+ " "+ ((double)total / (double)number)+ " "+ max;
+<Line#27>        LOG.info(report);
+<Line#28>        if (sf != null) {
+<Line#29>          sf.println(report);
+<Line#30>        }
+<Line#31>      }
+<Line#32> else {
+<Line#33>        max=total=0;
+<Line#34>        min=999999999;
+<Line#35>        number=0;
+<Line#36>      }
+<Line#37>      Thread.sleep(INTERVAL);
+<Line#38>    }
+<Line#39>  }
+<Line#40> catch (  Exception e) {
+<Line#41>    e.printStackTrace();
+<Line#42>  }
+<Line#43>}
+Log: <Line#27>:# LOG.info(report):#
+
+Example 2:
+File: zookeeper__readConnectResult-129__.json
+Code:
+<Line#1>{
+<Line#2>  if (LOG.isTraceEnabled()) {
+<Line#3>    StringBuilder buf=new StringBuilder("0x[");
+<Line#4>    for (    byte b : incomingBuffer.array()) {
+<Line#5>      buf.append(Integer.toHexString(b)).append(",");
+<Line#6>    }
+<Line#7>    buf.append("]");
+<Line#8>    if (LOG.isTraceEnabled()) {
+<Line#9>      LOG.trace("readConnectResult {} {}",incomingBuffer.remaining(),buf);
+<Line#10>    }
+<Line#11>  }
+<Line#12>  ByteBufferInputStream bbis=new ByteBufferInputStream(incomingBuffer);
+<Line#13>  BinaryInputArchive bbia=BinaryInputArchive.getArchive(bbis);
+<Line#14>  ConnectResponse conRsp=protocolManager.deserializeConnectResponse(bbia);
+<Line#15>  if (!protocolManager.isReadonlyAvailable()) {
+<Line#16>    LOG.warn("Connected to an old server; r-o mode will be unavailable");
+<Line#17>  }
+<Line#18>  this.sessionId=conRsp.getSessionId();
+<Line#19>  sendThread.onConnected(conRsp.getTimeOut(),this.sessionId,conRsp.getPasswd(),conRsp.getReadOnly());
+<Line#20>}
+Log: <Line#9>:# LOG.trace("readConnectResult {} {}",incomingBuffer.remaining(),buf):#
+
+Example 3:
+File: zookeeper__readConnectResult-129__.json
+Code:
+<Line#1>{
+<Line#2>  if (LOG.isTraceEnabled()) {
+<Line#3>    StringBuilder buf=new StringBuilder("0x[");
+<Line#4>    for (    byte b : incomingBuffer.array()) {
+<Line#5>      buf.append(Integer.toHexString(b)).append(",");
+<Line#6>    }
+<Line#7>    buf.append("]");
+<Line#8>    if (LOG.isTraceEnabled()) {
+<Line#9>      LOG.trace("readConnectResult {} {}",incomingBuffer.remaining(),buf);
+<Line#10>    }
+<Line#11>  }
+<Line#12>  ByteBufferInputStream bbis=new ByteBufferInputStream(incomingBuffer);
+<Line#13>  BinaryInputArchive bbia=BinaryInputArchive.getArchive(bbis);
+<Line#14>  ConnectResponse conRsp=protocolManager.deserializeConnectResponse(bbia);
+<Line#15>  if (!protocolManager.isReadonlyAvailable()) {
+<Line#16>    LOG.warn("Connected to an old server; r-o mode will be unavailable");
+<Line#17>  }
+<Line#18>  this.sessionId=conRsp.getSessionId();
+<Line#19>  sendThread.onConnected(conRsp.getTimeOut(),this.sessionId,conRsp.getPasswd(),conRsp.getReadOnly());
+<Line#20>}
+Log: <Line#16>:# LOG.warn("Connected to an old server; r-o mode will be unavailable"):#
+
+Example 4:
+File: zookeeper__dump-190__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("JMXEnv.dump() follows");
+<Line#3>  Set<ObjectName> beans;
+<Line#4>  try {
+<Line#5>    beans=conn().queryNames(new ObjectName(MBeanRegistry.DOMAIN + ":*"),null);
+<Line#6>  }
+<Line#7> catch (  MalformedObjectNameException e) {
+<Line#8>    throw new RuntimeException(e);
+<Line#9>  }
+<Line#10>  for (  ObjectName bean : beans) {
+<Line#11>    LOG.info("bean:{}",bean.toString());
+<Line#12>  }
+<Line#13>}
+Log: <Line#2>:# LOG.info("JMXEnv.dump() follows"):#
+
+Example 5:
+File: zookeeper__dump-190__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("JMXEnv.dump() follows");
+<Line#3>  Set<ObjectName> beans;
+<Line#4>  try {
+<Line#5>    beans=conn().queryNames(new ObjectName(MBeanRegistry.DOMAIN + ":*"),null);
+<Line#6>  }
+<Line#7> catch (  MalformedObjectNameException e) {
+<Line#8>    throw new RuntimeException(e);
+<Line#9>  }
+<Line#10>  for (  ObjectName bean : beans) {
+<Line#11>    LOG.info("bean:{}",bean.toString());
+<Line#12>  }
+<Line#13>}
+Log: <Line#11>:# LOG.info("bean:{}",bean.toString()):#

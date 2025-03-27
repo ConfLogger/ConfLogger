@@ -1,0 +1,114 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> boolean oneExecutorPerWorker = (Boolean) topoConf.getOrDefault(Config.TOPOLOGY_RAS_ONE_EXECUTOR_PER_WORKER, false);
+<Line#1> boolean oneComponentPerWorker = (Boolean) topoConf.getOrDefault(Config.TOPOLOGY_RAS_ONE_COMPONENT_PER_WORKER, false);
+<Line#2> 
+<Line#3> double topologyWorkerMaxHeapSize =
+<Line#4> ObjectReader.getDouble(topoConf.get(Config.TOPOLOGY_WORKER_MAX_HEAP_SIZE_MB));
+<Line#5> 
+<Line#6> int numOfAckerExecutorsPerWorker = ObjectReader.getInt(topoConf.get(Config.TOPOLOGY_RAS_ACKER_EXECUTORS_PER_WORKER));
+<Line#7> double maxTopoExecMem = getMaxExecutorMemoryUsageForTopo(topology, topoConf);
+<Line#8> double ackerExecMem = getAckerExecutorMemoryUsageForTopo(topology, topoConf);
+<Line#9> double minMemReqForWorker = maxTopoExecMem + ackerExecMem * numOfAckerExecutorsPerWorker;
+<Line#10> 
+<Line#11> // A worker need to have enough resources for a bigest topo executor + topology.acker.executors.per.worker ackers
+<Line#12> if (!oneExecutorPerWorker
+<Line#13> && !oneComponentPerWorker
+<Line#14> && topologyWorkerMaxHeapSize < minMemReqForWorker) {;}}
+
+Relevant Logging Patterns:
+Example 1:
+File: storm__preCommit-168__.json
+Code:
+<Line#1>{
+<Line#2>  if (!isStateInitialized() || (!isRecovering() && prePrepared)) {
+<Line#3>    LOG.debug("Commit streamState, txid {}",txid);
+<Line#4>    streamState.commit(txid);
+<Line#5>  }
+<Line#6> else {
+<Line#7>    LOG.debug("Still recovering, ignoring preCommit and not committing streamState.");
+<Line#8>  }
+<Line#9>}
+Log: <Line#3>:# LOG.debug("Commit streamState, txid {}",txid):#
+
+Example 2:
+File: storm__preCommit-168__.json
+Code:
+<Line#1>{
+<Line#2>  if (!isStateInitialized() || (!isRecovering() && prePrepared)) {
+<Line#3>    LOG.debug("Commit streamState, txid {}",txid);
+<Line#4>    streamState.commit(txid);
+<Line#5>  }
+<Line#6> else {
+<Line#7>    LOG.debug("Still recovering, ignoring preCommit and not committing streamState.");
+<Line#8>  }
+<Line#9>}
+Log: <Line#7>:# LOG.debug("Still recovering, ignoring preCommit and not committing streamState."):#
+
+Example 3:
+File: storm__onRemoval-224__.json
+Code:
+<Line#1>{
+<Line#2>  Objects.requireNonNull(pid,"Null partition id");
+<Line#3>  Objects.requireNonNull(p,"Null window partition");
+<Line#4>  LOG.debug("onRemoval for id '{}', WindowPartition '{}'",pid,p);
+<Line#5>  try {
+<Line#6>    windowPartitionsLock.lock(pid);
+<Line#7>    if (p.isEmpty() && pid != latestPartitionId) {
+<Line#8>      if (removalCause != WindowPartitionCache.RemovalCause.EXPLICIT) {
+<Line#9>        deletePartition(pid);
+<Line#10>        windowPartitionsState.delete(pid);
+<Line#11>      }
+<Line#12>    }
+<Line#13> else     if (p.isModified()) {
+<Line#14>      windowPartitionsState.put(pid,p);
+<Line#15>    }
+<Line#16> else {
+<Line#17>      LOG.debug("WindowPartition '{}' is not modified",pid);
+<Line#18>    }
+<Line#19>  }
+<Line#20>  finally {
+<Line#21>    windowPartitionsLock.unlock(pid);
+<Line#22>  }
+<Line#23>}
+Log: <Line#4>:# LOG.debug("onRemoval for id '{}', WindowPartition '{}'",pid,p):#
+
+Example 4:
+File: storm__onRemoval-224__.json
+Code:
+<Line#1>{
+<Line#2>  Objects.requireNonNull(pid,"Null partition id");
+<Line#3>  Objects.requireNonNull(p,"Null window partition");
+<Line#4>  LOG.debug("onRemoval for id '{}', WindowPartition '{}'",pid,p);
+<Line#5>  try {
+<Line#6>    windowPartitionsLock.lock(pid);
+<Line#7>    if (p.isEmpty() && pid != latestPartitionId) {
+<Line#8>      if (removalCause != WindowPartitionCache.RemovalCause.EXPLICIT) {
+<Line#9>        deletePartition(pid);
+<Line#10>        windowPartitionsState.delete(pid);
+<Line#11>      }
+<Line#12>    }
+<Line#13> else     if (p.isModified()) {
+<Line#14>      windowPartitionsState.put(pid,p);
+<Line#15>    }
+<Line#16> else {
+<Line#17>      LOG.debug("WindowPartition '{}' is not modified",pid);
+<Line#18>    }
+<Line#19>  }
+<Line#20>  finally {
+<Line#21>    windowPartitionsLock.unlock(pid);
+<Line#22>  }
+<Line#23>}
+Log: <Line#17>:# LOG.debug("WindowPartition '{}' is not modified",pid):#
+
+Example 5:
+File: storm__success-168__.json
+Code:
+<Line#1>{
+<Line#2>  for (  EmitterPartitionState state : partitionStates.values()) {
+<Line#3>    state.rotatingState.cleanupBefore(tx.getTransactionId());
+<Line#4>  }
+<Line#5>  LOG.debug("Success transaction {}. [{}]",tx,this);
+<Line#6>}
+Log: <Line#5>:# LOG.debug("Success transaction {}. [{}]",tx,this):#

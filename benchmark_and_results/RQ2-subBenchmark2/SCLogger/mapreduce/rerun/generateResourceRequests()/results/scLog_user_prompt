@@ -1,0 +1,298 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> private List<ResourceRequest> generateResourceRequests() throws IOException {
+<Line#1> Resource capability = recordFactory.newRecordInstance(Resource.class);
+<Line#2> boolean memorySet = false;
+<Line#3> boolean cpuVcoresSet = false;
+<Line#4> List<ResourceInformation> resourceRequests = ResourceUtils
+<Line#5> .getRequestedResourcesFromConfig(conf, MR_AM_RESOURCE_PREFIX);
+<Line#6> for (ResourceInformation resourceReq : resourceRequests) {
+<Line#7> String resourceName = resourceReq.getName();
+<Line#8> if (MRJobConfig.RESOURCE_TYPE_NAME_MEMORY.equals(resourceName) ||
+<Line#9> MRJobConfig.RESOURCE_TYPE_ALTERNATIVE_NAME_MEMORY.equals(
+<Line#10> resourceName)) {
+<Line#11> if (memorySet) {
+<Line#12> throw new IllegalArgumentException(
+<Line#13> "Only one of the following keys " +
+<Line#14> "can be specified for a single job: " +
+<Line#15> MRJobConfig.RESOURCE_TYPE_ALTERNATIVE_NAME_MEMORY + ", " +
+<Line#16> MRJobConfig.RESOURCE_TYPE_NAME_MEMORY);
+<Line#17> }
+<Line#18> String units = isEmpty(resourceReq.getUnits()) ?
+<Line#19> ResourceUtils.getDefaultUnit(ResourceInformation.MEMORY_URI) :
+<Line#20> resourceReq.getUnits();
+<Line#21> capability.setMemorySize(
+<Line#22> UnitsConversionUtil.convert(units, "Mi", resourceReq.getValue()));
+<Line#23> memorySet = true;
+<Line#24> if (conf.get(MRJobConfig.MR_AM_VMEM_MB) != null) {
+<Line#25> }
+<Line#26> } else if (MRJobConfig.RESOURCE_TYPE_NAME_VCORE.equals(resourceName)) {
+<Line#27> capability.setVirtualCores(
+<Line#28> (int) UnitsConversionUtil.convert(resourceReq.getUnits(), "",
+<Line#29> resourceReq.getValue()));
+<Line#30> cpuVcoresSet = true;
+<Line#31> if (conf.get(MRJobConfig.MR_AM_CPU_VCORES) != null) {
+<Line#32> }
+<Line#33> } else if (!MRJobConfig.MR_AM_VMEM_MB.equals(
+<Line#34> MR_AM_RESOURCE_PREFIX + resourceName) &&
+<Line#35> !MRJobConfig.MR_AM_CPU_VCORES.equals(
+<Line#36> MR_AM_RESOURCE_PREFIX + resourceName)) {
+<Line#37> // the "mb", "cpu-vcores" resource types are not processed here
+<Line#38> // since the yarn.app.mapreduce.am.resource.mb,
+<Line#39> // yarn.app.mapreduce.am.resource.cpu-vcores keys are used for
+<Line#40> // backward-compatibility - which is handled after this loop
+<Line#41> ResourceInformation resourceInformation = capability
+<Line#42> .getResourceInformation(resourceName);
+<Line#43> resourceInformation.setUnits(resourceReq.getUnits());
+<Line#44> resourceInformation.setValue(resourceReq.getValue());
+<Line#45> capability.setResourceInformation(resourceName, resourceInformation);
+<Line#46> }
+<Line#47> }
+<Line#48> if (!memorySet) {
+<Line#49> capability.setMemorySize(
+<Line#50> conf.getInt(
+<Line#51> MRJobConfig.MR_AM_VMEM_MB, MRJobConfig.DEFAULT_MR_AM_VMEM_MB
+<Line#52> )
+<Line#53> );
+<Line#54> }
+<Line#55> if (!cpuVcoresSet) {
+<Line#56> capability.setVirtualCores(
+<Line#57> conf.getInt(
+<Line#58> MRJobConfig.MR_AM_CPU_VCORES, MRJobConfig.DEFAULT_MR_AM_CPU_VCORES
+<Line#59> )
+<Line#60> );
+<Line#61> }
+<Line#62> if (LOG.isDebugEnabled()) {
+<Line#63> LOG.debug("AppMaster capability = " + capability);
+<Line#64> }
+<Line#65> 
+<Line#66> List<ResourceRequest> amResourceRequests = new ArrayList<>();
+<Line#67> // Always have an ANY request
+<Line#68> ResourceRequest amAnyResourceRequest =
+<Line#69> createAMResourceRequest(ResourceRequest.ANY, capability);
+<Line#70> Map<String, ResourceRequest> rackRequests = new HashMap<>();
+<Line#71> amResourceRequests.add(amAnyResourceRequest);
+<Line#72> Collection<String> amStrictResources = conf.getStringCollection(
+<Line#73> MRJobConfig.AM_STRICT_LOCALITY);
+<Line#74> for (String amStrictResource : amStrictResources) {
+<Line#75> amAnyResourceRequest.setRelaxLocality(false);
+<Line#76> Matcher matcher = RACK_NODE_PATTERN.matcher(amStrictResource);
+<Line#77> if (matcher.matches()) {
+<Line#78> String nodeName;
+<Line#79> String rackName = matcher.group(RACK_GROUP);
+<Line#80> if (rackName == null) {
+<Line#81> rackName = "/default-rack";
+<Line#82> nodeName = matcher.group(NODE_IF_NO_RACK_GROUP);
+<Line#83> } else {
+<Line#84> nodeName = matcher.group(NODE_IF_RACK_GROUP);
+<Line#85> }
+<Line#86> ResourceRequest amRackResourceRequest = rackRequests.get(rackName);
+<Line#87> if (amRackResourceRequest == null) {
+<Line#88> amRackResourceRequest = createAMResourceRequest(rackName, capability);
+<Line#89> amResourceRequests.add(amRackResourceRequest);
+<Line#90> rackRequests.put(rackName, amRackResourceRequest);
+<Line#91> }
+<Line#92> if (nodeName != null) {
+<Line#93> amRackResourceRequest.setRelaxLocality(false);
+<Line#94> ResourceRequest amNodeResourceRequest =
+<Line#95> createAMResourceRequest(nodeName, capability);
+<Line#96> amResourceRequests.add(amNodeResourceRequest);
+<Line#97> }
+<Line#98> } else {
+<Line#99> String errMsg =
+<Line#100> "Invalid resource name: " + amStrictResource + " specified.";
+<Line#101> LOG.warn(errMsg);
+<Line#102> throw new IOException(errMsg);
+<Line#103> }
+<Line#104> }
+<Line#105> if (LOG.isDebugEnabled()) {
+<Line#106> for (ResourceRequest amResourceRequest : amResourceRequests) {
+<Line#107> LOG.debug("ResourceRequest: resource = "
+<Line#108> + amResourceRequest.getResourceName() + ", locality = "
+<Line#109> + amResourceRequest.getRelaxLocality());
+<Line#110> }
+<Line#111> }
+<Line#112> return amResourceRequests;
+<Line#113> }
+
+Related Context:
+Method A:
+<Line#0> private ResourceRequest createAMResourceRequest(String resource,Resource capability){
+<Line#1>   ResourceRequest resourceRequest=recordFactory.newRecordInstance(ResourceRequest.class);
+<Line#2>   resourceRequest.setPriority(AM_CONTAINER_PRIORITY);
+<Line#3>   resourceRequest.setResourceName(resource);
+<Line#4>   resourceRequest.setCapability(capability);
+<Line#5>   resourceRequest.setNumContainers(1);
+<Line#6>   resourceRequest.setRelaxLocality(true);
+<Line#7>   return resourceRequest;
+<Line#8> }
+<Line#9> 
+
+Relevant Logging Patterns:
+Example 1:
+File: mapreduce__createNativeObject-81__.json
+Code:
+<Line#1>{
+<Line#2>  assertNativeLibraryLoaded();
+<Line#3>  final long ret=JNICreateNativeObject(clazz.getBytes(Charsets.UTF_8));
+<Line#4>  if (ret == 0) {
+<Line#5>    LOG.warn("Can't create NativeObject for class " + clazz + ", probably not exist.");
+<Line#6>  }
+<Line#7>  return ret;
+<Line#8>}
+Log: <Line#5>:# LOG.warn("Can't create NativeObject for class " + clazz + ", probably not exist."):#
+
+Example 2:
+File: mapreduce__createControlFile-122__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("creating control file: " + fileSize + " mega bytes, "+ nrFiles+ " files");
+<Line#3>  fs.delete(CONTROL_DIR,true);
+<Line#4>  for (int i=0; i < nrFiles; i++) {
+<Line#5>    String name=getFileName(i);
+<Line#6>    Path controlFile=new Path(CONTROL_DIR,"in_file_" + name);
+<Line#7>    SequenceFile.Writer writer=null;
+<Line#8>    try {
+<Line#9>      writer=SequenceFile.createWriter(fs,fsConfig,controlFile,Text.class,LongWritable.class,CompressionType.NONE);
+<Line#10>      writer.append(new Text(name),new LongWritable(fileSize));
+<Line#11>    }
+<Line#12> catch (    Exception e) {
+<Line#13>      throw new IOException(e.getLocalizedMessage());
+<Line#14>    }
+<Line#15> finally {
+<Line#16>      if (writer != null)       writer.close();
+<Line#17>      writer=null;
+<Line#18>    }
+<Line#19>  }
+<Line#20>  LOG.info("created control files for: " + nrFiles + " files");
+<Line#21>}
+Log: <Line#2>:# LOG.info("creating control file: " + fileSize + " mega bytes, "+ nrFiles+ " files"):#
+
+Example 3:
+File: mapreduce__createControlFile-122__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("creating control file: " + fileSize + " mega bytes, "+ nrFiles+ " files");
+<Line#3>  fs.delete(CONTROL_DIR,true);
+<Line#4>  for (int i=0; i < nrFiles; i++) {
+<Line#5>    String name=getFileName(i);
+<Line#6>    Path controlFile=new Path(CONTROL_DIR,"in_file_" + name);
+<Line#7>    SequenceFile.Writer writer=null;
+<Line#8>    try {
+<Line#9>      writer=SequenceFile.createWriter(fs,fsConfig,controlFile,Text.class,LongWritable.class,CompressionType.NONE);
+<Line#10>      writer.append(new Text(name),new LongWritable(fileSize));
+<Line#11>    }
+<Line#12> catch (    Exception e) {
+<Line#13>      throw new IOException(e.getLocalizedMessage());
+<Line#14>    }
+<Line#15> finally {
+<Line#16>      if (writer != null)       writer.close();
+<Line#17>      writer=null;
+<Line#18>    }
+<Line#19>  }
+<Line#20>  LOG.info("created control files for: " + nrFiles + " files");
+<Line#21>}
+Log: <Line#20>:# LOG.info("created control files for: " + nrFiles + " files"):#
+
+Example 4:
+File: mapreduce__addMap-1106__.json
+Code:
+<Line#1>{
+<Line#2>  ContainerRequest request=null;
+<Line#3>  if (event.getEarlierAttemptFailed()) {
+<Line#4>    earlierFailedMaps.add(event.getAttemptID());
+<Line#5>    request=new ContainerRequest(event,PRIORITY_FAST_FAIL_MAP,mapNodeLabelExpression);
+<Line#6>    LOG.info("Added " + event.getAttemptID() + " to list of failed maps");
+<Line#7>    maps.put(event.getAttemptID(),request);
+<Line#8>    addContainerReq(request);
+<Line#9>  }
+<Line#10> else {
+<Line#11>    if (mapsMod100 < numOpportunisticMapsPercent) {
+<Line#12>      request=new ContainerRequest(event,PRIORITY_OPPORTUNISTIC_MAP,mapNodeLabelExpression);
+<Line#13>      maps.put(event.getAttemptID(),request);
+<Line#14>      addOpportunisticResourceRequest(request.priority,request.capability);
+<Line#15>    }
+<Line#16> else {
+<Line#17>      request=new ContainerRequest(event,PRIORITY_MAP,mapNodeLabelExpression);
+<Line#18>      for (      String host : event.getHosts()) {
+<Line#19>        LinkedList<TaskAttemptId> list=mapsHostMapping.get(host);
+<Line#20>        if (list == null) {
+<Line#21>          list=new LinkedList<TaskAttemptId>();
+<Line#22>          mapsHostMapping.put(host,list);
+<Line#23>        }
+<Line#24>        list.add(event.getAttemptID());
+<Line#25>        if (LOG.isDebugEnabled()) {
+<Line#26>          LOG.debug("Added attempt req to host " + host);
+<Line#27>        }
+<Line#28>      }
+<Line#29>      for (      String rack : event.getRacks()) {
+<Line#30>        LinkedList<TaskAttemptId> list=mapsRackMapping.get(rack);
+<Line#31>        if (list == null) {
+<Line#32>          list=new LinkedList<TaskAttemptId>();
+<Line#33>          mapsRackMapping.put(rack,list);
+<Line#34>        }
+<Line#35>        list.add(event.getAttemptID());
+<Line#36>        if (LOG.isDebugEnabled()) {
+<Line#37>          LOG.debug("Added attempt req to rack " + rack);
+<Line#38>        }
+<Line#39>      }
+<Line#40>      maps.put(event.getAttemptID(),request);
+<Line#41>      addContainerReq(request);
+<Line#42>    }
+<Line#43>    mapsMod100++;
+<Line#44>    mapsMod100%=100;
+<Line#45>  }
+<Line#46>}
+Log: <Line#6>:# LOG.info("Added " + event.getAttemptID() + " to list of failed maps"):#
+
+Example 5:
+File: mapreduce__addMap-1106__.json
+Code:
+<Line#1>{
+<Line#2>  ContainerRequest request=null;
+<Line#3>  if (event.getEarlierAttemptFailed()) {
+<Line#4>    earlierFailedMaps.add(event.getAttemptID());
+<Line#5>    request=new ContainerRequest(event,PRIORITY_FAST_FAIL_MAP,mapNodeLabelExpression);
+<Line#6>    LOG.info("Added " + event.getAttemptID() + " to list of failed maps");
+<Line#7>    maps.put(event.getAttemptID(),request);
+<Line#8>    addContainerReq(request);
+<Line#9>  }
+<Line#10> else {
+<Line#11>    if (mapsMod100 < numOpportunisticMapsPercent) {
+<Line#12>      request=new ContainerRequest(event,PRIORITY_OPPORTUNISTIC_MAP,mapNodeLabelExpression);
+<Line#13>      maps.put(event.getAttemptID(),request);
+<Line#14>      addOpportunisticResourceRequest(request.priority,request.capability);
+<Line#15>    }
+<Line#16> else {
+<Line#17>      request=new ContainerRequest(event,PRIORITY_MAP,mapNodeLabelExpression);
+<Line#18>      for (      String host : event.getHosts()) {
+<Line#19>        LinkedList<TaskAttemptId> list=mapsHostMapping.get(host);
+<Line#20>        if (list == null) {
+<Line#21>          list=new LinkedList<TaskAttemptId>();
+<Line#22>          mapsHostMapping.put(host,list);
+<Line#23>        }
+<Line#24>        list.add(event.getAttemptID());
+<Line#25>        if (LOG.isDebugEnabled()) {
+<Line#26>          LOG.debug("Added attempt req to host " + host);
+<Line#27>        }
+<Line#28>      }
+<Line#29>      for (      String rack : event.getRacks()) {
+<Line#30>        LinkedList<TaskAttemptId> list=mapsRackMapping.get(rack);
+<Line#31>        if (list == null) {
+<Line#32>          list=new LinkedList<TaskAttemptId>();
+<Line#33>          mapsRackMapping.put(rack,list);
+<Line#34>        }
+<Line#35>        list.add(event.getAttemptID());
+<Line#36>        if (LOG.isDebugEnabled()) {
+<Line#37>          LOG.debug("Added attempt req to rack " + rack);
+<Line#38>        }
+<Line#39>      }
+<Line#40>      maps.put(event.getAttemptID(),request);
+<Line#41>      addContainerReq(request);
+<Line#42>    }
+<Line#43>    mapsMod100++;
+<Line#44>    mapsMod100%=100;
+<Line#45>  }
+<Line#46>}
+Log: <Line#26>:# LOG.debug("Added attempt req to host " + host):#

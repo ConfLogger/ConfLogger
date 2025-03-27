@@ -1,0 +1,4 @@
+private String getQueueNames(Configuration conf){
+  String queueNameValues=conf.get(MAPRED_QUEUE_NAMES_KEY);
+  return queueNameValues;
+}

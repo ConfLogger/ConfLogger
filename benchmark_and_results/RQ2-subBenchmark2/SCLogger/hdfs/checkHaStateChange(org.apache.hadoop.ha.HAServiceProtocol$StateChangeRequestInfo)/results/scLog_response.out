@@ -1,0 +1,38 @@
+To insert a logging statement into the provided code snippet using the given API format, we can follow the patterns shown in the examples. Given the context of the code, which deals with handling state change requests in a high-availability (HA) configuration, it would be appropriate to log the type of request being handled and whether automatic HA is enabled or not. This information could be useful for debugging purposes or for auditing the behavior of the system.
+
+Let's add a logging statement at the beginning of the method to log the type of request being received and whether automatic HA is enabled:
+
+```java
+<Line#0> void checkHaStateChange(StateChangeRequestInfo req) throws AccessControlException {
+<Line#1> LOG.info("Handling HA state change request: " + req.getSource() + ", autoHaEnabled: " + autoHaEnabled);
+<Line#2> boolean autoHaEnabled = getConf().getBoolean(
+<Line#3> DFS_HA_AUTO_FAILOVER_ENABLED_KEY, DFS_HA_AUTO_FAILOVER_ENABLED_DEFAULT);
+<Line#4> switch (req.getSource()) {
+<Line#5> case REQUEST_BY_USER:
+<Line#6> if (autoHaEnabled) {
+<Line#7> throw new AccessControlException(
+<Line#8> "Manual HA control for this NameNode is disallowed, because " +
+<Line#9> "automatic HA is enabled.");
+<Line#10> }
+<Line#11> break;
+<Line#12> case REQUEST_BY_USER_FORCED:
+<Line#13> if (autoHaEnabled) {
+<Line#14> ;
+<Line#15> }
+<Line#16> break;
+<Line#17> case REQUEST_BY_ZKFC:
+<Line#18> if (!autoHaEnabled) {
+<Line#19> throw new AccessControlException(
+<Line#20> "Request from ZK failover controller at " +
+<Line#21> Server.getRemoteAddress() + " denied since automatic HA " +
+<Line#22> "is not enabled");
+<Line#23> }
+<Line#24> break;
+<Line#25> }
+<Line#26> }
+```
+
+Formatted as per the given instruction:
+- <Line#1>:# LOG.info("Handling HA state change request: " + req.getSource() + ", autoHaEnabled: " + autoHaEnabled):#
+
+This logging statement provides insight into the type of HA state change request being processed and whether the automatic HA feature is enabled, which could be crucial for understanding the system's behavior in different scenarios.

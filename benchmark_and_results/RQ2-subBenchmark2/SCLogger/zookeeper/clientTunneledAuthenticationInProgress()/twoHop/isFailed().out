@@ -1,0 +1,3 @@
+public boolean isFailed(){
+  return (saslState == SaslState.FAILED);
+}

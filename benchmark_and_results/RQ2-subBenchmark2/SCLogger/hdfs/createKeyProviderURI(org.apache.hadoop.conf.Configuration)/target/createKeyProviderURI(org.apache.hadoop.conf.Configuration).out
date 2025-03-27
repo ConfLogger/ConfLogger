@@ -1,0 +1,15 @@
+private URI createKeyProviderURI(Configuration conf) {
+final String providerUriStr = conf.getTrimmed(
+CommonConfigurationKeysPublic.HADOOP_SECURITY_KEY_PROVIDER_PATH);
+// No provider set in conf
+if (providerUriStr == null || providerUriStr.isEmpty()) {
+return null;
+}
+final URI providerUri;
+try {
+providerUri = new URI(providerUriStr);
+} catch (URISyntaxException e) {
+return null;
+}
+return providerUri;
+}

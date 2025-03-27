@@ -1,0 +1,17 @@
+/** 
+ * Ensures that  {@link ResourceUtils#MEMORY} and {@link ResourceUtils#VCORES}resources are contained in the map received as parameter.
+ * @param res Map object having keys as resources namesand  {@link ResourceInformation} objects as values
+ */
+private static void addMandatoryResources(Map<String,ResourceInformation> res){
+  ResourceInformation ri;
+  if (!res.containsKey(MEMORY)) {
+    LOG.debug("Adding resource type - name = {}, units = {}, type = {}",MEMORY,ResourceInformation.MEMORY_MB.getUnits(),ResourceTypes.COUNTABLE);
+    ri=ResourceInformation.newInstance(MEMORY,ResourceInformation.MEMORY_MB.getUnits());
+    res.put(MEMORY,ri);
+  }
+  if (!res.containsKey(VCORES)) {
+    LOG.debug("Adding resource type - name = {}, units = {}, type = {}",VCORES,ResourceInformation.VCORES.getUnits(),ResourceTypes.COUNTABLE);
+    ri=ResourceInformation.newInstance(VCORES);
+    res.put(VCORES,ri);
+  }
+}

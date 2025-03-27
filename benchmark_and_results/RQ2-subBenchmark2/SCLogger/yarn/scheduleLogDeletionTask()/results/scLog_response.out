@@ -1,0 +1,27 @@
+Based on the provided code and context, here are the logging statements inserted using the `<API>` format as requested:
+
+```java
+<Line#0>:# private void scheduleLogDeletionTask() throws IOException {#:
+<Line#1>:# Configuration conf = getConfig();#:
+<Line#2>:# if (!conf.getBoolean(YarnConfiguration.LOG_AGGREGATION_ENABLED,#:
+<Line#3>:# YarnConfiguration.DEFAULT_LOG_AGGREGATION_ENABLED)) {#:
+<Line#4>:# // Log aggregation is not enabled so don't bother#:
+<Line#5>:# return;#:
+<Line#6>:# }#:
+<Line#7>:# long retentionSecs = conf.getLong(#:
+<Line#8>:# YarnConfiguration.LOG_AGGREGATION_RETAIN_SECONDS,#:
+<Line#9>:# YarnConfiguration.DEFAULT_LOG_AGGREGATION_RETAIN_SECONDS);#:
+<Line#10>:# if (retentionSecs < 0) {#:
+<Line#11>:# return;#:
+<Line#12>:# }#:
+<Line#13>:# setLogAggCheckIntervalMsecs(retentionSecs);#:
+<Line#14>:# task = new LogDeletionTask(conf, retentionSecs, createRMClient());#:
+<Line#15>:# timer = new Timer();#:
+<Line#16>:# timer.scheduleAtFixedRate(task, 0, checkIntervalMsecs);#:
+<Line#17>:# }#:
+<Line#4.1>:# LOG.debug("Log aggregation is not enabled, skipping log deletion task scheduling.");#:
+<Line#10.1>:# LOG.warn("Invalid log retention period specified: {} seconds. Log deletion task not scheduled.", retentionSecs);#:
+<Line#14.1>:# LOG.info("Scheduling log deletion task with retention period: {} seconds.", retentionSecs);#:
+```
+
+These logging statements are inserted at appropriate places in the code to provide meaningful insights into the execution flow and decisions made by the code, such as whether log aggregation is enabled, if the retention period is valid, and when the log deletion task is scheduled.

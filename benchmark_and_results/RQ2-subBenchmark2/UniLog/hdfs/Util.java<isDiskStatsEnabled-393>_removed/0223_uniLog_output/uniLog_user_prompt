@@ -1,0 +1,234 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>final boolean isEnabled;
+<Line#1>if (fileIOSamplingPercentage <= 0) {
+<Line#2>isEnabled = false;
+<Line#3>} else {
+<Line#4>isEnabled = true;
+<Line#5>}
+<Line#6>
+<Line#7>return isEnabled;
+<Line#8>}
+
+Example 1:
+<Line#1>{
+<Line#2>  BPOfferService bpos=getBPOSForBlock(block);
+<Line#3>  DatanodeRegistration bpReg=getDNRegistrationForBP(block.getBlockPoolId());
+<Line#4>  boolean replicaNotExist=false;
+<Line#5>  boolean replicaStateNotFinalized=false;
+<Line#6>  boolean blockFileNotExist=false;
+<Line#7>  boolean lengthTooShort=false;
+<Line#8>  try {
+<Line#9>    data.checkBlock(block,block.getNumBytes(),ReplicaState.FINALIZED);
+<Line#10>  }
+<Line#11> catch (  ReplicaNotFoundException e) {
+<Line#12>    replicaNotExist=true;
+<Line#13>  }
+<Line#14>catch (  UnexpectedReplicaStateException e) {
+<Line#15>    replicaStateNotFinalized=true;
+<Line#16>  }
+<Line#17>catch (  FileNotFoundException e) {
+<Line#18>    blockFileNotExist=true;
+<Line#19>  }
+<Line#20>catch (  EOFException e) {
+<Line#21>    lengthTooShort=true;
+<Line#22>  }
+<Line#23>catch (  IOException e) {
+<Line#24>    blockFileNotExist=true;
+<Line#25>  }
+<Line#26>  if (replicaNotExist || replicaStateNotFinalized) {
+<Line#27>    String errStr="Can't send invalid block " + block;
+<Line#28>    LOG.info(errStr);
+<Line#29>    bpos.trySendErrorReport(DatanodeProtocol.INVALID_BLOCK,errStr);
+<Line#30>    return;
+<Line#31>  }
+<Line#32>  if (blockFileNotExist) {
+<Line#33>    reportBadBlock(bpos,block,"Can't replicate block " + block + " because the block file doesn't exist, or is not accessible");
+<Line#34>    return;
+<Line#35>  }
+<Line#36>  if (lengthTooShort) {
+<Line#37>    reportBadBlock(bpos,block,"Can't replicate block " + block + " because on-disk length "+ data.getLength(block)+ " is shorter than NameNode recorded length "+ block.getNumBytes());
+<Line#38>    return;
+<Line#39>  }
+<Line#40>  int numTargets=xferTargets.length;
+<Line#41>  if (numTargets > 0) {
+<Line#42>    final String xferTargetsString=StringUtils.join(" ",Arrays.asList(xferTargets));
+<Line#43>    LOG.info("{} Starting thread to transfer {} to {}",bpReg,block,xferTargetsString);
+<Line#44>    final DataTransfer dataTransferTask=new DataTransfer(xferTargets,xferTargetStorageTypes,xferTargetStorageIDs,block,BlockConstructionStage.PIPELINE_SETUP_CREATE,"");
+<Line#45>    this.xferService.execute(dataTransferTask);
+<Line#46>  }
+<Line#47>}
+Label: <Line#28> LOG.info(errStr)
+
+Example 2:
+<Line#1>{
+<Line#2>  BPOfferService bpos=getBPOSForBlock(block);
+<Line#3>  DatanodeRegistration bpReg=getDNRegistrationForBP(block.getBlockPoolId());
+<Line#4>  boolean replicaNotExist=false;
+<Line#5>  boolean replicaStateNotFinalized=false;
+<Line#6>  boolean blockFileNotExist=false;
+<Line#7>  boolean lengthTooShort=false;
+<Line#8>  try {
+<Line#9>    data.checkBlock(block,block.getNumBytes(),ReplicaState.FINALIZED);
+<Line#10>  }
+<Line#11> catch (  ReplicaNotFoundException e) {
+<Line#12>    replicaNotExist=true;
+<Line#13>  }
+<Line#14>catch (  UnexpectedReplicaStateException e) {
+<Line#15>    replicaStateNotFinalized=true;
+<Line#16>  }
+<Line#17>catch (  FileNotFoundException e) {
+<Line#18>    blockFileNotExist=true;
+<Line#19>  }
+<Line#20>catch (  EOFException e) {
+<Line#21>    lengthTooShort=true;
+<Line#22>  }
+<Line#23>catch (  IOException e) {
+<Line#24>    blockFileNotExist=true;
+<Line#25>  }
+<Line#26>  if (replicaNotExist || replicaStateNotFinalized) {
+<Line#27>    String errStr="Can't send invalid block " + block;
+<Line#28>    LOG.info(errStr);
+<Line#29>    bpos.trySendErrorReport(DatanodeProtocol.INVALID_BLOCK,errStr);
+<Line#30>    return;
+<Line#31>  }
+<Line#32>  if (blockFileNotExist) {
+<Line#33>    reportBadBlock(bpos,block,"Can't replicate block " + block + " because the block file doesn't exist, or is not accessible");
+<Line#34>    return;
+<Line#35>  }
+<Line#36>  if (lengthTooShort) {
+<Line#37>    reportBadBlock(bpos,block,"Can't replicate block " + block + " because on-disk length "+ data.getLength(block)+ " is shorter than NameNode recorded length "+ block.getNumBytes());
+<Line#38>    return;
+<Line#39>  }
+<Line#40>  int numTargets=xferTargets.length;
+<Line#41>  if (numTargets > 0) {
+<Line#42>    final String xferTargetsString=StringUtils.join(" ",Arrays.asList(xferTargets));
+<Line#43>    LOG.info("{} Starting thread to transfer {} to {}",bpReg,block,xferTargetsString);
+<Line#44>    final DataTransfer dataTransferTask=new DataTransfer(xferTargets,xferTargetStorageTypes,xferTargetStorageIDs,block,BlockConstructionStage.PIPELINE_SETUP_CREATE,"");
+<Line#45>    this.xferService.execute(dataTransferTask);
+<Line#46>  }
+<Line#47>}
+Label: <Line#43> LOG.info("{} Starting thread to transfer {} to {}",bpReg,block,xferTargetsString)
+
+Example 3:
+<Line#1>{
+<Line#2>  final DDatanode targetDn=p.target.getDDatanode();
+<Line#3>  ExecutorService moveExecutor=targetDn.getMoveExecutor();
+<Line#4>  if (moveExecutor == null) {
+<Line#5>    final int nThreads=moverThreadAllocator.allocate();
+<Line#6>    if (nThreads > 0) {
+<Line#7>      moveExecutor=targetDn.initMoveExecutor(nThreads);
+<Line#8>    }
+<Line#9>  }
+<Line#10>  if (moveExecutor == null) {
+<Line#11>    LOG.warn("No mover threads available: skip moving " + p);
+<Line#12>    targetDn.removePendingBlock(p);
+<Line#13>    p.proxySource.removePendingBlock(p);
+<Line#14>    return;
+<Line#15>  }
+<Line#16>  moveExecutor.execute(new Runnable(){
+<Line#17>    @Override public void run(){
+<Line#18>      p.dispatch();
+<Line#19>    }
+<Line#20>  }
+<Line#21>);
+<Line#22>}
+Label: <Line#11> LOG.warn("No mover threads available: skip moving " + p)
+
+Example 4:
+<Line#1>{
+<Line#2>  if (!errorState.hasDatanodeError() && !shouldHandleExternalError()) {
+<Line#3>    return false;
+<Line#4>  }
+<Line#5>  LOG.debug("start process datanode/external error, {}",this);
+<Line#6>  if (response != null) {
+<Line#7>    LOG.info("Error Recovery for " + block + " waiting for responder to exit. ");
+<Line#8>    return true;
+<Line#9>  }
+<Line#10>  closeStream();
+<Line#11>synchronized (dataQueue) {
+<Line#12>    dataQueue.addAll(0,ackQueue);
+<Line#13>    ackQueue.clear();
+<Line#14>    packetSendTime.clear();
+<Line#15>  }
+<Line#16>  if (!errorState.isRestartingNode() && ++pipelineRecoveryCount > 5) {
+<Line#17>    LOG.warn("Error recovering pipeline for writing " + block + ". Already retried 5 times for the same packet.");
+<Line#18>    lastException.set(new IOException("Failing write. Tried pipeline " + "recovery 5 times without success."));
+<Line#19>    streamerClosed=true;
+<Line#20>    return false;
+<Line#21>  }
+<Line#22>  setupPipelineForAppendOrRecovery();
+<Line#23>  if (!streamerClosed && dfsClient.clientRunning) {
+<Line#24>    if (stage == BlockConstructionStage.PIPELINE_CLOSE) {
+<Line#25>synchronized (dataQueue) {
+<Line#26>        DFSPacket endOfBlockPacket=dataQueue.remove();
+<Line#27>        Span span=endOfBlockPacket.getSpan();
+<Line#28>        if (span != null) {
+<Line#29>          span.finish();
+<Line#30>          endOfBlockPacket.setSpan(null);
+<Line#31>        }
+<Line#32>        assert endOfBlockPacket.isLastPacketInBlock();
+<Line#33>        assert lastAckedSeqno == endOfBlockPacket.getSeqno() - 1;
+<Line#34>        lastAckedSeqno=endOfBlockPacket.getSeqno();
+<Line#35>        pipelineRecoveryCount=0;
+<Line#36>        dataQueue.notifyAll();
+<Line#37>      }
+<Line#38>      endBlock();
+<Line#39>    }
+<Line#40> else {
+<Line#41>      initDataStreaming();
+<Line#42>    }
+<Line#43>  }
+<Line#44>  return false;
+<Line#45>}
+Label: <Line#5> LOG.debug("start process datanode/external error, {}",this)
+
+Example 5:
+<Line#1>{
+<Line#2>  if (!errorState.hasDatanodeError() && !shouldHandleExternalError()) {
+<Line#3>    return false;
+<Line#4>  }
+<Line#5>  LOG.debug("start process datanode/external error, {}",this);
+<Line#6>  if (response != null) {
+<Line#7>    LOG.info("Error Recovery for " + block + " waiting for responder to exit. ");
+<Line#8>    return true;
+<Line#9>  }
+<Line#10>  closeStream();
+<Line#11>synchronized (dataQueue) {
+<Line#12>    dataQueue.addAll(0,ackQueue);
+<Line#13>    ackQueue.clear();
+<Line#14>    packetSendTime.clear();
+<Line#15>  }
+<Line#16>  if (!errorState.isRestartingNode() && ++pipelineRecoveryCount > 5) {
+<Line#17>    LOG.warn("Error recovering pipeline for writing " + block + ". Already retried 5 times for the same packet.");
+<Line#18>    lastException.set(new IOException("Failing write. Tried pipeline " + "recovery 5 times without success."));
+<Line#19>    streamerClosed=true;
+<Line#20>    return false;
+<Line#21>  }
+<Line#22>  setupPipelineForAppendOrRecovery();
+<Line#23>  if (!streamerClosed && dfsClient.clientRunning) {
+<Line#24>    if (stage == BlockConstructionStage.PIPELINE_CLOSE) {
+<Line#25>synchronized (dataQueue) {
+<Line#26>        DFSPacket endOfBlockPacket=dataQueue.remove();
+<Line#27>        Span span=endOfBlockPacket.getSpan();
+<Line#28>        if (span != null) {
+<Line#29>          span.finish();
+<Line#30>          endOfBlockPacket.setSpan(null);
+<Line#31>        }
+<Line#32>        assert endOfBlockPacket.isLastPacketInBlock();
+<Line#33>        assert lastAckedSeqno == endOfBlockPacket.getSeqno() - 1;
+<Line#34>        lastAckedSeqno=endOfBlockPacket.getSeqno();
+<Line#35>        pipelineRecoveryCount=0;
+<Line#36>        dataQueue.notifyAll();
+<Line#37>      }
+<Line#38>      endBlock();
+<Line#39>    }
+<Line#40> else {
+<Line#41>      initDataStreaming();
+<Line#42>    }
+<Line#43>  }
+<Line#44>  return false;
+<Line#45>}
+Label: <Line#7> LOG.info("Error Recovery for " + block + " waiting for responder to exit. ")
+

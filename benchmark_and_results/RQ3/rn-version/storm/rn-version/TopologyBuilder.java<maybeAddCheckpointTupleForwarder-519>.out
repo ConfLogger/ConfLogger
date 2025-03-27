@@ -1,0 +1,91 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	TopologyBuilder.java	methodSinagture:	org.apache.storm.topology.TopologyBuilder.maybeAddCheckpointTupleForwarder(Lorg/apache/storm/topology/IRichBolt;)Lorg/apache/storm/topology/IRichBolt;	methodLines:	519:523
+blockLines:	520:-1
+paras:	null
+TaintedStat:	NORMAL maybeAddCheckpointTupleForwarder:conditional branch(ne, to iindex=13) 6,5 Node: < Application, Lorg/apache/storm/topology/TopologyBuilder, maybeAddCheckpointTupleForwarder(Lorg/apache/storm/topology/IRichBolt;)Lorg/apache/storm/topology/IRichBolt; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/topology/TopologyBuilder, createTopology()Lorg/apache/storm/generated/StormTopology; > Context: Everywhere[26]21 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 19,18 @61 exception:20
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/topology/TopologyBuilder, createTopology()Lorg/apache/storm/generated/StormTopology; > Context: Everywhere[26]21 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 19,18 @61 exception:20
+NORMAL createTopology:22 = checkcast <Application,Lorg/apache/storm/topology/IRichBolt>21 <Application,Lorg/apache/storm/topology/IRichBolt> Node: < Application, Lorg/apache/storm/topology/TopologyBuilder, createTopology()Lorg/apache/storm/generated/StormTopology; > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/topology/TopologyBuilder, createTopology()Lorg/apache/storm/generated/StormTopology; > Context: Everywhere[31]24 = invokevirtual < Application, Lorg/apache/storm/topology/TopologyBuilder, maybeAddCheckpointTupleForwarder(Lorg/apache/storm/topology/IRichBolt;)Lorg/apache/storm/topology/IRichBolt; > 1,22 @74 exception:23 v22
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/topology/TopologyBuilder, maybeAddCheckpointTupleForwarder(Lorg/apache/storm/topology/IRichBolt;)Lorg/apache/storm/topology/IRichBolt; > Context: Everywhere v2
+NORMAL maybeAddCheckpointTupleForwarder:6 = instanceof 2 <Application,Lorg/apache/storm/topology/StatefulBoltExecutor> Node: < Application, Lorg/apache/storm/topology/TopologyBuilder, maybeAddCheckpointTupleForwarder(Lorg/apache/storm/topology/IRichBolt;)Lorg/apache/storm/topology/IRichBolt; > Context: Everywhere
+NORMAL maybeAddCheckpointTupleForwarder:conditional branch(ne, to iindex=13) 6,5 Node: < Application, Lorg/apache/storm/topology/TopologyBuilder, maybeAddCheckpointTupleForwarder(Lorg/apache/storm/topology/IRichBolt;)Lorg/apache/storm/topology/IRichBolt; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private IRichBolt maybeAddCheckpointTupleForwarder(IRichBolt bolt) {
+        if (hasStatefulBolt && !(bolt instanceof StatefulBoltExecutor)) {
+            bolt = new CheckpointTupleForwarder(bolt);
+        }
+        return bolt;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/topology/TopologyBuilder, createTopology()Lorg/apache/storm/generated/StormTopology; > Context: Everywhere, blocks=[BB[SSA:28..31]17 - org.apache.storm.topology.TopologyBuilder.createTopology()Lorg/apache/storm/generated/StormTopology;, BB[SSA:27..27]16 - org.apache.storm.topology.TopologyBuilder.createTopology()Lorg/apache/storm/generated/StormTopology;, BB[SSA:32..36]18 - org.apache.storm.topology.TopologyBuilder.createTopology()Lorg/apache/storm/generated/StormTopology;, BB[SSA:-1..-2]93 - org.apache.storm.topology.TopologyBuilder.createTopology()Lorg/apache/storm/generated/StormTopology;], numberOfBasicBlocks=4, firstLineNumber=111, lastLineNumber=113, firstMethodNumber=106, lastMethodNumber=164, isFirstLineValid=true, methodSrcCode=
+    public StormTopology createTopology() {
+        Map<String, Bolt> boltSpecs = new HashMap<>();
+        Map<String, SpoutSpec> spoutSpecs = new HashMap<>();
+        maybeAddCheckpointSpout();
+        for (String boltId : bolts.keySet()) {
+            IRichBolt bolt = bolts.get(boltId);
+            bolt = maybeAddCheckpointTupleForwarder(bolt);
+            ComponentCommon common = getComponentCommon(boltId, bolt);
+            try {
+                maybeAddCheckpointInputs(common);
+                boltSpecs.put(boltId, new Bolt(ComponentObject.serialized_java(Utils.javaSerialize(bolt)), common));
+            } catch (RuntimeException wrapperCause) {
+                if (wrapperCause.getCause() != null && NotSerializableException.class.equals(wrapperCause.getCause().getClass())) {
+                    throw new IllegalStateException("Bolt '" + boltId + "' contains a non-serializable field of type "
+                                    + wrapperCause.getCause().getMessage() + ", "
+                                    + "which was instantiated prior to topology creation. "
+                                    + wrapperCause.getCause().getMessage()
+                                    + " "
+                                    + "should be instantiated within the prepare method of '"
+                                    + boltId
+                                    + " at the earliest.",
+                            wrapperCause);
+                }
+                throw wrapperCause;
+            }
+        }
+        for (String spoutId : spouts.keySet()) {
+            IRichSpout spout = spouts.get(spoutId);
+            ComponentCommon common = getComponentCommon(spoutId, spout);
+            try {
+                spoutSpecs.put(spoutId, new SpoutSpec(ComponentObject.serialized_java(Utils.javaSerialize(spout)), common));
+            } catch (RuntimeException wrapperCause) {
+                if (wrapperCause.getCause() != null && NotSerializableException.class.equals(wrapperCause.getCause().getClass())) {
+                    throw new IllegalStateException(
+                            "Spout '" + spoutId + "' contains a non-serializable field of type "
+                                    + wrapperCause.getCause().getMessage()
+                                    + ", which was instantiated prior to topology creation. "
+                                    + wrapperCause.getCause().getMessage()
+                                    + " should be instantiated within the open method of '"
+                                    + spoutId
+                                    + " at the earliest.",
+                            wrapperCause);
+                }
+                throw wrapperCause;
+            }
+        }
+
+        StormTopology stormTopology = new StormTopology(spoutSpecs,
+                                                        boltSpecs,
+                                                        new HashMap<>());
+
+        stormTopology.set_worker_hooks(workerHooks);
+
+        if (!componentToSharedMemory.isEmpty()) {
+            stormTopology.set_component_to_shared_memory(componentToSharedMemory);
+            stormTopology.set_shared_memory(sharedMemory);
+        }
+
+        return Utils.addVersions(stormTopology);
+    }
+}

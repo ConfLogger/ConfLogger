@@ -1,0 +1,1 @@
+<Line#2>:# LOG.debug("Setting up flush tuple timer with producer batch size: {}, transfer batch size: {}, and flush interval: {} millis", producerBatchSize, xferBatchSize, flushIntervalMillis);:#

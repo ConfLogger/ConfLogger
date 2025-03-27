@@ -1,0 +1,10 @@
+/** 
+ * Namenode HighAvailability related configuration. Returns collection of namenode Ids from the configuration. One logical id for each namenode in the in the HA setup.
+ * @param conf configuration
+ * @param nsId the nameservice ID to look at, or null for non-federated
+ * @return collection of namenode Ids
+ */
+public static Collection<String> getNameNodeIds(Configuration conf,String nsId){
+  String key=addSuffix(DFS_HA_NAMENODES_KEY_PREFIX,nsId);
+  return conf.getTrimmedStringCollection(key);
+}

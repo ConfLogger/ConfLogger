@@ -1,0 +1,23 @@
+To insert a logging statement into the provided code snippet using the patterns from the examples, we should consider the context and purpose of the code. The code checks if OpenSSL is available and enabled, and if not, it configures the SSL context builder to use JDK's SSL provider. Logging at the points where decisions are made or actions are taken based on the availability of OpenSSL would be beneficial for debugging and monitoring purposes.
+
+Given the context, a suitable logging statement could be added after checking the availability of OpenSSL and the configuration setting, and another one when falling back to the JDK SSL provider. These logging statements would help in understanding whether OpenSSL was used or not and why.
+
+Inserting logging statements:
+
+```java
+<Line#4>   if (OpenSsl.isAvailable() && conf.getBoolean(TLS_USE_OPENSSL,true)) {
+<Line#4.1>:# LOG.debug("OpenSSL is available and enabled, configuring SslContextBuilder with OpenSSL."):#
+<Line#5>     return true;
+<Line#6>   }
+<Line#7>  else {
+<Line#7.1>:# LOG.debug("OpenSSL is not available or not enabled, configuring SslContextBuilder with JDK SSL provider."):#
+<Line#8>     sslContextBuilder.sslProvider(SslProvider.JDK);
+<Line#9>     return false;
+<Line#10>   }
+```
+
+Explanation:
+- At line #4.1, a debug log is inserted right after the condition check to log when OpenSSL is available and enabled. This helps in confirming that the application is configured to use OpenSSL for SSL operations.
+- At line #7.1, another debug log is inserted to indicate that OpenSSL is either not available or not enabled, and hence, the application falls back to using the JDK SSL provider. This is useful for troubleshooting SSL configuration issues or understanding the SSL provider being used at runtime.
+
+These logging statements follow the pattern observed in the examples, particularly resembling the conditional logging seen in examples 3 and 4, where decisions are logged to provide insights into the application's behavior under different conditions.

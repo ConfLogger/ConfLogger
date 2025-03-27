@@ -1,0 +1,6 @@
+/** 
+ * @deprecated Use {@link #getInstance()}
+ */
+@Deprecated public Job() throws IOException {
+  this(new JobConf(new Configuration()));
+}

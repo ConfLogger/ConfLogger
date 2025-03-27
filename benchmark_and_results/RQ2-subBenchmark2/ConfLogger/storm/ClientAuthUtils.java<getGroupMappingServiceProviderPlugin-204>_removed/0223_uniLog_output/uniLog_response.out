@@ -1,0 +1,28 @@
+To insert a log level and log verbosity message into the given target method code, we need to identify the appropriate places for logging based on the provided examples. In the examples, logging is generally inserted in catch blocks or at significant points in the code execution.
+
+Let's add logging to the provided target method code:
+
+```java
+public static IGroupMappingServiceProvider getGroupMappingServiceProviderPlugin(Map<String, Object> conf) {
+    IGroupMappingServiceProvider gmsp = null;
+    try {
+        String gmspClassName = (String) conf.get(Config.STORM_GROUP_MAPPING_SERVICE_PROVIDER_PLUGIN);
+        if (gmspClassName == null) {
+            LOG.warn("Group Mapping Service Provider class name is not configured.");
+        } else {
+            gmsp = ReflectionUtils.newInstance(gmspClassName);
+            if (gmsp != null) {
+                gmsp.prepare(conf);
+            }
+        }
+    } catch (Exception e) {
+        LOG.error("Error occurred while getting Group Mapping Service Provider Plugin.", e);
+        throw new RuntimeException(e);
+    }
+    return gmsp;
+}
+```
+
+Explanation:
+- **Line#4:** Added a warning log when `gmspClassName` is null, indicating that the class name is not configured.
+- **Line#13:** Added an error log in the catch block to log any exceptions that occur during the process, providing more context about the error.

@@ -1,0 +1,128 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	KeyProvider.java	methodSinagture:	org.apache.hadoop.crypto.key.KeyProvider.<init>(Lorg/apache/hadoop/conf/Configuration;)V	methodLines:	405:416
+blockLines:	410:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(ne, to iindex=21) 9,10 Node: < Application, Lorg/apache/hadoop/crypto/key/KeyProvider, <init>(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/crypto/key/KeyProvider, <init>(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[15]14 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 2,11,12 @29 exception:13
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/crypto/key/KeyProvider, <init>(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[15]14 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 2,11,12 @29 exception:13
+NORMAL <init>:16 = invokestatic < Application, Ljava/lang/System, setProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 7,14 @36 exception:15 Node: < Application, Lorg/apache/hadoop/crypto/key/KeyProvider, <init>(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/System, setProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL setProperty:invokestatic < Primordial, Ljava/lang/System, checkKey(Ljava/lang/String;)V > 1 @1 exception:4 Node: < Primordial, Ljava/lang/System, setProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/System, checkKey(Ljava/lang/String;)V > Context: Everywhere
+NORMAL checkKey:6 = invokevirtual < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > 1,4 @17 exception:5 Node: < Primordial, Ljava/lang/System, checkKey(Ljava/lang/String;)V > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL equals:conditional branch(ne, to iindex=5) 1,2 Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL equals:return 22 Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Primordial, Ljava/security/Policy, loadPolicyProvider()Ljava/security/Policy; > Context: Everywhere[15]13 = invokevirtual < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > 6,11 @28 exception:12
+NORMAL loadPolicyProvider:conditional branch(eq, to iindex=30) 13,10 Node: < Primordial, Ljava/security/Policy, loadPolicyProvider()Ljava/security/Policy; > Context: Everywhere
+NORMAL loadPolicyProvider:21 = invokestatic < Primordial, Ljava/security/AccessController, doPrivileged(Ljava/security/PrivilegedAction;)Ljava/lang/Object; > 18 @84 exception:20 Node: < Primordial, Ljava/security/Policy, loadPolicyProvider()Ljava/security/Policy; > Context: Everywhere
+METHOD_ENTRY:Node: synthetic < Primordial, Ljava/security/AccessController, doPrivileged(Ljava/security/PrivilegedAction;)Ljava/lang/Object; > Context: Everywhere
+NORMAL doPrivileged:3 = invokeinterface < Primordial, Ljava/security/PrivilegedAction, run()Ljava/lang/Object; > 1 @0 exception:2 Node: synthetic < Primordial, Ljava/security/AccessController, doPrivileged(Ljava/security/PrivilegedAction;)Ljava/lang/Object; > Context: Everywhere
+METHOD_ENTRY:Node: synthetic < Primordial, Lwala/lambda$java$lang$ProcessImpl$Platform$0, run()Ljava/lang/Object; > Context: Everywhere
+NORMAL run:3 = invokespecial < Application, Ljava/lang/ProcessImpl$Platform, lambda$launchMechanism$0()Ljava/lang/ProcessImpl$LaunchMechanism; > 2 @2 exception:4 Node: synthetic < Primordial, Lwala/lambda$java$lang$ProcessImpl$Platform$0, run()Ljava/lang/Object; > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/ProcessImpl$Platform, lambda$launchMechanism$0()Ljava/lang/ProcessImpl$LaunchMechanism; > Context: Everywhere
+NORMAL lambda$launchMechanism$0:5 = invokestatic < Primordial, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 3 @2 exception:4 Node: < Primordial, Ljava/lang/ProcessImpl$Platform, lambda$launchMechanism$0()Ljava/lang/ProcessImpl$LaunchMechanism; > Context: Everywhere
+METHOD_ENTRY:Node: synthetic < Primordial, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL getProperty:return 2 Node: synthetic < Primordial, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL_RET_CALLEE:Node: synthetic < Primordial, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/crypto/key/KeyProvider, <init>(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[9]9 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 7 @18 exception:8
+NORMAL <init>:conditional branch(ne, to iindex=21) 9,10 Node: < Application, Lorg/apache/hadoop/crypto/key/KeyProvider, <init>(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+   */
+  public KeyProvider(Configuration conf) {
+    this.conf = new Configuration(conf);
+    // Added for HADOOP-15473. Configured serialFilter property fixes
+    // java.security.UnrecoverableKeyException in JDK 8u171.
+    if(System.getProperty(JCEKS_KEY_SERIAL_FILTER) == null) {
+      String serialFilter =
+          conf.get(HADOOP_SECURITY_CRYPTO_JCEKS_KEY_SERIALFILTER,
+              JCEKS_KEY_SERIALFILTER_DEFAULT);
+      System.setProperty(JCEKS_KEY_SERIAL_FILTER, serialFilter);
+    }
+  }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/crypto/key/UserProvider, <init>(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.hadoop.crypto.key.UserProvider.<init>(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:-1..-2]0 - org.apache.hadoop.crypto.key.UserProvider.<init>(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:3..4]2 - org.apache.hadoop.crypto.key.UserProvider.<init>(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:-1..-2]11 - org.apache.hadoop.crypto.key.UserProvider.<init>(Lorg/apache/hadoop/conf/Configuration;)V], numberOfBasicBlocks=4, firstLineNumber=47, lastLineNumber=45, firstMethodNumber=47, lastMethodNumber=51, isFirstLineValid=false, methodSrcCode=
+  private UserProvider(Configuration conf) throws IOException {
+    super(conf);
+    user = UserGroupInformation.getCurrentUser();
+    credentials = user.getCredentials();
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/crypto/key/kms/LoadBalancingKMSClientProvider, <init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.hadoop.crypto.key.kms.LoadBalancingKMSClientProvider.<init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V, BB[SSA:-1..-2]0 - org.apache.hadoop.crypto.key.kms.LoadBalancingKMSClientProvider.<init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V, BB[SSA:3..5]2 - org.apache.hadoop.crypto.key.kms.LoadBalancingKMSClientProvider.<init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V, BB[SSA:-1..-2]60 - org.apache.hadoop.crypto.key.kms.LoadBalancingKMSClientProvider.<init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V], numberOfBasicBlocks=4, firstLineNumber=100, lastLineNumber=86, firstMethodNumber=100, lastMethodNumber=139, isFirstLineValid=false, methodSrcCode=
+      KMSClientProvider[] providers, long seed, Configuration conf) {
+    super(conf);
+    // uri is the token service so it can be instantiated for renew/cancel.
+    dtService = KMSClientProvider.getDtService(uri);
+    // if provider not in conf, new client will alias on uri else addr.
+    if (KMSUtil.getKeyProviderUri(conf) == null) {
+      canonicalService = dtService;
+    } else {
+      // canonical service (credentials alias) will be the first underlying
+      // provider's service.  must be deterministic before shuffle so multiple
+      // calls for a token do not obtain another unnecessary token.
+      canonicalService = new Text(providers[0].getCanonicalServiceName());
+    }
+
+    // shuffle unless seed is 0 which is used by tests for determinism.
+    this.providers = (seed != 0) ? shuffle(providers) : providers;
+    for (KMSClientProvider provider : providers) {
+      provider.setClientTokenProvider(this);
+    }
+    this.currentIdx = new AtomicInteger((int)(seed % providers.length));
+    int maxNumRetries = conf.getInt(CommonConfigurationKeysPublic.
+        KMS_CLIENT_FAILOVER_MAX_RETRIES_KEY, providers.length);
+    int sleepBaseMillis = conf.getInt(CommonConfigurationKeysPublic.
+        KMS_CLIENT_FAILOVER_SLEEP_BASE_MILLIS_KEY,
+        CommonConfigurationKeysPublic.
+            KMS_CLIENT_FAILOVER_SLEEP_BASE_MILLIS_DEFAULT);
+    int sleepMaxMillis = conf.getInt(CommonConfigurationKeysPublic.
+        KMS_CLIENT_FAILOVER_SLEEP_MAX_MILLIS_KEY,
+        CommonConfigurationKeysPublic.
+            KMS_CLIENT_FAILOVER_SLEEP_MAX_MILLIS_DEFAULT);
+    Preconditions.checkState(maxNumRetries >= 0);
+    Preconditions.checkState(sleepBaseMillis >= 0);
+    Preconditions.checkState(sleepMaxMillis >= 0);
+    this.retryPolicy = RetryPolicies.failoverOnNetworkException(
+        RetryPolicies.TRY_ONCE_THEN_FAIL, maxNumRetries, 0, sleepBaseMillis,
+        sleepMaxMillis);
+    LOG.debug("Created LoadBalancingKMSClientProvider for KMS url: {} with {} "
+            + "providers. delegation token service: {}, canonical service: {}",
+        uri, providers.length, dtService, canonicalService);
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/crypto/key/KeyProviderExtension, <init>(Lorg/apache/hadoop/crypto/key/KeyProvider;Lorg/apache/hadoop/crypto/key/KeyProviderExtension$Extension;)V > Context: Everywhere, blocks=[BB[SSA:3..3]2 - org.apache.hadoop.crypto.key.KeyProviderExtension.<init>(Lorg/apache/hadoop/crypto/key/KeyProvider;Lorg/apache/hadoop/crypto/key/KeyProviderExtension$Extension;)V, BB[SSA:0..2]1 - org.apache.hadoop.crypto.key.KeyProviderExtension.<init>(Lorg/apache/hadoop/crypto/key/KeyProvider;Lorg/apache/hadoop/crypto/key/KeyProviderExtension$Extension;)V, BB[SSA:4..6]3 - org.apache.hadoop.crypto.key.KeyProviderExtension.<init>(Lorg/apache/hadoop/crypto/key/KeyProvider;Lorg/apache/hadoop/crypto/key/KeyProviderExtension$Extension;)V, BB[SSA:-1..-2]6 - org.apache.hadoop.crypto.key.KeyProviderExtension.<init>(Lorg/apache/hadoop/crypto/key/KeyProvider;Lorg/apache/hadoop/crypto/key/KeyProviderExtension$Extension;)V], numberOfBasicBlocks=4, firstLineNumber=43, lastLineNumber=44, firstMethodNumber=42, lastMethodNumber=46, isFirstLineValid=true, methodSrcCode=
+  public KeyProviderExtension(KeyProvider keyProvider, E extensions) {
+    super(keyProvider.getConf());
+    this.keyProvider = keyProvider;
+    this.extension = extensions;
+  }
+  
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/crypto/key/JavaKeyStoreProvider, <init>(Lorg/apache/hadoop/crypto/key/JavaKeyStoreProvider;)V > Context: Everywhere, blocks=[BB[SSA:4..4]3 - org.apache.hadoop.crypto.key.JavaKeyStoreProvider.<init>(Lorg/apache/hadoop/crypto/key/JavaKeyStoreProvider;)V, BB[SSA:2..3]2 - org.apache.hadoop.crypto.key.JavaKeyStoreProvider.<init>(Lorg/apache/hadoop/crypto/key/JavaKeyStoreProvider;)V, BB[SSA:5..7]4 - org.apache.hadoop.crypto.key.JavaKeyStoreProvider.<init>(Lorg/apache/hadoop/crypto/key/JavaKeyStoreProvider;)V, BB[SSA:-1..-2]27 - org.apache.hadoop.crypto.key.JavaKeyStoreProvider.<init>(Lorg/apache/hadoop/crypto/key/JavaKeyStoreProvider;)V], numberOfBasicBlocks=4, firstLineNumber=117, lastLineNumber=109, firstMethodNumber=116, lastMethodNumber=127, isFirstLineValid=true, methodSrcCode=
+  JavaKeyStoreProvider(JavaKeyStoreProvider other) {
+    super(new Configuration());
+    uri = other.uri;
+    path = other.path;
+    fs = other.fs;
+    permissions = other.permissions;
+    keyStore = other.keyStore;
+    password = other.password;
+    changed = other.changed;
+    readLock = other.readLock;
+    writeLock = other.writeLock;
+  }
+
+}

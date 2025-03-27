@@ -1,0 +1,5 @@
+<Line#4>:# LOG.info("First attempt, no need to recover.");:#
+<Line#9>:# LOG.info("Recovery is not enabled.");:#
+<Line#30>:# LOG.info("Shuffle key is invalid for recovery.");:#
+<Line#40>:# LOG.info("Intermediate spill encryption is enabled, not attempting to recover.");:#
+<Line#43>:# LOG.info("Recovery attempt successful.");:#

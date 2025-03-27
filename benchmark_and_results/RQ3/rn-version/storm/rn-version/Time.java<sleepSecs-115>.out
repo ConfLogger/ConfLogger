@@ -1,0 +1,39 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Time.java	methodSinagture:	org.apache.storm.utils.Time.sleepSecs(J)V	methodLines:	115:119
+blockLines:	116:-1
+paras:	null
+TaintedStat:	NORMAL sleepSecs:conditional branch(le, to iindex=9) 4,5 Node: < Application, Lorg/apache/storm/utils/Time, sleepSecs(J)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Supervisor, killWorkers(Ljava/util/Collection;Lorg/apache/storm/daemon/supervisor/ContainerLauncher;)V > Context: Everywhere[45]35 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 32,33 @114 exception:34
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Supervisor, killWorkers(Ljava/util/Collection;Lorg/apache/storm/daemon/supervisor/ContainerLauncher;)V > Context: Everywhere[45]35 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 32,33 @114 exception:34
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Supervisor, killWorkers(Ljava/util/Collection;Lorg/apache/storm/daemon/supervisor/ContainerLauncher;)V > Context: Everywhere[46]37 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > 35 @119 exception:36 v35
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere v1
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere[2]5 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > 1,3 @2 exception:4 v1
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere v1
+NORMAL getInt:30 = checkcast <Application,Ljava/lang/Number>1 <Application,Ljava/lang/Number> Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+NORMAL getInt:32 = invokevirtual < Application, Ljava/lang/Number, intValue()I > 30 @32 exception:31 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/Integer, intValue()I > Context: Everywhere
+NORMAL intValue:return 3 Node: < Primordial, Ljava/lang/Integer, intValue()I > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/Integer, intValue()I > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Supervisor, killWorkers(Ljava/util/Collection;Lorg/apache/storm/daemon/supervisor/ContainerLauncher;)V > Context: Everywhere[47]39 = invokevirtual < Application, Ljava/lang/Integer, intValue()I > 37 @122 exception:38
+NORMAL killWorkers:42 = conversion(J) 39 Node: < Application, Lorg/apache/storm/daemon/supervisor/Supervisor, killWorkers(Ljava/util/Collection;Lorg/apache/storm/daemon/supervisor/ContainerLauncher;)V > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Supervisor, killWorkers(Ljava/util/Collection;Lorg/apache/storm/daemon/supervisor/ContainerLauncher;)V > Context: Everywhere[55]invokestatic < Application, Lorg/apache/storm/utils/Time, sleepSecs(J)V > 42 @137 exception:43 v42
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/Time, sleepSecs(J)V > Context: Everywhere v1
+NORMAL sleepSecs:4 = compare 1,3 opcode=cmp Node: < Application, Lorg/apache/storm/utils/Time, sleepSecs(J)V > Context: Everywhere
+NORMAL sleepSecs:conditional branch(le, to iindex=9) 4,5 Node: < Application, Lorg/apache/storm/utils/Time, sleepSecs(J)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static void sleepSecs(long secs) throws InterruptedException {
+        if (secs > 0) {
+            sleep(secs * 1000);
+        }
+    }
+
+
+
+====================ctx:=======================

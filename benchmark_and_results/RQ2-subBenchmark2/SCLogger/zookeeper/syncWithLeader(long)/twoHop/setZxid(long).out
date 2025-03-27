@@ -1,0 +1,3 @@
+public void setZxid(long m_){
+  zxid=m_;
+}

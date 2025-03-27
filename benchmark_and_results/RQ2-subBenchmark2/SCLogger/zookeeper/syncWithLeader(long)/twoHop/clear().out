@@ -1,0 +1,19 @@
+/** 
+ * clear the zkdatabase. Note to developers - be careful to see that the clear method does clear out all the data structures in zkdatabase.
+ */
+public void clear(){
+  minCommittedLog=0;
+  maxCommittedLog=0;
+  dataTree.shutdownWatcher();
+  dataTree=createDataTree();
+  sessionsWithTimeouts.clear();
+  WriteLock lock=logLock.writeLock();
+  try {
+    lock.lock();
+    committedLog.clear();
+  }
+  finally {
+    lock.unlock();
+  }
+  initialized=false;
+}

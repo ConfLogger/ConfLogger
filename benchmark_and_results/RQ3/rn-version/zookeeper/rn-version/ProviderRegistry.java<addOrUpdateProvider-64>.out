@@ -1,0 +1,88 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ProviderRegistry.java	methodSinagture:	org.apache.zookeeper.server.auth.ProviderRegistry.addOrUpdateProvider(Ljava/lang/String;)V	methodLines:	64:77
+blockLines:	66:-1
+paras:	null
+TaintedStat:	NORMAL addOrUpdateProvider:conditional branch(eq, to iindex=39) 6,7 Node: < Application, Lorg/apache/zookeeper/server/auth/ProviderRegistry, addOrUpdateProvider(Ljava/lang/String;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/ProviderRegistry, addOrUpdateProvider(Ljava/lang/String;)V > Context: Everywhere[10]9 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 1 @15 exception:8
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/ProviderRegistry, addOrUpdateProvider(Ljava/lang/String;)V > Context: Everywhere[10]9 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 1 @15 exception:8
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/ProviderRegistry, addOrUpdateProvider(Ljava/lang/String;)V > Context: Everywhere[15]14 = invokevirtual < Application, Ljava/lang/ClassLoader, loadClass(Ljava/lang/String;)Ljava/lang/Class; > 12,9 @25 exception:13 v9
+PARAM_CALLEE:Node: < Primordial, Ljava/lang/ClassLoader, loadClass(Ljava/lang/String;)Ljava/lang/Class; > Context: Everywhere v2
+PARAM_CALLER:Node: < Primordial, Ljava/lang/ClassLoader, loadClass(Ljava/lang/String;)Ljava/lang/Class; > Context: Everywhere[3]6 = invokevirtual < Primordial, Ljava/lang/ClassLoader, loadClass(Ljava/lang/String;Z)Ljava/lang/Class; > 1,2,4 @3 exception:5 v2
+PARAM_CALLEE:Node: < Primordial, Ljava/lang/ClassLoader, loadClass(Ljava/lang/String;Z)Ljava/lang/Class; > Context: Everywhere v2
+PARAM_CALLER:Node: < Primordial, Ljava/lang/ClassLoader, loadClass(Ljava/lang/String;Z)Ljava/lang/Class; > Context: Everywhere[28]14 = invokevirtual < Primordial, Ljava/lang/ClassLoader, findBootstrapClassOrNull(Ljava/lang/String;)Ljava/lang/Class; > 1,2 @48 exception:13 v2
+PARAM_CALLEE:Node: < Primordial, Ljava/lang/ClassLoader, findBootstrapClassOrNull(Ljava/lang/String;)Ljava/lang/Class; > Context: Everywhere v2
+PARAM_CALLER:Node: < Primordial, Ljava/lang/ClassLoader, findBootstrapClassOrNull(Ljava/lang/String;)Ljava/lang/Class; > Context: Everywhere[2]5 = invokevirtual < Primordial, Ljava/lang/ClassLoader, checkName(Ljava/lang/String;)Z > 1,2 @2 exception:4 v2
+PARAM_CALLEE:Node: < Primordial, Ljava/lang/ClassLoader, checkName(Ljava/lang/String;)Z > Context: Everywhere v2
+NORMAL checkName:13 = invokevirtual < Primordial, Ljava/lang/String, charAt(I)C > 2,7 @25 exception:12 Node: < Primordial, Ljava/lang/ClassLoader, checkName(Ljava/lang/String;)Z > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, charAt(I)C > Context: Everywhere
+NORMAL charAt:5 = invokevirtual < Primordial, Ljava/lang/String, isLatin1()Z > 1 @1 exception:4 Node: < Primordial, Ljava/lang/String, charAt(I)C > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, isLatin1()Z > Context: Everywhere
+NORMAL isLatin1:return 7 Node: < Primordial, Ljava/lang/String, isLatin1()Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, isLatin1()Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Primordial, Ljava/lang/String, startsWith(Ljava/lang/String;I)Z > Context: Everywhere[60]19 = invokevirtual < Primordial, Ljava/lang/String, isLatin1()Z > 1 @96 exception:18
+NORMAL startsWith:conditional branch(eq, to iindex=65) 19,5 Node: < Primordial, Ljava/lang/String, startsWith(Ljava/lang/String;I)Z > Context: Everywhere
+NORMAL startsWith:return 5 Node: < Primordial, Ljava/lang/String, startsWith(Ljava/lang/String;I)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, startsWith(Ljava/lang/String;I)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Primordial, Ljava/lang/String, startsWith(Ljava/lang/String;)Z > Context: Everywhere[3]6 = invokevirtual < Primordial, Ljava/lang/String, startsWith(Ljava/lang/String;I)Z > 1,2,4 @3 exception:5
+NORMAL startsWith:return 6 Node: < Primordial, Ljava/lang/String, startsWith(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, startsWith(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/ProviderRegistry, addOrUpdateProvider(Ljava/lang/String;)V > Context: Everywhere[6]6 = invokevirtual < Application, Ljava/lang/String, startsWith(Ljava/lang/String;)Z > 1,4 @8 exception:5
+NORMAL addOrUpdateProvider:conditional branch(eq, to iindex=39) 6,7 Node: < Application, Lorg/apache/zookeeper/server/auth/ProviderRegistry, addOrUpdateProvider(Ljava/lang/String;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static void addOrUpdateProvider(String authKey) {
+        synchronized (ProviderRegistry.class) {
+            if (authKey.startsWith(AUTHPROVIDER_PROPERTY_PREFIX)) {
+                String className = System.getProperty(authKey);
+                try {
+                    Class<?> c = ZooKeeperServer.class.getClassLoader().loadClass(className);
+                    AuthenticationProvider ap = (AuthenticationProvider) c.getDeclaredConstructor().newInstance();
+                    authenticationProviders.put(ap.getScheme(), ap);
+                } catch (Exception e) {
+                    LOG.warn("Problems loading {}", className, e);
+                }
+            }
+        }
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/auth/ProviderRegistry, initialize()V > Context: Everywhere, blocks=[BB[SSA:37..39]21 - org.apache.zookeeper.server.auth.ProviderRegistry.initialize()V, BB[SSA:36..36]20 - org.apache.zookeeper.server.auth.ProviderRegistry.initialize()V, BB[SSA:40..40]22 - org.apache.zookeeper.server.auth.ProviderRegistry.initialize()V], numberOfBasicBlocks=3, firstLineNumber=57, lastLineNumber=59, firstMethodNumber=45, lastMethodNumber=62, isFirstLineValid=true, methodSrcCode=
+    public static void initialize() {
+        synchronized (ProviderRegistry.class) {
+            IPAuthenticationProvider ipp = new IPAuthenticationProvider();
+            authenticationProviders.put(ipp.getScheme(), ipp);
+
+            if (DigestAuthenticationProvider.isEnabled()) {
+                DigestAuthenticationProvider digp = new DigestAuthenticationProvider();
+                authenticationProviders.put(digp.getScheme(), digp);
+            }
+
+            Enumeration<Object> en = System.getProperties().keys();
+            while (en.hasMoreElements()) {
+                String k = (String) en.nextElement();
+                addOrUpdateProvider(k);
+            }
+            initialized = true;
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/common/X509Util, resetDefaultSSLContextAndOptions()V > Context: Everywhere, blocks=[BB[SSA:11..12]6 - org.apache.zookeeper.common.X509Util.resetDefaultSSLContextAndOptions()V, BB[SSA:9..10]5 - org.apache.zookeeper.common.X509Util.resetDefaultSSLContextAndOptions()V, BB[SSA:13..13]7 - org.apache.zookeeper.common.X509Util.resetDefaultSSLContextAndOptions()V, BB[SSA:-1..-2]8 - org.apache.zookeeper.common.X509Util.resetDefaultSSLContextAndOptions()V], numberOfBasicBlocks=4, firstLineNumber=335, lastLineNumber=338, firstMethodNumber=331, lastMethodNumber=338, isFirstLineValid=true, methodSrcCode=
+    private void resetDefaultSSLContextAndOptions() throws X509Exception.SSLContextException {
+        SSLContextAndOptions newContext = createSSLContextAndOptions();
+        defaultSSLContextAndOptions.set(newContext);
+
+        if (Boolean.getBoolean(NettyServerCnxnFactory.CLIENT_CERT_RELOAD_KEY)) {
+            ProviderRegistry.addOrUpdateProvider(ProviderRegistry.AUTHPROVIDER_PROPERTY_PREFIX + "x509");
+        }
+    }
+
+}

@@ -1,0 +1,27 @@
+To add log level and log verbosity messages to the provided code, we need to follow the pattern observed in the examples. The log message should be inserted in the `catch` block where exceptions are handled. Based on the examples, we will add a `LOG.warn` statement in the `catch` block. Here's how it can be done for your code:
+
+```java
+public static IPrincipalToLocal getPrincipalToLocalPlugin(Map<String, Object> topoConf) {
+    IPrincipalToLocal ptol = null;
+    try {
+        String ptolClassname = (String) topoConf.get(Config.STORM_PRINCIPAL_TO_LOCAL_PLUGIN);
+        if (ptolClassname == null) {
+
+        } else {
+            ptol = ReflectionUtils.newInstance(ptolClassname);
+            //TODO this can only ever be null if someone is doing something odd with mocking
+            // We should really fix the mocking and remove this
+            if (ptol != null) {
+                ptol.prepare(topoConf);
+            }
+        }
+    } catch (Exception e) {
+        LOG.warn("Exception occurred while getting PrincipalToLocal plugin.", e); // Log message added
+        throw new RuntimeException(e);
+    }
+    return ptol;
+}
+```
+
+- The log level used is `warn`, which is consistent with the examples.
+- The log message provides context about where the exception occurred, similar to the examples.

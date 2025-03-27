@@ -1,0 +1,1 @@
+void readRecord(Record r,String tag) throws IOException ;

@@ -1,0 +1,201 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	SecurityUtils.java	methodSinagture:	org.apache.zookeeper.util.SecurityUtils.createSaslClient(Ljavax/security/auth/Subject;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/slf4j/Logger;Ljava/lang/String;)Ljavax/security/sasl/SaslClient;	methodLines:	66:140
+blockLines:	109:-1
+paras:	null
+TaintedStat:	NORMAL createSaslClient:conditional branch(ne, to iindex=118) 52,12 Node: < Application, Lorg/apache/zookeeper/util/SecurityUtils, createSaslClient(Ljavax/security/auth/Subject;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/slf4j/Logger;Ljava/lang/String;)Ljavax/security/sasl/SaslClient; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/util/SecurityUtils, createSaslClient(Ljavax/security/auth/Subject;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/slf4j/Logger;Ljava/lang/String;)Ljavax/security/sasl/SaslClient; > Context: Everywhere[98]49 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 45,47 @216 exception:48
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/util/SecurityUtils, createSaslClient(Ljavax/security/auth/Subject;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/slf4j/Logger;Ljava/lang/String;)Ljavax/security/sasl/SaslClient; > Context: Everywhere[98]49 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 45,47 @216 exception:48
+NORMAL createSaslClient:60 = invokevirtual < Application, Ljava/lang/StringBuilder, append(Ljava/lang/String;)Ljava/lang/StringBuilder; > 58,49 @253 exception:59 Node: < Application, Lorg/apache/zookeeper/util/SecurityUtils, createSaslClient(Ljavax/security/auth/Subject;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/slf4j/Logger;Ljava/lang/String;)Ljavax/security/sasl/SaslClient; > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/StringBuilder, append(Ljava/lang/String;)Ljava/lang/StringBuilder; > Context: Everywhere
+NORMAL append:return 1 Node: < Primordial, Ljava/lang/StringBuilder, append(Ljava/lang/String;)Ljava/lang/StringBuilder; > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/StringBuilder, append(Ljava/lang/String;)Ljava/lang/StringBuilder; > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Primordial, Ljava/lang/ThreadGroup, uncaughtException(Ljava/lang/Thread;Ljava/lang/Throwable;)V > Context: Everywhere[34]23 = invokevirtual < Primordial, Ljava/lang/StringBuilder, append(Ljava/lang/String;)Ljava/lang/StringBuilder; > 20,21 @69 exception:22
+NORMAL uncaughtException:25 = invokevirtual < Primordial, Ljava/lang/StringBuilder, toString()Ljava/lang/String; > 23 @72 exception:24 Node: < Primordial, Ljava/lang/ThreadGroup, uncaughtException(Ljava/lang/Thread;Ljava/lang/Throwable;)V > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/StringBuilder, toString()Ljava/lang/String; > Context: Everywhere
+NORMAL toString:return 14 Node: < Primordial, Ljava/lang/StringBuilder, toString()Ljava/lang/String; > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/StringBuilder, toString()Ljava/lang/String; > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/util/SecurityUtils, createSaslClient(Ljavax/security/auth/Subject;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/slf4j/Logger;Ljava/lang/String;)Ljavax/security/sasl/SaslClient; > Context: Everywhere[116]62 = invokevirtual < Application, Ljava/lang/StringBuilder, toString()Ljava/lang/String; > 60 @256 exception:61
+PHI Node: < Application, Lorg/apache/zookeeper/util/SecurityUtils, createSaslClient(Ljavax/security/auth/Subject;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/slf4j/Logger;Ljava/lang/String;)Ljavax/security/sasl/SaslClient; > Context: Everywhere:63 = phi  2,62
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/util/SecurityUtils, createSaslClient(Ljavax/security/auth/Subject;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/slf4j/Logger;Ljava/lang/String;)Ljavax/security/sasl/SaslClient; > Context: Everywhere[121]invokespecial < Application, Lorg/apache/zookeeper/server/auth/KerberosName, <init>(Ljava/lang/String;)V > 64,63 @267 exception:65 v63
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/server/auth/KerberosName, <init>(Ljava/lang/String;)V > Context: Everywhere v2
+NORMAL <init>:22 = invokevirtual < Application, Ljava/lang/String, contains(Ljava/lang/CharSequence;)Z > 2,20 @22 exception:21 Node: < Application, Lorg/apache/zookeeper/server/auth/KerberosName, <init>(Ljava/lang/String;)V > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, contains(Ljava/lang/CharSequence;)Z > Context: Everywhere
+NORMAL contains:return 10 Node: < Primordial, Ljava/lang/String, contains(Ljava/lang/CharSequence;)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, contains(Ljava/lang/CharSequence;)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/util/SecurityUtils, createSaslClient(Ljavax/security/auth/Subject;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/slf4j/Logger;Ljava/lang/String;)Ljavax/security/sasl/SaslClient; > Context: Everywhere[104]52 = invokevirtual < Application, Ljava/lang/String, contains(Ljava/lang/CharSequence;)Z > 2,50 @228 exception:51
+NORMAL createSaslClient:conditional branch(ne, to iindex=118) 52,12 Node: < Application, Lorg/apache/zookeeper/util/SecurityUtils, createSaslClient(Ljavax/security/auth/Subject;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/slf4j/Logger;Ljava/lang/String;)Ljavax/security/sasl/SaslClient; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+        // mechanism to use: if empty, use DIGEST-MD5; otherwise, use GSSAPI.
+        if (subject.getPrincipals().isEmpty()) {
+            // no principals: must not be GSSAPI: use DIGEST-MD5 mechanism
+            // instead.
+            LOG.info("{} will use DIGEST-MD5 as SASL mechanism.", entity);
+            String[] mechs = {"DIGEST-MD5"};
+            String username = (String) (subject.getPublicCredentials().toArray()[0]);
+            String password = (String) (subject.getPrivateCredentials().toArray()[0]);
+            // 'domain' parameter is hard-wired between the server and client
+            saslClient = Sasl.createSaslClient(mechs, username, protocol, serverName, null, new SaslClientCallbackHandler(password, entity));
+            return saslClient;
+        } else { // GSSAPI.
+            final Object[] principals = subject.getPrincipals().toArray();
+            // determine client principal from subject.
+            final Principal clientPrincipal = (Principal) principals[0];
+            boolean usingNativeJgss = Boolean.getBoolean("sun.security.jgss.native");
+            if (usingNativeJgss) {
+                // http://docs.oracle.com/javase/6/docs/technotes/guides/security/jgss/jgss-features.html
+                // """
+                // In addition, when performing operations as a particular
+                // Subject, e.g. Subject.doAs(...) or
+                // Subject.doAsPrivileged(...),
+                // the to-be-used GSSCredential should be added to Subject's
+                // private credential set. Otherwise, the GSS operations will
+                // fail since no credential is found.
+                // """
+                try {
+                    GSSManager manager = GSSManager.getInstance();
+                    Oid krb5Mechanism = new Oid("1.2.840.113554.1.2.2");
+                    GSSCredential cred = manager.createCredential(null, GSSContext.DEFAULT_LIFETIME, krb5Mechanism, GSSCredential.INITIATE_ONLY);
+                    subject.getPrivateCredentials().add(cred);
+                    LOG.debug("Added private credential to {} principal name: '{}'", entity, clientPrincipal);
+                } catch (GSSException ex) {
+                    LOG.warn("Cannot add private credential to subject; authentication at the server may fail", ex);
+                }
+            }
+            final KerberosName clientKerberosName = new KerberosName(clientPrincipal.getName());
+            // assume that server and client are in the same realm (by default;
+            // unless the system property
+            // "zookeeper.server.realm" is set).
+            String serverRealm = System.getProperty("zookeeper.server.realm", clientKerberosName.getRealm());
+            String modifiedServerPrincipal = servicePrincipal;
+            // If service principal does not contain realm, then add it
+            if (!modifiedServerPrincipal.contains("@")) {
+                modifiedServerPrincipal = modifiedServerPrincipal + "@" + serverRealm;
+            }
+            KerberosName serviceKerberosName = new KerberosName(modifiedServerPrincipal);
+            final String serviceName = serviceKerberosName.getServiceName();
+            final String serviceHostname = serviceKerberosName.getHostName();
+            final String clientPrincipalName = clientKerberosName.toString();
+            try {
+                saslClient = Subject.doAs(subject, new PrivilegedExceptionAction<SaslClient>() {
+                    public SaslClient run() throws SaslException {
+                        LOG.info("{} will use GSSAPI as SASL mechanism.", entity);
+                        String[] mechs = {"GSSAPI"};
+                        LOG.debug(
+                            "creating sasl client: {}={};service={};serviceHostname={}",
+                            entity,
+                            clientPrincipalName,
+                            serviceName,
+                            serviceHostname);
+                        SaslClient saslClient = Sasl.createSaslClient(
+                            mechs,
+                            clientPrincipalName,
+                            serviceName,
+                            serviceHostname,
+                            null,
+                            new SaslClientCallbackHandler(null, entity));
+                        return saslClient;
+                    }
+                });
+                return saslClient;
+            } catch (Exception e) {
+                LOG.error("Exception while trying to create SASL client", e);
+                return null;
+            }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/client/ZooKeeperSaslClient, createSaslClient(Ljava/lang/String;Ljava/lang/String;Ljava/util/concurrent/atomic/AtomicReference;)Ljavax/security/sasl/SaslClient; > Context: Everywhere, blocks=[BB[SSA:32..37]15 - org.apache.zookeeper.client.ZooKeeperSaslClient.createSaslClient(Ljava/lang/String;Ljava/lang/String;Ljava/util/concurrent/atomic/AtomicReference;)Ljavax/security/sasl/SaslClient;, BB[SSA:31..31]14 - org.apache.zookeeper.client.ZooKeeperSaslClient.createSaslClient(Ljava/lang/String;Ljava/lang/String;Ljava/util/concurrent/atomic/AtomicReference;)Ljavax/security/sasl/SaslClient;, BB[SSA:38..38]16 - org.apache.zookeeper.client.ZooKeeperSaslClient.createSaslClient(Ljava/lang/String;Ljava/lang/String;Ljava/util/concurrent/atomic/AtomicReference;)Ljavax/security/sasl/SaslClient;, BB[SSA:-1..-2]20 - org.apache.zookeeper.client.ZooKeeperSaslClient.createSaslClient(Ljava/lang/String;Ljava/lang/String;Ljava/util/concurrent/atomic/AtomicReference;)Ljavax/security/sasl/SaslClient;], numberOfBasicBlocks=4, firstLineNumber=250, lastLineNumber=250, firstMethodNumber=240, lastMethodNumber=258, isFirstLineValid=true, methodSrcCode=
+        try {
+            if (loginRef.get() == null) {
+                LOG.debug("JAAS loginContext is: {}", loginContext);
+                // note that the login object is static: it's shared amongst all zookeeper-related connections.
+                // in order to ensure the login is initialized only once, it must be synchronized the code snippet.
+                Login l = new Login(loginContext, new SaslClientCallbackHandler(null, "Client"), clientConfig);
+                if (loginRef.compareAndSet(null, l)) {
+                    l.startThreadIfNeeded();
+                }
+            }
+            return SecurityUtils.createSaslClient(loginRef.get().getSubject(),
+                servicePrincipal, "zookeeper", "zk-sasl-md5", LOG, "Client");
+        } catch (LoginException e) {
+            // We throw LoginExceptions...
+            throw e;
+        } catch (Exception e) {
+            // ...but consume (with a log message) all other types of exceptions.
+            LOG.error("Exception while trying to create SASL client.", e);
+            return null;
+        }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/auth/SaslQuorumAuthLearner, authenticate(Ljava/net/Socket;Ljava/lang/String;)V > Context: Everywhere, blocks=[BB[SSA:37..42]18 - org.apache.zookeeper.server.quorum.auth.SaslQuorumAuthLearner.authenticate(Ljava/net/Socket;Ljava/lang/String;)V, BB[SSA:36..36]17 - org.apache.zookeeper.server.quorum.auth.SaslQuorumAuthLearner.authenticate(Ljava/net/Socket;Ljava/lang/String;)V, BB[SSA:43..45]19 - org.apache.zookeeper.server.quorum.auth.SaslQuorumAuthLearner.authenticate(Ljava/net/Socket;Ljava/lang/String;)V], numberOfBasicBlocks=3, firstLineNumber=91, lastLineNumber=98, firstMethodNumber=76, lastMethodNumber=138, isFirstLineValid=true, methodSrcCode=
+    public void authenticate(Socket sock, String hostName) throws IOException {
+        if (!quorumRequireSasl) { // let it through, we don't require auth
+            LOG.info(
+                "Skipping SASL authentication as {}={}",
+                QuorumAuth.QUORUM_LEARNER_SASL_AUTH_REQUIRED,
+                quorumRequireSasl);
+            return;
+        }
+        SaslClient sc = null;
+        String principalConfig = SecurityUtils.getServerPrincipal(quorumServicePrincipal, hostName);
+        try {
+            DataOutputStream dout = new DataOutputStream(sock.getOutputStream());
+            DataInputStream din = new DataInputStream(sock.getInputStream());
+            byte[] responseToken = new byte[0];
+            sc = SecurityUtils.createSaslClient(
+                learnerLogin.getSubject(),
+                principalConfig,
+                QuorumAuth.QUORUM_SERVER_PROTOCOL_NAME,
+                QuorumAuth.QUORUM_SERVER_SASL_DIGEST,
+                LOG,
+                "QuorumLearner");
+
+            if (sc.hasInitialResponse()) {
+                responseToken = createSaslToken(new byte[0], sc, learnerLogin);
+            }
+            send(dout, responseToken);
+            QuorumAuthPacket authPacket = receive(din);
+            QuorumAuth.Status qpStatus = QuorumAuth.Status.getStatus(authPacket.getStatus());
+            while (!sc.isComplete()) {
+                switch (qpStatus) {
+                case SUCCESS:
+                    responseToken = createSaslToken(authPacket.getToken(), sc, learnerLogin);
+                    // we're done; don't expect to send another BIND
+                    if (responseToken != null) {
+                        throw new SaslException("Protocol error: attempting to send response after completion");
+                    }
+                    break;
+                case IN_PROGRESS:
+                    responseToken = createSaslToken(authPacket.getToken(), sc, learnerLogin);
+                    send(dout, responseToken);
+                    authPacket = receive(din);
+                    qpStatus = QuorumAuth.Status.getStatus(authPacket.getStatus());
+                    break;
+                case ERROR:
+                    throw new SaslException("Authentication failed against server addr: " + sock.getRemoteSocketAddress());
+                default:
+                    LOG.warn("Unknown status:{}!", qpStatus);
+                    throw new SaslException("Authentication failed against server addr: " + sock.getRemoteSocketAddress());
+                }
+            }
+
+            // Validate status code at the end of authentication exchange.
+            checkAuthStatus(sock, qpStatus);
+        } finally {
+            if (sc != null) {
+                try {
+                    sc.dispose();
+                } catch (SaslException e) {
+                    LOG.error("SaslClient dispose() failed", e);
+                }
+            }
+        }
+    }
+
+}

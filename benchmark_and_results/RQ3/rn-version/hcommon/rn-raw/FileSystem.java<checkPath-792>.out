@@ -1,0 +1,114 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	FileSystem.java	methodSinagture:	org.apache.hadoop.fs.FileSystem.checkPath(Lorg/apache/hadoop/fs/Path;)V	methodLines:	792:824
+blockLines:	793:-1
+paras:	null
+TaintedStat:	NORMAL checkPath:conditional branch(eq, to iindex=5) 2,4 Node: < Application, Lorg/apache/hadoop/fs/FileSystem, checkPath(Lorg/apache/hadoop/fs/Path;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/fs/viewfs/ViewFileSystem, getTrashRoot(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path; > Context: Everywhere[19]19 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getBoolean(Ljava/lang/String;Z)Z > 15,16,17 @36 exception:18
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/fs/viewfs/ViewFileSystem, getTrashRoot(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path; > Context: Everywhere[19]19 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getBoolean(Ljava/lang/String;Z)Z > 15,16,17 @36 exception:18
+NORMAL getTrashRoot:conditional branch(ne, to iindex=24) 19,17 Node: < Application, Lorg/apache/hadoop/fs/viewfs/ViewFileSystem, getTrashRoot(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path; > Context: Everywhere
+NORMAL getTrashRoot:conditional branch(eq, to iindex=95) 47,17 Node: < Application, Lorg/apache/hadoop/fs/viewfs/ViewFileSystem, getTrashRoot(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path; > Context: Everywhere
+NORMAL getTrashRoot:66 = new <Application,Lorg/apache/hadoop/fs/Path>@204 Node: < Application, Lorg/apache/hadoop/fs/viewfs/ViewFileSystem, getTrashRoot(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path; > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/fs/viewfs/ViewFileSystem, getTrashRoot(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path; > Context: Everywhere[111]82 = invokevirtual < Application, Lorg/apache/hadoop/fs/viewfs/ViewFileSystem, makeQualified(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path; > 1,66 @240 exception:81 v66
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/fs/FileSystem, makeQualified(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path; > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/fs/FileSystem, makeQualified(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path; > Context: Everywhere[2]invokevirtual < Application, Lorg/apache/hadoop/fs/FileSystem, checkPath(Lorg/apache/hadoop/fs/Path;)V > 1,2 @2 exception:4 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/fs/FileSystem, checkPath(Lorg/apache/hadoop/fs/Path;)V > Context: Everywhere v2
+NORMAL checkPath:conditional branch(eq, to iindex=5) 2,4 Node: < Application, Lorg/apache/hadoop/fs/FileSystem, checkPath(Lorg/apache/hadoop/fs/Path;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  protected void checkPath(Path path) {
+    Preconditions.checkArgument(path != null, "null path");
+    URI uri = path.toUri();
+    String thatScheme = uri.getScheme();
+    if (thatScheme == null)                // fs is relative
+      return;
+    URI thisUri = getCanonicalUri();
+    String thisScheme = thisUri.getScheme();
+    //authority and scheme are not case sensitive
+    if (thisScheme.equalsIgnoreCase(thatScheme)) {// schemes match
+      String thisAuthority = thisUri.getAuthority();
+      String thatAuthority = uri.getAuthority();
+      if (thatAuthority == null &&                // path's authority is null
+          thisAuthority != null) {                // fs has an authority
+        URI defaultUri = getDefaultUri(getConf());
+        if (thisScheme.equalsIgnoreCase(defaultUri.getScheme())) {
+          uri = defaultUri; // schemes match, so use this uri instead
+        } else {
+          uri = null; // can't determine auth of the path
+        }
+      }
+      if (uri != null) {
+        // canonicalize uri before comparing with this fs
+        uri = canonicalizeUri(uri);
+        thatAuthority = uri.getAuthority();
+        if (thisAuthority == thatAuthority ||       // authorities match
+            (thisAuthority != null &&
+             thisAuthority.equalsIgnoreCase(thatAuthority)))
+          return;
+      }
+    }
+    throw new IllegalArgumentException("Wrong FS: " + path +
+                                       ", expected: " + this.getUri());
+  }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/RawLocalFileSystem, setWorkingDirectory(Lorg/apache/hadoop/fs/Path;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=849, lastMethodNumber=852, isFirstLineValid=true, methodSrcCode=
+  public void setWorkingDirectory(Path newDir) {
+    workingDir = makeAbsolute(newDir);
+    checkPath(workingDir);
+  }
+  
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/RawLocalFileSystem, getNativeFileLinkStatus(Lorg/apache/hadoop/fs/Path;Z)Lorg/apache/hadoop/fs/FileStatus; > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=1299, lastMethodNumber=1303, isFirstLineValid=true, methodSrcCode=
+      boolean dereference) throws IOException {
+    checkPath(f);
+    Stat stat = new Stat(f, defaultBlockSize, dereference, this);
+    FileStatus status = stat.getFileStatus();
+    return status;
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/HarFileSystem, checkPath(Lorg/apache/hadoop/fs/Path;)V > Context: Everywhere, blocks=[BB[SSA:2..3]2 - org.apache.hadoop.fs.HarFileSystem.checkPath(Lorg/apache/hadoop/fs/Path;)V, BB[SSA:0..1]1 - org.apache.hadoop.fs.HarFileSystem.checkPath(Lorg/apache/hadoop/fs/Path;)V, BB[SSA:4..4]3 - org.apache.hadoop.fs.HarFileSystem.checkPath(Lorg/apache/hadoop/fs/Path;)V, BB[SSA:-1..-2]4 - org.apache.hadoop.fs.HarFileSystem.checkPath(Lorg/apache/hadoop/fs/Path;)V], numberOfBasicBlocks=4, firstLineNumber=340, lastLineNumber=341, firstMethodNumber=339, lastMethodNumber=341, isFirstLineValid=true, methodSrcCode=
+  protected void checkPath(Path path) {
+    fs.checkPath(path);
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/FileSystem, makeQualified(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.hadoop.fs.FileSystem.makeQualified(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path;, BB[SSA:-1..-2]0 - org.apache.hadoop.fs.FileSystem.makeQualified(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path;, BB[SSA:3..5]2 - org.apache.hadoop.fs.FileSystem.makeQualified(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path;, BB[SSA:-1..-2]6 - org.apache.hadoop.fs.FileSystem.makeQualified(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path;], numberOfBasicBlocks=4, firstLineNumber=682, lastLineNumber=684, firstMethodNumber=682, lastMethodNumber=684, isFirstLineValid=false, methodSrcCode=
+  public Path makeQualified(Path path) {
+    checkPath(path);
+    return path.makeQualified(this.getUri(), this.getWorkingDirectory());
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/FilterFileSystem, checkPath(Lorg/apache/hadoop/fs/Path;)V > Context: Everywhere, blocks=[BB[SSA:2..3]2 - org.apache.hadoop.fs.FilterFileSystem.checkPath(Lorg/apache/hadoop/fs/Path;)V, BB[SSA:0..1]1 - org.apache.hadoop.fs.FilterFileSystem.checkPath(Lorg/apache/hadoop/fs/Path;)V, BB[SSA:4..4]3 - org.apache.hadoop.fs.FilterFileSystem.checkPath(Lorg/apache/hadoop/fs/Path;)V, BB[SSA:-1..-2]4 - org.apache.hadoop.fs.FilterFileSystem.checkPath(Lorg/apache/hadoop/fs/Path;)V], numberOfBasicBlocks=4, firstLineNumber=148, lastLineNumber=149, firstMethodNumber=147, lastMethodNumber=149, isFirstLineValid=true, methodSrcCode=
+  protected void checkPath(Path path) {
+    fs.checkPath(path);
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/viewfs/ViewFileSystem, getUriPath(Lorg/apache/hadoop/fs/Path;)Ljava/lang/String; > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=262, lastMethodNumber=264, isFirstLineValid=true, methodSrcCode=
+  String getUriPath(final Path p) {
+    checkPath(p);
+    return makeAbsolute(p).toUri().getPath();
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/RawLocalFileSystem, pathToFile(Lorg/apache/hadoop/fs/Path;)Ljava/io/File; > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=118, lastMethodNumber=123, isFirstLineValid=true, methodSrcCode=
+  public File pathToFile(Path path) {
+    checkPath(path);
+    if (!path.isAbsolute()) {
+      path = new Path(getWorkingDirectory(), path);
+    }
+    return new File(path.toUri().getPath());
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/FileSystem, resolvePath(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.hadoop.fs.FileSystem.resolvePath(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path;, BB[SSA:-1..-2]0 - org.apache.hadoop.fs.FileSystem.resolvePath(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path;, BB[SSA:3..5]2 - org.apache.hadoop.fs.FileSystem.resolvePath(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path;, BB[SSA:-1..-2]5 - org.apache.hadoop.fs.FileSystem.resolvePath(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path;], numberOfBasicBlocks=4, firstLineNumber=975, lastLineNumber=977, firstMethodNumber=975, lastMethodNumber=977, isFirstLineValid=false, methodSrcCode=
+   public Path resolvePath(final Path p) throws IOException {
+     checkPath(p);
+     return getFileStatus(p).getPath();
+   }
+}

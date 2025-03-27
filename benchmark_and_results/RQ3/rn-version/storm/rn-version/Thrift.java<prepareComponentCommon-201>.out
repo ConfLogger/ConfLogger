@@ -1,0 +1,75 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Thrift.java	methodSinagture:	org.apache.storm.Thrift.prepareComponentCommon(Ljava/util/Map;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/ComponentCommon;	methodLines:	201:217
+blockLines:	214:-1
+paras:	null
+TaintedStat:	NORMAL prepareComponentCommon:conditional branch(eq, to iindex=48) 4,10 Node: < Application, Lorg/apache/storm/Thrift, prepareComponentCommon(Ljava/util/Map;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere[43]36 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,34 @107 exception:35
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere[43]36 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,34 @107 exception:35
+NORMAL metricsConsumerBoltSpecs:37 = checkcast <Application,Ljava/util/List>36 <Application,Ljava/util/List> Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere
+NORMAL metricsConsumerBoltSpecs:conditional branch(eq, to iindex=190) 37,38 Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere
+NORMAL metricsConsumerBoltSpecs:conditional branch(eq, to iindex=190) 44,23 Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere
+NORMAL metricsConsumerBoltSpecs:[null]: 71 = new <Application,Ljava/util/HashMap>@228 Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere[147]108 = invokestatic < Application, Lorg/apache/storm/Thrift, prepareSerializedBoltDetails(Ljava/util/Map;Lorg/apache/storm/task/IBolt;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/Bolt; > 17,103,38,70,71 @376 exception:107 v71
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/Thrift, prepareSerializedBoltDetails(Ljava/util/Map;Lorg/apache/storm/task/IBolt;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/Bolt; > Context: Everywhere v5
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/Thrift, prepareSerializedBoltDetails(Ljava/util/Map;Lorg/apache/storm/task/IBolt;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/Bolt; > Context: Everywhere[4]8 = invokestatic < Application, Lorg/apache/storm/Thrift, prepareComponentCommon(Ljava/util/Map;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/ComponentCommon; > 1,3,4,5 @5 exception:7 v5
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/Thrift, prepareComponentCommon(Ljava/util/Map;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere v4
+NORMAL prepareComponentCommon:conditional branch(eq, to iindex=48) 4,10 Node: < Application, Lorg/apache/storm/Thrift, prepareComponentCommon(Ljava/util/Map;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	Thrift.java	methodSinagture:	org.apache.storm.Thrift.prepareComponentCommon(Ljava/util/Map;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/ComponentCommon;	methodLines:	201:217
+blockLines:	211:-1
+paras:	null
+TaintedStat:	NORMAL prepareComponentCommon:conditional branch(eq, to iindex=41) 3,10 Node: < Application, Lorg/apache/storm/Thrift, prepareComponentCommon(Ljava/util/Map;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere[75]57 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 47,55 @194 exception:56
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere[75]57 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 47,55 @194 exception:56
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere[78]62 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > 57,60 @204 exception:61 v57
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere v1
+NORMAL getInt:conditional branch(ne, to iindex=5) 4,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+NORMAL getInt:return 2 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere[85]70 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > 65,68 @223 exception:69
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere[147]108 = invokestatic < Application, Lorg/apache/storm/Thrift, prepareSerializedBoltDetails(Ljava/util/Map;Lorg/apache/storm/task/IBolt;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/Bolt; > 17,103,38,70,71 @376 exception:107 v70
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/Thrift, prepareSerializedBoltDetails(Ljava/util/Map;Lorg/apache/storm/task/IBolt;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/Bolt; > Context: Everywhere v4
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/Thrift, prepareSerializedBoltDetails(Ljava/util/Map;Lorg/apache/storm/task/IBolt;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/Bolt; > Context: Everywhere[4]8 = invokestatic < Application, Lorg/apache/storm/Thrift, prepareComponentCommon(Ljava/util/Map;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/ComponentCommon; > 1,3,4,5 @5 exception:7 v4
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/Thrift, prepareComponentCommon(Ljava/util/Map;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere v3
+NORMAL prepareComponentCommon:conditional branch(eq, to iindex=41) 3,10 Node: < Application, Lorg/apache/storm/Thrift, prepareComponentCommon(Ljava/util/Map;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+                                                         Integer parallelismHint, Map<String, Object> conf) {
+        Map<GlobalStreamId, Grouping> mappedInputs = new HashMap<>();
+        Map<String, StreamInfo> mappedOutputs = new HashMap<>();
+        if (inputs != null && !inputs.isEmpty()) {
+            mappedInputs.putAll(inputs);
+        }
+        if (outputs != null && !outputs.isEmpty()) {
+            mappedOutputs.putAll(outputs);
+        }
+        ComponentCommon component = new ComponentCommon(mappedInputs, mappedOutputs);
+        if (parallelismHint != null) {
+            component.set_parallelism_hint(parallelismHint);
+        }
+        if (conf != null) {
+            component.set_json_conf(JSONValue.toJSONString(conf));
+        }
+        return component;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/Thrift, prepareComponentCommon(Ljava/util/Map;Ljava/util/Map;Ljava/lang/Integer;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere, blocks=[BB[SSA:0..4]1 - org.apache.storm.Thrift.prepareComponentCommon(Ljava/util/Map;Ljava/util/Map;Ljava/lang/Integer;)Lorg/apache/storm/generated/ComponentCommon;, BB[SSA:-1..-2]0 - org.apache.storm.Thrift.prepareComponentCommon(Ljava/util/Map;Ljava/util/Map;Ljava/lang/Integer;)Lorg/apache/storm/generated/ComponentCommon;, BB[SSA:5..5]2 - org.apache.storm.Thrift.prepareComponentCommon(Ljava/util/Map;Ljava/util/Map;Ljava/lang/Integer;)Lorg/apache/storm/generated/ComponentCommon;, BB[SSA:-1..-2]3 - org.apache.storm.Thrift.prepareComponentCommon(Ljava/util/Map;Ljava/util/Map;Ljava/lang/Integer;)Lorg/apache/storm/generated/ComponentCommon;], numberOfBasicBlocks=4, firstLineNumber=196, lastLineNumber=197, firstMethodNumber=196, lastMethodNumber=197, isFirstLineValid=false, methodSrcCode=
+        StreamInfo> outputs, Integer parallelismHint) {
+        return prepareComponentCommon(inputs, outputs, parallelismHint, null);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/Thrift, prepareSerializedBoltDetails(Ljava/util/Map;Lorg/apache/storm/task/IBolt;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/Bolt; > Context: Everywhere, blocks=[BB[SSA:0..4]1 - org.apache.storm.Thrift.prepareSerializedBoltDetails(Ljava/util/Map;Lorg/apache/storm/task/IBolt;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/Bolt;, BB[SSA:-1..-2]0 - org.apache.storm.Thrift.prepareSerializedBoltDetails(Ljava/util/Map;Lorg/apache/storm/task/IBolt;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/Bolt;, BB[SSA:5..6]2 - org.apache.storm.Thrift.prepareSerializedBoltDetails(Ljava/util/Map;Lorg/apache/storm/task/IBolt;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/Bolt;, BB[SSA:-1..-2]7 - org.apache.storm.Thrift.prepareSerializedBoltDetails(Ljava/util/Map;Lorg/apache/storm/task/IBolt;Ljava/util/Map;Ljava/lang/Integer;Ljava/util/Map;)Lorg/apache/storm/generated/Bolt;], numberOfBasicBlocks=4, firstLineNumber=226, lastLineNumber=228, firstMethodNumber=226, lastMethodNumber=228, isFirstLineValid=false, methodSrcCode=
+                                                    Integer parallelismHint, Map<String, Object> conf) {
+        ComponentCommon common = prepareComponentCommon(inputs, outputs, parallelismHint, conf);
+        return new Bolt(ComponentObject.serialized_java(Utils.javaSerialize(bolt)), common);
+    }
+}

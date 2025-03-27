@@ -1,0 +1,10 @@
+/** 
+ * Schedule a function to be executed in the timer.
+ * @param delaySecs   the number of seconds to delay before running the function
+ * @param func        the function to run
+ * @param checkActive whether to check is the timer is active
+ * @param jitterMs    add jitter to the run
+ */
+public void schedule(int delaySecs,Runnable func,boolean checkActive,int jitterMs){
+  scheduleMs(Time.secsToMillisLong(delaySecs),func,checkActive,jitterMs);
+}

@@ -1,0 +1,66 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	BaseStatefulBoltExecutor.java	methodSinagture:	org.apache.storm.topology.BaseStatefulBoltExecutor.shouldProcessTransaction(Lorg/apache/storm/spout/CheckPointState$Action;J)Z	methodLines:	110:123
+blockLines:	113:-1
+paras:	null
+TaintedStat:	NORMAL shouldProcessTransaction:conditional branch(ne, to iindex=26) 10,11 Node: < Application, Lorg/apache/storm/topology/BaseStatefulBoltExecutor, shouldProcessTransaction(Lorg/apache/storm/spout/CheckPointState$Action;J)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/topology/BaseStatefulBoltExecutor, shouldProcessTransaction(Lorg/apache/storm/spout/CheckPointState$Action;J)Z > Context: Everywhere[9]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,5 @17 exception:8
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/topology/BaseStatefulBoltExecutor, shouldProcessTransaction(Lorg/apache/storm/spout/CheckPointState$Action;J)Z > Context: Everywhere[9]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,5 @17 exception:8
+NORMAL shouldProcessTransaction:10 = checkcast <Application,Ljava/lang/Integer>9 <Application,Ljava/lang/Integer> Node: < Application, Lorg/apache/storm/topology/BaseStatefulBoltExecutor, shouldProcessTransaction(Lorg/apache/storm/spout/CheckPointState$Action;J)Z > Context: Everywhere
+NORMAL shouldProcessTransaction:conditional branch(ne, to iindex=26) 10,11 Node: < Application, Lorg/apache/storm/topology/BaseStatefulBoltExecutor, shouldProcessTransaction(Lorg/apache/storm/spout/CheckPointState$Action;J)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private boolean shouldProcessTransaction(CheckPointState.Action action, long txid) {
+        TransactionRequest request = new TransactionRequest(action, txid);
+        Integer count;
+        if ((count = transactionRequestCount.get(request)) == null) {
+            transactionRequestCount.put(request, 1);
+            count = 1;
+        } else {
+            transactionRequestCount.put(request, ++count);
+        }
+        if (count == checkPointInputTaskCount) {
+            transactionRequestCount.remove(request);
+            return true;
+        }
+        return false;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/topology/BaseStatefulBoltExecutor, processCheckpoint(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere, blocks=[BB[SSA:9..13]5 - org.apache.storm.topology.BaseStatefulBoltExecutor.processCheckpoint(Lorg/apache/storm/tuple/Tuple;)V, BB[SSA:8..8]4 - org.apache.storm.topology.BaseStatefulBoltExecutor.processCheckpoint(Lorg/apache/storm/tuple/Tuple;)V, BB[SSA:14..15]6 - org.apache.storm.topology.BaseStatefulBoltExecutor.processCheckpoint(Lorg/apache/storm/tuple/Tuple;)V, BB[SSA:-1..-2]41 - org.apache.storm.topology.BaseStatefulBoltExecutor.processCheckpoint(Lorg/apache/storm/tuple/Tuple;)V], numberOfBasicBlocks=4, firstLineNumber=80, lastLineNumber=81, firstMethodNumber=78, lastMethodNumber=105, isFirstLineValid=true, methodSrcCode=
+    private void processCheckpoint(Tuple input) {
+        CheckPointState.Action action = (CheckPointState.Action) input.getValueByField(CHECKPOINT_FIELD_ACTION);
+        long txid = input.getLongByField(CHECKPOINT_FIELD_TXID);
+        if (shouldProcessTransaction(action, txid)) {
+            LOG.debug("Processing action {}, txid {}", action, txid);
+            try {
+                if (txid >= lastTxid) {
+                    handleCheckpoint(input, action, txid);
+                    if (action == ROLLBACK) {
+                        lastTxid = txid - 1;
+                    } else {
+                        lastTxid = txid;
+                    }
+                } else {
+                    LOG.debug("Ignoring old transaction. Action {}, txid {}", action, txid);
+                    collector.ack(input);
+                }
+            } catch (Throwable th) {
+                LOG.error("Got error while processing checkpoint tuple", th);
+                collector.fail(input);
+                collector.reportError(th);
+            }
+        } else {
+            LOG.debug("Waiting for action {}, txid {} from all input tasks. checkPointInputTaskCount {}, "
+                    + "transactionRequestCount {}", action, txid, checkPointInputTaskCount, transactionRequestCount);
+            collector.ack(input);
+        }
+    }
+
+}

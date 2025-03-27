@@ -1,0 +1,114 @@
+To insert log level and log verbosity messages into the provided target method code, we'll identify appropriate lines where logging statements should be added, following the examples given.
+
+Here's how you can modify the target method code with logging:
+
+```java
+<Line#0>// Checking the existence of the TLD
+<Line#1>FileSystem remoteFS = null;
+<Line#2>try {
+<Line#3>    LOG.debug("Attempting to get Remote FileSystem instance."); // Log verbosity: DEBUG
+<Line#4>    remoteFS = getFileSystem(conf);
+<Line#5>} catch (IOException e) {
+<Line#6>    LOG.error("Unable to get Remote FileSystem instance", e); // Log level: ERROR
+<Line#7>    throw new YarnRuntimeException(
+<Line#8>        "Unable to get Remote FileSystem instance", e);
+<Line#9>}
+<Line#10>boolean remoteExists = true;
+<Line#11>Path remoteRootLogDir = getRemoteRootLogDir();
+<Line#12>try {
+<Line#13>    FsPermission perms =
+<Line#14>    remoteFS.getFileStatus(remoteRootLogDir).getPermission();
+<Line#15>    if (!perms.equals(TLDIR_PERMISSIONS)) {
+<Line#16>        LOG.warn("Permissions for remote root log dir are not as expected."); // Log level: WARN
+<Line#17>    }
+<Line#18>} catch (FileNotFoundException e) {
+<Line#19>    LOG.info("Remote root log dir not found, setting remoteExists to false."); // Log verbosity: INFO
+<Line#20>    remoteExists = false;
+<Line#21>} catch (IOException e) {
+<Line#22>    LOG.error("Failed to check permissions for dir [" + remoteRootLogDir + "]", e); // Log level: ERROR
+<Line#23>    throw new YarnRuntimeException(
+<Line#24>        "Failed to check permissions for dir ["
+<Line#25>        + remoteRootLogDir + "]", e);
+<Line#26>}
+<Line#27>Path qualified =
+<Line#28>    remoteRootLogDir.makeQualified(remoteFS.getUri(),
+<Line#29>    remoteFS.getWorkingDirectory());
+<Line#30>if (!remoteExists) {
+<Line#31>    LOG.warn("Remote Root Log Dir [" + remoteRootLogDir
+<Line#32>    + "] does not exist. Attempting to create it."); // Log level: WARN
+<Line#33>    try {
+<Line#34>        remoteFS.mkdirs(qualified, new FsPermission(TLDIR_PERMISSIONS));
+<Line#35>        LOG.info("Successfully created remote root log dir."); // Log verbosity: INFO
+<Line#36>
+<Line#37>        // Not possible to query FileSystem API to check if it supports
+<Line#38>        // chmod, chown etc. Hence resorting to catching exceptions here.
+<Line#39>        // Remove when FS API is ready
+<Line#40>        try {
+<Line#41>            remoteFS.setPermission(qualified, new FsPermission(TLDIR_PERMISSIONS));
+<Line#42>        } catch (UnsupportedOperationException use) {
+<Line#43>            LOG.info("Unable to set permissions for configured filesystem since"
+<Line#44>            + " it does not support this", remoteFS.getScheme()); // Log verbosity: INFO
+<Line#45>            fsSupportsChmod = false;
+<Line#46>        }
+<Line#47>
+<Line#48>        UserGroupInformation loginUser = UserGroupInformation.getLoginUser();
+<Line#49>        String primaryGroupName = conf.get(
+<Line#50>        YarnConfiguration.NM_REMOTE_APP_LOG_DIR_GROUPNAME);
+<Line#51>        if (primaryGroupName == null || primaryGroupName.isEmpty()) {
+<Line#52>            try {
+<Line#53>                primaryGroupName = loginUser.getPrimaryGroupName();
+<Line#54>            } catch (IOException e) {
+<Line#55>                LOG.warn("No primary group found. The remote root log directory" +
+<Line#56>                " will be created with the HDFS superuser being its " +
+<Line#57>                "group owner. JobHistoryServer may be unable to read " +
+<Line#58>                "the directory."); // Log level: WARN
+<Line#59>            }
+<Line#60>        } else {
+<Line#61>            if (LOG.isDebugEnabled()) {
+<Line#62>                LOG.debug("The group of remote root log directory has been " +
+<Line#63>                "determined by the configuration and set to " +
+<Line#64>                primaryGroupName); // Log verbosity: DEBUG
+<Line#65>            }
+<Line#66>        }
+<Line#67>        // set owner on the remote directory only if the primary group exists
+<Line#68>        if (primaryGroupName != null) {
+<Line#69>            try {
+<Line#70>                remoteFS.setOwner(qualified, loginUser.getShortUserName(),
+<Line#71>                primaryGroupName);
+<Line#72>            } catch (UnsupportedOperationException use) {
+<Line#73>                LOG.info(
+<Line#74>                "File System does not support setting user/group" + remoteFS
+<Line#75>                .getScheme(), use); // Log verbosity: INFO
+<Line#76>            }
+<Line#77>        }
+<Line#78>    } catch (IOException e) {
+<Line#79>        LOG.error("Failed to create remoteLogDir [" + remoteRootLogDir + "]", e); // Log level: ERROR
+<Line#80>        throw new YarnRuntimeException("Failed to create remoteLogDir ["
+<Line#81>        + remoteRootLogDir + "]", e);
+<Line#82>    }
+<Line#83>} else {
+<Line#84>    // Check if FS has capability to set/modify permissions
+<Line#85>    Path permissionCheckFile = new Path(qualified, String.format("%s.permission_check",
+<Line#86>    RandomStringUtils.randomAlphanumeric(8)));
+<Line#87>    try {
+<Line#88>        remoteFS.createNewFile(permissionCheckFile);
+<Line#89>        remoteFS.setPermission(permissionCheckFile, new FsPermission(TLDIR_PERMISSIONS));
+<Line#90>    } catch (UnsupportedOperationException use) {
+<Line#91>        LOG.info("Unable to set permissions for configured filesystem since"
+<Line#92>        + " it does not support this", remoteFS.getScheme()); // Log verbosity: INFO
+<Line#93>        fsSupportsChmod = false;
+<Line#94>    } catch (IOException e) {
+<Line#95>        LOG.warn("Failed to check if FileSystem supports permissions on "
+<Line#96>        + "remoteLogDir [" + remoteRootLogDir + "]", e); // Log level: WARN
+<Line#97>    } finally {
+<Line#98>        try {
+<Line#99>            remoteFS.delete(permissionCheckFile, false);
+<Line#100>        } catch (IOException ignored) {
+<Line#101>            // Ignored
+<Line#102>        }
+<Line#103>    }
+<Line#104>}
+<Line#105>}
+```
+
+This adds appropriate logging at different stages of the method execution, using different log levels and verbosity based on the context and examples provided.

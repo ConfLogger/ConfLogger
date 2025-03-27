@@ -1,0 +1,42 @@
+To insert a log level and log verbosity message in the provided code, we need to identify the appropriate places in the `makeMetricsLoggerAsync` method where logging might be useful. Based on the examples, logging is often inserted at decision points, error handling, or significant state changes.
+
+Here is how you might add logging to the `makeMetricsLoggerAsync` method:
+
+```java
+<Line#0>public static void makeMetricsLoggerAsync(Log metricsLog) {
+<Line#1>if (!(metricsLog instanceof Log4JLogger)) {
+<Line#2>    LOG.warn("Provided log is not an instance of Log4JLogger. Exiting method.");
+<Line#3>return;
+<Line#4>}
+<Line#5>org.apache.log4j.Logger logger = ((Log4JLogger) metricsLog).getLogger();
+<Line#6>logger.setAdditivity(false); // Don't pollute actual logs with metrics dump
+<Line#7>LOG.debug("Logger additivity set to false to prevent metrics dump pollution.");
+<Line#8>
+<Line#9>@SuppressWarnings("unchecked")
+<Line#10>List<Appender> appenders = Collections.list(logger.getAllAppenders());
+<Line#11>LOG.info("Retrieved all appenders from the logger. Total appenders: " + appenders.size());
+<Line#12>// failsafe against trying to async it more than once
+<Line#13>if (!appenders.isEmpty() && !(appenders.get(0) instanceof AsyncAppender)) {
+<Line#14>    LOG.debug("No AsyncAppender found. Proceeding to wrap appenders with AsyncAppender.");
+<Line#15>AsyncAppender asyncAppender = new AsyncAppender();
+<Line#16>// change logger to have an async appender containing all the
+<Line#17>// previously configured appenders
+<Line#18>for (Appender appender : appenders) {
+<Line#19>    logger.removeAppender(appender);
+<Line#20>    asyncAppender.addAppender(appender);
+<Line#21>    LOG.debug("Moved appender " + appender.getName() + " to AsyncAppender.");
+<Line#22>}
+<Line#23>logger.addAppender(asyncAppender);
+<Line#24>LOG.info("AsyncAppender added to the logger.");
+<Line#25>}
+<Line#26>}
+<Line#27>}
+```
+
+In this modified code:
+- A `LOG.warn` statement is added at line 2 to log a warning when the provided `metricsLog` is not an instance of `Log4JLogger`.
+- A `LOG.debug` statement is added at line 7 to log when the logger's additivity is set to false.
+- A `LOG.info` statement is added at line 11 to log the number of appenders retrieved.
+- A `LOG.debug` statement is added at line 14 to log when the method is about to wrap appenders with an `AsyncAppender`.
+- A `LOG.debug` statement is added inside the loop at line 21 to log each appender being moved to the `AsyncAppender`.
+- A `LOG.info` statement is added at line 24 to log when the `AsyncAppender` is added to the logger.

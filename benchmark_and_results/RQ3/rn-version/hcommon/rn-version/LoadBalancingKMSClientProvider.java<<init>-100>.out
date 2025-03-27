@@ -1,0 +1,84 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	LoadBalancingKMSClientProvider.java	methodSinagture:	org.apache.hadoop.crypto.key.kms.LoadBalancingKMSClientProvider.<init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V	methodLines:	100:139
+blockLines:	131:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(lt, to iindex=100) 44,14 Node: < Application, Lorg/apache/hadoop/crypto/key/kms/LoadBalancingKMSClientProvider, <init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/crypto/key/kms/LoadBalancingKMSClientProvider, <init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[81]44 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getInt(Ljava/lang/String;I)I > 5,41,42 @144 exception:43
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/crypto/key/kms/LoadBalancingKMSClientProvider, <init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[81]44 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getInt(Ljava/lang/String;I)I > 5,41,42 @144 exception:43
+NORMAL <init>:conditional branch(lt, to iindex=100) 44,14 Node: < Application, Lorg/apache/hadoop/crypto/key/kms/LoadBalancingKMSClientProvider, <init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	LoadBalancingKMSClientProvider.java	methodSinagture:	org.apache.hadoop.crypto.key.kms.LoadBalancingKMSClientProvider.<init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V	methodLines:	100:139
+blockLines:	130:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(lt, to iindex=93) 40,14 Node: < Application, Lorg/apache/hadoop/crypto/key/kms/LoadBalancingKMSClientProvider, <init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/crypto/key/kms/LoadBalancingKMSClientProvider, <init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[76]40 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getInt(Ljava/lang/String;I)I > 5,37,38 @133 exception:39
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/crypto/key/kms/LoadBalancingKMSClientProvider, <init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[76]40 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getInt(Ljava/lang/String;I)I > 5,37,38 @133 exception:39
+NORMAL <init>:conditional branch(lt, to iindex=93) 40,14 Node: < Application, Lorg/apache/hadoop/crypto/key/kms/LoadBalancingKMSClientProvider, <init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	LoadBalancingKMSClientProvider.java	methodSinagture:	org.apache.hadoop.crypto.key.kms.LoadBalancingKMSClientProvider.<init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V	methodLines:	100:139
+blockLines:	132:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(lt, to iindex=107) 48,14 Node: < Application, Lorg/apache/hadoop/crypto/key/kms/LoadBalancingKMSClientProvider, <init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/crypto/key/kms/LoadBalancingKMSClientProvider, <init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[86]48 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getInt(Ljava/lang/String;I)I > 5,45,46 @156 exception:47
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/crypto/key/kms/LoadBalancingKMSClientProvider, <init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[86]48 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getInt(Ljava/lang/String;I)I > 5,45,46 @156 exception:47
+NORMAL <init>:conditional branch(lt, to iindex=107) 48,14 Node: < Application, Lorg/apache/hadoop/crypto/key/kms/LoadBalancingKMSClientProvider, <init>(Ljava/net/URI;[Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+      KMSClientProvider[] providers, long seed, Configuration conf) {
+    super(conf);
+    // uri is the token service so it can be instantiated for renew/cancel.
+    dtService = KMSClientProvider.getDtService(uri);
+    // if provider not in conf, new client will alias on uri else addr.
+    if (KMSUtil.getKeyProviderUri(conf) == null) {
+      canonicalService = dtService;
+    } else {
+      // canonical service (credentials alias) will be the first underlying
+      // provider's service.  must be deterministic before shuffle so multiple
+      // calls for a token do not obtain another unnecessary token.
+      canonicalService = new Text(providers[0].getCanonicalServiceName());
+    }
+
+    // shuffle unless seed is 0 which is used by tests for determinism.
+    this.providers = (seed != 0) ? shuffle(providers) : providers;
+    for (KMSClientProvider provider : providers) {
+      provider.setClientTokenProvider(this);
+    }
+    this.currentIdx = new AtomicInteger((int)(seed % providers.length));
+    int maxNumRetries = conf.getInt(CommonConfigurationKeysPublic.
+        KMS_CLIENT_FAILOVER_MAX_RETRIES_KEY, providers.length);
+    int sleepBaseMillis = conf.getInt(CommonConfigurationKeysPublic.
+        KMS_CLIENT_FAILOVER_SLEEP_BASE_MILLIS_KEY,
+        CommonConfigurationKeysPublic.
+            KMS_CLIENT_FAILOVER_SLEEP_BASE_MILLIS_DEFAULT);
+    int sleepMaxMillis = conf.getInt(CommonConfigurationKeysPublic.
+        KMS_CLIENT_FAILOVER_SLEEP_MAX_MILLIS_KEY,
+        CommonConfigurationKeysPublic.
+            KMS_CLIENT_FAILOVER_SLEEP_MAX_MILLIS_DEFAULT);
+    Preconditions.checkState(maxNumRetries >= 0);
+    Preconditions.checkState(sleepBaseMillis >= 0);
+    Preconditions.checkState(sleepMaxMillis >= 0);
+    this.retryPolicy = RetryPolicies.failoverOnNetworkException(
+        RetryPolicies.TRY_ONCE_THEN_FAIL, maxNumRetries, 0, sleepBaseMillis,
+        sleepMaxMillis);
+    LOG.debug("Created LoadBalancingKMSClientProvider for KMS url: {} with {} "
+            + "providers. delegation token service: {}, canonical service: {}",
+        uri, providers.length, dtService, canonicalService);
+  }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/crypto/key/kms/LoadBalancingKMSClientProvider, <init>([Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere, blocks=[BB[SSA:3..6]2 - org.apache.hadoop.crypto.key.kms.LoadBalancingKMSClientProvider.<init>([Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V, BB[SSA:0..2]1 - org.apache.hadoop.crypto.key.kms.LoadBalancingKMSClientProvider.<init>([Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V, BB[SSA:7..7]3 - org.apache.hadoop.crypto.key.kms.LoadBalancingKMSClientProvider.<init>([Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V, BB[SSA:-1..-2]4 - org.apache.hadoop.crypto.key.kms.LoadBalancingKMSClientProvider.<init>([Lorg/apache/hadoop/crypto/key/kms/KMSClientProvider;JLorg/apache/hadoop/conf/Configuration;)V], numberOfBasicBlocks=4, firstLineNumber=96, lastLineNumber=97, firstMethodNumber=95, lastMethodNumber=97, isFirstLineValid=true, methodSrcCode=
+      Configuration conf) {
+    this(URI.create("kms://testing"), providers, seed, conf);
+  }
+
+}

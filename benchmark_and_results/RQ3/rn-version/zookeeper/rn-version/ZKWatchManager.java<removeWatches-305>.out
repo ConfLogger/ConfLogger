@@ -1,0 +1,131 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ZKWatchManager.java	methodSinagture:	org.apache.zookeeper.ZKWatchManager.removeWatches(Ljava/util/Map;Lorg/apache/zookeeper/Watcher;Ljava/lang/String;ZILjava/util/Set;)Z	methodLines:	305:337
+blockLines:	324:-1
+paras:	null
+TaintedStat:	NORMAL removeWatches:conditional branch(eq, to iindex=70) 22,19 Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, removeWatches(Ljava/util/Map;Lorg/apache/zookeeper/Watcher;Ljava/lang/String;ZILjava/util/Set;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, removeWatches(Ljava/util/Map;Lorg/apache/zookeeper/Watcher;Ljava/lang/String;ZILjava/util/Set;)Z > Context: Everywhere[45]21 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,4 @95 exception:20
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, removeWatches(Ljava/util/Map;Lorg/apache/zookeeper/Watcher;Ljava/lang/String;ZILjava/util/Set;)Z > Context: Everywhere[45]21 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,4 @95 exception:20
+NORMAL removeWatches:22 = checkcast <Application,Ljava/util/Set>21 <Application,Ljava/util/Set> Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, removeWatches(Ljava/util/Map;Lorg/apache/zookeeper/Watcher;Ljava/lang/String;ZILjava/util/Set;)Z > Context: Everywhere
+NORMAL removeWatches:conditional branch(eq, to iindex=70) 22,19 Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, removeWatches(Ljava/util/Map;Lorg/apache/zookeeper/Watcher;Ljava/lang/String;ZILjava/util/Set;)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+        Set<Watcher> removedWatchers) throws KeeperException {
+        if (!local && rc != KeeperException.Code.OK.intValue()) {
+            throw KeeperException.create(KeeperException.Code.get(rc), path);
+        }
+        boolean success = false;
+        // When local flag is true, remove watchers for the given path
+        // irrespective of rc. Otherwise shouldn't remove watchers locally
+        // when sees failure from server.
+        if (rc == KeeperException.Code.OK.intValue() || (local && rc != KeeperException.Code.OK.intValue())) {
+            // Remove all the watchers for the given path
+            if (watcher == null) {
+                Set<Watcher> pathWatchers = pathVsWatcher.remove(path);
+                if (pathWatchers != null) {
+                    // found path watchers
+                    removedWatchers.addAll(pathWatchers);
+                    success = true;
+                }
+            } else {
+                Set<Watcher> watchers = pathVsWatcher.get(path);
+                if (watchers != null) {
+                    if (watchers.remove(watcher)) {
+                        // found path watcher
+                        removedWatchers.add(watcher);
+                        // cleanup <path vs watchlist>
+                        if (watchers.size() <= 0) {
+                            pathVsWatcher.remove(path);
+                        }
+                        success = true;
+                    }
+                }
+            }
+        }
+        return success;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map; > Context: Everywhere, blocks=[BB[SSA:51..56]19 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:48..50]18 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:57..59]20 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:75..80]28 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:72..74]27 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:81..83]29 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:98..103]36 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:95..97]35 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:104..110]37 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:126..131]45 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:123..125]44 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:132..134]46 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:150..155]54 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:147..149]53 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:156..158]55 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:174..179]63 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:171..173]62 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:180..182]64 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:197..202]71 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:194..196]70 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:203..209]72 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:224..229]79 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:221..223]78 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:230..236]80 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:251..256]87 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:248..250]86 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:257..263]88 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:278..283]95 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:275..277]94 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;, BB[SSA:284..290]96 - org.apache.zookeeper.ZKWatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;ZI)Ljava/util/Map;], numberOfBasicBlocks=30, firstLineNumber=190, lastLineNumber=200, firstMethodNumber=127, lastMethodNumber=200, isFirstLineValid=true, methodSrcCode=
+        // watcherType
+        containsWatcher(clientPath, watcher, watcherType);
+
+        Map<Watcher.Event.EventType, Set<Watcher>> removedWatchers = new HashMap<>();
+        HashSet<Watcher> childWatchersToRem = new HashSet<>();
+        removedWatchers.put(Watcher.Event.EventType.ChildWatchRemoved, childWatchersToRem);
+        HashSet<Watcher> dataWatchersToRem = new HashSet<>();
+        removedWatchers.put(Watcher.Event.EventType.DataWatchRemoved, dataWatchersToRem);
+        HashSet<Watcher> persistentWatchersToRem = new HashSet<>();
+        removedWatchers.put(Watcher.Event.EventType.PersistentWatchRemoved, persistentWatchersToRem);
+        boolean removedWatcher = false;
+        switch (watcherType) {
+        case Children: {
+            synchronized (childWatches) {
+                removedWatcher = removeWatches(childWatches, watcher, clientPath, local, rc, childWatchersToRem);
+            }
+            break;
+        }
+        case Data: {
+            synchronized (dataWatches) {
+                removedWatcher = removeWatches(dataWatches, watcher, clientPath, local, rc, dataWatchersToRem);
+            }
+
+            synchronized (existWatches) {
+                boolean removedDataWatcher = removeWatches(existWatches, watcher, clientPath, local, rc, dataWatchersToRem);
+                removedWatcher |= removedDataWatcher;
+            }
+            break;
+        }
+        case Persistent: {
+            synchronized (persistentWatches) {
+                removedWatcher = removeWatches(persistentWatches, watcher, clientPath, local, rc, persistentWatchersToRem);
+            }
+            break;
+        }
+        case PersistentRecursive: {
+            synchronized (persistentRecursiveWatches) {
+                removedWatcher = removeWatches(persistentRecursiveWatches, watcher, clientPath, local, rc, persistentWatchersToRem);
+            }
+            break;
+        }
+        case Any: {
+            synchronized (childWatches) {
+                removedWatcher = removeWatches(childWatches, watcher, clientPath, local, rc, childWatchersToRem);
+            }
+
+            synchronized (dataWatches) {
+                boolean removedDataWatcher = removeWatches(dataWatches, watcher, clientPath, local, rc, dataWatchersToRem);
+                removedWatcher |= removedDataWatcher;
+            }
+
+            synchronized (existWatches) {
+                boolean removedDataWatcher = removeWatches(existWatches, watcher, clientPath, local, rc, dataWatchersToRem);
+                removedWatcher |= removedDataWatcher;
+            }
+
+            synchronized (persistentWatches) {
+                boolean removedPersistentWatcher = removeWatches(persistentWatches,
+                        watcher, clientPath, local, rc, persistentWatchersToRem);
+                removedWatcher |= removedPersistentWatcher;
+            }
+
+            synchronized (persistentRecursiveWatches) {
+                boolean removedPersistentRecursiveWatcher = removeWatches(persistentRecursiveWatches,
+                        watcher, clientPath, local, rc, persistentWatchersToRem);
+                removedWatcher |= removedPersistentRecursiveWatcher;
+            }
+        }
+        }
+        // Watcher function doesn't exists for the specified params
+        if (!removedWatcher) {
+            throw new KeeperException.NoWatcherException(clientPath);
+        }
+        return removedWatchers;
+    }
+}

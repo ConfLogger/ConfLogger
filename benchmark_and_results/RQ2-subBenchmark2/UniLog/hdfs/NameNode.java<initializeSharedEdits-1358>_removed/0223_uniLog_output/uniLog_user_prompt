@@ -1,0 +1,337 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>boolean force, boolean interactive) throws IOException {
+<Line#1>String nsId = DFSUtil.getNamenodeNameServiceId(conf);
+<Line#2>String namenodeId = HAUtil.getNameNodeId(conf, nsId);
+<Line#3>initializeGenericKeys(conf, nsId, namenodeId);
+<Line#4>
+<Line#5>if (conf.get(DFSConfigKeys.DFS_NAMENODE_SHARED_EDITS_DIR_KEY) == null) {
+<Line#6>return false;
+<Line#7>}
+<Line#8>
+<Line#9>if (UserGroupInformation.isSecurityEnabled()) {
+<Line#10>InetSocketAddress socAddr = DFSUtilClient.getNNAddress(conf);
+<Line#11>SecurityUtil.login(conf, DFS_NAMENODE_KEYTAB_FILE_KEY,
+<Line#12>DFS_NAMENODE_KERBEROS_PRINCIPAL_KEY, socAddr.getHostName());
+<Line#13>}
+<Line#14>
+<Line#15>NNStorage existingStorage = null;
+<Line#16>FSImage sharedEditsImage = null;
+<Line#17>try {
+<Line#18>FSNamesystem fsns =
+<Line#19>FSNamesystem.loadFromDisk(getConfigurationWithoutSharedEdits(conf));
+<Line#20>
+<Line#21>existingStorage = fsns.getFSImage().getStorage();
+<Line#22>NamespaceInfo nsInfo = existingStorage.getNamespaceInfo();
+<Line#23>
+<Line#24>List<URI> sharedEditsDirs = FSNamesystem.getSharedEditsDirs(conf);
+<Line#25>
+<Line#26>sharedEditsImage = new FSImage(conf,
+<Line#27>Lists.<URI>newArrayList(),
+<Line#28>sharedEditsDirs);
+<Line#29>sharedEditsImage.getEditLog().initJournalsForWrite();
+<Line#30>
+<Line#31>if (!sharedEditsImage.confirmFormat(force, interactive)) {
+<Line#32>return true; // abort
+<Line#33>}
+<Line#34>
+<Line#35>NNStorage newSharedStorage = sharedEditsImage.getStorage();
+<Line#36>// Call Storage.format instead of FSImage.format here, since we don't
+<Line#37>// actually want to save a checkpoint - just prime the dirs with
+<Line#38>// the existing namespace info
+<Line#39>newSharedStorage.format(nsInfo);
+<Line#40>sharedEditsImage.getEditLog().formatNonFileJournals(nsInfo, force);
+<Line#41>
+<Line#42>// Need to make sure the edit log segments are in good shape to initialize
+<Line#43>// the shared edits dir.
+<Line#44>fsns.getFSImage().getEditLog().close();
+<Line#45>fsns.getFSImage().getEditLog().initJournalsForWrite();
+<Line#46>fsns.getFSImage().getEditLog().recoverUnclosedStreams();
+<Line#47>
+<Line#48>copyEditLogSegmentsToSharedDir(fsns, sharedEditsDirs, newSharedStorage,
+<Line#49>conf);
+<Line#50>} catch (IOException ioe) {
+<Line#51>LOG.error("Could not initialize shared edits dir", ioe);
+<Line#52>return true; // aborted
+<Line#53>} finally {
+<Line#54>if (sharedEditsImage != null) {
+<Line#55>try {
+<Line#56>sharedEditsImage.close();
+<Line#57>}  catch (IOException ioe) {
+<Line#58>LOG.warn("Could not close sharedEditsImage", ioe);
+<Line#59>}
+<Line#60>}
+<Line#61>// Have to unlock storage explicitly for the case when we're running in a
+<Line#62>// unit test, which runs in the same JVM as NNs.
+<Line#63>if (existingStorage != null) {
+<Line#64>try {
+<Line#65>existingStorage.unlockAll();
+<Line#66>} catch (IOException ioe) {
+<Line#67>LOG.warn("Could not unlock storage directories", ioe);
+<Line#68>return true; // aborted
+<Line#69>}
+<Line#70>}
+<Line#71>}
+<Line#72>return false; // did not abort
+<Line#73>}
+
+Example 1:
+<Line#1>{
+<Line#2>  String nsId=DFSUtil.getNamenodeNameServiceId(conf);
+<Line#3>  String namenodeId=HAUtil.getNameNodeId(conf,nsId);
+<Line#4>  initializeGenericKeys(conf,nsId,namenodeId);
+<Line#5>  checkAllowFormat(conf);
+<Line#6>  if (UserGroupInformation.isSecurityEnabled()) {
+<Line#7>    InetSocketAddress socAddr=DFSUtilClient.getNNAddress(conf);
+<Line#8>    SecurityUtil.login(conf,DFS_NAMENODE_KEYTAB_FILE_KEY,DFS_NAMENODE_KERBEROS_PRINCIPAL_KEY,socAddr.getHostName());
+<Line#9>  }
+<Line#10>  Collection<URI> nameDirsToFormat=FSNamesystem.getNamespaceDirs(conf);
+<Line#11>  List<URI> sharedDirs=FSNamesystem.getSharedEditsDirs(conf);
+<Line#12>  List<URI> dirsToPrompt=new ArrayList<URI>();
+<Line#13>  dirsToPrompt.addAll(nameDirsToFormat);
+<Line#14>  dirsToPrompt.addAll(sharedDirs);
+<Line#15>  List<URI> editDirsToFormat=FSNamesystem.getNamespaceEditsDirs(conf);
+<Line#16>  String clusterId=StartupOption.FORMAT.getClusterId();
+<Line#17>  if (clusterId == null || clusterId.equals("")) {
+<Line#18>    clusterId=NNStorage.newClusterID();
+<Line#19>  }
+<Line#20>  LOG.info("Formatting using clusterid: {}",clusterId);
+<Line#21>  FSImage fsImage=new FSImage(conf,nameDirsToFormat,editDirsToFormat);
+<Line#22>  FSNamesystem fsn=null;
+<Line#23>  try {
+<Line#24>    fsn=new FSNamesystem(conf,fsImage);
+<Line#25>    fsImage.getEditLog().initJournalsForWrite();
+<Line#26>    if (conf.getBoolean(DFSConfigKeys.DFS_REFORMAT_DISABLED,DFSConfigKeys.DFS_REFORMAT_DISABLED_DEFAULT)) {
+<Line#27>      force=false;
+<Line#28>      isInteractive=false;
+<Line#29>      for (      StorageDirectory sd : fsImage.storage.dirIterable(null)) {
+<Line#30>        if (sd.hasSomeData()) {
+<Line#31>          throw new NameNodeFormatException("NameNode format aborted as reformat is disabled for " + "this cluster.");
+<Line#32>        }
+<Line#33>      }
+<Line#34>    }
+<Line#35>    if (!fsImage.confirmFormat(force,isInteractive)) {
+<Line#36>      return true;
+<Line#37>    }
+<Line#38>    fsImage.format(fsn,clusterId,force);
+<Line#39>  }
+<Line#40> catch (  IOException ioe) {
+<Line#41>    LOG.warn("Encountered exception during format",ioe);
+<Line#42>    throw ioe;
+<Line#43>  }
+<Line#44> finally {
+<Line#45>    if (fsImage != null) {
+<Line#46>      fsImage.close();
+<Line#47>    }
+<Line#48>    if (fsn != null) {
+<Line#49>      fsn.close();
+<Line#50>    }
+<Line#51>  }
+<Line#52>  return false;
+<Line#53>}
+Label: <Line#20> LOG.info("Formatting using clusterid: {}",clusterId)
+
+Example 2:
+<Line#1>{
+<Line#2>  String nsId=DFSUtil.getNamenodeNameServiceId(conf);
+<Line#3>  String namenodeId=HAUtil.getNameNodeId(conf,nsId);
+<Line#4>  initializeGenericKeys(conf,nsId,namenodeId);
+<Line#5>  checkAllowFormat(conf);
+<Line#6>  if (UserGroupInformation.isSecurityEnabled()) {
+<Line#7>    InetSocketAddress socAddr=DFSUtilClient.getNNAddress(conf);
+<Line#8>    SecurityUtil.login(conf,DFS_NAMENODE_KEYTAB_FILE_KEY,DFS_NAMENODE_KERBEROS_PRINCIPAL_KEY,socAddr.getHostName());
+<Line#9>  }
+<Line#10>  Collection<URI> nameDirsToFormat=FSNamesystem.getNamespaceDirs(conf);
+<Line#11>  List<URI> sharedDirs=FSNamesystem.getSharedEditsDirs(conf);
+<Line#12>  List<URI> dirsToPrompt=new ArrayList<URI>();
+<Line#13>  dirsToPrompt.addAll(nameDirsToFormat);
+<Line#14>  dirsToPrompt.addAll(sharedDirs);
+<Line#15>  List<URI> editDirsToFormat=FSNamesystem.getNamespaceEditsDirs(conf);
+<Line#16>  String clusterId=StartupOption.FORMAT.getClusterId();
+<Line#17>  if (clusterId == null || clusterId.equals("")) {
+<Line#18>    clusterId=NNStorage.newClusterID();
+<Line#19>  }
+<Line#20>  LOG.info("Formatting using clusterid: {}",clusterId);
+<Line#21>  FSImage fsImage=new FSImage(conf,nameDirsToFormat,editDirsToFormat);
+<Line#22>  FSNamesystem fsn=null;
+<Line#23>  try {
+<Line#24>    fsn=new FSNamesystem(conf,fsImage);
+<Line#25>    fsImage.getEditLog().initJournalsForWrite();
+<Line#26>    if (conf.getBoolean(DFSConfigKeys.DFS_REFORMAT_DISABLED,DFSConfigKeys.DFS_REFORMAT_DISABLED_DEFAULT)) {
+<Line#27>      force=false;
+<Line#28>      isInteractive=false;
+<Line#29>      for (      StorageDirectory sd : fsImage.storage.dirIterable(null)) {
+<Line#30>        if (sd.hasSomeData()) {
+<Line#31>          throw new NameNodeFormatException("NameNode format aborted as reformat is disabled for " + "this cluster.");
+<Line#32>        }
+<Line#33>      }
+<Line#34>    }
+<Line#35>    if (!fsImage.confirmFormat(force,isInteractive)) {
+<Line#36>      return true;
+<Line#37>    }
+<Line#38>    fsImage.format(fsn,clusterId,force);
+<Line#39>  }
+<Line#40> catch (  IOException ioe) {
+<Line#41>    LOG.warn("Encountered exception during format",ioe);
+<Line#42>    throw ioe;
+<Line#43>  }
+<Line#44> finally {
+<Line#45>    if (fsImage != null) {
+<Line#46>      fsImage.close();
+<Line#47>    }
+<Line#48>    if (fsn != null) {
+<Line#49>      fsn.close();
+<Line#50>    }
+<Line#51>  }
+<Line#52>  return false;
+<Line#53>}
+Label: <Line#41> LOG.warn("Encountered exception during format",ioe)
+
+Example 3:
+<Line#1>{
+<Line#2>  LOG.info(this + " starting to offer service");
+<Line#3>  try {
+<Line#4>    while (true) {
+<Line#5>      try {
+<Line#6>        connectToNNAndHandshake();
+<Line#7>        break;
+<Line#8>      }
+<Line#9> catch (      IOException ioe) {
+<Line#10>        runningState=RunningState.INIT_FAILED;
+<Line#11>        if (shouldRetryInit()) {
+<Line#12>          LOG.error("Initialization failed for " + this + " "+ ioe.getLocalizedMessage());
+<Line#13>          sleepAndLogInterrupts(5000,"initializing");
+<Line#14>        }
+<Line#15> else {
+<Line#16>          runningState=RunningState.FAILED;
+<Line#17>          LOG.error("Initialization failed for " + this + ". Exiting. ",ioe);
+<Line#18>          return;
+<Line#19>        }
+<Line#20>      }
+<Line#21>    }
+<Line#22>    runningState=RunningState.RUNNING;
+<Line#23>    if (initialRegistrationComplete != null) {
+<Line#24>      initialRegistrationComplete.countDown();
+<Line#25>    }
+<Line#26>    ibrExecutorService.submit(new IBRTaskHandler());
+<Line#27>    while (shouldRun()) {
+<Line#28>      try {
+<Line#29>        offerService();
+<Line#30>      }
+<Line#31> catch (      Exception ex) {
+<Line#32>        LOG.error("Exception in BPOfferService for " + this,ex);
+<Line#33>        sleepAndLogInterrupts(5000,"offering service");
+<Line#34>      }
+<Line#35>    }
+<Line#36>    runningState=RunningState.EXITED;
+<Line#37>  }
+<Line#38> catch (  Throwable ex) {
+<Line#39>    LOG.warn("Unexpected exception in block pool " + this,ex);
+<Line#40>    runningState=RunningState.FAILED;
+<Line#41>  }
+<Line#42> finally {
+<Line#43>    LOG.warn("Ending block pool service for: " + this);
+<Line#44>    cleanUp();
+<Line#45>  }
+<Line#46>}
+Label: <Line#2> LOG.info(this + " starting to offer service")
+
+Example 4:
+<Line#1>{
+<Line#2>  LOG.info(this + " starting to offer service");
+<Line#3>  try {
+<Line#4>    while (true) {
+<Line#5>      try {
+<Line#6>        connectToNNAndHandshake();
+<Line#7>        break;
+<Line#8>      }
+<Line#9> catch (      IOException ioe) {
+<Line#10>        runningState=RunningState.INIT_FAILED;
+<Line#11>        if (shouldRetryInit()) {
+<Line#12>          LOG.error("Initialization failed for " + this + " "+ ioe.getLocalizedMessage());
+<Line#13>          sleepAndLogInterrupts(5000,"initializing");
+<Line#14>        }
+<Line#15> else {
+<Line#16>          runningState=RunningState.FAILED;
+<Line#17>          LOG.error("Initialization failed for " + this + ". Exiting. ",ioe);
+<Line#18>          return;
+<Line#19>        }
+<Line#20>      }
+<Line#21>    }
+<Line#22>    runningState=RunningState.RUNNING;
+<Line#23>    if (initialRegistrationComplete != null) {
+<Line#24>      initialRegistrationComplete.countDown();
+<Line#25>    }
+<Line#26>    ibrExecutorService.submit(new IBRTaskHandler());
+<Line#27>    while (shouldRun()) {
+<Line#28>      try {
+<Line#29>        offerService();
+<Line#30>      }
+<Line#31> catch (      Exception ex) {
+<Line#32>        LOG.error("Exception in BPOfferService for " + this,ex);
+<Line#33>        sleepAndLogInterrupts(5000,"offering service");
+<Line#34>      }
+<Line#35>    }
+<Line#36>    runningState=RunningState.EXITED;
+<Line#37>  }
+<Line#38> catch (  Throwable ex) {
+<Line#39>    LOG.warn("Unexpected exception in block pool " + this,ex);
+<Line#40>    runningState=RunningState.FAILED;
+<Line#41>  }
+<Line#42> finally {
+<Line#43>    LOG.warn("Ending block pool service for: " + this);
+<Line#44>    cleanUp();
+<Line#45>  }
+<Line#46>}
+Label: <Line#12> LOG.error("Initialization failed for " + this + " "+ ioe.getLocalizedMessage())
+
+Example 5:
+<Line#1>{
+<Line#2>  LOG.info(this + " starting to offer service");
+<Line#3>  try {
+<Line#4>    while (true) {
+<Line#5>      try {
+<Line#6>        connectToNNAndHandshake();
+<Line#7>        break;
+<Line#8>      }
+<Line#9> catch (      IOException ioe) {
+<Line#10>        runningState=RunningState.INIT_FAILED;
+<Line#11>        if (shouldRetryInit()) {
+<Line#12>          LOG.error("Initialization failed for " + this + " "+ ioe.getLocalizedMessage());
+<Line#13>          sleepAndLogInterrupts(5000,"initializing");
+<Line#14>        }
+<Line#15> else {
+<Line#16>          runningState=RunningState.FAILED;
+<Line#17>          LOG.error("Initialization failed for " + this + ". Exiting. ",ioe);
+<Line#18>          return;
+<Line#19>        }
+<Line#20>      }
+<Line#21>    }
+<Line#22>    runningState=RunningState.RUNNING;
+<Line#23>    if (initialRegistrationComplete != null) {
+<Line#24>      initialRegistrationComplete.countDown();
+<Line#25>    }
+<Line#26>    ibrExecutorService.submit(new IBRTaskHandler());
+<Line#27>    while (shouldRun()) {
+<Line#28>      try {
+<Line#29>        offerService();
+<Line#30>      }
+<Line#31> catch (      Exception ex) {
+<Line#32>        LOG.error("Exception in BPOfferService for " + this,ex);
+<Line#33>        sleepAndLogInterrupts(5000,"offering service");
+<Line#34>      }
+<Line#35>    }
+<Line#36>    runningState=RunningState.EXITED;
+<Line#37>  }
+<Line#38> catch (  Throwable ex) {
+<Line#39>    LOG.warn("Unexpected exception in block pool " + this,ex);
+<Line#40>    runningState=RunningState.FAILED;
+<Line#41>  }
+<Line#42> finally {
+<Line#43>    LOG.warn("Ending block pool service for: " + this);
+<Line#44>    cleanUp();
+<Line#45>  }
+<Line#46>}
+Label: <Line#17> LOG.error("Initialization failed for " + this + ". Exiting. ",ioe)
+

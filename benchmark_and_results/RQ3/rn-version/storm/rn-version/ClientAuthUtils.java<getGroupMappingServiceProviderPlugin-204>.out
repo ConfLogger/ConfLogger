@@ -1,0 +1,64 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ClientAuthUtils.java	methodSinagture:	org.apache.storm.security.auth.ClientAuthUtils.getGroupMappingServiceProviderPlugin(Ljava/util/Map;)Lorg/apache/storm/security/auth/IGroupMappingServiceProvider;	methodLines:	204:219
+blockLines:	208:-1
+paras:	null
+TaintedStat:	NORMAL getGroupMappingServiceProviderPlugin:conditional branch(ne, to iindex=15) 7,3 Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, getGroupMappingServiceProviderPlugin(Ljava/util/Map;)Lorg/apache/storm/security/auth/IGroupMappingServiceProvider; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, getGroupMappingServiceProviderPlugin(Ljava/util/Map;)Lorg/apache/storm/security/auth/IGroupMappingServiceProvider; > Context: Everywhere[4]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,4 @5 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, getGroupMappingServiceProviderPlugin(Ljava/util/Map;)Lorg/apache/storm/security/auth/IGroupMappingServiceProvider; > Context: Everywhere[4]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,4 @5 exception:5
+NORMAL getGroupMappingServiceProviderPlugin:7 = checkcast <Application,Ljava/lang/String>6 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, getGroupMappingServiceProviderPlugin(Ljava/util/Map;)Lorg/apache/storm/security/auth/IGroupMappingServiceProvider; > Context: Everywhere
+NORMAL getGroupMappingServiceProviderPlugin:conditional branch(ne, to iindex=15) 7,3 Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, getGroupMappingServiceProviderPlugin(Ljava/util/Map;)Lorg/apache/storm/security/auth/IGroupMappingServiceProvider; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static IGroupMappingServiceProvider getGroupMappingServiceProviderPlugin(Map<String, Object> conf) {
+        IGroupMappingServiceProvider gmsp = null;
+        try {
+            String gmspClassName = (String) conf.get(Config.STORM_GROUP_MAPPING_SERVICE_PROVIDER_PLUGIN);
+            if (gmspClassName == null) {
+                LOG.warn("No group mapper given {}", Config.STORM_GROUP_MAPPING_SERVICE_PROVIDER_PLUGIN);
+            } else {
+                gmsp = ReflectionUtils.newInstance(gmspClassName);
+                if (gmsp != null) {
+                    gmsp.prepare(conf);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return gmsp;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/blobstore/BlobStoreAclHandler, <init>(Ljava/util/Map;)V > Context: Everywhere, blocks=[BB[SSA:11..13]6 - org.apache.storm.blobstore.BlobStoreAclHandler.<init>(Ljava/util/Map;)V, BB[SSA:9..10]5 - org.apache.storm.blobstore.BlobStoreAclHandler.<init>(Ljava/util/Map;)V, BB[SSA:14..14]7 - org.apache.storm.blobstore.BlobStoreAclHandler.<init>(Ljava/util/Map;)V, BB[SSA:-1..-2]47 - org.apache.storm.blobstore.BlobStoreAclHandler.<init>(Ljava/util/Map;)V], numberOfBasicBlocks=4, firstLineNumber=58, lastLineNumber=59, firstMethodNumber=55, lastMethodNumber=78, isFirstLineValid=true, methodSrcCode=
+
+    public BlobStoreAclHandler(Map<String, Object> conf) {
+        ptol = ClientAuthUtils.getPrincipalToLocalPlugin(conf);
+        if (conf.get(Config.STORM_GROUP_MAPPING_SERVICE_PROVIDER_PLUGIN) != null) {
+            groupMappingServiceProvider = ClientAuthUtils.getGroupMappingServiceProviderPlugin(conf);
+        } else {
+            groupMappingServiceProvider = null;
+        }
+        supervisors = new HashSet<String>();
+        admins = new HashSet<String>();
+        adminsGroups = new HashSet<>();
+        if (conf.containsKey(Config.NIMBUS_SUPERVISOR_USERS)) {
+            supervisors.addAll((List<String>) conf.get(Config.NIMBUS_SUPERVISOR_USERS));
+        }
+        if (conf.containsKey(Config.NIMBUS_ADMINS)) {
+            admins.addAll((List<String>) conf.get(Config.NIMBUS_ADMINS));
+        }
+        if (conf.containsKey(Config.NIMBUS_ADMINS_GROUPS)) {
+            adminsGroups.addAll((List<String>) conf.get(Config.NIMBUS_ADMINS_GROUPS));
+        }
+        if (conf.containsKey(Config.STORM_BLOBSTORE_ACL_VALIDATION_ENABLED)) {
+            doAclValidation = (boolean) conf.get(Config.STORM_BLOBSTORE_ACL_VALIDATION_ENABLED);
+        }
+    }
+
+}

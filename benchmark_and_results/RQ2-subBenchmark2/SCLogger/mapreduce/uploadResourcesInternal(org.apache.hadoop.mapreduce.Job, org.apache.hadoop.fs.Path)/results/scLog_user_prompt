@@ -1,0 +1,253 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> throws IOException {
+<Line#1> Configuration conf = job.getConfiguration();
+<Line#2> short replication =
+<Line#3> (short) conf.getInt(Job.SUBMIT_REPLICATION,
+<Line#4> Job.DEFAULT_SUBMIT_REPLICATION);
+<Line#5> 
+<Line#6> if (!(conf.getBoolean(Job.USED_GENERIC_PARSER, false))) {}
+<Line#7> 
+<Line#8> //
+<Line#9> // Figure out what fs the JobTracker is using. Copy the
+<Line#10> // job to it, under a temporary name. This allows DFS to work,
+<Line#11> // and under the local fs also provides UNIX-like object loading
+<Line#12> // semantics. (that is, if the job file is deleted right after
+<Line#13> // submission, we can still run the submission to completion)
+<Line#14> //
+<Line#15> 
+<Line#16> // Create a number of filenames in the JobTracker's fs namespace
+<Line#17> LOG.debug("default FileSystem: " + jtFs.getUri());
+<Line#18> if (jtFs.exists(submitJobDir)) {
+<Line#19> throw new IOException("Not submitting job. Job directory " + submitJobDir
+<Line#20> + " already exists!! This is unexpected.Please check what's there in"
+<Line#21> + " that directory");
+<Line#22> }
+<Line#23> // Create the submission directory for the MapReduce job.
+<Line#24> submitJobDir = jtFs.makeQualified(submitJobDir);
+<Line#25> submitJobDir = new Path(submitJobDir.toUri().getPath());
+<Line#26> FsPermission mapredSysPerms =
+<Line#27> new FsPermission(JobSubmissionFiles.JOB_DIR_PERMISSION);
+<Line#28> mkdirs(jtFs, submitJobDir, mapredSysPerms);
+<Line#29> 
+<Line#30> if (!conf.getBoolean(MRJobConfig.MR_AM_STAGING_DIR_ERASURECODING_ENABLED,
+<Line#31> MRJobConfig.DEFAULT_MR_AM_STAGING_ERASURECODING_ENABLED)) {
+<Line#32> disableErasureCodingForPath(submitJobDir);
+<Line#33> }
+<Line#34> 
+<Line#35> // Get the resources that have been added via command line arguments in the
+<Line#36> // GenericOptionsParser (i.e. files, libjars, archives).
+<Line#37> Collection<String> files = conf.getStringCollection("tmpfiles");
+<Line#38> Collection<String> libjars = conf.getStringCollection("tmpjars");
+<Line#39> Collection<String> archives = conf.getStringCollection("tmparchives");
+<Line#40> String jobJar = job.getJar();
+<Line#41> 
+<Line#42> // Merge resources that have been programmatically specified for the shared
+<Line#43> // cache via the Job API.
+<Line#44> files.addAll(conf.getStringCollection(MRJobConfig.FILES_FOR_SHARED_CACHE));
+<Line#45> libjars.addAll(conf.getStringCollection(
+<Line#46> MRJobConfig.FILES_FOR_CLASSPATH_AND_SHARED_CACHE));
+<Line#47> archives.addAll(conf
+<Line#48> .getStringCollection(MRJobConfig.ARCHIVES_FOR_SHARED_CACHE));
+<Line#49> 
+<Line#50> 
+<Line#51> Map<URI, FileStatus> statCache = new HashMap<URI, FileStatus>();
+<Line#52> checkLocalizationLimits(conf, files, libjars, archives, jobJar, statCache);
+<Line#53> 
+<Line#54> Map<String, Boolean> fileSCUploadPolicies =
+<Line#55> new LinkedHashMap<String, Boolean>();
+<Line#56> Map<String, Boolean> archiveSCUploadPolicies =
+<Line#57> new LinkedHashMap<String, Boolean>();
+<Line#58> 
+<Line#59> uploadFiles(job, files, submitJobDir, mapredSysPerms, replication,
+<Line#60> fileSCUploadPolicies, statCache);
+<Line#61> uploadLibJars(job, libjars, submitJobDir, mapredSysPerms, replication,
+<Line#62> fileSCUploadPolicies, statCache);
+<Line#63> uploadArchives(job, archives, submitJobDir, mapredSysPerms, replication,
+<Line#64> archiveSCUploadPolicies, statCache);
+<Line#65> uploadJobJar(job, jobJar, submitJobDir, replication, statCache);
+<Line#66> addLog4jToDistributedCache(job, submitJobDir);
+<Line#67> 
+<Line#68> // Note, we do not consider resources in the distributed cache for the
+<Line#69> // shared cache at this time. Only resources specified via the
+<Line#70> // GenericOptionsParser or the jobjar.
+<Line#71> Job.setFileSharedCacheUploadPolicies(conf, fileSCUploadPolicies);
+<Line#72> Job.setArchiveSharedCacheUploadPolicies(conf, archiveSCUploadPolicies);
+<Line#73> 
+<Line#74> // set the timestamps of the archives and files
+<Line#75> // set the public/private visibility of the archives and files
+<Line#76> ClientDistributedCacheManager.determineTimestampsAndCacheVisibilities(conf,
+<Line#77> statCache);
+<Line#78> // get DelegationToken for cached file
+<Line#79> ClientDistributedCacheManager.getDelegationTokens(conf,
+<Line#80> job.getCredentials());
+<Line#81> }
+
+Relevant Logging Patterns:
+Example 1:
+File: mapreduce__createNativeObject-81__.json
+Code:
+<Line#1>{
+<Line#2>  assertNativeLibraryLoaded();
+<Line#3>  final long ret=JNICreateNativeObject(clazz.getBytes(Charsets.UTF_8));
+<Line#4>  if (ret == 0) {
+<Line#5>    LOG.warn("Can't create NativeObject for class " + clazz + ", probably not exist.");
+<Line#6>  }
+<Line#7>  return ret;
+<Line#8>}
+Log: <Line#5>:# LOG.warn("Can't create NativeObject for class " + clazz + ", probably not exist."):#
+
+Example 2:
+File: mapreduce__createControlFile-122__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("creating control file: " + fileSize + " mega bytes, "+ nrFiles+ " files");
+<Line#3>  fs.delete(CONTROL_DIR,true);
+<Line#4>  for (int i=0; i < nrFiles; i++) {
+<Line#5>    String name=getFileName(i);
+<Line#6>    Path controlFile=new Path(CONTROL_DIR,"in_file_" + name);
+<Line#7>    SequenceFile.Writer writer=null;
+<Line#8>    try {
+<Line#9>      writer=SequenceFile.createWriter(fs,fsConfig,controlFile,Text.class,LongWritable.class,CompressionType.NONE);
+<Line#10>      writer.append(new Text(name),new LongWritable(fileSize));
+<Line#11>    }
+<Line#12> catch (    Exception e) {
+<Line#13>      throw new IOException(e.getLocalizedMessage());
+<Line#14>    }
+<Line#15> finally {
+<Line#16>      if (writer != null)       writer.close();
+<Line#17>      writer=null;
+<Line#18>    }
+<Line#19>  }
+<Line#20>  LOG.info("created control files for: " + nrFiles + " files");
+<Line#21>}
+Log: <Line#2>:# LOG.info("creating control file: " + fileSize + " mega bytes, "+ nrFiles+ " files"):#
+
+Example 3:
+File: mapreduce__createControlFile-122__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("creating control file: " + fileSize + " mega bytes, "+ nrFiles+ " files");
+<Line#3>  fs.delete(CONTROL_DIR,true);
+<Line#4>  for (int i=0; i < nrFiles; i++) {
+<Line#5>    String name=getFileName(i);
+<Line#6>    Path controlFile=new Path(CONTROL_DIR,"in_file_" + name);
+<Line#7>    SequenceFile.Writer writer=null;
+<Line#8>    try {
+<Line#9>      writer=SequenceFile.createWriter(fs,fsConfig,controlFile,Text.class,LongWritable.class,CompressionType.NONE);
+<Line#10>      writer.append(new Text(name),new LongWritable(fileSize));
+<Line#11>    }
+<Line#12> catch (    Exception e) {
+<Line#13>      throw new IOException(e.getLocalizedMessage());
+<Line#14>    }
+<Line#15> finally {
+<Line#16>      if (writer != null)       writer.close();
+<Line#17>      writer=null;
+<Line#18>    }
+<Line#19>  }
+<Line#20>  LOG.info("created control files for: " + nrFiles + " files");
+<Line#21>}
+Log: <Line#20>:# LOG.info("created control files for: " + nrFiles + " files"):#
+
+Example 4:
+File: mapreduce__addMap-1106__.json
+Code:
+<Line#1>{
+<Line#2>  ContainerRequest request=null;
+<Line#3>  if (event.getEarlierAttemptFailed()) {
+<Line#4>    earlierFailedMaps.add(event.getAttemptID());
+<Line#5>    request=new ContainerRequest(event,PRIORITY_FAST_FAIL_MAP,mapNodeLabelExpression);
+<Line#6>    LOG.info("Added " + event.getAttemptID() + " to list of failed maps");
+<Line#7>    maps.put(event.getAttemptID(),request);
+<Line#8>    addContainerReq(request);
+<Line#9>  }
+<Line#10> else {
+<Line#11>    if (mapsMod100 < numOpportunisticMapsPercent) {
+<Line#12>      request=new ContainerRequest(event,PRIORITY_OPPORTUNISTIC_MAP,mapNodeLabelExpression);
+<Line#13>      maps.put(event.getAttemptID(),request);
+<Line#14>      addOpportunisticResourceRequest(request.priority,request.capability);
+<Line#15>    }
+<Line#16> else {
+<Line#17>      request=new ContainerRequest(event,PRIORITY_MAP,mapNodeLabelExpression);
+<Line#18>      for (      String host : event.getHosts()) {
+<Line#19>        LinkedList<TaskAttemptId> list=mapsHostMapping.get(host);
+<Line#20>        if (list == null) {
+<Line#21>          list=new LinkedList<TaskAttemptId>();
+<Line#22>          mapsHostMapping.put(host,list);
+<Line#23>        }
+<Line#24>        list.add(event.getAttemptID());
+<Line#25>        if (LOG.isDebugEnabled()) {
+<Line#26>          LOG.debug("Added attempt req to host " + host);
+<Line#27>        }
+<Line#28>      }
+<Line#29>      for (      String rack : event.getRacks()) {
+<Line#30>        LinkedList<TaskAttemptId> list=mapsRackMapping.get(rack);
+<Line#31>        if (list == null) {
+<Line#32>          list=new LinkedList<TaskAttemptId>();
+<Line#33>          mapsRackMapping.put(rack,list);
+<Line#34>        }
+<Line#35>        list.add(event.getAttemptID());
+<Line#36>        if (LOG.isDebugEnabled()) {
+<Line#37>          LOG.debug("Added attempt req to rack " + rack);
+<Line#38>        }
+<Line#39>      }
+<Line#40>      maps.put(event.getAttemptID(),request);
+<Line#41>      addContainerReq(request);
+<Line#42>    }
+<Line#43>    mapsMod100++;
+<Line#44>    mapsMod100%=100;
+<Line#45>  }
+<Line#46>}
+Log: <Line#6>:# LOG.info("Added " + event.getAttemptID() + " to list of failed maps"):#
+
+Example 5:
+File: mapreduce__addMap-1106__.json
+Code:
+<Line#1>{
+<Line#2>  ContainerRequest request=null;
+<Line#3>  if (event.getEarlierAttemptFailed()) {
+<Line#4>    earlierFailedMaps.add(event.getAttemptID());
+<Line#5>    request=new ContainerRequest(event,PRIORITY_FAST_FAIL_MAP,mapNodeLabelExpression);
+<Line#6>    LOG.info("Added " + event.getAttemptID() + " to list of failed maps");
+<Line#7>    maps.put(event.getAttemptID(),request);
+<Line#8>    addContainerReq(request);
+<Line#9>  }
+<Line#10> else {
+<Line#11>    if (mapsMod100 < numOpportunisticMapsPercent) {
+<Line#12>      request=new ContainerRequest(event,PRIORITY_OPPORTUNISTIC_MAP,mapNodeLabelExpression);
+<Line#13>      maps.put(event.getAttemptID(),request);
+<Line#14>      addOpportunisticResourceRequest(request.priority,request.capability);
+<Line#15>    }
+<Line#16> else {
+<Line#17>      request=new ContainerRequest(event,PRIORITY_MAP,mapNodeLabelExpression);
+<Line#18>      for (      String host : event.getHosts()) {
+<Line#19>        LinkedList<TaskAttemptId> list=mapsHostMapping.get(host);
+<Line#20>        if (list == null) {
+<Line#21>          list=new LinkedList<TaskAttemptId>();
+<Line#22>          mapsHostMapping.put(host,list);
+<Line#23>        }
+<Line#24>        list.add(event.getAttemptID());
+<Line#25>        if (LOG.isDebugEnabled()) {
+<Line#26>          LOG.debug("Added attempt req to host " + host);
+<Line#27>        }
+<Line#28>      }
+<Line#29>      for (      String rack : event.getRacks()) {
+<Line#30>        LinkedList<TaskAttemptId> list=mapsRackMapping.get(rack);
+<Line#31>        if (list == null) {
+<Line#32>          list=new LinkedList<TaskAttemptId>();
+<Line#33>          mapsRackMapping.put(rack,list);
+<Line#34>        }
+<Line#35>        list.add(event.getAttemptID());
+<Line#36>        if (LOG.isDebugEnabled()) {
+<Line#37>          LOG.debug("Added attempt req to rack " + rack);
+<Line#38>        }
+<Line#39>      }
+<Line#40>      maps.put(event.getAttemptID(),request);
+<Line#41>      addContainerReq(request);
+<Line#42>    }
+<Line#43>    mapsMod100++;
+<Line#44>    mapsMod100%=100;
+<Line#45>  }
+<Line#46>}
+Log: <Line#26>:# LOG.debug("Added attempt req to host " + host):#

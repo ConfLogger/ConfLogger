@@ -1,0 +1,71 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	CsvStormReporter.java	methodSinagture:	org.apache.storm.metrics2.reporters.CsvStormReporter.getCsvLogDir(Ljava/util/Map;Ljava/util/Map;)Ljava/io/File;	methodLines:	32:40
+blockLines:	34:-1
+paras:	null
+TaintedStat:	NORMAL getCsvLogDir:conditional branch(ne, to iindex=16) 9,7 Node: < Application, Lorg/apache/storm/metrics2/reporters/CsvStormReporter, getCsvLogDir(Ljava/util/Map;Ljava/util/Map;)Ljava/io/File; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/metrics2/reporters/CsvStormReporter, getCsvLogDir(Ljava/util/Map;Ljava/util/Map;)Ljava/io/File; > Context: Everywhere[2]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,4 @3 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/metrics2/reporters/CsvStormReporter, getCsvLogDir(Ljava/util/Map;Ljava/util/Map;)Ljava/io/File; > Context: Everywhere[2]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,4 @3 exception:5
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/metrics2/reporters/CsvStormReporter, getCsvLogDir(Ljava/util/Map;Ljava/util/Map;)Ljava/io/File; > Context: Everywhere[4]9 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > 6,7 @9 exception:8 v6
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere v1
+NORMAL getString:conditional branch(ne, to iindex=5) 4,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL getString:return 2 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/metrics2/reporters/CsvStormReporter, getCsvLogDir(Ljava/util/Map;Ljava/util/Map;)Ljava/io/File; > Context: Everywhere[4]9 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > 6,7 @9 exception:8
+NORMAL getCsvLogDir:conditional branch(ne, to iindex=16) 9,7 Node: < Application, Lorg/apache/storm/metrics2/reporters/CsvStormReporter, getCsvLogDir(Ljava/util/Map;Ljava/util/Map;)Ljava/io/File; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private static File getCsvLogDir(Map stormConf, Map reporterConf) {
+        String csvMetricsLogDirectory = ObjectReader.getString(reporterConf.get(CSV_LOG_DIR), null);
+        if (csvMetricsLogDirectory == null) {
+            csvMetricsLogDirectory = ConfigUtils.absoluteStormLocalDir(stormConf);
+            csvMetricsLogDirectory = csvMetricsLogDirectory + ConfigUtils.FILE_SEPARATOR + "csvmetrics";
+        }
+        File csvMetricsDir = new File(csvMetricsLogDirectory);
+        validateCreateOutputDir(csvMetricsDir);
+        return csvMetricsDir;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/metrics2/reporters/CsvStormReporter, prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V > Context: Everywhere, blocks=[BB[SSA:54..56]23 - org.apache.storm.metrics2.reporters.CsvStormReporter.prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V, BB[SSA:53..53]22 - org.apache.storm.metrics2.reporters.CsvStormReporter.prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V, BB[SSA:57..61]24 - org.apache.storm.metrics2.reporters.CsvStormReporter.prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V, BB[SSA:-1..-2]27 - org.apache.storm.metrics2.reporters.CsvStormReporter.prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V], numberOfBasicBlocks=4, firstLineNumber=84, lastLineNumber=87, firstMethodNumber=56, lastMethodNumber=88, isFirstLineValid=true, methodSrcCode=
+    public void prepare(MetricRegistry metricsRegistry, Map<String, Object> topoConf, Map<String, Object> reporterConf) {
+        LOG.debug("Preparing...");
+        CsvReporter.Builder builder = CsvReporter.forRegistry(metricsRegistry);
+
+        Locale locale = ClientMetricsUtils.getMetricsReporterLocale(reporterConf);
+        if (locale != null) {
+            builder.formatFor(locale);
+        }
+
+        TimeUnit rateUnit = ClientMetricsUtils.getMetricsRateUnit(reporterConf);
+        if (rateUnit != null) {
+            builder.convertRatesTo(rateUnit);
+        }
+
+        TimeUnit durationUnit = ClientMetricsUtils.getMetricsDurationUnit(reporterConf);
+        if (durationUnit != null) {
+            builder.convertDurationsTo(durationUnit);
+        }
+
+        StormMetricsFilter filter = getMetricsFilter(reporterConf);
+        if (filter != null) {
+            builder.filter(filter);
+        }
+
+        //defaults to 10
+        reportingPeriod = getReportPeriod(reporterConf);
+
+        //defaults to seconds
+        reportingPeriodUnit = getReportPeriodUnit(reporterConf);
+
+        File csvMetricsDir = getCsvLogDir(topoConf, reporterConf);
+        reporter = builder.build(csvMetricsDir);
+    }
+}
+}

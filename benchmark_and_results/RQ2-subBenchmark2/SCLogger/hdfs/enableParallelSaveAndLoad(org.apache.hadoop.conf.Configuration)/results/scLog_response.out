@@ -1,0 +1,3 @@
+<Line#2>:# LOG.info("Compression enabled: " + compressionEnabled);:#
+<Line#5>:# LOG.warn("Compression is enabled, setting loadInParallel to false");:#
+<Line#8>:# LOG.info("Returning loadInParallel: " + loadInParallel);:#

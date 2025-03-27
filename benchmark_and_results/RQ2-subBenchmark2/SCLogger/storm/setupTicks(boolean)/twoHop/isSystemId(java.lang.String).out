@@ -1,0 +1,3 @@
+public static boolean isSystemId(String id){
+  return id.startsWith("__");
+}

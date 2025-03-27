@@ -1,0 +1,46 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ConfigUtils.java	methodSinagture:	org.apache.storm.utils.ConfigUtils.getLogDir()Ljava/lang/String;	methodLines:	148:161
+blockLines:	151:-1
+paras:	null
+TaintedStat:	NORMAL getLogDir:conditional branch(eq, to iindex=21) 9,5 Node: < Application, Lorg/apache/storm/utils/ConfigUtils, getLogDir()Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ConfigUtils, getLogDir()Ljava/lang/String; > Context: Everywhere[12]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,2 @24 exception:8
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ConfigUtils, getLogDir()Ljava/lang/String; > Context: Everywhere[12]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,2 @24 exception:8
+NORMAL getLogDir:conditional branch(eq, to iindex=21) 9,5 Node: < Application, Lorg/apache/storm/utils/ConfigUtils, getLogDir()Ljava/lang/String; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+        Map<String, Object> conf;
+        if (System.getProperty("storm.log.dir") != null) {
+            dir = System.getProperty("storm.log.dir");
+        } else if ((conf = readStormConfig()).get("storm.log.dir") != null) {
+            dir = String.valueOf(conf.get("storm.log.dir"));
+        } else if (System.getProperty(STORM_HOME) != null) {
+            dir = System.getProperty(STORM_HOME) + FILE_SEPARATOR + "logs";
+        } else {
+            dir = "logs";
+        }
+        try {
+            return new File(dir).getCanonicalPath();
+        } catch (IOException ex) {
+            throw new IllegalArgumentException("Illegal storm.log.dir in conf: " + dir);
+        }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/utils/ConfigUtils, workerArtifactsRootImpl(Ljava/util/Map;)Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:8..8]4 - org.apache.storm.utils.ConfigUtils.workerArtifactsRootImpl(Ljava/util/Map;)Ljava/lang/String;, BB[SSA:4..7]3 - org.apache.storm.utils.ConfigUtils.workerArtifactsRootImpl(Ljava/util/Map;)Ljava/lang/String;, BB[SSA:9..10]5 - org.apache.storm.utils.ConfigUtils.workerArtifactsRootImpl(Ljava/util/Map;)Ljava/lang/String;, BB[SSA:-1..-2]15 - org.apache.storm.utils.ConfigUtils.workerArtifactsRootImpl(Ljava/util/Map;)Ljava/lang/String;, BB[SSA:21..21]12 - org.apache.storm.utils.ConfigUtils.workerArtifactsRootImpl(Ljava/util/Map;)Ljava/lang/String;, BB[SSA:17..18]10 - org.apache.storm.utils.ConfigUtils.workerArtifactsRootImpl(Ljava/util/Map;)Ljava/lang/String;, BB[SSA:22..24]13 - org.apache.storm.utils.ConfigUtils.workerArtifactsRootImpl(Ljava/util/Map;)Ljava/lang/String;, BB[SSA:-1..-2]15 - org.apache.storm.utils.ConfigUtils.workerArtifactsRootImpl(Ljava/util/Map;)Ljava/lang/String;], numberOfBasicBlocks=8, firstLineNumber=456, lastLineNumber=459, firstMethodNumber=451, lastMethodNumber=459, isFirstLineValid=true, methodSrcCode=
+    public String workerArtifactsRootImpl(Map<String, Object> conf) {
+        String artifactsDir = (String) conf.get(Config.STORM_WORKERS_ARTIFACTS_DIR);
+        if (artifactsDir == null) {
+            return (getLogDir() + FILE_SEPARATOR + "workers-artifacts");
+        } else {
+            if (new File(artifactsDir).isAbsolute()) {
+                return artifactsDir;
+            } else {
+                return (getLogDir() + FILE_SEPARATOR + artifactsDir);
+            }
+}

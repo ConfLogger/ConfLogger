@@ -1,0 +1,5 @@
+public void trackReceived(long timestamp){
+  if (enabled) {
+    receivedBuffer.write(new BufferedMessage(timestamp));
+  }
+}

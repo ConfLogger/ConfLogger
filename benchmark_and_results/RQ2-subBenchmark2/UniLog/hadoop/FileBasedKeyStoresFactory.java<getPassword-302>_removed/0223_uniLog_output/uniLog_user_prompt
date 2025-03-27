@@ -1,0 +1,255 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>String getPassword(Configuration conf, String alias, String defaultPass) {
+<Line#1>String password = defaultPass;
+<Line#2>try {
+<Line#3>char[] passchars = conf.getPassword(alias);
+<Line#4>if (passchars != null) {
+<Line#5>password = new String(passchars);
+<Line#6>}
+<Line#7>}
+<Line#8>catch (IOException ioe) {
+<Line#9>;
+<Line#10>}
+<Line#11>return password;
+<Line#12>}
+
+Example 1:
+<Line#1>{
+<Line#2>  int umask=DEFAULT_UMASK;
+<Line#3>  if (conf != null) {
+<Line#4>    String confUmask=conf.get(UMASK_LABEL);
+<Line#5>    try {
+<Line#6>      if (confUmask != null) {
+<Line#7>        umask=new UmaskParser(confUmask).getUMask();
+<Line#8>      }
+<Line#9>    }
+<Line#10> catch (    IllegalArgumentException iae) {
+<Line#11>      String type=iae instanceof NumberFormatException ? "decimal" : "octal or symbolic";
+<Line#12>      String error="Unable to parse configuration " + UMASK_LABEL + " with value "+ confUmask+ " as "+ type+ " umask.";
+<Line#13>      LOG.warn(error);
+<Line#14>      throw new IllegalArgumentException(error);
+<Line#15>    }
+<Line#16>  }
+<Line#17>  return new FsPermission((short)umask);
+<Line#18>}
+Label: <Line#13> LOG.warn(error)
+
+Example 2:
+<Line#1>{
+<Line#2>  String password=defaultPass;
+<Line#3>  try {
+<Line#4>    char[] passchars=config.getPasswordFromCredentialProviders(alias);
+<Line#5>    if (passchars != null) {
+<Line#6>      password=new String(passchars);
+<Line#7>    }
+<Line#8>  }
+<Line#9> catch (  IOException ioe) {
+<Line#10>    LOG.warn("Exception while trying to get password for alias {}: ",alias,ioe);
+<Line#11>  }
+<Line#12>  return password;
+<Line#13>}
+Label: <Line#10> LOG.warn("Exception while trying to get password for alias {}: ",alias,ioe)
+
+Example 3:
+<Line#1>{
+<Line#2>  title("Kerberos Diagnostics scan at %s",new Date(System.currentTimeMillis()));
+<Line#3>  println("Hostname = %s",InetAddress.getLocalHost().getCanonicalHostName());
+<Line#4>  println("%s = %d",ARG_KEYLEN,minKeyLength);
+<Line#5>  println("%s = %s",ARG_KEYTAB,keytab);
+<Line#6>  println("%s = %s",ARG_PRINCIPAL,principal);
+<Line#7>  println("%s = %s",ARG_VERIFYSHORTNAME,checkShortName);
+<Line#8>  validateKeyLength();
+<Line#9>  println("JVM Kerberos Login Module = %s",getKrb5LoginModuleName());
+<Line#10>  title("Core System Properties");
+<Line#11>  for (  String prop : new String[]{"user.name","java.version","java.vendor",JAVA_SECURITY_KRB5_CONF,JAVA_SECURITY_KRB5_REALM,JAVA_SECURITY_KRB5_KDC_ADDRESS,SUN_SECURITY_KRB5_DEBUG,SUN_SECURITY_SPNEGO_DEBUG,SUN_SECURITY_JAAS_FILE}) {
+<Line#12>    printSysprop(prop);
+<Line#13>  }
+<Line#14>  endln();
+<Line#15>  title("All System Properties");
+<Line#16>  ArrayList<String> propList=new ArrayList<>(System.getProperties().stringPropertyNames());
+<Line#17>  Collections.sort(propList,String.CASE_INSENSITIVE_ORDER);
+<Line#18>  for (  String s : propList) {
+<Line#19>    printSysprop(s);
+<Line#20>  }
+<Line#21>  endln();
+<Line#22>  title("Environment Variables");
+<Line#23>  for (  String env : new String[]{HADOOP_JAAS_DEBUG,KRB5_CCNAME,KRB5_CONFIG,HADOOP_USER_NAME,HADOOP_PROXY_USER,HADOOP_TOKEN_FILE_LOCATION,"HADOOP_SECURE_LOG","HADOOP_OPTS","HADOOP_CLIENT_OPTS"}) {
+<Line#24>    printEnv(env);
+<Line#25>  }
+<Line#26>  endln();
+<Line#27>  title("Configuration Options");
+<Line#28>  for (  String prop : new String[]{KERBEROS_KINIT_COMMAND,HADOOP_SECURITY_AUTHENTICATION,HADOOP_SECURITY_AUTHORIZATION,"hadoop.kerberos.min.seconds.before.relogin","hadoop.security.dns.interface","hadoop.security.dns.nameserver",HADOOP_RPC_PROTECTION,HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS,HADOOP_SECURITY_CRYPTO_CODEC_CLASSES_KEY_PREFIX,HADOOP_SECURITY_GROUP_MAPPING,"hadoop.security.impersonation.provider.class",DFS_DATA_TRANSFER_PROTECTION,DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS}) {
+<Line#29>    printConfOpt(prop);
+<Line#30>  }
+<Line#31>  Configuration conf=getConf();
+<Line#32>  if (isSimpleAuthentication(conf)) {
+<Line#33>    println(HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#34>    failif(securityRequired,CAT_CONFIG,HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#35>    LOG.warn("Security is not enabled for the Hadoop cluster");
+<Line#36>  }
+<Line#37> else {
+<Line#38>    if (isSimpleAuthentication(new Configuration())) {
+<Line#39>      LOG.warn("The default cluster security is insecure");
+<Line#40>      failif(securityRequired,CAT_CONFIG,HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#41>    }
+<Line#42>  }
+<Line#43>  boolean krb5Debug=getAndSet(SUN_SECURITY_KRB5_DEBUG);
+<Line#44>  boolean spnegoDebug=getAndSet(SUN_SECURITY_SPNEGO_DEBUG);
+<Line#45>  try {
+<Line#46>    UserGroupInformation.setConfiguration(conf);
+<Line#47>    validateHadoopTokenFiles(conf);
+<Line#48>    validateKrb5File();
+<Line#49>    printDefaultRealm();
+<Line#50>    validateSasl(HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS);
+<Line#51>    if (conf.get(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS) != null) {
+<Line#52>      validateSasl(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS);
+<Line#53>    }
+<Line#54>    validateKinitExecutable();
+<Line#55>    validateJAAS(jaas);
+<Line#56>    validateNTPConf();
+<Line#57>    if (checkShortName) {
+<Line#58>      validateShortName();
+<Line#59>    }
+<Line#60>    if (!nologin) {
+<Line#61>      title("Logging in");
+<Line#62>      if (keytab != null) {
+<Line#63>        dumpKeytab(keytab);
+<Line#64>        loginFromKeytab();
+<Line#65>      }
+<Line#66> else {
+<Line#67>        UserGroupInformation loginUser=getLoginUser();
+<Line#68>        dumpUGI("Log in user",loginUser);
+<Line#69>        validateUGI("Login user",loginUser);
+<Line#70>        println("Ticket based login: %b",isLoginTicketBased());
+<Line#71>        println("Keytab based login: %b",isLoginKeytabBased());
+<Line#72>      }
+<Line#73>    }
+<Line#74>    return true;
+<Line#75>  }
+<Line#76>  finally {
+<Line#77>    System.setProperty(SUN_SECURITY_KRB5_DEBUG,Boolean.toString(krb5Debug));
+<Line#78>    System.setProperty(SUN_SECURITY_SPNEGO_DEBUG,Boolean.toString(spnegoDebug));
+<Line#79>  }
+<Line#80>}
+Label: <Line#35> LOG.warn("Security is not enabled for the Hadoop cluster")
+
+Example 4:
+<Line#1>{
+<Line#2>  title("Kerberos Diagnostics scan at %s",new Date(System.currentTimeMillis()));
+<Line#3>  println("Hostname = %s",InetAddress.getLocalHost().getCanonicalHostName());
+<Line#4>  println("%s = %d",ARG_KEYLEN,minKeyLength);
+<Line#5>  println("%s = %s",ARG_KEYTAB,keytab);
+<Line#6>  println("%s = %s",ARG_PRINCIPAL,principal);
+<Line#7>  println("%s = %s",ARG_VERIFYSHORTNAME,checkShortName);
+<Line#8>  validateKeyLength();
+<Line#9>  println("JVM Kerberos Login Module = %s",getKrb5LoginModuleName());
+<Line#10>  title("Core System Properties");
+<Line#11>  for (  String prop : new String[]{"user.name","java.version","java.vendor",JAVA_SECURITY_KRB5_CONF,JAVA_SECURITY_KRB5_REALM,JAVA_SECURITY_KRB5_KDC_ADDRESS,SUN_SECURITY_KRB5_DEBUG,SUN_SECURITY_SPNEGO_DEBUG,SUN_SECURITY_JAAS_FILE}) {
+<Line#12>    printSysprop(prop);
+<Line#13>  }
+<Line#14>  endln();
+<Line#15>  title("All System Properties");
+<Line#16>  ArrayList<String> propList=new ArrayList<>(System.getProperties().stringPropertyNames());
+<Line#17>  Collections.sort(propList,String.CASE_INSENSITIVE_ORDER);
+<Line#18>  for (  String s : propList) {
+<Line#19>    printSysprop(s);
+<Line#20>  }
+<Line#21>  endln();
+<Line#22>  title("Environment Variables");
+<Line#23>  for (  String env : new String[]{HADOOP_JAAS_DEBUG,KRB5_CCNAME,KRB5_CONFIG,HADOOP_USER_NAME,HADOOP_PROXY_USER,HADOOP_TOKEN_FILE_LOCATION,"HADOOP_SECURE_LOG","HADOOP_OPTS","HADOOP_CLIENT_OPTS"}) {
+<Line#24>    printEnv(env);
+<Line#25>  }
+<Line#26>  endln();
+<Line#27>  title("Configuration Options");
+<Line#28>  for (  String prop : new String[]{KERBEROS_KINIT_COMMAND,HADOOP_SECURITY_AUTHENTICATION,HADOOP_SECURITY_AUTHORIZATION,"hadoop.kerberos.min.seconds.before.relogin","hadoop.security.dns.interface","hadoop.security.dns.nameserver",HADOOP_RPC_PROTECTION,HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS,HADOOP_SECURITY_CRYPTO_CODEC_CLASSES_KEY_PREFIX,HADOOP_SECURITY_GROUP_MAPPING,"hadoop.security.impersonation.provider.class",DFS_DATA_TRANSFER_PROTECTION,DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS}) {
+<Line#29>    printConfOpt(prop);
+<Line#30>  }
+<Line#31>  Configuration conf=getConf();
+<Line#32>  if (isSimpleAuthentication(conf)) {
+<Line#33>    println(HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#34>    failif(securityRequired,CAT_CONFIG,HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#35>    LOG.warn("Security is not enabled for the Hadoop cluster");
+<Line#36>  }
+<Line#37> else {
+<Line#38>    if (isSimpleAuthentication(new Configuration())) {
+<Line#39>      LOG.warn("The default cluster security is insecure");
+<Line#40>      failif(securityRequired,CAT_CONFIG,HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#41>    }
+<Line#42>  }
+<Line#43>  boolean krb5Debug=getAndSet(SUN_SECURITY_KRB5_DEBUG);
+<Line#44>  boolean spnegoDebug=getAndSet(SUN_SECURITY_SPNEGO_DEBUG);
+<Line#45>  try {
+<Line#46>    UserGroupInformation.setConfiguration(conf);
+<Line#47>    validateHadoopTokenFiles(conf);
+<Line#48>    validateKrb5File();
+<Line#49>    printDefaultRealm();
+<Line#50>    validateSasl(HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS);
+<Line#51>    if (conf.get(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS) != null) {
+<Line#52>      validateSasl(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS);
+<Line#53>    }
+<Line#54>    validateKinitExecutable();
+<Line#55>    validateJAAS(jaas);
+<Line#56>    validateNTPConf();
+<Line#57>    if (checkShortName) {
+<Line#58>      validateShortName();
+<Line#59>    }
+<Line#60>    if (!nologin) {
+<Line#61>      title("Logging in");
+<Line#62>      if (keytab != null) {
+<Line#63>        dumpKeytab(keytab);
+<Line#64>        loginFromKeytab();
+<Line#65>      }
+<Line#66> else {
+<Line#67>        UserGroupInformation loginUser=getLoginUser();
+<Line#68>        dumpUGI("Log in user",loginUser);
+<Line#69>        validateUGI("Login user",loginUser);
+<Line#70>        println("Ticket based login: %b",isLoginTicketBased());
+<Line#71>        println("Keytab based login: %b",isLoginKeytabBased());
+<Line#72>      }
+<Line#73>    }
+<Line#74>    return true;
+<Line#75>  }
+<Line#76>  finally {
+<Line#77>    System.setProperty(SUN_SECURITY_KRB5_DEBUG,Boolean.toString(krb5Debug));
+<Line#78>    System.setProperty(SUN_SECURITY_SPNEGO_DEBUG,Boolean.toString(spnegoDebug));
+<Line#79>  }
+<Line#80>}
+Label: <Line#39> LOG.warn("The default cluster security is insecure")
+
+Example 5:
+<Line#1>{
+<Line#2>  String propertyarr[]=conf.getStringArray(gtype.name());
+<Line#3>  if (propertyarr != null && propertyarr.length > 0) {
+<Line#4>    for (    String metricNValue : propertyarr) {
+<Line#5>      String metricNValueArr[]=metricNValue.split(EQUAL);
+<Line#6>      if (metricNValueArr.length != 2 || metricNValueArr[0].length() == 0) {
+<Line#7>        LOG.error("Invalid propertylist for " + gtype.name());
+<Line#8>      }
+<Line#9>      String metricName=metricNValueArr[0].trim();
+<Line#10>      String metricValue=metricNValueArr[1].trim();
+<Line#11>      GangliaConf gconf=gangliaConfMap.get(metricName);
+<Line#12>      if (gconf == null) {
+<Line#13>        gconf=new GangliaConf();
+<Line#14>        gangliaConfMap.put(metricName,gconf);
+<Line#15>      }
+<Line#16>switch (gtype) {
+<Line#17>case units:
+<Line#18>        gconf.setUnits(metricValue);
+<Line#19>      break;
+<Line#20>case dmax:
+<Line#21>    gconf.setDmax(Integer.parseInt(metricValue));
+<Line#22>  break;
+<Line#23>case tmax:
+<Line#24>gconf.setTmax(Integer.parseInt(metricValue));
+<Line#25>break;
+<Line#26>case slope:
+<Line#27>gconf.setSlope(GangliaSlope.valueOf(metricValue));
+<Line#28>break;
+<Line#29>}
+<Line#30>}
+<Line#31>}
+<Line#32>}
+Label: <Line#7> LOG.error("Invalid propertylist for " + gtype.name())
+

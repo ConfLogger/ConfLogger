@@ -1,0 +1,100 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	DNS.java	methodSinagture:	org.apache.hadoop.net.DNS.reverseDns(Ljava/net/InetAddress;Ljava/lang/String;)Ljava/lang/String;	methodLines:	80:101
+blockLines:	88:-1
+paras:	null
+TaintedStat:	NORMAL reverseDns:conditional branch(ne, to iindex=49) 2,46 Node: < Application, Lorg/apache/hadoop/net/DNS, reverseDns(Ljava/net/InetAddress;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/SecurityUtil, getLocalHostName(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere[5]6 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 1,4 @7 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/SecurityUtil, getLocalHostName(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere[5]6 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 1,4 @7 exception:5
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/security/SecurityUtil, getLocalHostName(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere[17]19 = invokestatic < Application, Lorg/apache/hadoop/net/DNS, getDefaultHost(Ljava/lang/String;Ljava/lang/String;Z)Ljava/lang/String; > 6,9,17 @25 exception:18 v6
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/net/DNS, getDefaultHost(Ljava/lang/String;Ljava/lang/String;Z)Ljava/lang/String; > Context: Everywhere v1
+NORMAL getDefaultHost:conditional branch(eq, to iindex=8) 1,5 Node: < Application, Lorg/apache/hadoop/net/DNS, getDefaultHost(Ljava/lang/String;Ljava/lang/String;Z)Ljava/lang/String; > Context: Everywhere
+NORMAL getDefaultHost:conditional branch(eq, to iindex=10) 8,9 Node: < Application, Lorg/apache/hadoop/net/DNS, getDefaultHost(Ljava/lang/String;Ljava/lang/String;Z)Ljava/lang/String; > Context: Everywhere
+PHI Node: < Application, Lorg/apache/hadoop/net/DNS, getDefaultHost(Ljava/lang/String;Ljava/lang/String;Z)Ljava/lang/String; > Context: Everywhere:12 = phi  2,2,5
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/net/DNS, getDefaultHost(Ljava/lang/String;Ljava/lang/String;Z)Ljava/lang/String; > Context: Everywhere[23]14 = invokestatic < Application, Lorg/apache/hadoop/net/DNS, getHosts(Ljava/lang/String;Ljava/lang/String;Z)[Ljava/lang/String; > 1,12,3 @35 exception:13 v12
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/net/DNS, getHosts(Ljava/lang/String;Ljava/lang/String;Z)[Ljava/lang/String; > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/net/DNS, getHosts(Ljava/lang/String;Ljava/lang/String;Z)[Ljava/lang/String; > Context: Everywhere[22]19 = invokestatic < Application, Lorg/apache/hadoop/net/DNS, reverseDns(Ljava/net/InetAddress;Ljava/lang/String;)Ljava/lang/String; > 17,2 @50 exception:18 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/net/DNS, reverseDns(Ljava/net/InetAddress;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere v2
+NORMAL reverseDns:conditional branch(ne, to iindex=49) 2,46 Node: < Application, Lorg/apache/hadoop/net/DNS, reverseDns(Ljava/net/InetAddress;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    //
+    String[] parts = hostIp.getHostAddress().split("\\.");
+    String reverseIP = parts[3] + "." + parts[2] + "." + parts[1] + "."
+      + parts[0] + ".in-addr.arpa";
+
+    DirContext ictx = new InitialDirContext();
+    Attributes attribute;
+    try {
+      attribute = ictx.getAttributes("dns://"               // Use "dns:///" if the default
+                         + ((ns == null) ? "" : ns) +
+                         // nameserver is to be used
+                         "/" + reverseIP, new String[] { "PTR" });
+    } finally {
+      ictx.close();
+    }
+
+    String hostname = attribute.get("PTR").get().toString();
+    int hostnameLength = hostname.length();
+    if (hostname.charAt(hostnameLength - 1) == '.') {
+      hostname = hostname.substring(0, hostnameLength - 1);
+    }
+    return hostname;
+  }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/net/DNSDomainNameResolver, getHostnameByIP(Ljava/net/InetAddress;)Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:40..42]17 - org.apache.hadoop.net.DNSDomainNameResolver.getHostnameByIP(Ljava/net/InetAddress;)Ljava/lang/String;, BB[SSA:39..39]16 - org.apache.hadoop.net.DNSDomainNameResolver.getHostnameByIP(Ljava/net/InetAddress;)Ljava/lang/String;, BB[SSA:43..43]18 - org.apache.hadoop.net.DNSDomainNameResolver.getHostnameByIP(Ljava/net/InetAddress;)Ljava/lang/String;, BB[SSA:-1..-2]21 - org.apache.hadoop.net.DNSDomainNameResolver.getHostnameByIP(Ljava/net/InetAddress;)Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=54, lastLineNumber=56, firstMethodNumber=45, lastMethodNumber=61, isFirstLineValid=true, methodSrcCode=
+  public String getHostnameByIP(InetAddress address) {
+    String host = address.getCanonicalHostName();
+    if (host != null && host.length() != 0
+        && host.charAt(host.length()-1) == '.') {
+      host = host.substring(0, host.length()-1);
+    }
+    // Protect against the Java behaviour of returning the IP address as a string from a cache
+    // instead of performing a reverse lookup.
+    if (host != null && host.equals(address.getHostAddress())) {
+      LOG.debug("IP address returned for FQDN detected: {}", address.getHostAddress());
+      try {
+        return DNS.reverseDns(address, null);
+      } catch (NamingException lookupFailure) {
+        LOG.warn("Failed to perform reverse lookup: {}", address);
+      }
+    }
+    return host;
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/net/DNS, getHosts(Ljava/lang/String;Ljava/lang/String;Z)[Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:18..22]10 - org.apache.hadoop.net.DNS.getHosts(Ljava/lang/String;Ljava/lang/String;Z)[Ljava/lang/String;, BB[SSA:17..17]9 - org.apache.hadoop.net.DNS.getHosts(Ljava/lang/String;Ljava/lang/String;Z)[Ljava/lang/String;, BB[SSA:23..23]11 - org.apache.hadoop.net.DNS.getHosts(Ljava/lang/String;Ljava/lang/String;Z)[Ljava/lang/String;, BB[SSA:-1..-2]40 - org.apache.hadoop.net.DNS.getHosts(Ljava/lang/String;Ljava/lang/String;Z)[Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=254, lastLineNumber=256, firstMethodNumber=250, lastMethodNumber=275, isFirstLineValid=true, methodSrcCode=
+      throws UnknownHostException {
+    final List<String> hosts = new Vector<String>();
+    final List<InetAddress> addresses =
+        getIPsAsInetAddressList(strInterface, true);
+    for (InetAddress address : addresses) {
+      try {
+        hosts.add(reverseDns(address, nameserver));
+      } catch (NamingException ignored) {
+      }
+    }
+    if (hosts.isEmpty() && tryfallbackResolution) {
+      for (InetAddress address : addresses) {
+        final String canonicalHostName = address.getCanonicalHostName();
+        // Don't use the result if it looks like an IP address.
+        if (!InetAddresses.isInetAddress(canonicalHostName)) {
+          hosts.add(canonicalHostName);
+        }
+      }
+    }
+
+    if (hosts.isEmpty()) {
+      LOG.warn("Unable to determine hostname for interface {}",
+          strInterface);
+      hosts.add(cachedHostname);
+    }
+    return hosts.toArray(new String[hosts.size()]);
+  }
+}

@@ -1,0 +1,7 @@
+<Line#2>:# LOG.info("Setting configuration for nameserviceId: " + nameserviceId + " and namenodeId: " + namenodeId);:#
+<Line#5>:# LOG.debug("Setting DFS_NAMESERVICE_ID to " + nameserviceId);:#
+<Line#7>:# LOG.debug("Setting DFS_HA_NAMENODE_ID_KEY to " + namenodeId);:#
+<Line#10>:# LOG.info("Setting generic configuration for NAMENODE_SPECIFIC_KEYS");:#
+<Line#12>:# LOG.info("Setting generic configuration for NAMESERVICE_SPECIFIC_KEYS");:#
+<Line#18>:# LOG.debug("Creating default URI with RPC address: " + conf.get(DFS_NAMENODE_RPC_ADDRESS_KEY));:#
+<Line#20>:# LOG.info("Setting FS_DEFAULT_NAME_KEY to " + defaultUri.toString());:#

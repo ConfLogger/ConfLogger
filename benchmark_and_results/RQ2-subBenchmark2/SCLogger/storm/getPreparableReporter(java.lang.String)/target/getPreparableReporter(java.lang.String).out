@@ -1,0 +1,7 @@
+private static PreparableReporter getPreparableReporter(String clazz) {
+PreparableReporter reporter = null;
+if (clazz != null) {
+reporter = (PreparableReporter) ReflectionUtils.newInstance(clazz);
+}
+return reporter;
+}

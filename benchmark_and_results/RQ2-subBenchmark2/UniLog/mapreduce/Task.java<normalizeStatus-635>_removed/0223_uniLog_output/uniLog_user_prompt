@@ -1,0 +1,266 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>// and truncate it if needed.
+<Line#1>int progressStatusLength = conf.getInt(
+<Line#2>MRConfig.PROGRESS_STATUS_LEN_LIMIT_KEY,
+<Line#3>MRConfig.PROGRESS_STATUS_LEN_LIMIT_DEFAULT);
+<Line#4>if (status.length() > progressStatusLength) {
+<Line#5>status = status.substring(0, progressStatusLength);
+<Line#6>}
+<Line#7>return status;
+<Line#8>}
+
+Example 1:
+<Line#1>{
+<Line#2>  JobStatus status=clientCache.getClient(arg0).getJobStatus(arg0);
+<Line#3>  ApplicationId appId=TypeConverter.toYarn(arg0).getAppId();
+<Line#4>  if (status == null) {
+<Line#5>    killUnFinishedApplication(appId);
+<Line#6>    return;
+<Line#7>  }
+<Line#8>  if (status.getState() != JobStatus.State.RUNNING) {
+<Line#9>    killApplication(appId);
+<Line#10>    return;
+<Line#11>  }
+<Line#12>  try {
+<Line#13>    clientCache.getClient(arg0).killJob(arg0);
+<Line#14>    long currentTimeMillis=System.currentTimeMillis();
+<Line#15>    long timeKillIssued=currentTimeMillis;
+<Line#16>    long killTimeOut=conf.getLong(MRJobConfig.MR_AM_HARD_KILL_TIMEOUT_MS,MRJobConfig.DEFAULT_MR_AM_HARD_KILL_TIMEOUT_MS);
+<Line#17>    while ((currentTimeMillis < timeKillIssued + killTimeOut) && !isJobInTerminalState(status)) {
+<Line#18>      try {
+<Line#19>        Thread.sleep(1000L);
+<Line#20>      }
+<Line#21> catch (      InterruptedException ie) {
+<Line#22>        break;
+<Line#23>      }
+<Line#24>      currentTimeMillis=System.currentTimeMillis();
+<Line#25>      status=clientCache.getClient(arg0).getJobStatus(arg0);
+<Line#26>      if (status == null) {
+<Line#27>        killUnFinishedApplication(appId);
+<Line#28>        return;
+<Line#29>      }
+<Line#30>    }
+<Line#31>  }
+<Line#32> catch (  IOException io) {
+<Line#33>    LOG.debug("Error when checking for application status",io);
+<Line#34>  }
+<Line#35>  if (status != null && !isJobInTerminalState(status)) {
+<Line#36>    killApplication(appId);
+<Line#37>  }
+<Line#38>}
+Label: <Line#33> LOG.debug("Error when checking for application status",io)
+
+Example 2:
+<Line#1>{
+<Line#2>  String lastReport=null;
+<Line#3>  Job.TaskStatusFilter filter;
+<Line#4>  Configuration clientConf=getConfiguration();
+<Line#5>  filter=Job.getTaskOutputFilter(clientConf);
+<Line#6>  JobID jobId=getJobID();
+<Line#7>  LOG.info("Running job: " + jobId);
+<Line#8>  int eventCounter=0;
+<Line#9>  boolean profiling=getProfileEnabled();
+<Line#10>  IntegerRanges mapRanges=getProfileTaskRange(true);
+<Line#11>  IntegerRanges reduceRanges=getProfileTaskRange(false);
+<Line#12>  int progMonitorPollIntervalMillis=Job.getProgressPollInterval(clientConf);
+<Line#13>  boolean reportedAfterCompletion=false;
+<Line#14>  boolean reportedUberMode=false;
+<Line#15>  while (!isComplete() || !reportedAfterCompletion) {
+<Line#16>    if (isComplete()) {
+<Line#17>      reportedAfterCompletion=true;
+<Line#18>    }
+<Line#19> else {
+<Line#20>      Thread.sleep(progMonitorPollIntervalMillis);
+<Line#21>    }
+<Line#22>    if (status.getState() == JobStatus.State.PREP) {
+<Line#23>      continue;
+<Line#24>    }
+<Line#25>    if (!reportedUberMode) {
+<Line#26>      reportedUberMode=true;
+<Line#27>      LOG.info("Job " + jobId + " running in uber mode : "+ isUber());
+<Line#28>    }
+<Line#29>    String report=(" map " + StringUtils.formatPercent(mapProgress(),0) + " reduce "+ StringUtils.formatPercent(reduceProgress(),0));
+<Line#30>    if (!report.equals(lastReport)) {
+<Line#31>      LOG.info(report);
+<Line#32>      lastReport=report;
+<Line#33>    }
+<Line#34>    TaskCompletionEvent[] events=getTaskCompletionEvents(eventCounter,10);
+<Line#35>    eventCounter+=events.length;
+<Line#36>    printTaskEvents(events,filter,profiling,mapRanges,reduceRanges);
+<Line#37>  }
+<Line#38>  boolean success=isSuccessful();
+<Line#39>  if (success) {
+<Line#40>    LOG.info("Job " + jobId + " completed successfully");
+<Line#41>  }
+<Line#42> else {
+<Line#43>    LOG.info("Job " + jobId + " failed with state "+ status.getState()+ " due to: "+ status.getFailureInfo());
+<Line#44>  }
+<Line#45>  Counters counters=getCounters();
+<Line#46>  if (counters != null) {
+<Line#47>    LOG.info(counters.toString());
+<Line#48>  }
+<Line#49>  return success;
+<Line#50>}
+Label: <Line#7> LOG.info("Running job: " + jobId)
+
+Example 3:
+<Line#1>{
+<Line#2>  String lastReport=null;
+<Line#3>  Job.TaskStatusFilter filter;
+<Line#4>  Configuration clientConf=getConfiguration();
+<Line#5>  filter=Job.getTaskOutputFilter(clientConf);
+<Line#6>  JobID jobId=getJobID();
+<Line#7>  LOG.info("Running job: " + jobId);
+<Line#8>  int eventCounter=0;
+<Line#9>  boolean profiling=getProfileEnabled();
+<Line#10>  IntegerRanges mapRanges=getProfileTaskRange(true);
+<Line#11>  IntegerRanges reduceRanges=getProfileTaskRange(false);
+<Line#12>  int progMonitorPollIntervalMillis=Job.getProgressPollInterval(clientConf);
+<Line#13>  boolean reportedAfterCompletion=false;
+<Line#14>  boolean reportedUberMode=false;
+<Line#15>  while (!isComplete() || !reportedAfterCompletion) {
+<Line#16>    if (isComplete()) {
+<Line#17>      reportedAfterCompletion=true;
+<Line#18>    }
+<Line#19> else {
+<Line#20>      Thread.sleep(progMonitorPollIntervalMillis);
+<Line#21>    }
+<Line#22>    if (status.getState() == JobStatus.State.PREP) {
+<Line#23>      continue;
+<Line#24>    }
+<Line#25>    if (!reportedUberMode) {
+<Line#26>      reportedUberMode=true;
+<Line#27>      LOG.info("Job " + jobId + " running in uber mode : "+ isUber());
+<Line#28>    }
+<Line#29>    String report=(" map " + StringUtils.formatPercent(mapProgress(),0) + " reduce "+ StringUtils.formatPercent(reduceProgress(),0));
+<Line#30>    if (!report.equals(lastReport)) {
+<Line#31>      LOG.info(report);
+<Line#32>      lastReport=report;
+<Line#33>    }
+<Line#34>    TaskCompletionEvent[] events=getTaskCompletionEvents(eventCounter,10);
+<Line#35>    eventCounter+=events.length;
+<Line#36>    printTaskEvents(events,filter,profiling,mapRanges,reduceRanges);
+<Line#37>  }
+<Line#38>  boolean success=isSuccessful();
+<Line#39>  if (success) {
+<Line#40>    LOG.info("Job " + jobId + " completed successfully");
+<Line#41>  }
+<Line#42> else {
+<Line#43>    LOG.info("Job " + jobId + " failed with state "+ status.getState()+ " due to: "+ status.getFailureInfo());
+<Line#44>  }
+<Line#45>  Counters counters=getCounters();
+<Line#46>  if (counters != null) {
+<Line#47>    LOG.info(counters.toString());
+<Line#48>  }
+<Line#49>  return success;
+<Line#50>}
+Label: <Line#27> LOG.info("Job " + jobId + " running in uber mode : "+ isUber())
+
+Example 4:
+<Line#1>{
+<Line#2>  String lastReport=null;
+<Line#3>  Job.TaskStatusFilter filter;
+<Line#4>  Configuration clientConf=getConfiguration();
+<Line#5>  filter=Job.getTaskOutputFilter(clientConf);
+<Line#6>  JobID jobId=getJobID();
+<Line#7>  LOG.info("Running job: " + jobId);
+<Line#8>  int eventCounter=0;
+<Line#9>  boolean profiling=getProfileEnabled();
+<Line#10>  IntegerRanges mapRanges=getProfileTaskRange(true);
+<Line#11>  IntegerRanges reduceRanges=getProfileTaskRange(false);
+<Line#12>  int progMonitorPollIntervalMillis=Job.getProgressPollInterval(clientConf);
+<Line#13>  boolean reportedAfterCompletion=false;
+<Line#14>  boolean reportedUberMode=false;
+<Line#15>  while (!isComplete() || !reportedAfterCompletion) {
+<Line#16>    if (isComplete()) {
+<Line#17>      reportedAfterCompletion=true;
+<Line#18>    }
+<Line#19> else {
+<Line#20>      Thread.sleep(progMonitorPollIntervalMillis);
+<Line#21>    }
+<Line#22>    if (status.getState() == JobStatus.State.PREP) {
+<Line#23>      continue;
+<Line#24>    }
+<Line#25>    if (!reportedUberMode) {
+<Line#26>      reportedUberMode=true;
+<Line#27>      LOG.info("Job " + jobId + " running in uber mode : "+ isUber());
+<Line#28>    }
+<Line#29>    String report=(" map " + StringUtils.formatPercent(mapProgress(),0) + " reduce "+ StringUtils.formatPercent(reduceProgress(),0));
+<Line#30>    if (!report.equals(lastReport)) {
+<Line#31>      LOG.info(report);
+<Line#32>      lastReport=report;
+<Line#33>    }
+<Line#34>    TaskCompletionEvent[] events=getTaskCompletionEvents(eventCounter,10);
+<Line#35>    eventCounter+=events.length;
+<Line#36>    printTaskEvents(events,filter,profiling,mapRanges,reduceRanges);
+<Line#37>  }
+<Line#38>  boolean success=isSuccessful();
+<Line#39>  if (success) {
+<Line#40>    LOG.info("Job " + jobId + " completed successfully");
+<Line#41>  }
+<Line#42> else {
+<Line#43>    LOG.info("Job " + jobId + " failed with state "+ status.getState()+ " due to: "+ status.getFailureInfo());
+<Line#44>  }
+<Line#45>  Counters counters=getCounters();
+<Line#46>  if (counters != null) {
+<Line#47>    LOG.info(counters.toString());
+<Line#48>  }
+<Line#49>  return success;
+<Line#50>}
+Label: <Line#31> LOG.info(report)
+
+Example 5:
+<Line#1>{
+<Line#2>  String lastReport=null;
+<Line#3>  Job.TaskStatusFilter filter;
+<Line#4>  Configuration clientConf=getConfiguration();
+<Line#5>  filter=Job.getTaskOutputFilter(clientConf);
+<Line#6>  JobID jobId=getJobID();
+<Line#7>  LOG.info("Running job: " + jobId);
+<Line#8>  int eventCounter=0;
+<Line#9>  boolean profiling=getProfileEnabled();
+<Line#10>  IntegerRanges mapRanges=getProfileTaskRange(true);
+<Line#11>  IntegerRanges reduceRanges=getProfileTaskRange(false);
+<Line#12>  int progMonitorPollIntervalMillis=Job.getProgressPollInterval(clientConf);
+<Line#13>  boolean reportedAfterCompletion=false;
+<Line#14>  boolean reportedUberMode=false;
+<Line#15>  while (!isComplete() || !reportedAfterCompletion) {
+<Line#16>    if (isComplete()) {
+<Line#17>      reportedAfterCompletion=true;
+<Line#18>    }
+<Line#19> else {
+<Line#20>      Thread.sleep(progMonitorPollIntervalMillis);
+<Line#21>    }
+<Line#22>    if (status.getState() == JobStatus.State.PREP) {
+<Line#23>      continue;
+<Line#24>    }
+<Line#25>    if (!reportedUberMode) {
+<Line#26>      reportedUberMode=true;
+<Line#27>      LOG.info("Job " + jobId + " running in uber mode : "+ isUber());
+<Line#28>    }
+<Line#29>    String report=(" map " + StringUtils.formatPercent(mapProgress(),0) + " reduce "+ StringUtils.formatPercent(reduceProgress(),0));
+<Line#30>    if (!report.equals(lastReport)) {
+<Line#31>      LOG.info(report);
+<Line#32>      lastReport=report;
+<Line#33>    }
+<Line#34>    TaskCompletionEvent[] events=getTaskCompletionEvents(eventCounter,10);
+<Line#35>    eventCounter+=events.length;
+<Line#36>    printTaskEvents(events,filter,profiling,mapRanges,reduceRanges);
+<Line#37>  }
+<Line#38>  boolean success=isSuccessful();
+<Line#39>  if (success) {
+<Line#40>    LOG.info("Job " + jobId + " completed successfully");
+<Line#41>  }
+<Line#42> else {
+<Line#43>    LOG.info("Job " + jobId + " failed with state "+ status.getState()+ " due to: "+ status.getFailureInfo());
+<Line#44>  }
+<Line#45>  Counters counters=getCounters();
+<Line#46>  if (counters != null) {
+<Line#47>    LOG.info(counters.toString());
+<Line#48>  }
+<Line#49>  return success;
+<Line#50>}
+Label: <Line#40> LOG.info("Job " + jobId + " completed successfully")
+

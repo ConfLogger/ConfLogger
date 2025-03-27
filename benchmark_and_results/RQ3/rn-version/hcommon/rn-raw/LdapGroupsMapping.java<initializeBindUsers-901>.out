@@ -1,0 +1,55 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	LdapGroupsMapping.java	methodSinagture:	org.apache.hadoop.security.LdapGroupsMapping.initializeBindUsers()V	methodLines:	901:926
+blockLines:	905:-1
+paras:	null
+TaintedStat:	NORMAL initializeBindUsers:conditional branch(eq, to iindex=88) 8,9 Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, initializeBindUsers()V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, initializeBindUsers()V > Context: Everywhere[7]8 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getStrings(Ljava/lang/String;)[Ljava/lang/String; > 5,6 @14 exception:7
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, initializeBindUsers()V > Context: Everywhere[7]8 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getStrings(Ljava/lang/String;)[Ljava/lang/String; > 5,6 @14 exception:7
+NORMAL initializeBindUsers:conditional branch(eq, to iindex=88) 8,9 Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, initializeBindUsers()V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	LdapGroupsMapping.java	methodSinagture:	org.apache.hadoop.security.LdapGroupsMapping.initializeBindUsers()V	methodLines:	901:926
+blockLines:	912:-1
+paras:	null
+TaintedStat:	NORMAL initializeBindUsers:conditional branch(eq, to iindex=61) 46,9 Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, initializeBindUsers()V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, initializeBindUsers()V > Context: Everywhere[49]46 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 35,44 @95 exception:45
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, initializeBindUsers()V > Context: Everywhere[49]46 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 35,44 @95 exception:45
+NORMAL initializeBindUsers:conditional branch(eq, to iindex=61) 46,9 Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, initializeBindUsers()V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  private void initializeBindUsers() {
+    List<BindUserInfo> bindUsersConfigured = new ArrayList<>();
+
+    String[] bindUserAliases = conf.getStrings(BIND_USERS_KEY);
+    if (bindUserAliases != null && bindUserAliases.length > 0) {
+
+      for (String bindUserAlias : bindUserAliases) {
+        String userConfPrefix = BIND_USERS_KEY + "." + bindUserAlias;
+        String bindUsername = conf.get(userConfPrefix + BIND_USER_SUFFIX);
+        String bindPassword = getPasswordForBindUser(userConfPrefix);
+
+        if (bindUsername == null || bindPassword == null) {
+          throw new RuntimeException("Bind username or password not " +
+              "configured for user: " + bindUserAlias);
+        }
+        bindUsersConfigured.add(new BindUserInfo(bindUsername, bindPassword));
+      }
+    } else {
+      String bindUsername = conf.get(BIND_USER_KEY, BIND_USER_DEFAULT);
+      String bindPassword = getPasswordForBindUser(LDAP_CONFIG_PREFIX);
+      bindUsersConfigured.add(new BindUserInfo(bindUsername, bindPassword));
+    }
+
+    this.bindUsers = Iterators.cycle(bindUsersConfigured);
+    this.currentBindUser = this.bindUsers.next();
+  }
+
+
+
+====================ctx:=======================

@@ -1,0 +1,1 @@
+<Line#4>:# LOG.info("Starting to sync with leader with newLeaderZxid: {}", newLeaderZxid);:#

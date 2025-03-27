@@ -1,0 +1,4 @@
+<Line#2>:# LOG.debug("Config key for enabling filter: " + key);:#
+<Line#3>:# LOG.debug("Filter enabled status: " + enabled);:#
+<Line#5>:# LOG.debug("Adding Cross Origin Filter to container");:#
+<Line#8>:# LOG.debug("Cross Origin Filter not added as it is not enabled");:#

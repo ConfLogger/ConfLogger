@@ -1,0 +1,52 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	DRPCSimpleACLAuthorizer.java	methodSinagture:	org.apache.storm.security.auth.authorizer.DRPCSimpleACLAuthorizer.readAclFromConfig()Ljava/util/Map;	methodLines:	49:79
+blockLines:	57:-1
+paras:	null
+TaintedStat:	NORMAL readAclFromConfig:conditional branch(eq, to iindex=87) 22,11 Node: < Application, Lorg/apache/storm/security/auth/authorizer/DRPCSimpleACLAuthorizer, readAclFromConfig()Ljava/util/Map; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/authorizer/DRPCSimpleACLAuthorizer, readAclFromConfig()Ljava/util/Map; > Context: Everywhere[29]21 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 16,17 @57 exception:20
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/authorizer/DRPCSimpleACLAuthorizer, readAclFromConfig()Ljava/util/Map; > Context: Everywhere[29]21 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 16,17 @57 exception:20
+NORMAL readAclFromConfig:22 = checkcast <Application,Ljava/util/Map>21 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/security/auth/authorizer/DRPCSimpleACLAuthorizer, readAclFromConfig()Ljava/util/Map; > Context: Everywhere
+NORMAL readAclFromConfig:conditional branch(eq, to iindex=87) 22,11 Node: < Application, Lorg/apache/storm/security/auth/authorizer/DRPCSimpleACLAuthorizer, readAclFromConfig()Ljava/util/Map; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+        //change is atomic
+        long now = System.currentTimeMillis();
+        if ((now - 5000) > lastUpdate || acl == null) {
+            Map<String, AclFunctionEntry> acl = new HashMap<>();
+            Map<String, Object> conf = Utils.findAndReadConfigFile(aclFileName);
+            if (conf.containsKey(Config.DRPC_AUTHORIZER_ACL)) {
+                Map<String, Map<String, ?>> confAcl = (Map<String, Map<String, ?>>) conf.get(Config.DRPC_AUTHORIZER_ACL);
+
+                if (confAcl != null) {
+                    for (Map.Entry<String, Map<String, ?>> entry : confAcl.entrySet()) {
+                        Map<String, ?> val = entry.getValue();
+                        Collection<String> clientUsers = val.containsKey(CLIENT_USERS_KEY)
+                                ? (Collection<String>) val.get(CLIENT_USERS_KEY)
+                                : null;
+                        String invocationUser = val.containsKey(INVOCATION_USER_KEY)
+                                ? (String) val.get(INVOCATION_USER_KEY)
+                                : null;
+                        acl.put(entry.getKey(),
+                                new AclFunctionEntry(clientUsers, invocationUser));
+                    }
+                }
+            }
+
+            this.acl = acl;
+            if (this.acl.isEmpty() && !permitWhenMissingFunctionEntry) {
+                LOG.warn("Requiring explicit ACL entries, but none given. Therefore, all operations will be denied.");
+            }
+
+            lastUpdate = System.currentTimeMillis();
+        }
+        return acl;
+    }
+
+
+====================ctx:=======================

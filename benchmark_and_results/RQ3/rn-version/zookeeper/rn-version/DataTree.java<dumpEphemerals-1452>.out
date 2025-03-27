@@ -1,0 +1,42 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	DataTree.java	methodSinagture:	org.apache.zookeeper.server.DataTree.dumpEphemerals(Ljava/io/PrintWriter;)V	methodLines:	1452:1466
+blockLines:	1458:-1
+paras:	null
+TaintedStat:	NORMAL dumpEphemerals:conditional branch(eq, to iindex=86) 54,55 Node: < Application, Lorg/apache/zookeeper/server/DataTree, dumpEphemerals(Ljava/io/PrintWriter;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/DataTree, dumpEphemerals(Ljava/io/PrintWriter;)V > Context: Everywhere[46]53 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 32 @123 exception:52
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/DataTree, dumpEphemerals(Ljava/io/PrintWriter;)V > Context: Everywhere[46]53 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 32 @123 exception:52
+NORMAL dumpEphemerals:[null]: 54 = checkcast <Application,Ljava/util/Set>53 <Application,Ljava/util/Set> Node: < Application, Lorg/apache/zookeeper/server/DataTree, dumpEphemerals(Ljava/io/PrintWriter;)V > Context: Everywhere
+NORMAL dumpEphemerals:conditional branch(eq, to iindex=86) 54,55 Node: < Application, Lorg/apache/zookeeper/server/DataTree, dumpEphemerals(Ljava/io/PrintWriter;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public void dumpEphemerals(PrintWriter writer) {
+        writer.println("Sessions with Ephemerals (" + ephemerals.keySet().size() + "):");
+        for (Entry<Long, HashSet<String>> entry : ephemerals.entrySet()) {
+            writer.print("0x" + Long.toHexString(entry.getKey()));
+            writer.println(":");
+            Set<String> tmp = entry.getValue();
+            if (tmp != null) {
+                synchronized (tmp) {
+                    for (String path : tmp) {
+                        writer.println("\t" + path);
+                    }
+                }
+            }
+        }
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/ZKDatabase, dumpEphemerals(Ljava/io/PrintWriter;)V > Context: Everywhere, blocks=[BB[SSA:2..3]2 - org.apache.zookeeper.server.ZKDatabase.dumpEphemerals(Ljava/io/PrintWriter;)V, BB[SSA:0..1]1 - org.apache.zookeeper.server.ZKDatabase.dumpEphemerals(Ljava/io/PrintWriter;)V, BB[SSA:4..4]3 - org.apache.zookeeper.server.ZKDatabase.dumpEphemerals(Ljava/io/PrintWriter;)V, BB[SSA:-1..-2]4 - org.apache.zookeeper.server.ZKDatabase.dumpEphemerals(Ljava/io/PrintWriter;)V], numberOfBasicBlocks=4, firstLineNumber=438, lastLineNumber=439, firstMethodNumber=437, lastMethodNumber=439, isFirstLineValid=true, methodSrcCode=
+    public void dumpEphemerals(PrintWriter pwriter) {
+        dataTree.dumpEphemerals(pwriter);
+    }
+
+}

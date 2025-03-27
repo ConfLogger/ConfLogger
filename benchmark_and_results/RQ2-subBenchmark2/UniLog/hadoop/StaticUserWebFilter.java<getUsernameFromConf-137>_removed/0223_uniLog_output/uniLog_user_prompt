@@ -1,0 +1,203 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>static String getUsernameFromConf(Configuration conf) {
+<Line#1>String oldStyleUgi = conf.get(DEPRECATED_UGI_KEY);
+<Line#2>if (oldStyleUgi != null) {
+<Line#3>// We can't use the normal configuration deprecation mechanism here
+<Line#4>// since we need to split out the username from the configured UGI.
+<Line#5>String[] parts = oldStyleUgi.split(",");
+<Line#6>return parts[0];
+<Line#7>} else {
+<Line#8>return conf.get(HADOOP_HTTP_STATIC_USER,
+<Line#9>DEFAULT_HADOOP_HTTP_STATIC_USER);
+
+Example 1:
+<Line#1>{
+<Line#2>  int umask=DEFAULT_UMASK;
+<Line#3>  if (conf != null) {
+<Line#4>    String confUmask=conf.get(UMASK_LABEL);
+<Line#5>    try {
+<Line#6>      if (confUmask != null) {
+<Line#7>        umask=new UmaskParser(confUmask).getUMask();
+<Line#8>      }
+<Line#9>    }
+<Line#10> catch (    IllegalArgumentException iae) {
+<Line#11>      String type=iae instanceof NumberFormatException ? "decimal" : "octal or symbolic";
+<Line#12>      String error="Unable to parse configuration " + UMASK_LABEL + " with value "+ confUmask+ " as "+ type+ " umask.";
+<Line#13>      LOG.warn(error);
+<Line#14>      throw new IllegalArgumentException(error);
+<Line#15>    }
+<Line#16>  }
+<Line#17>  return new FsPermission((short)umask);
+<Line#18>}
+Label: <Line#13> LOG.warn(error)
+
+Example 2:
+<Line#1>{
+<Line#2>  LOG.debug("Loading ACLs file");
+<Line#3>  lastReload=System.currentTimeMillis();
+<Line#4>  Configuration conf=KMSConfiguration.getACLsConf();
+<Line#5>  conf.get(Type.CREATE.getAclConfigKey());
+<Line#6>  return conf;
+<Line#7>}
+Label: <Line#2> LOG.debug("Loading ACLs file")
+
+Example 3:
+<Line#1>{
+<Line#2>  this.conf=conf;
+<Line#3>  String[] urls=conf.getStrings(LDAP_URL_KEY,LDAP_URL_DEFAULT);
+<Line#4>  if (urls == null || urls.length == 0) {
+<Line#5>    throw new RuntimeException("LDAP URL(s) are not configured");
+<Line#6>  }
+<Line#7>  ldapUrls=Iterators.cycle(urls);
+<Line#8>  currentLdapUrl=ldapUrls.next();
+<Line#9>  useSsl=conf.getBoolean(LDAP_USE_SSL_KEY,LDAP_USE_SSL_DEFAULT);
+<Line#10>  if (useSsl) {
+<Line#11>    loadSslConf(conf);
+<Line#12>  }
+<Line#13>  initializeBindUsers();
+<Line#14>  String baseDN=conf.getTrimmed(BASE_DN_KEY,BASE_DN_DEFAULT);
+<Line#15>  userbaseDN=conf.getTrimmed(USER_BASE_DN_KEY,baseDN);
+<Line#16>  LOG.debug("Usersearch baseDN: {}",userbaseDN);
+<Line#17>  groupbaseDN=conf.getTrimmed(GROUP_BASE_DN_KEY,baseDN);
+<Line#18>  LOG.debug("Groupsearch baseDN: {}",groupbaseDN);
+<Line#19>  groupSearchFilter=conf.get(GROUP_SEARCH_FILTER_KEY,GROUP_SEARCH_FILTER_DEFAULT);
+<Line#20>  userSearchFilter=conf.get(USER_SEARCH_FILTER_KEY,USER_SEARCH_FILTER_DEFAULT);
+<Line#21>  isPosix=groupSearchFilter.contains(POSIX_GROUP) && userSearchFilter.contains(POSIX_ACCOUNT);
+<Line#22>  memberOfAttr=conf.get(MEMBEROF_ATTR_KEY,MEMBEROF_ATTR_DEFAULT);
+<Line#23>  useOneQuery=!memberOfAttr.isEmpty();
+<Line#24>  groupMemberAttr=conf.get(GROUP_MEMBERSHIP_ATTR_KEY,GROUP_MEMBERSHIP_ATTR_DEFAULT);
+<Line#25>  groupNameAttr=conf.get(GROUP_NAME_ATTR_KEY,GROUP_NAME_ATTR_DEFAULT);
+<Line#26>  groupHierarchyLevels=conf.getInt(GROUP_HIERARCHY_LEVELS_KEY,GROUP_HIERARCHY_LEVELS_DEFAULT);
+<Line#27>  posixUidAttr=conf.get(POSIX_UID_ATTR_KEY,POSIX_UID_ATTR_DEFAULT);
+<Line#28>  posixGidAttr=conf.get(POSIX_GID_ATTR_KEY,POSIX_GID_ATTR_DEFAULT);
+<Line#29>  int dirSearchTimeout=conf.getInt(DIRECTORY_SEARCH_TIMEOUT,DIRECTORY_SEARCH_TIMEOUT_DEFAULT);
+<Line#30>  SEARCH_CONTROLS.setTimeLimit(dirSearchTimeout);
+<Line#31>  String[] returningAttributes;
+<Line#32>  if (useOneQuery) {
+<Line#33>    returningAttributes=new String[]{groupNameAttr,posixUidAttr,posixGidAttr,memberOfAttr};
+<Line#34>  }
+<Line#35> else {
+<Line#36>    returningAttributes=new String[]{groupNameAttr,posixUidAttr,posixGidAttr};
+<Line#37>  }
+<Line#38>  SEARCH_CONTROLS.setReturningAttributes(returningAttributes);
+<Line#39>  Class<? extends InitialContextFactory> ldapCtxFactoryClass=conf.getClass(LDAP_CTX_FACTORY_CLASS_KEY,null,InitialContextFactory.class);
+<Line#40>  if (ldapCtxFactoryClass != null) {
+<Line#41>    ldapCtxFactoryClassName=ldapCtxFactoryClass.getName();
+<Line#42>  }
+<Line#43> else {
+<Line#44>    ldapCtxFactoryClassName=LDAP_CTX_FACTORY_CLASS_DEFAULT;
+<Line#45>  }
+<Line#46>  this.numAttempts=conf.getInt(LDAP_NUM_ATTEMPTS_KEY,LDAP_NUM_ATTEMPTS_DEFAULT);
+<Line#47>  this.numAttemptsBeforeFailover=conf.getInt(LDAP_NUM_ATTEMPTS_BEFORE_FAILOVER_KEY,LDAP_NUM_ATTEMPTS_BEFORE_FAILOVER_DEFAULT);
+<Line#48>}
+Label: <Line#16> LOG.debug("Usersearch baseDN: {}",userbaseDN)
+
+Example 4:
+<Line#1>{
+<Line#2>  this.conf=conf;
+<Line#3>  String[] urls=conf.getStrings(LDAP_URL_KEY,LDAP_URL_DEFAULT);
+<Line#4>  if (urls == null || urls.length == 0) {
+<Line#5>    throw new RuntimeException("LDAP URL(s) are not configured");
+<Line#6>  }
+<Line#7>  ldapUrls=Iterators.cycle(urls);
+<Line#8>  currentLdapUrl=ldapUrls.next();
+<Line#9>  useSsl=conf.getBoolean(LDAP_USE_SSL_KEY,LDAP_USE_SSL_DEFAULT);
+<Line#10>  if (useSsl) {
+<Line#11>    loadSslConf(conf);
+<Line#12>  }
+<Line#13>  initializeBindUsers();
+<Line#14>  String baseDN=conf.getTrimmed(BASE_DN_KEY,BASE_DN_DEFAULT);
+<Line#15>  userbaseDN=conf.getTrimmed(USER_BASE_DN_KEY,baseDN);
+<Line#16>  LOG.debug("Usersearch baseDN: {}",userbaseDN);
+<Line#17>  groupbaseDN=conf.getTrimmed(GROUP_BASE_DN_KEY,baseDN);
+<Line#18>  LOG.debug("Groupsearch baseDN: {}",groupbaseDN);
+<Line#19>  groupSearchFilter=conf.get(GROUP_SEARCH_FILTER_KEY,GROUP_SEARCH_FILTER_DEFAULT);
+<Line#20>  userSearchFilter=conf.get(USER_SEARCH_FILTER_KEY,USER_SEARCH_FILTER_DEFAULT);
+<Line#21>  isPosix=groupSearchFilter.contains(POSIX_GROUP) && userSearchFilter.contains(POSIX_ACCOUNT);
+<Line#22>  memberOfAttr=conf.get(MEMBEROF_ATTR_KEY,MEMBEROF_ATTR_DEFAULT);
+<Line#23>  useOneQuery=!memberOfAttr.isEmpty();
+<Line#24>  groupMemberAttr=conf.get(GROUP_MEMBERSHIP_ATTR_KEY,GROUP_MEMBERSHIP_ATTR_DEFAULT);
+<Line#25>  groupNameAttr=conf.get(GROUP_NAME_ATTR_KEY,GROUP_NAME_ATTR_DEFAULT);
+<Line#26>  groupHierarchyLevels=conf.getInt(GROUP_HIERARCHY_LEVELS_KEY,GROUP_HIERARCHY_LEVELS_DEFAULT);
+<Line#27>  posixUidAttr=conf.get(POSIX_UID_ATTR_KEY,POSIX_UID_ATTR_DEFAULT);
+<Line#28>  posixGidAttr=conf.get(POSIX_GID_ATTR_KEY,POSIX_GID_ATTR_DEFAULT);
+<Line#29>  int dirSearchTimeout=conf.getInt(DIRECTORY_SEARCH_TIMEOUT,DIRECTORY_SEARCH_TIMEOUT_DEFAULT);
+<Line#30>  SEARCH_CONTROLS.setTimeLimit(dirSearchTimeout);
+<Line#31>  String[] returningAttributes;
+<Line#32>  if (useOneQuery) {
+<Line#33>    returningAttributes=new String[]{groupNameAttr,posixUidAttr,posixGidAttr,memberOfAttr};
+<Line#34>  }
+<Line#35> else {
+<Line#36>    returningAttributes=new String[]{groupNameAttr,posixUidAttr,posixGidAttr};
+<Line#37>  }
+<Line#38>  SEARCH_CONTROLS.setReturningAttributes(returningAttributes);
+<Line#39>  Class<? extends InitialContextFactory> ldapCtxFactoryClass=conf.getClass(LDAP_CTX_FACTORY_CLASS_KEY,null,InitialContextFactory.class);
+<Line#40>  if (ldapCtxFactoryClass != null) {
+<Line#41>    ldapCtxFactoryClassName=ldapCtxFactoryClass.getName();
+<Line#42>  }
+<Line#43> else {
+<Line#44>    ldapCtxFactoryClassName=LDAP_CTX_FACTORY_CLASS_DEFAULT;
+<Line#45>  }
+<Line#46>  this.numAttempts=conf.getInt(LDAP_NUM_ATTEMPTS_KEY,LDAP_NUM_ATTEMPTS_DEFAULT);
+<Line#47>  this.numAttemptsBeforeFailover=conf.getInt(LDAP_NUM_ATTEMPTS_BEFORE_FAILOVER_KEY,LDAP_NUM_ATTEMPTS_BEFORE_FAILOVER_DEFAULT);
+<Line#48>}
+Label: <Line#18> LOG.debug("Groupsearch baseDN: {}",groupbaseDN)
+
+Example 5:
+<Line#1>{
+<Line#2>  if (line.hasOption("fs")) {
+<Line#3>    FileSystem.setDefaultUri(conf,line.getOptionValue("fs"));
+<Line#4>  }
+<Line#5>  if (line.hasOption("jt")) {
+<Line#6>    String optionValue=line.getOptionValue("jt");
+<Line#7>    if (optionValue.equalsIgnoreCase("local")) {
+<Line#8>      conf.set("mapreduce.framework.name",optionValue);
+<Line#9>    }
+<Line#10>    conf.set("yarn.resourcemanager.address",optionValue,"from -jt command line option");
+<Line#11>  }
+<Line#12>  if (line.hasOption("conf")) {
+<Line#13>    String[] values=line.getOptionValues("conf");
+<Line#14>    for (    String value : values) {
+<Line#15>      conf.addResource(new Path(value));
+<Line#16>    }
+<Line#17>  }
+<Line#18>  if (line.hasOption('D')) {
+<Line#19>    String[] property=line.getOptionValues('D');
+<Line#20>    for (    String prop : property) {
+<Line#21>      String[] keyval=prop.split("=",2);
+<Line#22>      if (keyval.length == 2) {
+<Line#23>        conf.set(keyval[0],keyval[1],"from command line");
+<Line#24>      }
+<Line#25>    }
+<Line#26>  }
+<Line#27>  if (line.hasOption("libjars")) {
+<Line#28>    conf.set("tmpjars",validateFiles(line.getOptionValue("libjars"),true),"from -libjars command line option");
+<Line#29>    URL[] libjars=getLibJars(conf);
+<Line#30>    if (libjars != null && libjars.length > 0) {
+<Line#31>      conf.setClassLoader(new URLClassLoader(libjars,conf.getClassLoader()));
+<Line#32>      Thread.currentThread().setContextClassLoader(new URLClassLoader(libjars,Thread.currentThread().getContextClassLoader()));
+<Line#33>    }
+<Line#34>  }
+<Line#35>  if (line.hasOption("files")) {
+<Line#36>    conf.set("tmpfiles",validateFiles(line.getOptionValue("files")),"from -files command line option");
+<Line#37>  }
+<Line#38>  if (line.hasOption("archives")) {
+<Line#39>    conf.set("tmparchives",validateFiles(line.getOptionValue("archives")),"from -archives command line option");
+<Line#40>  }
+<Line#41>  conf.setBoolean("mapreduce.client.genericoptionsparser.used",true);
+<Line#42>  if (line.hasOption("tokenCacheFile")) {
+<Line#43>    String fileName=line.getOptionValue("tokenCacheFile");
+<Line#44>    FileSystem localFs=FileSystem.getLocal(conf);
+<Line#45>    Path p=localFs.makeQualified(new Path(fileName));
+<Line#46>    localFs.getFileStatus(p);
+<Line#47>    if (LOG.isDebugEnabled()) {
+<Line#48>      LOG.debug("setting conf tokensFile: " + fileName);
+<Line#49>    }
+<Line#50>    UserGroupInformation.getCurrentUser().addCredentials(Credentials.readTokenStorageFile(p,conf));
+<Line#51>    conf.set("mapreduce.job.credentials.binary",p.toString(),"from -tokenCacheFile command line option");
+<Line#52>  }
+<Line#53>}
+Label: <Line#48> LOG.debug("setting conf tokensFile: " + fileName)
+

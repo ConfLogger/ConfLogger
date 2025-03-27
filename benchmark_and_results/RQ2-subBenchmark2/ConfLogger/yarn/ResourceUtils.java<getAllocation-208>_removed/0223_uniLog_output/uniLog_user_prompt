@@ -1,0 +1,128 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>String resourceTypesKey, String schedulerKey, long schedulerDefault) {
+<Line#1>long value = conf.getLong(resourceTypesKey, -1L);
+<Line#2>if (value == -1) {
+<Line#3>value = conf.getLong(schedulerKey, schedulerDefault);
+<Line#4>}
+<Line#5>return value;
+<Line#6>}
+
+Example 1:
+<Line#1>{
+<Line#2>  int maxLength=ResourceUtils.getNumberOfCountableResourceTypes();
+<Line#3>  for (int i=0; i < maxLength; i++) {
+<Line#4>    try {
+<Line#5>      ResourceInformation lhsValue=lhs.getResourceInformation(i);
+<Line#6>      final long value;
+<Line#7>      if (roundingDirection == RoundingDirection.DOWN) {
+<Line#8>        value=(long)(lhsValue.getValue() * by);
+<Line#9>      }
+<Line#10> else {
+<Line#11>        value=(long)Math.ceil(lhsValue.getValue() * by);
+<Line#12>      }
+<Line#13>      lhs.setResourceValue(i,value);
+<Line#14>    }
+<Line#15> catch (    ResourceNotFoundException ye) {
+<Line#16>      LOG.warn("Resource is missing:" + ye.getMessage());
+<Line#17>    }
+<Line#18>  }
+<Line#19>  return lhs;
+<Line#20>}
+Label: <Line#16> LOG.warn("Resource is missing:" + ye.getMessage())
+
+Example 2:
+<Line#1>{
+<Line#2>  boolean outOfLimit=false;
+<Line#3>  String value=null;
+<Line#4>  try {
+<Line#5>    value=cgroups.getCGroupParam(CGroupsHandler.CGroupController.MEMORY,container.getContainerId().toString(),memoryStatFile);
+<Line#6>    long usage=Long.parseLong(value);
+<Line#7>    long request=container.getResource().getMemorySize() * 1024 * 1024;
+<Line#8>    if (usage > request) {
+<Line#9>      outOfLimit=true;
+<Line#10>      String message=String.format("Container %s is out of its limits, using %d " + "when requested only %d",container.getContainerId(),usage,request);
+<Line#11>      LOG.warn(message);
+<Line#12>    }
+<Line#13>  }
+<Line#14> catch (  ResourceHandlerException ex) {
+<Line#15>    LOG.warn(String.format("Could not access memory resource for %s",container.getContainerId()),ex);
+<Line#16>  }
+<Line#17>catch (  NumberFormatException ex) {
+<Line#18>    LOG.warn(String.format("Could not parse %s in %s",value,container.getContainerId()));
+<Line#19>  }
+<Line#20>  return outOfLimit;
+<Line#21>}
+Label: <Line#11> LOG.warn(message)
+
+Example 3:
+<Line#1>{
+<Line#2>  boolean outOfLimit=false;
+<Line#3>  String value=null;
+<Line#4>  try {
+<Line#5>    value=cgroups.getCGroupParam(CGroupsHandler.CGroupController.MEMORY,container.getContainerId().toString(),memoryStatFile);
+<Line#6>    long usage=Long.parseLong(value);
+<Line#7>    long request=container.getResource().getMemorySize() * 1024 * 1024;
+<Line#8>    if (usage > request) {
+<Line#9>      outOfLimit=true;
+<Line#10>      String message=String.format("Container %s is out of its limits, using %d " + "when requested only %d",container.getContainerId(),usage,request);
+<Line#11>      LOG.warn(message);
+<Line#12>    }
+<Line#13>  }
+<Line#14> catch (  ResourceHandlerException ex) {
+<Line#15>    LOG.warn(String.format("Could not access memory resource for %s",container.getContainerId()),ex);
+<Line#16>  }
+<Line#17>catch (  NumberFormatException ex) {
+<Line#18>    LOG.warn(String.format("Could not parse %s in %s",value,container.getContainerId()));
+<Line#19>  }
+<Line#20>  return outOfLimit;
+<Line#21>}
+Label: <Line#15> LOG.warn(String.format("Could not access memory resource for %s",container.getContainerId()),ex)
+
+Example 4:
+<Line#1>{
+<Line#2>  boolean outOfLimit=false;
+<Line#3>  String value=null;
+<Line#4>  try {
+<Line#5>    value=cgroups.getCGroupParam(CGroupsHandler.CGroupController.MEMORY,container.getContainerId().toString(),memoryStatFile);
+<Line#6>    long usage=Long.parseLong(value);
+<Line#7>    long request=container.getResource().getMemorySize() * 1024 * 1024;
+<Line#8>    if (usage > request) {
+<Line#9>      outOfLimit=true;
+<Line#10>      String message=String.format("Container %s is out of its limits, using %d " + "when requested only %d",container.getContainerId(),usage,request);
+<Line#11>      LOG.warn(message);
+<Line#12>    }
+<Line#13>  }
+<Line#14> catch (  ResourceHandlerException ex) {
+<Line#15>    LOG.warn(String.format("Could not access memory resource for %s",container.getContainerId()),ex);
+<Line#16>  }
+<Line#17>catch (  NumberFormatException ex) {
+<Line#18>    LOG.warn(String.format("Could not parse %s in %s",value,container.getContainerId()));
+<Line#19>  }
+<Line#20>  return outOfLimit;
+<Line#21>}
+Label: <Line#18> LOG.warn(String.format("Could not parse %s in %s",value,container.getContainerId()))
+
+Example 5:
+<Line#1>{
+<Line#2>  KeyParser kp=new KeyParser(key,offset);
+<Line#3>  String name=kp.getNextString();
+<Line#4>  byte[] bytes=kp.getRemainingBytes();
+<Line#5>  Object value=null;
+<Line#6>  try {
+<Line#7>    value=fstConf.asObject(bytes);
+<Line#8>    entity.addPrimaryFilter(name,value);
+<Line#9>  }
+<Line#10> catch (  Exception ignore) {
+<Line#11>    try {
+<Line#12>      value=fstConf224.asObject(bytes);
+<Line#13>      entity.addPrimaryFilter(name,value);
+<Line#14>    }
+<Line#15> catch (    Exception e) {
+<Line#16>      LOG.warn("Error while decoding " + name,e);
+<Line#17>    }
+<Line#18>  }
+<Line#19>}
+Label: <Line#16> LOG.warn("Error while decoding " + name,e)
+

@@ -1,0 +1,3 @@
+public void setEphemeral(boolean m_){
+  ephemeral=m_;
+}

@@ -1,0 +1,48 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	MasterBatchCoordinator.java	methodSinagture:	org.apache.storm.trident.topology.MasterBatchCoordinator.getStoredCurrAttempts(JI)Ljava/util/TreeMap;	methodLines:	243:269
+blockLines:	254:-1
+paras:	null
+TaintedStat:	NORMAL getStoredCurrAttempts:conditional branch(eq, to iindex=52) 35,12 Node: < Application, Lorg/apache/storm/trident/topology/MasterBatchCoordinator, getStoredCurrAttempts(JI)Ljava/util/TreeMap; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/trident/topology/MasterBatchCoordinator, getStoredCurrAttempts(JI)Ljava/util/TreeMap; > Context: Everywhere[41]34 = invokeinterface < Application, Ljava/util/Map$Entry, getKey()Ljava/lang/Object; > 32 @107 exception:33
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/trident/topology/MasterBatchCoordinator, getStoredCurrAttempts(JI)Ljava/util/TreeMap; > Context: Everywhere[41]34 = invokeinterface < Application, Ljava/util/Map$Entry, getKey()Ljava/lang/Object; > 32 @107 exception:33
+NORMAL getStoredCurrAttempts:35 = instanceof 34 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/trident/topology/MasterBatchCoordinator, getStoredCurrAttempts(JI)Ljava/util/TreeMap; > Context: Everywhere
+NORMAL getStoredCurrAttempts:conditional branch(eq, to iindex=52) 35,12 Node: < Application, Lorg/apache/storm/trident/topology/MasterBatchCoordinator, getStoredCurrAttempts(JI)Ljava/util/TreeMap; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private TreeMap<Long, Integer> getStoredCurrAttempts(long currTransaction, int maxBatches) {
+        TreeMap<Long, Integer> ret = new TreeMap<Long, Integer>();
+        for (TransactionalState state : states) {
+            Map<Object, Number> attempts = (Map) state.getData(CURRENT_ATTEMPTS);
+            if (attempts == null) {
+                attempts = new HashMap();
+            }
+            for (Entry<Object, Number> e : attempts.entrySet()) {
+                // this is because json doesn't allow numbers as keys...
+                // TODO: replace json with a better form of encoding
+                Number txidObj;
+                if (e.getKey() instanceof String) {
+                    txidObj = Long.parseLong((String) e.getKey());
+                } else {
+                    txidObj = (Number) e.getKey();
+                }
+                long txid = ((Number) txidObj).longValue();
+                int attemptId = ((Number) e.getValue()).intValue();
+                Integer curr = ret.get(txid);
+                if (curr == null || attemptId > curr) {
+                    ret.put(txid, attemptId);
+                }
+            }
+        }
+        ret.headMap(currTransaction).clear();
+        ret.tailMap(currTransaction + maxBatches - 1).clear();
+        return ret;
+    }
+
+
+====================ctx:=======================

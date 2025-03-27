@@ -1,0 +1,1 @@
+void setBlockManager(BlockManager bm);

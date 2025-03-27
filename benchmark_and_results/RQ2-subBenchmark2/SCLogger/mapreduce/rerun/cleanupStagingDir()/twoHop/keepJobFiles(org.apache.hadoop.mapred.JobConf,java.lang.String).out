@@ -1,0 +1,3 @@
+protected boolean keepJobFiles(JobConf conf,String jobTempDir){
+  return isJobNamePatternMatch(conf,jobTempDir) || isKeepFailedTaskFiles(conf);
+}

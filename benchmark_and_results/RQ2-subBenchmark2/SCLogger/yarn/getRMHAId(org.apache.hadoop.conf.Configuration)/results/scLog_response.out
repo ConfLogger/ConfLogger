@@ -1,0 +1,7 @@
+<Line#2>:# LOG.debug("Starting getRMHAId method with configuration: {}", conf);:#
+<Line#3>:# LOG.debug("Current RM Id: {}", currentRMId);:#
+<Line#7>:# LOG.debug("Address for key {} is null, continuing", key);:#
+<Line#14>:# LOG.error("Exception occurred while creating socket address: {}", e.getMessage());:#
+<Line#18>:# LOG.debug("Found matching local address, incrementing found count to {}", found);:#
+<Line#25>:# LOG.error("HA Configuration has multiple addresses that match local node's address");:#
+<Line#27>:# LOG.debug("Returning current RM Id: {}", currentRMId);:#

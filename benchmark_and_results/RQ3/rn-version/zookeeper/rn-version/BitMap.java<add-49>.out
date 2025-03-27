@@ -1,0 +1,80 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	BitMap.java	methodSinagture:	org.apache.zookeeper.server.util.BitMap.add(Ljava/lang/Object;)Ljava/lang/Integer;	methodLines:	49:73
+blockLines:	58:-1
+paras:	null
+TaintedStat:	NORMAL add:conditional branch(eq, to iindex=30) 14,6 Node: < Application, Lorg/apache/zookeeper/server/util/BitMap, add(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/util/BitMap, add(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere[16]13 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 11,2 @27 exception:12
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/util/BitMap, add(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere[16]13 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 11,2 @27 exception:12
+NORMAL add:14 = checkcast <Application,Ljava/lang/Integer>13 <Application,Ljava/lang/Integer> Node: < Application, Lorg/apache/zookeeper/server/util/BitMap, add(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere
+NORMAL add:conditional branch(eq, to iindex=30) 14,6 Node: < Application, Lorg/apache/zookeeper/server/util/BitMap, add(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+         */
+        Integer bit = getBit(value);
+        if (bit != null) {
+            return bit;
+        }
+
+        rwLock.writeLock().lock();
+        try {
+            bit = value2Bit.get(value);
+            if (bit != null) {
+                return bit;
+            }
+            bit = freedBitSet.nextSetBit(0);
+            if (bit > -1) {
+                freedBitSet.clear(bit);
+            } else {
+                bit = nextBit++;
+            }
+
+            value2Bit.put(value, bit);
+            bit2Value.put(bit, value);
+            return bit;
+        } finally {
+            rwLock.writeLock().unlock();
+        }
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManagerOptimized, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;)Z > Context: Everywhere, blocks=[BB[SSA:17..18]9 - org.apache.zookeeper.server.watch.WatchManagerOptimized.addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;)Z, BB[SSA:15..16]8 - org.apache.zookeeper.server.watch.WatchManagerOptimized.addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;)Z, BB[SSA:19..21]10 - org.apache.zookeeper.server.watch.WatchManagerOptimized.addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;)Z], numberOfBasicBlocks=3, firstLineNumber=90, lastLineNumber=91, firstMethodNumber=77, lastMethodNumber=107, isFirstLineValid=true, methodSrcCode=
+    public boolean addWatch(String path, Watcher watcher) {
+        boolean result = false;
+        // Need readLock to exclusively lock with removeWatcher, otherwise we
+        // may add a dead watch whose connection was just closed.
+        //
+        // Creating new watcher bit and adding it to the BitHashSet has it's
+        // own lock to minimize the write lock scope
+        addRemovePathRWLock.readLock().lock();
+        try {
+            // avoid race condition of adding a on flying dead watcher
+            if (isDeadWatcher(watcher)) {
+                LOG.debug("Ignoring addWatch with closed cnxn");
+            } else {
+                Integer bit = watcherBitIdMap.add(watcher);
+                BitHashSet watchers = pathWatches.get(path);
+                if (watchers == null) {
+                    watchers = new BitHashSet();
+                    BitHashSet existingWatchers = pathWatches.putIfAbsent(path, watchers);
+                    // it's possible multiple thread might add to pathWatches
+                    // while we're holding read lock, so we need this check
+                    // here
+                    if (existingWatchers != null) {
+                        watchers = existingWatchers;
+                    }
+                }
+                result = watchers.add(bit);
+            }
+        } finally {
+            addRemovePathRWLock.readLock().unlock();
+        }
+        return result;
+    }
+}

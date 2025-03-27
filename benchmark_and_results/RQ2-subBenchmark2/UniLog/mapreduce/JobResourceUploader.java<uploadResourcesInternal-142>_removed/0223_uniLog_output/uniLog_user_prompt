@@ -1,0 +1,506 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>throws IOException {
+<Line#1>Configuration conf = job.getConfiguration();
+<Line#2>short replication =
+<Line#3>(short) conf.getInt(Job.SUBMIT_REPLICATION,
+<Line#4>Job.DEFAULT_SUBMIT_REPLICATION);
+<Line#5>
+<Line#6>if (!(conf.getBoolean(Job.USED_GENERIC_PARSER, false))) {}
+<Line#7>
+<Line#8>//
+<Line#9>// Figure out what fs the JobTracker is using. Copy the
+<Line#10>// job to it, under a temporary name. This allows DFS to work,
+<Line#11>// and under the local fs also provides UNIX-like object loading
+<Line#12>// semantics. (that is, if the job file is deleted right after
+<Line#13>// submission, we can still run the submission to completion)
+<Line#14>//
+<Line#15>
+<Line#16>// Create a number of filenames in the JobTracker's fs namespace
+<Line#17>LOG.debug("default FileSystem: " + jtFs.getUri());
+<Line#18>if (jtFs.exists(submitJobDir)) {
+<Line#19>throw new IOException("Not submitting job. Job directory " + submitJobDir
+<Line#20>+ " already exists!! This is unexpected.Please check what's there in"
+<Line#21>+ " that directory");
+<Line#22>}
+<Line#23>// Create the submission directory for the MapReduce job.
+<Line#24>submitJobDir = jtFs.makeQualified(submitJobDir);
+<Line#25>submitJobDir = new Path(submitJobDir.toUri().getPath());
+<Line#26>FsPermission mapredSysPerms =
+<Line#27>new FsPermission(JobSubmissionFiles.JOB_DIR_PERMISSION);
+<Line#28>mkdirs(jtFs, submitJobDir, mapredSysPerms);
+<Line#29>
+<Line#30>if (!conf.getBoolean(MRJobConfig.MR_AM_STAGING_DIR_ERASURECODING_ENABLED,
+<Line#31>MRJobConfig.DEFAULT_MR_AM_STAGING_ERASURECODING_ENABLED)) {
+<Line#32>disableErasureCodingForPath(submitJobDir);
+<Line#33>}
+<Line#34>
+<Line#35>// Get the resources that have been added via command line arguments in the
+<Line#36>// GenericOptionsParser (i.e. files, libjars, archives).
+<Line#37>Collection<String> files = conf.getStringCollection("tmpfiles");
+<Line#38>Collection<String> libjars = conf.getStringCollection("tmpjars");
+<Line#39>Collection<String> archives = conf.getStringCollection("tmparchives");
+<Line#40>String jobJar = job.getJar();
+<Line#41>
+<Line#42>// Merge resources that have been programmatically specified for the shared
+<Line#43>// cache via the Job API.
+<Line#44>files.addAll(conf.getStringCollection(MRJobConfig.FILES_FOR_SHARED_CACHE));
+<Line#45>libjars.addAll(conf.getStringCollection(
+<Line#46>MRJobConfig.FILES_FOR_CLASSPATH_AND_SHARED_CACHE));
+<Line#47>archives.addAll(conf
+<Line#48>.getStringCollection(MRJobConfig.ARCHIVES_FOR_SHARED_CACHE));
+<Line#49>
+<Line#50>
+<Line#51>Map<URI, FileStatus> statCache = new HashMap<URI, FileStatus>();
+<Line#52>checkLocalizationLimits(conf, files, libjars, archives, jobJar, statCache);
+<Line#53>
+<Line#54>Map<String, Boolean> fileSCUploadPolicies =
+<Line#55>new LinkedHashMap<String, Boolean>();
+<Line#56>Map<String, Boolean> archiveSCUploadPolicies =
+<Line#57>new LinkedHashMap<String, Boolean>();
+<Line#58>
+<Line#59>uploadFiles(job, files, submitJobDir, mapredSysPerms, replication,
+<Line#60>fileSCUploadPolicies, statCache);
+<Line#61>uploadLibJars(job, libjars, submitJobDir, mapredSysPerms, replication,
+<Line#62>fileSCUploadPolicies, statCache);
+<Line#63>uploadArchives(job, archives, submitJobDir, mapredSysPerms, replication,
+<Line#64>archiveSCUploadPolicies, statCache);
+<Line#65>uploadJobJar(job, jobJar, submitJobDir, replication, statCache);
+<Line#66>addLog4jToDistributedCache(job, submitJobDir);
+<Line#67>
+<Line#68>// Note, we do not consider resources in the distributed cache for the
+<Line#69>// shared cache at this time. Only resources specified via the
+<Line#70>// GenericOptionsParser or the jobjar.
+<Line#71>Job.setFileSharedCacheUploadPolicies(conf, fileSCUploadPolicies);
+<Line#72>Job.setArchiveSharedCacheUploadPolicies(conf, archiveSCUploadPolicies);
+<Line#73>
+<Line#74>// set the timestamps of the archives and files
+<Line#75>// set the public/private visibility of the archives and files
+<Line#76>ClientDistributedCacheManager.determineTimestampsAndCacheVisibilities(conf,
+<Line#77>statCache);
+<Line#78>// get DelegationToken for cached file
+<Line#79>ClientDistributedCacheManager.getDelegationTokens(conf,
+<Line#80>job.getCredentials());
+<Line#81>}
+
+Example 1:
+<Line#1>{
+<Line#2>  checkSpecs(job);
+<Line#3>  Configuration conf=job.getConfiguration();
+<Line#4>  addMRFrameworkToDistributedCache(conf);
+<Line#5>  Path jobStagingArea=JobSubmissionFiles.getStagingDir(cluster,conf);
+<Line#6>  InetAddress ip=InetAddress.getLocalHost();
+<Line#7>  if (ip != null) {
+<Line#8>    submitHostAddress=ip.getHostAddress();
+<Line#9>    submitHostName=ip.getHostName();
+<Line#10>    conf.set(MRJobConfig.JOB_SUBMITHOST,submitHostName);
+<Line#11>    conf.set(MRJobConfig.JOB_SUBMITHOSTADDR,submitHostAddress);
+<Line#12>  }
+<Line#13>  JobID jobId=submitClient.getNewJobID();
+<Line#14>  job.setJobID(jobId);
+<Line#15>  Path submitJobDir=new Path(jobStagingArea,jobId.toString());
+<Line#16>  JobStatus status=null;
+<Line#17>  try {
+<Line#18>    conf.set(MRJobConfig.USER_NAME,UserGroupInformation.getCurrentUser().getShortUserName());
+<Line#19>    conf.set("hadoop.http.filter.initializers","org.apache.hadoop.yarn.server.webproxy.amfilter.AmFilterInitializer");
+<Line#20>    conf.set(MRJobConfig.MAPREDUCE_JOB_DIR,submitJobDir.toString());
+<Line#21>    LOG.debug("Configuring job " + jobId + " with "+ submitJobDir+ " as the submit dir");
+<Line#22>    TokenCache.obtainTokensForNamenodes(job.getCredentials(),new Path[]{submitJobDir},conf);
+<Line#23>    populateTokenCache(conf,job.getCredentials());
+<Line#24>    if (TokenCache.getShuffleSecretKey(job.getCredentials()) == null) {
+<Line#25>      KeyGenerator keyGen;
+<Line#26>      try {
+<Line#27>        keyGen=KeyGenerator.getInstance(SHUFFLE_KEYGEN_ALGORITHM);
+<Line#28>        keyGen.init(SHUFFLE_KEY_LENGTH);
+<Line#29>      }
+<Line#30> catch (      NoSuchAlgorithmException e) {
+<Line#31>        throw new IOException("Error generating shuffle secret key",e);
+<Line#32>      }
+<Line#33>      SecretKey shuffleKey=keyGen.generateKey();
+<Line#34>      TokenCache.setShuffleSecretKey(shuffleKey.getEncoded(),job.getCredentials());
+<Line#35>    }
+<Line#36>    if (CryptoUtils.isEncryptedSpillEnabled(conf)) {
+<Line#37>      conf.setInt(MRJobConfig.MR_AM_MAX_ATTEMPTS,1);
+<Line#38>      LOG.warn("Max job attempts set to 1 since encrypted intermediate" + "data spill is enabled");
+<Line#39>    }
+<Line#40>    copyAndConfigureFiles(job,submitJobDir);
+<Line#41>    Path submitJobFile=JobSubmissionFiles.getJobConfPath(submitJobDir);
+<Line#42>    LOG.debug("Creating splits at " + jtFs.makeQualified(submitJobDir));
+<Line#43>    int maps=writeSplits(job,submitJobDir);
+<Line#44>    conf.setInt(MRJobConfig.NUM_MAPS,maps);
+<Line#45>    LOG.info("number of splits:" + maps);
+<Line#46>    int maxMaps=conf.getInt(MRJobConfig.JOB_MAX_MAP,MRJobConfig.DEFAULT_JOB_MAX_MAP);
+<Line#47>    if (maxMaps >= 0 && maxMaps < maps) {
+<Line#48>      throw new IllegalArgumentException("The number of map tasks " + maps + " exceeded limit "+ maxMaps);
+<Line#49>    }
+<Line#50>    String queue=conf.get(MRJobConfig.QUEUE_NAME,JobConf.DEFAULT_QUEUE_NAME);
+<Line#51>    AccessControlList acl=submitClient.getQueueAdmins(queue);
+<Line#52>    conf.set(toFullPropertyName(queue,QueueACL.ADMINISTER_JOBS.getAclName()),acl.getAclString());
+<Line#53>    TokenCache.cleanUpTokenReferral(conf);
+<Line#54>    if (conf.getBoolean(MRJobConfig.JOB_TOKEN_TRACKING_IDS_ENABLED,MRJobConfig.DEFAULT_JOB_TOKEN_TRACKING_IDS_ENABLED)) {
+<Line#55>      ArrayList<String> trackingIds=new ArrayList<String>();
+<Line#56>      for (      Token<? extends TokenIdentifier> t : job.getCredentials().getAllTokens()) {
+<Line#57>        trackingIds.add(t.decodeIdentifier().getTrackingId());
+<Line#58>      }
+<Line#59>      conf.setStrings(MRJobConfig.JOB_TOKEN_TRACKING_IDS,trackingIds.toArray(new String[trackingIds.size()]));
+<Line#60>    }
+<Line#61>    ReservationId reservationId=job.getReservationId();
+<Line#62>    if (reservationId != null) {
+<Line#63>      conf.set(MRJobConfig.RESERVATION_ID,reservationId.toString());
+<Line#64>    }
+<Line#65>    writeConf(conf,submitJobFile);
+<Line#66>    printTokens(jobId,job.getCredentials());
+<Line#67>    status=submitClient.submitJob(jobId,submitJobDir.toString(),job.getCredentials());
+<Line#68>    if (status != null) {
+<Line#69>      return status;
+<Line#70>    }
+<Line#71> else {
+<Line#72>      throw new IOException("Could not launch job");
+<Line#73>    }
+<Line#74>  }
+<Line#75>  finally {
+<Line#76>    if (status == null) {
+<Line#77>      LOG.info("Cleaning up the staging area " + submitJobDir);
+<Line#78>      if (jtFs != null && submitJobDir != null)       jtFs.delete(submitJobDir,true);
+<Line#79>    }
+<Line#80>  }
+<Line#81>}
+Label: <Line#21> LOG.debug("Configuring job " + jobId + " with "+ submitJobDir+ " as the submit dir")
+
+Example 2:
+<Line#1>{
+<Line#2>  checkSpecs(job);
+<Line#3>  Configuration conf=job.getConfiguration();
+<Line#4>  addMRFrameworkToDistributedCache(conf);
+<Line#5>  Path jobStagingArea=JobSubmissionFiles.getStagingDir(cluster,conf);
+<Line#6>  InetAddress ip=InetAddress.getLocalHost();
+<Line#7>  if (ip != null) {
+<Line#8>    submitHostAddress=ip.getHostAddress();
+<Line#9>    submitHostName=ip.getHostName();
+<Line#10>    conf.set(MRJobConfig.JOB_SUBMITHOST,submitHostName);
+<Line#11>    conf.set(MRJobConfig.JOB_SUBMITHOSTADDR,submitHostAddress);
+<Line#12>  }
+<Line#13>  JobID jobId=submitClient.getNewJobID();
+<Line#14>  job.setJobID(jobId);
+<Line#15>  Path submitJobDir=new Path(jobStagingArea,jobId.toString());
+<Line#16>  JobStatus status=null;
+<Line#17>  try {
+<Line#18>    conf.set(MRJobConfig.USER_NAME,UserGroupInformation.getCurrentUser().getShortUserName());
+<Line#19>    conf.set("hadoop.http.filter.initializers","org.apache.hadoop.yarn.server.webproxy.amfilter.AmFilterInitializer");
+<Line#20>    conf.set(MRJobConfig.MAPREDUCE_JOB_DIR,submitJobDir.toString());
+<Line#21>    LOG.debug("Configuring job " + jobId + " with "+ submitJobDir+ " as the submit dir");
+<Line#22>    TokenCache.obtainTokensForNamenodes(job.getCredentials(),new Path[]{submitJobDir},conf);
+<Line#23>    populateTokenCache(conf,job.getCredentials());
+<Line#24>    if (TokenCache.getShuffleSecretKey(job.getCredentials()) == null) {
+<Line#25>      KeyGenerator keyGen;
+<Line#26>      try {
+<Line#27>        keyGen=KeyGenerator.getInstance(SHUFFLE_KEYGEN_ALGORITHM);
+<Line#28>        keyGen.init(SHUFFLE_KEY_LENGTH);
+<Line#29>      }
+<Line#30> catch (      NoSuchAlgorithmException e) {
+<Line#31>        throw new IOException("Error generating shuffle secret key",e);
+<Line#32>      }
+<Line#33>      SecretKey shuffleKey=keyGen.generateKey();
+<Line#34>      TokenCache.setShuffleSecretKey(shuffleKey.getEncoded(),job.getCredentials());
+<Line#35>    }
+<Line#36>    if (CryptoUtils.isEncryptedSpillEnabled(conf)) {
+<Line#37>      conf.setInt(MRJobConfig.MR_AM_MAX_ATTEMPTS,1);
+<Line#38>      LOG.warn("Max job attempts set to 1 since encrypted intermediate" + "data spill is enabled");
+<Line#39>    }
+<Line#40>    copyAndConfigureFiles(job,submitJobDir);
+<Line#41>    Path submitJobFile=JobSubmissionFiles.getJobConfPath(submitJobDir);
+<Line#42>    LOG.debug("Creating splits at " + jtFs.makeQualified(submitJobDir));
+<Line#43>    int maps=writeSplits(job,submitJobDir);
+<Line#44>    conf.setInt(MRJobConfig.NUM_MAPS,maps);
+<Line#45>    LOG.info("number of splits:" + maps);
+<Line#46>    int maxMaps=conf.getInt(MRJobConfig.JOB_MAX_MAP,MRJobConfig.DEFAULT_JOB_MAX_MAP);
+<Line#47>    if (maxMaps >= 0 && maxMaps < maps) {
+<Line#48>      throw new IllegalArgumentException("The number of map tasks " + maps + " exceeded limit "+ maxMaps);
+<Line#49>    }
+<Line#50>    String queue=conf.get(MRJobConfig.QUEUE_NAME,JobConf.DEFAULT_QUEUE_NAME);
+<Line#51>    AccessControlList acl=submitClient.getQueueAdmins(queue);
+<Line#52>    conf.set(toFullPropertyName(queue,QueueACL.ADMINISTER_JOBS.getAclName()),acl.getAclString());
+<Line#53>    TokenCache.cleanUpTokenReferral(conf);
+<Line#54>    if (conf.getBoolean(MRJobConfig.JOB_TOKEN_TRACKING_IDS_ENABLED,MRJobConfig.DEFAULT_JOB_TOKEN_TRACKING_IDS_ENABLED)) {
+<Line#55>      ArrayList<String> trackingIds=new ArrayList<String>();
+<Line#56>      for (      Token<? extends TokenIdentifier> t : job.getCredentials().getAllTokens()) {
+<Line#57>        trackingIds.add(t.decodeIdentifier().getTrackingId());
+<Line#58>      }
+<Line#59>      conf.setStrings(MRJobConfig.JOB_TOKEN_TRACKING_IDS,trackingIds.toArray(new String[trackingIds.size()]));
+<Line#60>    }
+<Line#61>    ReservationId reservationId=job.getReservationId();
+<Line#62>    if (reservationId != null) {
+<Line#63>      conf.set(MRJobConfig.RESERVATION_ID,reservationId.toString());
+<Line#64>    }
+<Line#65>    writeConf(conf,submitJobFile);
+<Line#66>    printTokens(jobId,job.getCredentials());
+<Line#67>    status=submitClient.submitJob(jobId,submitJobDir.toString(),job.getCredentials());
+<Line#68>    if (status != null) {
+<Line#69>      return status;
+<Line#70>    }
+<Line#71> else {
+<Line#72>      throw new IOException("Could not launch job");
+<Line#73>    }
+<Line#74>  }
+<Line#75>  finally {
+<Line#76>    if (status == null) {
+<Line#77>      LOG.info("Cleaning up the staging area " + submitJobDir);
+<Line#78>      if (jtFs != null && submitJobDir != null)       jtFs.delete(submitJobDir,true);
+<Line#79>    }
+<Line#80>  }
+<Line#81>}
+Label: <Line#38> LOG.warn("Max job attempts set to 1 since encrypted intermediate" + "data spill is enabled")
+
+Example 3:
+<Line#1>{
+<Line#2>  checkSpecs(job);
+<Line#3>  Configuration conf=job.getConfiguration();
+<Line#4>  addMRFrameworkToDistributedCache(conf);
+<Line#5>  Path jobStagingArea=JobSubmissionFiles.getStagingDir(cluster,conf);
+<Line#6>  InetAddress ip=InetAddress.getLocalHost();
+<Line#7>  if (ip != null) {
+<Line#8>    submitHostAddress=ip.getHostAddress();
+<Line#9>    submitHostName=ip.getHostName();
+<Line#10>    conf.set(MRJobConfig.JOB_SUBMITHOST,submitHostName);
+<Line#11>    conf.set(MRJobConfig.JOB_SUBMITHOSTADDR,submitHostAddress);
+<Line#12>  }
+<Line#13>  JobID jobId=submitClient.getNewJobID();
+<Line#14>  job.setJobID(jobId);
+<Line#15>  Path submitJobDir=new Path(jobStagingArea,jobId.toString());
+<Line#16>  JobStatus status=null;
+<Line#17>  try {
+<Line#18>    conf.set(MRJobConfig.USER_NAME,UserGroupInformation.getCurrentUser().getShortUserName());
+<Line#19>    conf.set("hadoop.http.filter.initializers","org.apache.hadoop.yarn.server.webproxy.amfilter.AmFilterInitializer");
+<Line#20>    conf.set(MRJobConfig.MAPREDUCE_JOB_DIR,submitJobDir.toString());
+<Line#21>    LOG.debug("Configuring job " + jobId + " with "+ submitJobDir+ " as the submit dir");
+<Line#22>    TokenCache.obtainTokensForNamenodes(job.getCredentials(),new Path[]{submitJobDir},conf);
+<Line#23>    populateTokenCache(conf,job.getCredentials());
+<Line#24>    if (TokenCache.getShuffleSecretKey(job.getCredentials()) == null) {
+<Line#25>      KeyGenerator keyGen;
+<Line#26>      try {
+<Line#27>        keyGen=KeyGenerator.getInstance(SHUFFLE_KEYGEN_ALGORITHM);
+<Line#28>        keyGen.init(SHUFFLE_KEY_LENGTH);
+<Line#29>      }
+<Line#30> catch (      NoSuchAlgorithmException e) {
+<Line#31>        throw new IOException("Error generating shuffle secret key",e);
+<Line#32>      }
+<Line#33>      SecretKey shuffleKey=keyGen.generateKey();
+<Line#34>      TokenCache.setShuffleSecretKey(shuffleKey.getEncoded(),job.getCredentials());
+<Line#35>    }
+<Line#36>    if (CryptoUtils.isEncryptedSpillEnabled(conf)) {
+<Line#37>      conf.setInt(MRJobConfig.MR_AM_MAX_ATTEMPTS,1);
+<Line#38>      LOG.warn("Max job attempts set to 1 since encrypted intermediate" + "data spill is enabled");
+<Line#39>    }
+<Line#40>    copyAndConfigureFiles(job,submitJobDir);
+<Line#41>    Path submitJobFile=JobSubmissionFiles.getJobConfPath(submitJobDir);
+<Line#42>    LOG.debug("Creating splits at " + jtFs.makeQualified(submitJobDir));
+<Line#43>    int maps=writeSplits(job,submitJobDir);
+<Line#44>    conf.setInt(MRJobConfig.NUM_MAPS,maps);
+<Line#45>    LOG.info("number of splits:" + maps);
+<Line#46>    int maxMaps=conf.getInt(MRJobConfig.JOB_MAX_MAP,MRJobConfig.DEFAULT_JOB_MAX_MAP);
+<Line#47>    if (maxMaps >= 0 && maxMaps < maps) {
+<Line#48>      throw new IllegalArgumentException("The number of map tasks " + maps + " exceeded limit "+ maxMaps);
+<Line#49>    }
+<Line#50>    String queue=conf.get(MRJobConfig.QUEUE_NAME,JobConf.DEFAULT_QUEUE_NAME);
+<Line#51>    AccessControlList acl=submitClient.getQueueAdmins(queue);
+<Line#52>    conf.set(toFullPropertyName(queue,QueueACL.ADMINISTER_JOBS.getAclName()),acl.getAclString());
+<Line#53>    TokenCache.cleanUpTokenReferral(conf);
+<Line#54>    if (conf.getBoolean(MRJobConfig.JOB_TOKEN_TRACKING_IDS_ENABLED,MRJobConfig.DEFAULT_JOB_TOKEN_TRACKING_IDS_ENABLED)) {
+<Line#55>      ArrayList<String> trackingIds=new ArrayList<String>();
+<Line#56>      for (      Token<? extends TokenIdentifier> t : job.getCredentials().getAllTokens()) {
+<Line#57>        trackingIds.add(t.decodeIdentifier().getTrackingId());
+<Line#58>      }
+<Line#59>      conf.setStrings(MRJobConfig.JOB_TOKEN_TRACKING_IDS,trackingIds.toArray(new String[trackingIds.size()]));
+<Line#60>    }
+<Line#61>    ReservationId reservationId=job.getReservationId();
+<Line#62>    if (reservationId != null) {
+<Line#63>      conf.set(MRJobConfig.RESERVATION_ID,reservationId.toString());
+<Line#64>    }
+<Line#65>    writeConf(conf,submitJobFile);
+<Line#66>    printTokens(jobId,job.getCredentials());
+<Line#67>    status=submitClient.submitJob(jobId,submitJobDir.toString(),job.getCredentials());
+<Line#68>    if (status != null) {
+<Line#69>      return status;
+<Line#70>    }
+<Line#71> else {
+<Line#72>      throw new IOException("Could not launch job");
+<Line#73>    }
+<Line#74>  }
+<Line#75>  finally {
+<Line#76>    if (status == null) {
+<Line#77>      LOG.info("Cleaning up the staging area " + submitJobDir);
+<Line#78>      if (jtFs != null && submitJobDir != null)       jtFs.delete(submitJobDir,true);
+<Line#79>    }
+<Line#80>  }
+<Line#81>}
+Label: <Line#42> LOG.debug("Creating splits at " + jtFs.makeQualified(submitJobDir))
+
+Example 4:
+<Line#1>{
+<Line#2>  checkSpecs(job);
+<Line#3>  Configuration conf=job.getConfiguration();
+<Line#4>  addMRFrameworkToDistributedCache(conf);
+<Line#5>  Path jobStagingArea=JobSubmissionFiles.getStagingDir(cluster,conf);
+<Line#6>  InetAddress ip=InetAddress.getLocalHost();
+<Line#7>  if (ip != null) {
+<Line#8>    submitHostAddress=ip.getHostAddress();
+<Line#9>    submitHostName=ip.getHostName();
+<Line#10>    conf.set(MRJobConfig.JOB_SUBMITHOST,submitHostName);
+<Line#11>    conf.set(MRJobConfig.JOB_SUBMITHOSTADDR,submitHostAddress);
+<Line#12>  }
+<Line#13>  JobID jobId=submitClient.getNewJobID();
+<Line#14>  job.setJobID(jobId);
+<Line#15>  Path submitJobDir=new Path(jobStagingArea,jobId.toString());
+<Line#16>  JobStatus status=null;
+<Line#17>  try {
+<Line#18>    conf.set(MRJobConfig.USER_NAME,UserGroupInformation.getCurrentUser().getShortUserName());
+<Line#19>    conf.set("hadoop.http.filter.initializers","org.apache.hadoop.yarn.server.webproxy.amfilter.AmFilterInitializer");
+<Line#20>    conf.set(MRJobConfig.MAPREDUCE_JOB_DIR,submitJobDir.toString());
+<Line#21>    LOG.debug("Configuring job " + jobId + " with "+ submitJobDir+ " as the submit dir");
+<Line#22>    TokenCache.obtainTokensForNamenodes(job.getCredentials(),new Path[]{submitJobDir},conf);
+<Line#23>    populateTokenCache(conf,job.getCredentials());
+<Line#24>    if (TokenCache.getShuffleSecretKey(job.getCredentials()) == null) {
+<Line#25>      KeyGenerator keyGen;
+<Line#26>      try {
+<Line#27>        keyGen=KeyGenerator.getInstance(SHUFFLE_KEYGEN_ALGORITHM);
+<Line#28>        keyGen.init(SHUFFLE_KEY_LENGTH);
+<Line#29>      }
+<Line#30> catch (      NoSuchAlgorithmException e) {
+<Line#31>        throw new IOException("Error generating shuffle secret key",e);
+<Line#32>      }
+<Line#33>      SecretKey shuffleKey=keyGen.generateKey();
+<Line#34>      TokenCache.setShuffleSecretKey(shuffleKey.getEncoded(),job.getCredentials());
+<Line#35>    }
+<Line#36>    if (CryptoUtils.isEncryptedSpillEnabled(conf)) {
+<Line#37>      conf.setInt(MRJobConfig.MR_AM_MAX_ATTEMPTS,1);
+<Line#38>      LOG.warn("Max job attempts set to 1 since encrypted intermediate" + "data spill is enabled");
+<Line#39>    }
+<Line#40>    copyAndConfigureFiles(job,submitJobDir);
+<Line#41>    Path submitJobFile=JobSubmissionFiles.getJobConfPath(submitJobDir);
+<Line#42>    LOG.debug("Creating splits at " + jtFs.makeQualified(submitJobDir));
+<Line#43>    int maps=writeSplits(job,submitJobDir);
+<Line#44>    conf.setInt(MRJobConfig.NUM_MAPS,maps);
+<Line#45>    LOG.info("number of splits:" + maps);
+<Line#46>    int maxMaps=conf.getInt(MRJobConfig.JOB_MAX_MAP,MRJobConfig.DEFAULT_JOB_MAX_MAP);
+<Line#47>    if (maxMaps >= 0 && maxMaps < maps) {
+<Line#48>      throw new IllegalArgumentException("The number of map tasks " + maps + " exceeded limit "+ maxMaps);
+<Line#49>    }
+<Line#50>    String queue=conf.get(MRJobConfig.QUEUE_NAME,JobConf.DEFAULT_QUEUE_NAME);
+<Line#51>    AccessControlList acl=submitClient.getQueueAdmins(queue);
+<Line#52>    conf.set(toFullPropertyName(queue,QueueACL.ADMINISTER_JOBS.getAclName()),acl.getAclString());
+<Line#53>    TokenCache.cleanUpTokenReferral(conf);
+<Line#54>    if (conf.getBoolean(MRJobConfig.JOB_TOKEN_TRACKING_IDS_ENABLED,MRJobConfig.DEFAULT_JOB_TOKEN_TRACKING_IDS_ENABLED)) {
+<Line#55>      ArrayList<String> trackingIds=new ArrayList<String>();
+<Line#56>      for (      Token<? extends TokenIdentifier> t : job.getCredentials().getAllTokens()) {
+<Line#57>        trackingIds.add(t.decodeIdentifier().getTrackingId());
+<Line#58>      }
+<Line#59>      conf.setStrings(MRJobConfig.JOB_TOKEN_TRACKING_IDS,trackingIds.toArray(new String[trackingIds.size()]));
+<Line#60>    }
+<Line#61>    ReservationId reservationId=job.getReservationId();
+<Line#62>    if (reservationId != null) {
+<Line#63>      conf.set(MRJobConfig.RESERVATION_ID,reservationId.toString());
+<Line#64>    }
+<Line#65>    writeConf(conf,submitJobFile);
+<Line#66>    printTokens(jobId,job.getCredentials());
+<Line#67>    status=submitClient.submitJob(jobId,submitJobDir.toString(),job.getCredentials());
+<Line#68>    if (status != null) {
+<Line#69>      return status;
+<Line#70>    }
+<Line#71> else {
+<Line#72>      throw new IOException("Could not launch job");
+<Line#73>    }
+<Line#74>  }
+<Line#75>  finally {
+<Line#76>    if (status == null) {
+<Line#77>      LOG.info("Cleaning up the staging area " + submitJobDir);
+<Line#78>      if (jtFs != null && submitJobDir != null)       jtFs.delete(submitJobDir,true);
+<Line#79>    }
+<Line#80>  }
+<Line#81>}
+Label: <Line#45> LOG.info("number of splits:" + maps)
+
+Example 5:
+<Line#1>{
+<Line#2>  checkSpecs(job);
+<Line#3>  Configuration conf=job.getConfiguration();
+<Line#4>  addMRFrameworkToDistributedCache(conf);
+<Line#5>  Path jobStagingArea=JobSubmissionFiles.getStagingDir(cluster,conf);
+<Line#6>  InetAddress ip=InetAddress.getLocalHost();
+<Line#7>  if (ip != null) {
+<Line#8>    submitHostAddress=ip.getHostAddress();
+<Line#9>    submitHostName=ip.getHostName();
+<Line#10>    conf.set(MRJobConfig.JOB_SUBMITHOST,submitHostName);
+<Line#11>    conf.set(MRJobConfig.JOB_SUBMITHOSTADDR,submitHostAddress);
+<Line#12>  }
+<Line#13>  JobID jobId=submitClient.getNewJobID();
+<Line#14>  job.setJobID(jobId);
+<Line#15>  Path submitJobDir=new Path(jobStagingArea,jobId.toString());
+<Line#16>  JobStatus status=null;
+<Line#17>  try {
+<Line#18>    conf.set(MRJobConfig.USER_NAME,UserGroupInformation.getCurrentUser().getShortUserName());
+<Line#19>    conf.set("hadoop.http.filter.initializers","org.apache.hadoop.yarn.server.webproxy.amfilter.AmFilterInitializer");
+<Line#20>    conf.set(MRJobConfig.MAPREDUCE_JOB_DIR,submitJobDir.toString());
+<Line#21>    LOG.debug("Configuring job " + jobId + " with "+ submitJobDir+ " as the submit dir");
+<Line#22>    TokenCache.obtainTokensForNamenodes(job.getCredentials(),new Path[]{submitJobDir},conf);
+<Line#23>    populateTokenCache(conf,job.getCredentials());
+<Line#24>    if (TokenCache.getShuffleSecretKey(job.getCredentials()) == null) {
+<Line#25>      KeyGenerator keyGen;
+<Line#26>      try {
+<Line#27>        keyGen=KeyGenerator.getInstance(SHUFFLE_KEYGEN_ALGORITHM);
+<Line#28>        keyGen.init(SHUFFLE_KEY_LENGTH);
+<Line#29>      }
+<Line#30> catch (      NoSuchAlgorithmException e) {
+<Line#31>        throw new IOException("Error generating shuffle secret key",e);
+<Line#32>      }
+<Line#33>      SecretKey shuffleKey=keyGen.generateKey();
+<Line#34>      TokenCache.setShuffleSecretKey(shuffleKey.getEncoded(),job.getCredentials());
+<Line#35>    }
+<Line#36>    if (CryptoUtils.isEncryptedSpillEnabled(conf)) {
+<Line#37>      conf.setInt(MRJobConfig.MR_AM_MAX_ATTEMPTS,1);
+<Line#38>      LOG.warn("Max job attempts set to 1 since encrypted intermediate" + "data spill is enabled");
+<Line#39>    }
+<Line#40>    copyAndConfigureFiles(job,submitJobDir);
+<Line#41>    Path submitJobFile=JobSubmissionFiles.getJobConfPath(submitJobDir);
+<Line#42>    LOG.debug("Creating splits at " + jtFs.makeQualified(submitJobDir));
+<Line#43>    int maps=writeSplits(job,submitJobDir);
+<Line#44>    conf.setInt(MRJobConfig.NUM_MAPS,maps);
+<Line#45>    LOG.info("number of splits:" + maps);
+<Line#46>    int maxMaps=conf.getInt(MRJobConfig.JOB_MAX_MAP,MRJobConfig.DEFAULT_JOB_MAX_MAP);
+<Line#47>    if (maxMaps >= 0 && maxMaps < maps) {
+<Line#48>      throw new IllegalArgumentException("The number of map tasks " + maps + " exceeded limit "+ maxMaps);
+<Line#49>    }
+<Line#50>    String queue=conf.get(MRJobConfig.QUEUE_NAME,JobConf.DEFAULT_QUEUE_NAME);
+<Line#51>    AccessControlList acl=submitClient.getQueueAdmins(queue);
+<Line#52>    conf.set(toFullPropertyName(queue,QueueACL.ADMINISTER_JOBS.getAclName()),acl.getAclString());
+<Line#53>    TokenCache.cleanUpTokenReferral(conf);
+<Line#54>    if (conf.getBoolean(MRJobConfig.JOB_TOKEN_TRACKING_IDS_ENABLED,MRJobConfig.DEFAULT_JOB_TOKEN_TRACKING_IDS_ENABLED)) {
+<Line#55>      ArrayList<String> trackingIds=new ArrayList<String>();
+<Line#56>      for (      Token<? extends TokenIdentifier> t : job.getCredentials().getAllTokens()) {
+<Line#57>        trackingIds.add(t.decodeIdentifier().getTrackingId());
+<Line#58>      }
+<Line#59>      conf.setStrings(MRJobConfig.JOB_TOKEN_TRACKING_IDS,trackingIds.toArray(new String[trackingIds.size()]));
+<Line#60>    }
+<Line#61>    ReservationId reservationId=job.getReservationId();
+<Line#62>    if (reservationId != null) {
+<Line#63>      conf.set(MRJobConfig.RESERVATION_ID,reservationId.toString());
+<Line#64>    }
+<Line#65>    writeConf(conf,submitJobFile);
+<Line#66>    printTokens(jobId,job.getCredentials());
+<Line#67>    status=submitClient.submitJob(jobId,submitJobDir.toString(),job.getCredentials());
+<Line#68>    if (status != null) {
+<Line#69>      return status;
+<Line#70>    }
+<Line#71> else {
+<Line#72>      throw new IOException("Could not launch job");
+<Line#73>    }
+<Line#74>  }
+<Line#75>  finally {
+<Line#76>    if (status == null) {
+<Line#77>      LOG.info("Cleaning up the staging area " + submitJobDir);
+<Line#78>      if (jtFs != null && submitJobDir != null)       jtFs.delete(submitJobDir,true);
+<Line#79>    }
+<Line#80>  }
+<Line#81>}
+Label: <Line#77> LOG.info("Cleaning up the staging area " + submitJobDir)
+

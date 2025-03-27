@@ -1,0 +1,122 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	SerializationFactory.java	methodSinagture:	org.apache.storm.serialization.SerializationFactory.register(Lcom/esotericsoftware/kryo/Kryo;Ljava/lang/Object;Ljava/util/Map;Z)V	methodLines:	128:151
+blockLines:	135:-1
+paras:	null
+TaintedStat:	NORMAL register:conditional branch(eq, to iindex=32) 20,26 Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, register(Lcom/esotericsoftware/kryo/Kryo;Ljava/lang/Object;Ljava/util/Map;Z)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, register(Lcom/esotericsoftware/kryo/Kryo;Ljava/lang/Object;Ljava/util/Map;Z)V > Context: Everywhere[16]19 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 17 @44 exception:18
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, register(Lcom/esotericsoftware/kryo/Kryo;Ljava/lang/Object;Ljava/util/Map;Z)V > Context: Everywhere[16]19 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 17 @44 exception:18
+NORMAL register:[null]: 20 = checkcast <Application,Ljava/lang/String>19 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, register(Lcom/esotericsoftware/kryo/Kryo;Ljava/lang/Object;Ljava/util/Map;Z)V > Context: Everywhere
+NORMAL register:conditional branch(eq, to iindex=32) 20,26 Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, register(Lcom/esotericsoftware/kryo/Kryo;Ljava/lang/Object;Ljava/util/Map;Z)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static void register(Kryo k, Object kryoRegistrations, Map<String, Object> conf, boolean skipMissing) {
+        Map<String, String> registrations = normalizeKryoRegister(kryoRegistrations);
+        for (Map.Entry<String, String> entry : registrations.entrySet()) {
+            String serializerClassName = entry.getValue();
+            try {
+                Class klass = Class.forName(entry.getKey());
+                Class serializerClass = null;
+                if (serializerClassName != null) {
+                    serializerClass = Class.forName(serializerClassName);
+                }
+                if (serializerClass == null) {
+                    k.register(klass);
+                } else {
+                    k.register(klass, resolveSerializerInstance(k, klass, serializerClass, conf));
+                }
+            } catch (ClassNotFoundException e) {
+                if (skipMissing) {
+                    LOG.info("Could not find serialization or class for " + serializerClassName + ". Skipping registration...");
+                } else {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, getKryo(Ljava/util/Map;)Lcom/esotericsoftware/kryo/Kryo; > Context: Everywhere, blocks=[BB[SSA:145..147]71 - org.apache.storm.serialization.SerializationFactory.getKryo(Ljava/util/Map;)Lcom/esotericsoftware/kryo/Kryo;, BB[SSA:140..144]70 - org.apache.storm.serialization.SerializationFactory.getKryo(Ljava/util/Map;)Lcom/esotericsoftware/kryo/Kryo;, BB[SSA:148..151]72 - org.apache.storm.serialization.SerializationFactory.getKryo(Ljava/util/Map;)Lcom/esotericsoftware/kryo/Kryo;, BB[SSA:-1..-2]105 - org.apache.storm.serialization.SerializationFactory.getKryo(Ljava/util/Map;)Lcom/esotericsoftware/kryo/Kryo;], numberOfBasicBlocks=4, firstLineNumber=93, lastLineNumber=121, firstMethodNumber=54, lastMethodNumber=121, isFirstLineValid=true, methodSrcCode=
+    public static Kryo getKryo(Map<String, Object> conf) {
+        IKryoFactory kryoFactory = (IKryoFactory) ReflectionUtils.newInstance((String) conf.get(Config.TOPOLOGY_KRYO_FACTORY));
+        Kryo k = kryoFactory.getKryo(conf);
+        k.register(byte[].class);
+
+        /* tuple payload serializer is specified via configuration */
+        String payloadSerializerName = (String) conf.get(Config.TOPOLOGY_TUPLE_SERIALIZER);
+        try {
+            Class serializerClass = Class.forName(payloadSerializerName);
+            Serializer serializer = resolveSerializerInstance(k, ListDelegate.class, serializerClass, conf);
+            k.register(ListDelegate.class, serializer);
+        } catch (ClassNotFoundException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        k.register(ArrayList.class, new ArrayListSerializer());
+        k.register(HashMap.class, new HashMapSerializer());
+        k.register(HashSet.class, new HashSetSerializer());
+        k.register(BigInteger.class, new BigIntegerSerializer());
+        k.register(TransactionAttempt.class);
+        k.register(Values.class);
+        k.register(org.apache.storm.metric.api.IMetricsConsumer.DataPoint.class);
+        k.register(org.apache.storm.metric.api.IMetricsConsumer.TaskInfo.class);
+        k.register(ConsList.class);
+        k.register(BackPressureStatus.class);
+        k.register(NodeInfo.class);
+
+        synchronized (loader) {
+            for (SerializationRegister sr : loader) {
+                try {
+                    sr.register(k);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        kryoFactory.preRegister(k, conf);
+
+        boolean skipMissing = (Boolean) conf.get(Config.TOPOLOGY_SKIP_MISSING_KRYO_REGISTRATIONS);
+
+        register(k, conf.get(Config.TOPOLOGY_KRYO_REGISTER), conf, skipMissing);
+
+        kryoFactory.postRegister(k, conf);
+
+        if (conf.get(Config.TOPOLOGY_KRYO_DECORATORS) != null) {
+            for (String klassName : (List<String>) conf.get(Config.TOPOLOGY_KRYO_DECORATORS)) {
+                try {
+                    Class klass = Class.forName(klassName);
+                    IKryoDecorator decorator = (IKryoDecorator) klass.newInstance();
+                    decorator.decorate(k);
+                } catch (ClassNotFoundException e) {
+                    if (skipMissing) {
+                        LOG.info("Could not find kryo decorator named " + klassName + ". Skipping registration...");
+                    } else {
+                        throw new RuntimeException(e);
+                    }
+                } catch (InstantiationException e) {
+                    throw new RuntimeException(e);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        kryoFactory.postDecorate(k, conf);
+
+        return k;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, register(Lcom/esotericsoftware/kryo/Kryo;Ljava/util/List;)V > Context: Everywhere, blocks=[BB[SSA:3..4]2 - org.apache.storm.serialization.SerializationFactory.register(Lcom/esotericsoftware/kryo/Kryo;Ljava/util/List;)V, BB[SSA:0..2]1 - org.apache.storm.serialization.SerializationFactory.register(Lcom/esotericsoftware/kryo/Kryo;Ljava/util/List;)V, BB[SSA:5..5]3 - org.apache.storm.serialization.SerializationFactory.register(Lcom/esotericsoftware/kryo/Kryo;Ljava/util/List;)V, BB[SSA:-1..-2]4 - org.apache.storm.serialization.SerializationFactory.register(Lcom/esotericsoftware/kryo/Kryo;Ljava/util/List;)V], numberOfBasicBlocks=4, firstLineNumber=125, lastLineNumber=126, firstMethodNumber=124, lastMethodNumber=126, isFirstLineValid=true, methodSrcCode=
+    public static void register(Kryo k, List<String> classesToRegister) {
+        register(k, classesToRegister, Collections.emptyMap(), true);
+    }
+
+}

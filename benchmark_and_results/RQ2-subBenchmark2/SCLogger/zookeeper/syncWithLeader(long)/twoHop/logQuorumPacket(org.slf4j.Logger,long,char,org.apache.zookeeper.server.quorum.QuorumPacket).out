@@ -1,0 +1,5 @@
+public static void logQuorumPacket(Logger log,long mask,char direction,QuorumPacket qp){
+  if (isTraceEnabled(log,mask)) {
+    logTraceMessage(log,mask,direction + " " + LearnerHandler.packetToString(qp));
+  }
+}

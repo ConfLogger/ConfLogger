@@ -1,0 +1,147 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ReferenceCountedACLCache.java	methodSinagture:	org.apache.zookeeper.server.ReferenceCountedACLCache.convertAcls(Ljava/util/List;)Ljava/lang/Long;	methodLines:	59:74
+blockLines:	66:-1
+paras:	null
+TaintedStat:	NORMAL convertAcls:conditional branch(ne, to iindex=31) 8,4 Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, convertAcls(Ljava/util/List;)Ljava/lang/Long; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, convertAcls(Ljava/util/List;)Ljava/lang/Long; > Context: Everywhere[9]7 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,2 @16 exception:6
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, convertAcls(Ljava/util/List;)Ljava/lang/Long; > Context: Everywhere[9]7 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,2 @16 exception:6
+NORMAL convertAcls:8 = checkcast <Application,Ljava/lang/Long>7 <Application,Ljava/lang/Long> Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, convertAcls(Ljava/util/List;)Ljava/lang/Long; > Context: Everywhere
+NORMAL convertAcls:conditional branch(ne, to iindex=31) 8,4 Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, convertAcls(Ljava/util/List;)Ljava/lang/Long; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public synchronized Long convertAcls(List<ACL> acls) {
+        if (acls == null) {
+            return OPEN_UNSAFE_ACL_ID;
+        }
+
+        // get the value from the map
+        Long ret = aclKeyMap.get(acls);
+        if (ret == null) {
+            ret = incrementIndex();
+            longKeyMap.put(ret, acls);
+            aclKeyMap.put(acls, ret);
+        }
+
+        addUsage(ret);
+
+        return ret;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/DataTree, createNode(Ljava/lang/String;[BLjava/util/List;JIJJLorg/apache/zookeeper/data/Stat;)V > Context: Everywhere, blocks=[BB[SSA:42..43]14 - org.apache.zookeeper.server.DataTree.createNode(Ljava/lang/String;[BLjava/util/List;JIJJLorg/apache/zookeeper/data/Stat;)V, BB[SSA:39..41]13 - org.apache.zookeeper.server.DataTree.createNode(Ljava/lang/String;[BLjava/util/List;JIJJLorg/apache/zookeeper/data/Stat;)V, BB[SSA:44..46]15 - org.apache.zookeeper.server.DataTree.createNode(Ljava/lang/String;[BLjava/util/List;JIJJLorg/apache/zookeeper/data/Stat;)V], numberOfBasicBlocks=3, firstLineNumber=450, lastLineNumber=465, firstMethodNumber=439, lastMethodNumber=527, isFirstLineValid=true, methodSrcCode=
+    public void createNode(final String path, byte[] data, List<ACL> acl, long ephemeralOwner, int parentCVersion, long zxid, long time, Stat outputStat) throws NoNodeException, NodeExistsException {
+        int lastSlash = path.lastIndexOf('/');
+        String parentName = path.substring(0, lastSlash);
+        String childName = path.substring(lastSlash + 1);
+        StatPersisted stat = createStat(zxid, time, ephemeralOwner);
+        DataNode parent = nodes.get(parentName);
+        if (parent == null) {
+            throw new NoNodeException();
+        }
+        List<ACL> parentAcl;
+        synchronized (parent) {
+            parentAcl = getACL(parent);
+
+            // Add the ACL to ACL cache first, to avoid the ACL not being
+            // created race condition during fuzzy snapshot sync.
+            //
+            // This is the simplest fix, which may add ACL reference count
+            // again if it's already counted in the ACL map of fuzzy
+            // snapshot, which might also happen for deleteNode txn, but
+            // at least it won't cause the ACL not exist issue.
+            //
+            // Later we can audit and delete all non-referenced ACLs from
+            // ACL map when loading the snapshot/txns from disk, like what
+            // we did for the global sessions.
+            Long acls = aclCache.convertAcls(acl);
+
+            Set<String> children = parent.getChildren();
+            if (children.contains(childName)) {
+                throw new NodeExistsException();
+            }
+
+            nodes.preChange(parentName, parent);
+            if (parentCVersion == -1) {
+                parentCVersion = parent.stat.getCversion();
+                parentCVersion++;
+            }
+            // There is possibility that we'll replay txns for a node which
+            // was created and then deleted in the fuzzy range, and it's not
+            // exist in the snapshot, so replay the creation might revert the
+            // cversion and pzxid, need to check and only update when it's
+            // larger.
+            if (parentCVersion > parent.stat.getCversion()) {
+                parent.stat.setCversion(parentCVersion);
+                parent.stat.setPzxid(zxid);
+            }
+            DataNode child = new DataNode(data, acls, stat);
+            parent.addChild(childName);
+            nodes.postChange(parentName, parent);
+            nodeDataSize.addAndGet(getNodeSize(path, child.data));
+            nodes.put(path, child);
+            EphemeralType ephemeralType = EphemeralType.get(ephemeralOwner);
+            if (ephemeralType == EphemeralType.CONTAINER) {
+                containers.add(path);
+            } else if (ephemeralType == EphemeralType.TTL) {
+                ttls.add(path);
+            } else if (ephemeralOwner != 0) {
+                HashSet<String> list = ephemerals.computeIfAbsent(ephemeralOwner, k -> new HashSet<>());
+                synchronized (list) {
+                    list.add(path);
+                }
+            }
+            if (outputStat != null) {
+                child.copyStat(outputStat);
+            }
+        }
+        // now check if its one of the zookeeper node child
+        if (parentName.startsWith(quotaZookeeper)) {
+            // now check if it's the limit node
+            if (Quotas.limitNode.equals(childName)) {
+                // this is the limit node
+                // get the parent and add it to the trie
+                pTrie.addPath(Quotas.trimQuotaPath(parentName));
+            }
+            if (Quotas.statNode.equals(childName)) {
+                updateQuotaForPath(Quotas.trimQuotaPath(parentName));
+            }
+        }
+
+        String lastPrefix = getMaxPrefixWithQuota(path);
+        long bytes = data == null ? 0 : data.length;
+        // also check to update the quotas for this node
+        if (lastPrefix != null) {    // ok we have some match and need to update
+            updateQuotaStat(lastPrefix, bytes, 1);
+        }
+        updateWriteStat(path, bytes);
+        dataWatches.triggerWatch(path, Event.EventType.NodeCreated, zxid, acl);
+        childWatches.triggerWatch(parentName.equals("") ? "/" : parentName,
+            Event.EventType.NodeChildrenChanged, zxid, parentAcl);
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/DataTree, setACL(Ljava/lang/String;Ljava/util/List;I)Lorg/apache/zookeeper/data/Stat; > Context: Everywhere, blocks=[BB[SSA:37..38]18 - org.apache.zookeeper.server.DataTree.setACL(Ljava/lang/String;Ljava/util/List;I)Lorg/apache/zookeeper/data/Stat;, BB[SSA:34..36]17 - org.apache.zookeeper.server.DataTree.setACL(Ljava/lang/String;Ljava/util/List;I)Lorg/apache/zookeeper/data/Stat;, BB[SSA:39..39]19 - org.apache.zookeeper.server.DataTree.setACL(Ljava/lang/String;Ljava/util/List;I)Lorg/apache/zookeeper/data/Stat;], numberOfBasicBlocks=3, firstLineNumber=772, lastLineNumber=772, firstMethodNumber=762, lastMethodNumber=776, isFirstLineValid=true, methodSrcCode=
+    public Stat setACL(String path, List<ACL> acl, int version) throws NoNodeException {
+        DataNode n = nodes.get(path);
+        if (n == null) {
+            throw new NoNodeException();
+        }
+        synchronized (n) {
+            Stat stat = new Stat();
+            aclCache.removeUsage(n.acl);
+            nodes.preChange(path, n);
+            n.stat.setAversion(version);
+            n.acl = aclCache.convertAcls(acl);
+            n.copyStat(stat);
+            nodes.postChange(path, n);
+            return stat;
+        }
+    }
+}

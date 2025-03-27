@@ -1,0 +1,38 @@
+To insert log level and log verbosity messages into the target method code, we'll follow the pattern from the examples provided. The examples indicate where logging statements should be placed and the appropriate log levels to use.
+
+Let's identify suitable locations in the `scheduleLogDeletionTask` method for inserting log messages:
+
+1. Before checking if log aggregation is enabled.
+2. Before returning when log aggregation is not enabled.
+3. Before returning when the retention seconds are less than zero.
+4. After setting the log aggregation check interval.
+5. After scheduling the log deletion task.
+
+Here's the updated code with inserted log messages:
+
+```java
+<Line#0>private void scheduleLogDeletionTask() throws IOException {
+<Line#1>Configuration conf = getConfig();
+<Line#2>LOG.info("Checking if log aggregation is enabled."); // Log level: INFO
+<Line#3>if (!conf.getBoolean(YarnConfiguration.LOG_AGGREGATION_ENABLED,
+<Line#4>YarnConfiguration.DEFAULT_LOG_AGGREGATION_ENABLED)) {
+<Line#5>LOG.info("Log aggregation is not enabled. Exiting scheduleLogDeletionTask."); // Log level: INFO
+<Line#6>return;
+<Line#7>}
+<Line#8>long retentionSecs = conf.getLong(
+<Line#9>YarnConfiguration.LOG_AGGREGATION_RETAIN_SECONDS,
+<Line#10>YarnConfiguration.DEFAULT_LOG_AGGREGATION_RETAIN_SECONDS);
+<Line#11>if (retentionSecs < 0) {
+<Line#12>LOG.warn("Retention seconds is less than zero. Exiting scheduleLogDeletionTask."); // Log level: WARN
+<Line#13>return;
+<Line#14>}
+<Line#15>setLogAggCheckIntervalMsecs(retentionSecs);
+<Line#16>LOG.info("Log aggregation check interval set to " + retentionSecs + " seconds."); // Log level: INFO
+<Line#17>task = new LogDeletionTask(conf, retentionSecs, createRMClient());
+<Line#18>timer = new Timer();
+<Line#19>timer.scheduleAtFixedRate(task, 0, checkIntervalMsecs);
+<Line#20>LOG.info("Scheduled log deletion task with interval: " + checkIntervalMsecs + " milliseconds."); // Log level: INFO
+<Line#21>}
+```
+
+In this code, we have added log messages to provide information about the steps being performed and any conditions that lead to early exits from the method. The log levels used are consistent with the examples provided, using `INFO` for informational messages and `WARN` for potentially problematic conditions.

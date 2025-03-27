@@ -1,0 +1,7 @@
+/** 
+ * the datatree for this zkdatabase
+ * @return the datatree for this zkdatabase
+ */
+public DataTree getDataTree(){
+  return this.dataTree;
+}

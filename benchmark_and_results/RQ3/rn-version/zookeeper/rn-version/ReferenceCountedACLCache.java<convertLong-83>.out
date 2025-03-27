@@ -1,0 +1,55 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ReferenceCountedACLCache.java	methodSinagture:	org.apache.zookeeper.server.ReferenceCountedACLCache.convertLong(Ljava/lang/Long;)Ljava/util/List;	methodLines:	83:95
+blockLines:	91:-1
+paras:	null
+TaintedStat:	NORMAL convertLong:conditional branch(ne, to iindex=38) 13,4 Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, convertLong(Ljava/lang/Long;)Ljava/util/List; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, convertLong(Ljava/lang/Long;)Ljava/util/List; > Context: Everywhere[16]12 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 10,2 @26 exception:11
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, convertLong(Ljava/lang/Long;)Ljava/util/List; > Context: Everywhere[16]12 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 10,2 @26 exception:11
+NORMAL convertLong:13 = checkcast <Application,Ljava/util/List>12 <Application,Ljava/util/List> Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, convertLong(Ljava/lang/Long;)Ljava/util/List; > Context: Everywhere
+NORMAL convertLong:conditional branch(ne, to iindex=38) 13,4 Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, convertLong(Ljava/lang/Long;)Ljava/util/List; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public synchronized List<ACL> convertLong(Long longVal) {
+        if (longVal == null) {
+            return null;
+        }
+        if (longVal == OPEN_UNSAFE_ACL_ID) {
+            return ZooDefs.Ids.OPEN_ACL_UNSAFE;
+        }
+        List<ACL> acls = longKeyMap.get(longVal);
+        if (acls == null) {
+            LOG.error("ERROR: ACL not available for long {}", longVal);
+            throw new RuntimeException("Failed to fetch acls for " + longVal);
+        }
+        return acls;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/DataTree, getACL(Lorg/apache/zookeeper/server/DataNode;)Ljava/util/List; > Context: Everywhere, blocks=[BB[SSA:8..8]4 - org.apache.zookeeper.server.DataTree.getACL(Lorg/apache/zookeeper/server/DataNode;)Ljava/util/List;, BB[SSA:6..7]3 - org.apache.zookeeper.server.DataTree.getACL(Lorg/apache/zookeeper/server/DataNode;)Ljava/util/List;, BB[SSA:9..10]5 - org.apache.zookeeper.server.DataTree.getACL(Lorg/apache/zookeeper/server/DataNode;)Ljava/util/List;], numberOfBasicBlocks=3, firstLineNumber=794, lastLineNumber=794, firstMethodNumber=792, lastMethodNumber=795, isFirstLineValid=true, methodSrcCode=
+    public List<ACL> getACL(DataNode node) {
+        synchronized (node) {
+            return aclCache.convertLong(node.acl);
+        }
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/DataTree, getACL(Ljava/lang/String;Lorg/apache/zookeeper/data/Stat;)Ljava/util/List; > Context: Everywhere, blocks=[BB[SSA:28..28]13 - org.apache.zookeeper.server.DataTree.getACL(Ljava/lang/String;Lorg/apache/zookeeper/data/Stat;)Ljava/util/List;, BB[SSA:26..27]12 - org.apache.zookeeper.server.DataTree.getACL(Ljava/lang/String;Lorg/apache/zookeeper/data/Stat;)Ljava/util/List;, BB[SSA:29..29]14 - org.apache.zookeeper.server.DataTree.getACL(Ljava/lang/String;Lorg/apache/zookeeper/data/Stat;)Ljava/util/List;], numberOfBasicBlocks=3, firstLineNumber=788, lastLineNumber=788, firstMethodNumber=779, lastMethodNumber=789, isFirstLineValid=true, methodSrcCode=
+    public List<ACL> getACL(String path, Stat stat) throws NoNodeException {
+        DataNode n = nodes.get(path);
+        if (n == null) {
+            throw new NoNodeException();
+        }
+        synchronized (n) {
+            if (stat != null) {
+                n.copyStat(stat);
+            }
+            return new ArrayList<>(aclCache.convertLong(n.acl));
+        }
+    }
+}

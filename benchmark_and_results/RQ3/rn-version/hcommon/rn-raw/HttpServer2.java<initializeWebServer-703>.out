@@ -1,0 +1,95 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	HttpServer2.java	methodSinagture:	org.apache.hadoop.http.HttpServer2.initializeWebServer(Ljava/lang/String;Ljava/lang/String;Lorg/apache/hadoop/conf/Configuration;[Ljava/lang/String;)V	methodLines:	703:747
+blockLines:	712:-1
+paras:	null
+TaintedStat:	NORMAL initializeWebServer:conditional branch(eq, to iindex=23) 13,11 Node: < Application, Lorg/apache/hadoop/http/HttpServer2, initializeWebServer(Ljava/lang/String;Ljava/lang/String;Lorg/apache/hadoop/conf/Configuration;[Ljava/lang/String;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/http/HttpServer2, initializeWebServer(Ljava/lang/String;Ljava/lang/String;Lorg/apache/hadoop/conf/Configuration;[Ljava/lang/String;)V > Context: Everywhere[7]13 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getInt(Ljava/lang/String;I)I > 4,10,11 @12 exception:12
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/http/HttpServer2, initializeWebServer(Ljava/lang/String;Ljava/lang/String;Lorg/apache/hadoop/conf/Configuration;[Ljava/lang/String;)V > Context: Everywhere[7]13 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getInt(Ljava/lang/String;I)I > 4,10,11 @12 exception:12
+NORMAL initializeWebServer:conditional branch(eq, to iindex=23) 13,11 Node: < Application, Lorg/apache/hadoop/http/HttpServer2, initializeWebServer(Ljava/lang/String;Ljava/lang/String;Lorg/apache/hadoop/conf/Configuration;[Ljava/lang/String;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+
+    Preconditions.checkNotNull(webAppContext);
+
+    int maxThreads = conf.getInt(HTTP_MAX_THREADS_KEY, -1);
+    // If HTTP_MAX_THREADS is not configured, QueueThreadPool() will use the
+    // default value (currently 250).
+
+    QueuedThreadPool threadPool = (QueuedThreadPool) webServer.getThreadPool();
+    threadPool.setDaemon(true);
+    if (maxThreads != -1) {
+      threadPool.setMaxThreads(maxThreads);
+    }
+
+    SessionHandler handler = webAppContext.getSessionHandler();
+    handler.setHttpOnly(true);
+    handler.getSessionCookieConfig().setSecure(true);
+
+    ContextHandlerCollection contexts = new ContextHandlerCollection();
+    RequestLog requestLog = HttpRequestLog.getRequestLog(name);
+
+    handlers.addHandler(contexts);
+    if (requestLog != null) {
+      RequestLogHandler requestLogHandler = new RequestLogHandler();
+      requestLogHandler.setRequestLog(requestLog);
+      handlers.addHandler(requestLogHandler);
+    }
+    handlers.addHandler(webAppContext);
+    final String appDir = getWebAppsPath(name);
+    addDefaultApps(contexts, appDir, conf);
+    webServer.setHandler(handlers);
+
+    Map<String, String> xFrameParams = setHeaders(conf);
+    addGlobalFilter("safety", QuotingInputFilter.class.getName(), xFrameParams);
+    final FilterInitializer[] initializers = getFilterInitializers(conf);
+    if (initializers != null) {
+      conf = new Configuration(conf);
+      conf.set(BIND_ADDRESS, hostName);
+      for (FilterInitializer c : initializers) {
+        c.initFilter(this, conf);
+      }
+    }
+
+    addDefaultServlets();
+    addPrometheusServlet(conf);
+  }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/http/HttpServer2, <init>(Lorg/apache/hadoop/http/HttpServer2$Builder;)V > Context: Everywhere, blocks=[BB[SSA:94..94]50 - org.apache.hadoop.http.HttpServer2.<init>(Lorg/apache/hadoop/http/HttpServer2$Builder;)V, BB[SSA:92..93]49 - org.apache.hadoop.http.HttpServer2.<init>(Lorg/apache/hadoop/http/HttpServer2$Builder;)V, BB[SSA:95..95]51 - org.apache.hadoop.http.HttpServer2.<init>(Lorg/apache/hadoop/http/HttpServer2$Builder;)V, BB[SSA:-1..-2]52 - org.apache.hadoop.http.HttpServer2.<init>(Lorg/apache/hadoop/http/HttpServer2$Builder;)V], numberOfBasicBlocks=4, firstLineNumber=697, lastLineNumber=698, firstMethodNumber=672, lastMethodNumber=698, isFirstLineValid=true, methodSrcCode=
+
+  private HttpServer2(final Builder b) throws IOException {
+    final String appDir = getWebAppsPath(b.name);
+    this.webServer = new Server();
+    this.adminsAcl = b.adminsAcl;
+    this.handlers = new HandlerCollection();
+    this.webAppContext = createWebAppContext(b, adminsAcl, appDir);
+    this.xFrameOptionIsEnabled = b.xFrameEnabled;
+    this.xFrameOption = b.xFrameOption;
+    this.configurationChangeMonitor = b.configurationChangeMonitor;
+
+    try {
+      this.secretProvider =
+          constructSecretProvider(b, webAppContext.getServletContext());
+      this.webAppContext.getServletContext().setAttribute
+          (AuthenticationFilter.SIGNER_SECRET_PROVIDER_ATTRIBUTE,
+           secretProvider);
+    } catch(IOException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+
+    this.findPort = b.findPort;
+    this.portRanges = b.portRanges;
+    initializeWebServer(b.name, b.hostName, b.conf, b.pathSpecs);
+  }
+
+}

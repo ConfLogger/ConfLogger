@@ -1,0 +1,3 @@
+static void initSymbols(String libname){
+  initIDs(libname);
+}

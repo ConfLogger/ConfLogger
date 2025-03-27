@@ -1,0 +1,21 @@
+To insert log level and log verbosity into the given code, we need to identify suitable places where logging might be beneficial and follow the pattern from the examples. Here's how you can add logging to the provided method:
+
+```java
+<Line#0>public void setSampleRangeMax(int fileIOSamplingPercentage) {
+<Line#1>    LOG.debug("Entering setSampleRangeMax with fileIOSamplingPercentage: {}", fileIOSamplingPercentage);
+<Line#2>    isEnabled = Util.isDiskStatsEnabled(fileIOSamplingPercentage);
+<Line#3>    if (fileIOSamplingPercentage > 100) {
+<Line#4>        LOG.warn("fileIOSamplingPercentage > 100: {}", fileIOSamplingPercentage);
+<Line#5>        fileIOSamplingPercentage = 100;
+<Line#6>    }
+<Line#7>    sampleRangeMax = (int) ((double) fileIOSamplingPercentage / 100 * Integer.MAX_VALUE);
+<Line#8>    LOG.debug("Set sampleRangeMax to: {}", sampleRangeMax);
+<Line#9>}
+```
+
+Explanation:
+- **Line#1**: Added a debug log to indicate the entry into the method and the initial value of `fileIOSamplingPercentage`.
+- **Line#4**: Added a warning log to capture when `fileIOSamplingPercentage` is greater than 100, which is a condition warranting attention.
+- **Line#8**: Added a debug log to indicate the computed value of `sampleRangeMax`.
+
+These log statements follow the pattern of logging method entries, important conditions, and the results of computations, as seen in the examples.

@@ -1,0 +1,31 @@
+To insert a log level and log verbosity message into the target method code, you can follow the pattern shown in the examples. In this case, you can add a log message before and after significant operations or decisions in the code. Here's how you can modify the code by adding log messages:
+
+```java
+<Line#0>/* make sure we clean the staging files */
+<Line#1>String jobTempDir = getConfig().get(MRJobConfig.MAPREDUCE_JOB_DIR);
+<Line#2>FileSystem fs = getFileSystem(getConfig());
+<Line#3>try {
+<Line#4>  LOG.info("Checking if job files need to be kept.");
+<Line#5>  if (!keepJobFiles(new JobConf(getConfig()), jobTempDir)) {
+<Line#6>    if (jobTempDir == null) {
+<Line#7>      LOG.warn("Job temporary directory is null, exiting cleanup.");
+<Line#8>      return;
+<Line#9>    }
+<Line#10>    Path jobTempDirPath = new Path(jobTempDir);
+<Line#11>    LOG.info("Deleting job temporary directory: " + jobTempDirPath);
+<Line#12>    fs.delete(jobTempDirPath, true);
+<Line#13>  }
+<Line#14>} catch(IOException io) {
+<Line#15>  LOG.error("IOException occurred while cleaning up job files.", io);
+<Line#16>}
+<Line#17>}
+```
+
+Labels for the inserted log messages:
+
+- `<Line#4> LOG.info("Checking if job files need to be kept.");`
+- `<Line#7> LOG.warn("Job temporary directory is null, exiting cleanup.");`
+- `<Line#11> LOG.info("Deleting job temporary directory: " + jobTempDirPath);`
+- `<Line#15> LOG.error("IOException occurred while cleaning up job files.", io);`
+
+These log messages provide insights into the flow of the code, indicating when checks are made, when potential issues arise, and when significant actions (like deletions) are performed.

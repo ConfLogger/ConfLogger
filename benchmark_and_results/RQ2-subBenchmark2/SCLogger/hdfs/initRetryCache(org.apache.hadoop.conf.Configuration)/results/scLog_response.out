@@ -1,0 +1,5 @@
+<Line#2>:# LOG.info("Retry cache enabled: " + enable);:#
+<Line#7>:# LOG.info("Retry cache heap percent: " + heapPercent);:#
+<Line#10>:# LOG.info("Retry cache entry expiry in nanoseconds: " + entryExpiryNanos);:#
+<Line#12>:# LOG.info("Initializing RetryCache with NameNodeRetryCache, heapPercent: " + heapPercent + ", entryExpiryNanos: " + entryExpiryNanos);:#
+<Line#14>:# LOG.warn("Retry cache not enabled");:#

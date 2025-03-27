@@ -1,0 +1,61 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	LdapGroupsMapping.java	methodSinagture:	org.apache.hadoop.security.LdapGroupsMapping.loadSslConf(Lorg/apache/hadoop/conf/Configuration;)V	methodLines:	825:842
+blockLines:	838:-1
+paras:	null
+TaintedStat:	NORMAL loadSslConf:conditional branch(eq, to iindex=52) 28,14 Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, loadSslConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, loadSslConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[23]17 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 2,15,5 @42 exception:16
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, loadSslConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[23]17 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 2,15,5 @42 exception:16
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, loadSslConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[24]19 = invokevirtual < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, extractPassword(Ljava/lang/String;)Ljava/lang/String; > 1,17 @45 exception:18 v17
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, extractPassword(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere v2
+NORMAL extractPassword:5 = invokevirtual < Application, Ljava/lang/String, isEmpty()Z > 2 @1 exception:4 Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, extractPassword(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, isEmpty()Z > Context: Everywhere
+NORMAL isEmpty:return 7 Node: < Primordial, Ljava/lang/String, isEmpty()Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, isEmpty()Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, loadSslConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[41]28 = invokevirtual < Application, Ljava/lang/String, isEmpty()Z > 26 @80 exception:27
+NORMAL loadSslConf:conditional branch(eq, to iindex=52) 28,14 Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, loadSslConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	LdapGroupsMapping.java	methodSinagture:	org.apache.hadoop.security.LdapGroupsMapping.loadSslConf(Lorg/apache/hadoop/conf/Configuration;)V	methodLines:	825:842
+blockLines:	829:-1
+paras:	null
+TaintedStat:	NORMAL loadSslConf:conditional branch(eq, to iindex=26) 13,14 Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, loadSslConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, loadSslConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[49]31 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 2,29,5 @93 exception:30
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, loadSslConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[49]31 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 2,29,5 @93 exception:30
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, loadSslConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[50]33 = invokevirtual < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, extractPassword(Ljava/lang/String;)Ljava/lang/String; > 1,31 @96 exception:32 v31
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, extractPassword(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere v2
+NORMAL extractPassword:5 = invokevirtual < Application, Ljava/lang/String, isEmpty()Z > 2 @1 exception:4 Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, extractPassword(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, isEmpty()Z > Context: Everywhere
+NORMAL isEmpty:return 7 Node: < Primordial, Ljava/lang/String, isEmpty()Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, isEmpty()Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, loadSslConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[15]13 = invokevirtual < Application, Ljava/lang/String, isEmpty()Z > 11 @29 exception:12
+NORMAL loadSslConf:conditional branch(eq, to iindex=26) 13,14 Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, loadSslConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  private void loadSslConf(Configuration sslConf) {
+    keystore = sslConf.get(LDAP_KEYSTORE_KEY, LDAP_KEYSTORE_DEFAULT);
+    keystorePass = getPassword(sslConf, LDAP_KEYSTORE_PASSWORD_KEY,
+        LDAP_KEYSTORE_PASSWORD_DEFAULT);
+    if (keystorePass.isEmpty()) {
+      keystorePass = extractPassword(sslConf.get(
+          LDAP_KEYSTORE_PASSWORD_FILE_KEY,
+          LDAP_KEYSTORE_PASSWORD_FILE_DEFAULT));
+    }
+
+    truststore = sslConf.get(LDAP_TRUSTSTORE_KEY, "");
+    truststorePass = getPasswordFromCredentialProviders(
+        sslConf, LDAP_TRUSTSTORE_PASSWORD_KEY, "");
+    if (truststorePass.isEmpty()) {
+      truststorePass = extractPassword(
+          sslConf.get(LDAP_TRUSTSTORE_PASSWORD_FILE_KEY, ""));
+    }
+  }
+
+
+
+====================ctx:=======================

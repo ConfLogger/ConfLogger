@@ -1,0 +1,77 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	FastLeaderElection.java	methodSinagture:	org.apache.zookeeper.server.quorum.FastLeaderElection.checkLeader(Ljava/util/Map;JJ)Z	methodLines:	794:814
+blockLines:	805:-1
+paras:	null
+TaintedStat:	NORMAL checkLeader:conditional branch(ne, to iindex=18) 19,20 Node: < Application, Lorg/apache/zookeeper/server/quorum/FastLeaderElection, checkLeader(Ljava/util/Map;JJ)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/FastLeaderElection, checkLeader(Ljava/util/Map;JJ)Z > Context: Everywhere[12]19 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,17 @20 exception:18
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/FastLeaderElection, checkLeader(Ljava/util/Map;JJ)Z > Context: Everywhere[12]19 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,17 @20 exception:18
+NORMAL checkLeader:conditional branch(ne, to iindex=18) 19,20 Node: < Application, Lorg/apache/zookeeper/server/quorum/FastLeaderElection, checkLeader(Ljava/util/Map;JJ)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+
+        boolean predicate = true;
+
+        /*
+         * If everyone else thinks I'm the leader, I must be the leader.
+         * The other two checks are just for the case in which I'm not the
+         * leader. If I'm not the leader and I haven't received a message
+         * from leader stating that it is leading, then predicate is false.
+         */
+
+        if (leader != self.getMyId()) {
+            if (votes.get(leader) == null) {
+                predicate = false;
+            } else if (votes.get(leader).getState() != ServerState.LEADING) {
+                predicate = false;
+            }
+        } else if (logicalclock.get() != electionEpoch) {
+            predicate = false;
+        }
+
+        return predicate;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/FastLeaderElection, receivedFollowingNotification(Ljava/util/Map;Ljava/util/Map;Lorg/apache/zookeeper/server/quorum/SyncedLearnerTracker;Lorg/apache/zookeeper/server/quorum/FastLeaderElection$Notification;)Lorg/apache/zookeeper/server/quorum/Vote; > Context: Everywhere, blocks=[BB[SSA:56..56]28 - org.apache.zookeeper.server.quorum.FastLeaderElection.receivedFollowingNotification(Ljava/util/Map;Ljava/util/Map;Lorg/apache/zookeeper/server/quorum/SyncedLearnerTracker;Lorg/apache/zookeeper/server/quorum/FastLeaderElection$Notification;)Lorg/apache/zookeeper/server/quorum/Vote;, BB[SSA:54..55]27 - org.apache.zookeeper.server.quorum.FastLeaderElection.receivedFollowingNotification(Ljava/util/Map;Ljava/util/Map;Lorg/apache/zookeeper/server/quorum/SyncedLearnerTracker;Lorg/apache/zookeeper/server/quorum/FastLeaderElection$Notification;)Lorg/apache/zookeeper/server/quorum/Vote;, BB[SSA:57..58]29 - org.apache.zookeeper.server.quorum.FastLeaderElection.receivedFollowingNotification(Ljava/util/Map;Ljava/util/Map;Lorg/apache/zookeeper/server/quorum/SyncedLearnerTracker;Lorg/apache/zookeeper/server/quorum/FastLeaderElection$Notification;)Lorg/apache/zookeeper/server/quorum/Vote;, BB[SSA:-1..-2]85 - org.apache.zookeeper.server.quorum.FastLeaderElection.receivedFollowingNotification(Ljava/util/Map;Ljava/util/Map;Lorg/apache/zookeeper/server/quorum/SyncedLearnerTracker;Lorg/apache/zookeeper/server/quorum/FastLeaderElection$Notification;)Lorg/apache/zookeeper/server/quorum/Vote;, BB[SSA:131..131]64 - org.apache.zookeeper.server.quorum.FastLeaderElection.receivedFollowingNotification(Ljava/util/Map;Ljava/util/Map;Lorg/apache/zookeeper/server/quorum/SyncedLearnerTracker;Lorg/apache/zookeeper/server/quorum/FastLeaderElection$Notification;)Lorg/apache/zookeeper/server/quorum/Vote;, BB[SSA:129..130]63 - org.apache.zookeeper.server.quorum.FastLeaderElection.receivedFollowingNotification(Ljava/util/Map;Ljava/util/Map;Lorg/apache/zookeeper/server/quorum/SyncedLearnerTracker;Lorg/apache/zookeeper/server/quorum/FastLeaderElection$Notification;)Lorg/apache/zookeeper/server/quorum/Vote;, BB[SSA:132..133]65 - org.apache.zookeeper.server.quorum.FastLeaderElection.receivedFollowingNotification(Ljava/util/Map;Ljava/util/Map;Lorg/apache/zookeeper/server/quorum/SyncedLearnerTracker;Lorg/apache/zookeeper/server/quorum/FastLeaderElection$Notification;)Lorg/apache/zookeeper/server/quorum/Vote;, BB[SSA:-1..-2]85 - org.apache.zookeeper.server.quorum.FastLeaderElection.receivedFollowingNotification(Ljava/util/Map;Ljava/util/Map;Lorg/apache/zookeeper/server/quorum/SyncedLearnerTracker;Lorg/apache/zookeeper/server/quorum/FastLeaderElection$Notification;)Lorg/apache/zookeeper/server/quorum/Vote;], numberOfBasicBlocks=8, firstLineNumber=1172, lastLineNumber=1172, firstMethodNumber=1150, lastMethodNumber=1182, isFirstLineValid=true, methodSrcCode=
+         */
+        if (n.electionEpoch == logicalclock.get()) {
+            recvset.put(n.sid, new Vote(n.leader, n.zxid, n.electionEpoch, n.peerEpoch, n.state));
+            voteSet = getVoteTracker(recvset, new Vote(n.version, n.leader, n.zxid, n.electionEpoch, n.peerEpoch, n.state));
+            if (voteSet.hasAllQuorums() && checkLeader(recvset, n.leader, n.electionEpoch)) {
+                setPeerState(n.leader, voteSet);
+                Vote endVote = new Vote(n.leader, n.zxid, n.electionEpoch, n.peerEpoch);
+                leaveInstance(endVote);
+                return endVote;
+            }
+        }
+
+        /*
+         * Before joining an established ensemble, verify that
+         * a majority are following the same leader.
+         *
+         * Note that the outofelection map also stores votes from the current leader election.
+         * See ZOOKEEPER-1732 for more information.
+         */
+        outofelection.put(n.sid, new Vote(n.version, n.leader, n.zxid, n.electionEpoch, n.peerEpoch, n.state));
+        voteSet = getVoteTracker(outofelection, new Vote(n.version, n.leader, n.zxid, n.electionEpoch, n.peerEpoch, n.state));
+
+        if (voteSet.hasAllQuorums() && checkLeader(outofelection, n.leader, n.electionEpoch)) {
+            synchronized (this) {
+                logicalclock.set(n.electionEpoch);
+                setPeerState(n.leader, voteSet);
+            }
+            Vote endVote = new Vote(n.leader, n.zxid, n.electionEpoch, n.peerEpoch);
+            leaveInstance(endVote);
+            return endVote;
+        }
+
+        return null;
+    }
+}

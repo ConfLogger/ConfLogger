@@ -1,0 +1,3 @@
+public static BinaryInputArchive getArchive(InputStream stream){
+  return new BinaryInputArchive(new DataInputStream(stream));
+}

@@ -1,0 +1,415 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> private synchronized void initServer() throws IOException {
+<Line#1> if (mStateMachine != null) {
+<Line#2> mStateMachine.close();
+<Line#3> }
+<Line#4> mStateMachine = new JournalStateMachine(mJournals, this, mStateMachineStorage);
+<Line#5> 
+<Line#6> RaftProperties properties = new RaftProperties();
+<Line#7> Parameters parameters = new Parameters();
+<Line#8> 
+<Line#9> // TODO(feng): implement a custom RpcType to integrate with Alluxio authentication service
+<Line#10> RaftConfigKeys.Rpc.setType(properties, SupportedRpcType.GRPC);
+<Line#11> 
+<Line#12> // RPC port
+<Line#13> GrpcConfigKeys.Server.setPort(properties, mLocalAddress.getPort());
+<Line#14> 
+<Line#15> // storage path
+<Line#16> maybeMigrateOldJournal();
+<Line#17> RaftServerConfigKeys.setStorageDir(properties, Collections.singletonList(
+<Line#18> RaftJournalUtils.getRaftJournalDir(mPath)));
+<Line#19> 
+<Line#20> // segment size
+<Line#21> long segmentSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
+<Line#22> LOG.debug("Creating journal with max segment size {}", segmentSize);
+<Line#23> if (segmentSize > Integer.MAX_VALUE) {
+<Line#24> segmentSize = Integer.MAX_VALUE;
+<Line#25> }
+<Line#26> RaftServerConfigKeys.Log.setSegmentSizeMax(properties, SizeInBytes.valueOf(segmentSize));
+<Line#27> 
+<Line#28> // the following configurations need to be changed when the single journal entry
+<Line#29> // is unexpectedly big.
+<Line#30> RaftServerConfigKeys.Log.Appender.setBufferByteLimit(properties,
+<Line#31> SizeInBytes.valueOf(Configuration.global()
+<Line#32> .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX)));
+<Line#33> // this property defines the maximum allowed size of the concurrent journal flush requests.
+<Line#34> // if the total size of the journal entries contained in the flush requests
+<Line#35> // are bigger than the given threshold, Ratis may error out as
+<Line#36> // `Log entry size 117146048 exceeds the max buffer limit of 104857600`
+<Line#37> RaftServerConfigKeys.Write.setByteLimit(properties,
+<Line#38> SizeInBytes.valueOf(Configuration.global()
+<Line#39> .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX)));
+<Line#40> // this property defines the maximum allowed size of the concurrent journal write IO tasks.
+<Line#41> // if the total size of the journal entries contained in the write IO tasks
+<Line#42> // are bigger than the given threshold, ratis may error out as
+<Line#43> // `SegmentedRaftLogWorker: elementNumBytes = 78215699 > byteLimit = 67108864`
+<Line#44> RaftServerConfigKeys.Log.setQueueByteLimit(properties, (int) Configuration
+<Line#45> .global().getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX));
+<Line#46> 
+<Line#47> // Override election/heartbeat timeouts for single master cluster if election timeout is not
+<Line#48> // set explicitly. This is to speed up single master cluster boot-up.
+<Line#49> long min = Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT);
+<Line#50> long max = Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
+<Line#51> if (mClusterAddresses.size() == 1
+<Line#52> && !Configuration.isSetByUser(
+<Line#53> PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT)
+<Line#54> && !Configuration.isSetByUser(
+<Line#55> PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)) {
+<Line#56> LOG.info("Overriding election timeout to {}ms for single master cluster.",
+<Line#57> SINGLE_MASTER_ELECTION_TIMEOUT_MS);
+<Line#58> min = SINGLE_MASTER_ELECTION_TIMEOUT_MS;
+<Line#59> max = 2 * min;
+<Line#60> }
+<Line#61> Preconditions.checkState(min < max,
+<Line#62> "Min election timeout (%sms) should be less than max election timeout (%sms)", min, max);
+<Line#63> 
+<Line#64> // election timeout, heartbeat timeout is automatically 1/2 of the value
+<Line#65> RaftServerConfigKeys.Rpc.setTimeoutMin(properties,
+<Line#66> TimeDuration.valueOf(min, TimeUnit.MILLISECONDS));
+<Line#67> RaftServerConfigKeys.Rpc.setTimeoutMax(properties,
+<Line#68> TimeDuration.valueOf(max, TimeUnit.MILLISECONDS));
+<Line#69> 
+<Line#70> // request timeout
+<Line#71> RaftServerConfigKeys.Rpc.setRequestTimeout(properties, TimeDuration.valueOf(
+<Line#72> Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS),
+<Line#73> TimeUnit.MILLISECONDS));
+<Line#74> 
+<Line#75> RaftServerConfigKeys.RetryCache.setExpiryTime(properties, TimeDuration.valueOf(
+<Line#76> Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RETRY_CACHE_EXPIRY_TIME),
+<Line#77> TimeUnit.MILLISECONDS));
+<Line#78> 
+<Line#79> // snapshot retention
+<Line#80> RaftServerConfigKeys.Snapshot.setRetentionFileNum(properties, 2);
+<Line#81> 
+<Line#82> // unsafe flush
+<Line#83> RaftServerConfigKeys.Log.setUnsafeFlushEnabled(properties,
+<Line#84> Configuration.getBoolean(PropertyKey.MASTER_EMBEDDED_JOURNAL_UNSAFE_FLUSH_ENABLED));
+<Line#85> 
+<Line#86> // snapshot interval
+<Line#87> RaftServerConfigKeys.Snapshot.setAutoTriggerEnabled(
+<Line#88> properties, true);
+<Line#89> long snapshotAutoTriggerThreshold =
+<Line#90> Configuration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+<Line#91> RaftServerConfigKeys.Snapshot.setAutoTriggerThreshold(properties,
+<Line#92> snapshotAutoTriggerThreshold);
+<Line#93> // minimum distance between two snapshots in number of log entries
+<Line#94> RaftServerConfigKeys.Snapshot.setCreationGap(properties, 1L);
+<Line#95> 
+<Line#96> if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_LOCAL_LOG_COMPACTION)) {
+<Line#97> // purges log files after taking a snapshot successfully
+<Line#98> RaftServerConfigKeys.Log.setPurgeUptoSnapshotIndex(properties, true);
+<Line#99> // leaves no gap between log file purges: all log files included in a newly installed
+<Line#100> // snapshot are purged right away
+<Line#101> RaftServerConfigKeys.Log.setPurgeGap(properties, 1);
+<Line#102> }
+<Line#103> 
+<Line#104> RaftServerConfigKeys.Log.Appender.setInstallSnapshotEnabled(
+<Line#105> properties, false);
+<Line#106> 
+<Line#107> // if left enabled, the System.exit() called by Ratis can deadlock with the AlluxioMaster
+<Line#108> // process shutdown hook. Description:
+<Line#109> // * The AlluxioMaster starts the RaftJournalSystem using RaftJournalSystem.startInternal().
+<Line#110> //   It now holds a synchronized lock on RaftJournalSystem.
+<Line#111> // * startInternal calls mServer.start() and fails for any reason, calling System.exit(int) -->
+<Line#112> //   Runtime.getRuntime().exit(int) in Ratis.
+<Line#113> // * Runtime.getRuntime().exit(int) calls the shutdown hooks, including the {@link ProcessUtils)
+<Line#114> //   --> process.stop() --> RaftJournalSystem.stopInternal(), which cannot proceed because of
+<Line#115> //   the synchronized lock on RaftJournalSystem.
+<Line#116> // This line disables the System.exit(int) call in Ratis internally in favor of an
+<Line#117> // Exception being thrown. This prevents the deadlock.
+<Line#118> org.apache.ratis.util.ExitUtils.disableSystemExit();
+<Line#119> 
+<Line#120> /*
+<Line#121> * Soft disable RPC level safety.
+<Line#122> *
+<Line#123> * Without these overrides, the leader will step down upon detecting a long running GC over
+<Line#124> * 10sec. This is not desirable for a single master cluster. Additionally, reduced safety should
+<Line#125> * be provided via standard leader election in clustered mode.
+<Line#126> */
+<Line#127> RaftServerConfigKeys.Rpc.setSlownessTimeout(properties,
+<Line#128> TimeDuration.valueOf(Long.MAX_VALUE, TimeUnit.MILLISECONDS));
+<Line#129> RaftServerConfigKeys.LeaderElection.setLeaderStepDownWaitTime(properties,
+<Line#130> TimeDuration.valueOf(Long.MAX_VALUE, TimeUnit.MILLISECONDS));
+<Line#131> 
+<Line#132> long messageSize = Configuration.getBytes(
+<Line#133> PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE);
+<Line#134> GrpcConfigKeys.setMessageSizeMax(properties,
+<Line#135> SizeInBytes.valueOf(messageSize));
+<Line#136> RatisDropwizardExports.registerRatisMetricReporters(mRatisMetricsMap);
+<Line#137> 
+<Line#138> mergeAlluxioRatisConfig(properties);
+<Line#139> 
+<Line#140> // TODO(feng): clean up embedded journal configuration
+<Line#141> // build server
+<Line#142> mServer = RaftServer.newBuilder()
+<Line#143> .setServerId(mPeerId)
+<Line#144> .setGroup(mRaftGroup)
+<Line#145> .setStateMachine(mStateMachine)
+<Line#146> .setProperties(properties)
+<Line#147> .setParameters(parameters)
+<Line#148> .build();
+<Line#149> super.registerMetrics();
+<Line#150> MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_LEADER_INDEX.getName(),
+<Line#151> this::getLeaderIndex);
+<Line#152> MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ROLE_ID.getName(), this::getRoleId);
+<Line#153> MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_LEADER_ID.getName(), this::getLeaderId);
+<Line#154> }
+
+Relevant Logging Patterns:
+Example 1:
+File: alluxio__AccumulatingReducer-49__.json
+Code:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    mHostname=java.net.InetAddress.getLocalHost().getHostName();
+<Line#4>  }
+<Line#5> catch (  Exception e) {
+<Line#6>    mHostname="localhost";
+<Line#7>  }
+<Line#8>  LOG.info("Starting AccumulatingReducer on " + mHostname);
+<Line#9>}
+Log: <Line#8>:# LOG.info("Starting AccumulatingReducer on " + mHostname):#
+
+Example 2:
+File: alluxio__move-839__.json
+Code:
+<Line#1>{
+<Line#2>  List<ListenableFuture<Void>> futures=new ArrayList<>();
+<Line#3>  List<RouteFailure> errors=Collections.synchronizedList(new ArrayList<>());
+<Line#4>  for (  Route route : routes) {
+<Line#5>    UnderFileSystem srcUfs=getUnderFileSystem(route.getSrc());
+<Line#6>    UnderFileSystem dstUfs=getUnderFileSystem(route.getDst());
+<Line#7>    String srcRoot=new AlluxioURI(route.getSrc()).getRootPath();
+<Line#8>    String dstRoot=new AlluxioURI(route.getDst()).getRootPath();
+<Line#9>    try (FileSystem srcFs=new UfsBaseFileSystem(mFsContext,new UfsFileSystemOptions(srcRoot),new UfsManager.UfsClient(() -> srcUfs,new AlluxioURI(srcRoot)));FileSystem dstFs=new UfsBaseFileSystem(mFsContext,new UfsFileSystemOptions(dstRoot),new UfsManager.UfsClient(() -> dstUfs,new AlluxioURI(dstRoot)))){
+<Line#10>      ListenableFuture<Void> future=Futures.submit(() -> {
+<Line#11>        Boolean deleteFailure=false;
+<Line#12>        try {
+<Line#13>          if (readOptions.hasUser()) {
+<Line#14>            AuthenticatedClientUser.set(readOptions.getUser());
+<Line#15>          }
+<Line#16>          checkMovePermission(route.getSrc(),route.getDst());
+<Line#17>          if (!ValidateHandler.validate(route,writeOptions,srcFs,dstFs,true)) {
+<Line#18>            throw new FailedPreconditionRuntimeException("File " + route.getDst() + " is already in UFS");
+<Line#19>          }
+<Line#20>          CopyHandler.copy(route,writeOptions,srcFs,dstFs);
+<Line#21>          try {
+<Line#22>            DeleteHandler.delete(new AlluxioURI(route.getSrc()),srcFs);
+<Line#23>          }
+<Line#24> catch (          Exception e) {
+<Line#25>            deleteFailure=true;
+<Line#26>            throw e;
+<Line#27>          }
+<Line#28>        }
+<Line#29> catch (        Throwable t) {
+<Line#30>          LOG.error("Failed to move {} to {}",route.getSrc(),route.getDst(),t);
+<Line#31>          boolean permissionCheckSucceeded=!(t instanceof AccessControlException);
+<Line#32>          AlluxioRuntimeException e=AlluxioRuntimeException.from(t);
+<Line#33>          RouteFailure.Builder builder=RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value()).setRetryable(e.isRetryable() && permissionCheckSucceeded);
+<Line#34>          if (e.getMessage() != null) {
+<Line#35>            builder.setMessage(e.getMessage());
+<Line#36>          }
+<Line#37>          if (deleteFailure) {
+<Line#38>            builder.setRetryable(false);
+<Line#39>          }
+<Line#40>          errors.add(builder.build());
+<Line#41>        }
+<Line#42>      }
+<Line#43>,GrpcExecutors.WRITER_EXECUTOR);
+<Line#44>      futures.add(future);
+<Line#45>    }
+<Line#46> catch (    IOException e) {
+<Line#47>    }
+<Line#48>catch (    RejectedExecutionException e) {
+<Line#49>      LOG.warn("BlockDataWriterExecutor overloaded.");
+<Line#50>      AlluxioRuntimeException t=AlluxioRuntimeException.from(e);
+<Line#51>      RouteFailure.Builder builder=RouteFailure.newBuilder().setRoute(route).setCode(t.getStatus().getCode().value()).setRetryable(true);
+<Line#52>      errors.add(builder.build());
+<Line#53>    }
+<Line#54>  }
+<Line#55>  return Futures.whenAllComplete(futures).call(() -> errors,GrpcExecutors.WRITER_EXECUTOR);
+<Line#56>}
+Log: <Line#30>:# LOG.error("Failed to move {} to {}",route.getSrc(),route.getDst(),t):#
+
+Example 3:
+File: alluxio__move-839__.json
+Code:
+<Line#1>{
+<Line#2>  List<ListenableFuture<Void>> futures=new ArrayList<>();
+<Line#3>  List<RouteFailure> errors=Collections.synchronizedList(new ArrayList<>());
+<Line#4>  for (  Route route : routes) {
+<Line#5>    UnderFileSystem srcUfs=getUnderFileSystem(route.getSrc());
+<Line#6>    UnderFileSystem dstUfs=getUnderFileSystem(route.getDst());
+<Line#7>    String srcRoot=new AlluxioURI(route.getSrc()).getRootPath();
+<Line#8>    String dstRoot=new AlluxioURI(route.getDst()).getRootPath();
+<Line#9>    try (FileSystem srcFs=new UfsBaseFileSystem(mFsContext,new UfsFileSystemOptions(srcRoot),new UfsManager.UfsClient(() -> srcUfs,new AlluxioURI(srcRoot)));FileSystem dstFs=new UfsBaseFileSystem(mFsContext,new UfsFileSystemOptions(dstRoot),new UfsManager.UfsClient(() -> dstUfs,new AlluxioURI(dstRoot)))){
+<Line#10>      ListenableFuture<Void> future=Futures.submit(() -> {
+<Line#11>        Boolean deleteFailure=false;
+<Line#12>        try {
+<Line#13>          if (readOptions.hasUser()) {
+<Line#14>            AuthenticatedClientUser.set(readOptions.getUser());
+<Line#15>          }
+<Line#16>          checkMovePermission(route.getSrc(),route.getDst());
+<Line#17>          if (!ValidateHandler.validate(route,writeOptions,srcFs,dstFs,true)) {
+<Line#18>            throw new FailedPreconditionRuntimeException("File " + route.getDst() + " is already in UFS");
+<Line#19>          }
+<Line#20>          CopyHandler.copy(route,writeOptions,srcFs,dstFs);
+<Line#21>          try {
+<Line#22>            DeleteHandler.delete(new AlluxioURI(route.getSrc()),srcFs);
+<Line#23>          }
+<Line#24> catch (          Exception e) {
+<Line#25>            deleteFailure=true;
+<Line#26>            throw e;
+<Line#27>          }
+<Line#28>        }
+<Line#29> catch (        Throwable t) {
+<Line#30>          LOG.error("Failed to move {} to {}",route.getSrc(),route.getDst(),t);
+<Line#31>          boolean permissionCheckSucceeded=!(t instanceof AccessControlException);
+<Line#32>          AlluxioRuntimeException e=AlluxioRuntimeException.from(t);
+<Line#33>          RouteFailure.Builder builder=RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value()).setRetryable(e.isRetryable() && permissionCheckSucceeded);
+<Line#34>          if (e.getMessage() != null) {
+<Line#35>            builder.setMessage(e.getMessage());
+<Line#36>          }
+<Line#37>          if (deleteFailure) {
+<Line#38>            builder.setRetryable(false);
+<Line#39>          }
+<Line#40>          errors.add(builder.build());
+<Line#41>        }
+<Line#42>      }
+<Line#43>,GrpcExecutors.WRITER_EXECUTOR);
+<Line#44>      futures.add(future);
+<Line#45>    }
+<Line#46> catch (    IOException e) {
+<Line#47>    }
+<Line#48>catch (    RejectedExecutionException e) {
+<Line#49>      LOG.warn("BlockDataWriterExecutor overloaded.");
+<Line#50>      AlluxioRuntimeException t=AlluxioRuntimeException.from(e);
+<Line#51>      RouteFailure.Builder builder=RouteFailure.newBuilder().setRoute(route).setCode(t.getStatus().getCode().value()).setRetryable(true);
+<Line#52>      errors.add(builder.build());
+<Line#53>    }
+<Line#54>  }
+<Line#55>  return Futures.whenAllComplete(futures).call(() -> errors,GrpcExecutors.WRITER_EXECUTOR);
+<Line#56>}
+Log: <Line#49>:# LOG.warn("BlockDataWriterExecutor overloaded."):#
+
+Example 4:
+File: alluxio__connect-245__.json
+Code:
+<Line#1>{
+<Line#2>  if (mConnected) {
+<Line#3>    return;
+<Line#4>  }
+<Line#5>  disconnect();
+<Line#6>  Preconditions.checkState(!mClosed,"Client is closed, will not try to connect.");
+<Line#7>  IOException lastConnectFailure=null;
+<Line#8>  RetryPolicy retryPolicy=mRetryPolicySupplier.get();
+<Line#9>  while (retryPolicy.attempt()) {
+<Line#10>    if (mClosed) {
+<Line#11>      throw new FailedPreconditionException("Failed to connect: client has been closed");
+<Line#12>    }
+<Line#13>    try {
+<Line#14>      mServerAddress=queryGrpcServerAddress();
+<Line#15>    }
+<Line#16> catch (    UnavailableException e) {
+<Line#17>      LOG.debug("Failed to determine {} rpc address ({}): {}",getServiceName(),retryPolicy.getAttemptCount(),e.toString());
+<Line#18>      continue;
+<Line#19>    }
+<Line#20>    try {
+<Line#21>      beforeConnect();
+<Line#22>      LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",RuntimeConstants.VERSION,getServiceName(),mServerAddress);
+<Line#23>      mChannel=createChannel();
+<Line#24>      mVersionService=ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
+<Line#25>      mConnected=true;
+<Line#26>      afterConnect();
+<Line#27>      checkVersion(getServiceVersion());
+<Line#28>      LOG.debug("Alluxio client (version {}) is connected with {} @ {}",RuntimeConstants.VERSION,getServiceName(),mServerAddress);
+<Line#29>      return;
+<Line#30>    }
+<Line#31> catch (    IOException e) {
+<Line#32>      LOG.debug("Failed to connect ({}) with {} @ {}",retryPolicy.getAttemptCount(),getServiceName(),mServerAddress,e);
+<Line#33>      lastConnectFailure=e;
+<Line#34>      if (e instanceof UnauthenticatedException) {
+<Line#35>        mContext.getUserState().relogin();
+<Line#36>      }
+<Line#37>      if (e instanceof NotFoundException) {
+<Line#38>        break;
+<Line#39>      }
+<Line#40>    }
+<Line#41>  }
+<Line#42>  if (mChannel != null) {
+<Line#43>    mChannel.shutdown();
+<Line#44>  }
+<Line#45>  if (mServerAddress == null) {
+<Line#46>    throw new UnavailableException(String.format("Failed to determine address for %s after %s attempts",getServiceName(),retryPolicy.getAttemptCount()));
+<Line#47>  }
+<Line#48>  if (lastConnectFailure instanceof UnauthenticatedException) {
+<Line#49>    throw (AlluxioStatusException)lastConnectFailure;
+<Line#50>  }
+<Line#51>  if (lastConnectFailure instanceof NotFoundException) {
+<Line#52>    throw new NotFoundException(lastConnectFailure.getMessage(),new ServiceNotFoundException(lastConnectFailure.getMessage(),lastConnectFailure));
+<Line#53>  }
+<Line#54>  throw new UnavailableException(String.format("Failed to connect to master (%s) after %s attempts." + "Please check if Alluxio master is currently running on \"%s\". Service=\"%s\"",mServerAddress,retryPolicy.getAttemptCount(),mServerAddress,getServiceName()),lastConnectFailure);
+<Line#55>}
+Log: <Line#17>:# LOG.debug("Failed to determine {} rpc address ({}): {}",getServiceName(),retryPolicy.getAttemptCount(),e.toString()):#
+
+Example 5:
+File: alluxio__connect-245__.json
+Code:
+<Line#1>{
+<Line#2>  if (mConnected) {
+<Line#3>    return;
+<Line#4>  }
+<Line#5>  disconnect();
+<Line#6>  Preconditions.checkState(!mClosed,"Client is closed, will not try to connect.");
+<Line#7>  IOException lastConnectFailure=null;
+<Line#8>  RetryPolicy retryPolicy=mRetryPolicySupplier.get();
+<Line#9>  while (retryPolicy.attempt()) {
+<Line#10>    if (mClosed) {
+<Line#11>      throw new FailedPreconditionException("Failed to connect: client has been closed");
+<Line#12>    }
+<Line#13>    try {
+<Line#14>      mServerAddress=queryGrpcServerAddress();
+<Line#15>    }
+<Line#16> catch (    UnavailableException e) {
+<Line#17>      LOG.debug("Failed to determine {} rpc address ({}): {}",getServiceName(),retryPolicy.getAttemptCount(),e.toString());
+<Line#18>      continue;
+<Line#19>    }
+<Line#20>    try {
+<Line#21>      beforeConnect();
+<Line#22>      LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",RuntimeConstants.VERSION,getServiceName(),mServerAddress);
+<Line#23>      mChannel=createChannel();
+<Line#24>      mVersionService=ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
+<Line#25>      mConnected=true;
+<Line#26>      afterConnect();
+<Line#27>      checkVersion(getServiceVersion());
+<Line#28>      LOG.debug("Alluxio client (version {}) is connected with {} @ {}",RuntimeConstants.VERSION,getServiceName(),mServerAddress);
+<Line#29>      return;
+<Line#30>    }
+<Line#31> catch (    IOException e) {
+<Line#32>      LOG.debug("Failed to connect ({}) with {} @ {}",retryPolicy.getAttemptCount(),getServiceName(),mServerAddress,e);
+<Line#33>      lastConnectFailure=e;
+<Line#34>      if (e instanceof UnauthenticatedException) {
+<Line#35>        mContext.getUserState().relogin();
+<Line#36>      }
+<Line#37>      if (e instanceof NotFoundException) {
+<Line#38>        break;
+<Line#39>      }
+<Line#40>    }
+<Line#41>  }
+<Line#42>  if (mChannel != null) {
+<Line#43>    mChannel.shutdown();
+<Line#44>  }
+<Line#45>  if (mServerAddress == null) {
+<Line#46>    throw new UnavailableException(String.format("Failed to determine address for %s after %s attempts",getServiceName(),retryPolicy.getAttemptCount()));
+<Line#47>  }
+<Line#48>  if (lastConnectFailure instanceof UnauthenticatedException) {
+<Line#49>    throw (AlluxioStatusException)lastConnectFailure;
+<Line#50>  }
+<Line#51>  if (lastConnectFailure instanceof NotFoundException) {
+<Line#52>    throw new NotFoundException(lastConnectFailure.getMessage(),new ServiceNotFoundException(lastConnectFailure.getMessage(),lastConnectFailure));
+<Line#53>  }
+<Line#54>  throw new UnavailableException(String.format("Failed to connect to master (%s) after %s attempts." + "Please check if Alluxio master is currently running on \"%s\". Service=\"%s\"",mServerAddress,retryPolicy.getAttemptCount(),mServerAddress,getServiceName()),lastConnectFailure);
+<Line#55>}
+Log: <Line#22>:# LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",RuntimeConstants.VERSION,getServiceName(),mServerAddress):#

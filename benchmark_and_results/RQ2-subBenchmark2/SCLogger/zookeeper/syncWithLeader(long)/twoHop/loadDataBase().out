@@ -1,0 +1,14 @@
+/** 
+ * load the database from the disk onto memory and also add the transactions to the committedlog in memory.
+ * @return the last valid zxid on disk
+ * @throws IOException
+ */
+public long loadDataBase() throws IOException {
+  long startTime=Time.currentElapsedTime();
+  long zxid=snapLog.restore(dataTree,sessionsWithTimeouts,commitProposalPlaybackListener);
+  initialized=true;
+  long loadTime=Time.currentElapsedTime() - startTime;
+  ServerMetrics.getMetrics().DB_INIT_TIME.add(loadTime);
+  LOG.info("Snapshot loaded in {} ms, highest zxid is 0x{}, digest is {}",loadTime,Long.toHexString(zxid),dataTree.getTreeDigest());
+  return zxid;
+}

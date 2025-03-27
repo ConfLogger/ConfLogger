@@ -1,0 +1,23 @@
+/** 
+ * Writes dynamic configuration file
+ */
+public static void writeDynamicConfig(final String dynamicConfigFilename,final QuorumVerifier qv,final boolean needKeepVersion) throws IOException {
+  new AtomicFileWritingIdiom(new File(dynamicConfigFilename),new WriterStatement(){
+    @Override public void write(    Writer out) throws IOException {
+      Properties cfg=new Properties();
+      cfg.load(new StringReader(qv.toString()));
+      List<String> servers=new ArrayList<>();
+      for (      Entry<Object,Object> entry : cfg.entrySet()) {
+        String key=entry.getKey().toString().trim();
+        if (!needKeepVersion && key.startsWith("version")) {
+          continue;
+        }
+        String value=entry.getValue().toString().trim();
+        servers.add(key.concat("=").concat(value));
+      }
+      Collections.sort(servers);
+      out.write(StringUtils.joinStrings(servers,"\n"));
+    }
+  }
+);
+}

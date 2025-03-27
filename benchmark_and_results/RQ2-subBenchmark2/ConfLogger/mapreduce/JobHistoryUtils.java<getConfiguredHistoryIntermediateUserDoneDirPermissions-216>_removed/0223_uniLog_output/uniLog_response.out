@@ -1,0 +1,31 @@
+To add log level and log verbosity messages to the provided target method code, we should follow the examples given. Here's how you can insert logging into the target method code:
+
+```java
+<Line#0>Configuration conf) {
+<Line#1>String userDoneDirPermissions = conf.get(
+<Line#2>JHAdminConfig.MR_HISTORY_INTERMEDIATE_USER_DONE_DIR_PERMISSIONS);
+<Line#3>if (userDoneDirPermissions == null) {
+<Line#4>  if (LOG.isDebugEnabled()) {
+<Line#5>    LOG.debug("User done directory permissions not set, using default.");
+<Line#6>  }
+<Line#7>return new FsPermission(
+<Line#8>JHAdminConfig.DEFAULT_MR_HISTORY_INTERMEDIATE_USER_DONE_DIR_PERMISSIONS);
+<Line#9>}
+<Line#10>FsPermission permission = new FsPermission(userDoneDirPermissions);
+<Line#11>if (permission.getUserAction() != FsAction.ALL ||
+<Line#12>permission.getGroupAction() != FsAction.ALL) {
+<Line#13>  if (LOG.isWarnEnabled()) {
+<Line#14>    LOG.warn("User or group action is not set to ALL. Modifying permission.");
+<Line#15>  }
+<Line#16>permission = new FsPermission(FsAction.ALL, FsAction.ALL,
+<Line#17>permission.getOtherAction(), permission.getStickyBit());
+<Line#18>}
+<Line#19>return permission;
+<Line#20>}
+```
+
+**Explanation:**
+
+1. At `<Line#4>`, a debug log is added to indicate that the default permissions are being used because the user-specific permissions are not set.
+
+2. At `<Line#13>`, a warning log is added to indicate that the user or group permissions are not set to `ALL`, and therefore, the permissions are being modified.

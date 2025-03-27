@@ -1,0 +1,12 @@
+/** 
+ * Adds SslProvider.OPENSSL if OpenSsl is available and enabled. In order to make it available, one must ensure that a properly shaded netty-tcnative is on the classpath. Properly shaded means relocated to be prefixed with "org.apache.hbase.thirdparty" like the rest of the netty classes.
+ */
+private static boolean configureOpenSslIfAvailable(SslContextBuilder sslContextBuilder,Configuration conf){
+  if (OpenSsl.isAvailable() && conf.getBoolean(TLS_USE_OPENSSL,true)) {
+    return true;
+  }
+ else {
+    sslContextBuilder.sslProvider(SslProvider.JDK);
+    return false;
+  }
+}

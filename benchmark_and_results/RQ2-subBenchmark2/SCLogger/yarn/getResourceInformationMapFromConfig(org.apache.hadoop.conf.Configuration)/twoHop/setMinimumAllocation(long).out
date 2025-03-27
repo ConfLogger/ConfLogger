@@ -1,0 +1,7 @@
+/** 
+ * Set the minimum allocation for the resource.
+ * @param minimumAllocation the minimum allocation for the resource
+ */
+public void setMinimumAllocation(long minimumAllocation){
+  this.minimumAllocation=minimumAllocation;
+}

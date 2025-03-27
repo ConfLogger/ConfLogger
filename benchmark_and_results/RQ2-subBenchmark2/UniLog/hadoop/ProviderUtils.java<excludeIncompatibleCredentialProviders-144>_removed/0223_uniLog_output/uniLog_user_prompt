@@ -1,0 +1,380 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>String providerPath = config.get(
+<Line#1>CredentialProviderFactory.CREDENTIAL_PROVIDER_PATH);
+<Line#2>
+<Line#3>if (providerPath == null) {
+<Line#4>return config;
+<Line#5>}
+<Line#6>StringBuffer newProviderPath = new StringBuffer();
+<Line#7>String[] providers = providerPath.split(",");
+<Line#8>Path path = null;
+<Line#9>for (String provider: providers) {
+<Line#10>try {
+<Line#11>path = unnestUri(new URI(provider));
+<Line#12>Class<? extends FileSystem> clazz = null;
+<Line#13>try {
+<Line#14>String scheme = path.toUri().getScheme();
+<Line#15>clazz = FileSystem.getFileSystemClass(scheme, config);
+<Line#16>} catch (IOException ioe) {
+<Line#17>// not all providers are filesystem based
+<Line#18>// for instance user:/// will not be able to
+<Line#19>// have a filesystem class associated with it.
+<Line#20>if (newProviderPath.length() > 0) {
+<Line#21>newProviderPath.append(",");
+<Line#22>}
+<Line#23>newProviderPath.append(provider);
+<Line#24>}
+<Line#25>if (clazz != null) {
+<Line#26>if (fileSystemClass.isAssignableFrom(clazz)) {
+<Line#27>;
+<Line#28>} else {
+<Line#29>if (newProviderPath.length() > 0) {
+<Line#30>newProviderPath.append(",");
+<Line#31>}
+<Line#32>newProviderPath.append(provider);
+<Line#33>}
+<Line#34>}
+<Line#35>} catch (URISyntaxException e) {
+<Line#36>LOG.warn("Credential Provider URI is invalid." + provider);
+<Line#37>}
+<Line#38>}
+<Line#39>
+<Line#40>String effectivePath = newProviderPath.toString();
+<Line#41>if (effectivePath.equals(providerPath)) {
+<Line#42>return config;
+<Line#43>}
+<Line#44>
+<Line#45>Configuration conf = new Configuration(config);
+<Line#46>if (effectivePath.equals("")) {
+<Line#47>conf.unset(CredentialProviderFactory.CREDENTIAL_PROVIDER_PATH);
+<Line#48>} else {
+<Line#49>conf.set(CredentialProviderFactory.CREDENTIAL_PROVIDER_PATH,
+<Line#50>effectivePath);
+<Line#51>}
+<Line#52>return conf;
+<Line#53>}
+
+Example 1:
+<Line#1>{
+<Line#2>  numDisksBytesRead=0L;
+<Line#3>  numDisksBytesWritten=0L;
+<Line#4>  BufferedReader in;
+<Line#5>  try {
+<Line#6>    in=new BufferedReader(new InputStreamReader(Files.newInputStream(Paths.get(procfsDisksFile)),Charset.forName("UTF-8")));
+<Line#7>  }
+<Line#8> catch (  IOException f) {
+<Line#9>    return;
+<Line#10>  }
+<Line#11>  Matcher mat;
+<Line#12>  try {
+<Line#13>    String str=in.readLine();
+<Line#14>    while (str != null) {
+<Line#15>      mat=PROCFS_DISKSFILE_FORMAT.matcher(str);
+<Line#16>      if (mat.find()) {
+<Line#17>        String diskName=mat.group(4);
+<Line#18>        assert diskName != null;
+<Line#19>        if (diskName.contains("loop") || diskName.contains("ram")) {
+<Line#20>          str=in.readLine();
+<Line#21>          continue;
+<Line#22>        }
+<Line#23>        Integer sectorSize;
+<Line#24>synchronized (perDiskSectorSize) {
+<Line#25>          sectorSize=perDiskSectorSize.get(diskName);
+<Line#26>          if (null == sectorSize) {
+<Line#27>            sectorSize=readDiskBlockInformation(diskName,512);
+<Line#28>            perDiskSectorSize.put(diskName,sectorSize);
+<Line#29>          }
+<Line#30>        }
+<Line#31>        String sectorsRead=mat.group(7);
+<Line#32>        String sectorsWritten=mat.group(11);
+<Line#33>        if (null == sectorsRead || null == sectorsWritten) {
+<Line#34>          return;
+<Line#35>        }
+<Line#36>        numDisksBytesRead+=Long.parseLong(sectorsRead) * sectorSize;
+<Line#37>        numDisksBytesWritten+=Long.parseLong(sectorsWritten) * sectorSize;
+<Line#38>      }
+<Line#39>      str=in.readLine();
+<Line#40>    }
+<Line#41>  }
+<Line#42> catch (  IOException e) {
+<Line#43>    LOG.warn("Error reading the stream " + procfsDisksFile,e);
+<Line#44>  }
+<Line#45> finally {
+<Line#46>    try {
+<Line#47>      in.close();
+<Line#48>    }
+<Line#49> catch (    IOException e) {
+<Line#50>      LOG.warn("Error closing the stream " + procfsDisksFile,e);
+<Line#51>    }
+<Line#52>  }
+<Line#53>}
+Label: <Line#43> LOG.warn("Error reading the stream " + procfsDisksFile,e)
+
+Example 2:
+<Line#1>{
+<Line#2>  numDisksBytesRead=0L;
+<Line#3>  numDisksBytesWritten=0L;
+<Line#4>  BufferedReader in;
+<Line#5>  try {
+<Line#6>    in=new BufferedReader(new InputStreamReader(Files.newInputStream(Paths.get(procfsDisksFile)),Charset.forName("UTF-8")));
+<Line#7>  }
+<Line#8> catch (  IOException f) {
+<Line#9>    return;
+<Line#10>  }
+<Line#11>  Matcher mat;
+<Line#12>  try {
+<Line#13>    String str=in.readLine();
+<Line#14>    while (str != null) {
+<Line#15>      mat=PROCFS_DISKSFILE_FORMAT.matcher(str);
+<Line#16>      if (mat.find()) {
+<Line#17>        String diskName=mat.group(4);
+<Line#18>        assert diskName != null;
+<Line#19>        if (diskName.contains("loop") || diskName.contains("ram")) {
+<Line#20>          str=in.readLine();
+<Line#21>          continue;
+<Line#22>        }
+<Line#23>        Integer sectorSize;
+<Line#24>synchronized (perDiskSectorSize) {
+<Line#25>          sectorSize=perDiskSectorSize.get(diskName);
+<Line#26>          if (null == sectorSize) {
+<Line#27>            sectorSize=readDiskBlockInformation(diskName,512);
+<Line#28>            perDiskSectorSize.put(diskName,sectorSize);
+<Line#29>          }
+<Line#30>        }
+<Line#31>        String sectorsRead=mat.group(7);
+<Line#32>        String sectorsWritten=mat.group(11);
+<Line#33>        if (null == sectorsRead || null == sectorsWritten) {
+<Line#34>          return;
+<Line#35>        }
+<Line#36>        numDisksBytesRead+=Long.parseLong(sectorsRead) * sectorSize;
+<Line#37>        numDisksBytesWritten+=Long.parseLong(sectorsWritten) * sectorSize;
+<Line#38>      }
+<Line#39>      str=in.readLine();
+<Line#40>    }
+<Line#41>  }
+<Line#42> catch (  IOException e) {
+<Line#43>    LOG.warn("Error reading the stream " + procfsDisksFile,e);
+<Line#44>  }
+<Line#45> finally {
+<Line#46>    try {
+<Line#47>      in.close();
+<Line#48>    }
+<Line#49> catch (    IOException e) {
+<Line#50>      LOG.warn("Error closing the stream " + procfsDisksFile,e);
+<Line#51>    }
+<Line#52>  }
+<Line#53>}
+Label: <Line#50> LOG.warn("Error closing the stream " + procfsDisksFile,e)
+
+Example 3:
+<Line#1>{
+<Line#2>  boolean toDelete=false;
+<Line#3>  Map<String,RegistryPathStatus> childEntries;
+<Line#4>  Collection<RegistryPathStatus> entries;
+<Line#5>  try {
+<Line#6>    childEntries=RegistryUtils.statChildren(this,path);
+<Line#7>    entries=childEntries.values();
+<Line#8>  }
+<Line#9> catch (  PathNotFoundException e) {
+<Line#10>    return 0;
+<Line#11>  }
+<Line#12>  try {
+<Line#13>    RegistryPathStatus registryPathStatus=stat(path);
+<Line#14>    ServiceRecord serviceRecord=resolve(path);
+<Line#15>    toDelete=selector.shouldSelect(path,registryPathStatus,serviceRecord);
+<Line#16>  }
+<Line#17> catch (  EOFException ignored) {
+<Line#18>  }
+<Line#19>catch (  InvalidRecordException ignored) {
+<Line#20>  }
+<Line#21>catch (  NoRecordException ignored) {
+<Line#22>  }
+<Line#23>catch (  PathNotFoundException e) {
+<Line#24>    return 0;
+<Line#25>  }
+<Line#26>  if (toDelete && !entries.isEmpty()) {
+<Line#27>    if (LOG.isDebugEnabled()) {
+<Line#28>      LOG.debug("Match on record @ {} with children ",path);
+<Line#29>    }
+<Line#30>switch (purgePolicy) {
+<Line#31>case SkipOnChildren:
+<Line#32>      if (LOG.isDebugEnabled()) {
+<Line#33>        LOG.debug("Skipping deletion");
+<Line#34>      }
+<Line#35>    toDelete=false;
+<Line#36>  break;
+<Line#37>case PurgeAll:
+<Line#38>if (LOG.isDebugEnabled()) {
+<Line#39>  LOG.debug("Scheduling for deletion with children");
+<Line#40>}
+<Line#41>toDelete=true;
+<Line#42>entries=new ArrayList<RegistryPathStatus>(0);
+<Line#43>break;
+<Line#44>case FailOnChildren:
+<Line#45>if (LOG.isDebugEnabled()) {
+<Line#46>LOG.debug("Failing deletion operation");
+<Line#47>}
+<Line#48>throw new PathIsNotEmptyDirectoryException(path);
+<Line#49>}
+<Line#50>}
+<Line#51>int deleteOps=0;
+<Line#52>if (toDelete) {
+<Line#53>try {
+<Line#54>zkDelete(path,true,callback);
+<Line#55>}
+<Line#56> catch (PathNotFoundException e) {
+<Line#57>return deleteOps;
+<Line#58>}
+<Line#59>deleteOps++;
+<Line#60>}
+<Line#61>for (RegistryPathStatus status : entries) {
+<Line#62>String childname=status.path;
+<Line#63>String childpath=RegistryPathUtils.join(path,childname);
+<Line#64>deleteOps+=purge(childpath,selector,purgePolicy,callback);
+<Line#65>}
+<Line#66>return deleteOps;
+<Line#67>}
+Label: <Line#28> LOG.debug("Match on record @ {} with children ",path)
+
+Example 4:
+<Line#1>{
+<Line#2>  boolean toDelete=false;
+<Line#3>  Map<String,RegistryPathStatus> childEntries;
+<Line#4>  Collection<RegistryPathStatus> entries;
+<Line#5>  try {
+<Line#6>    childEntries=RegistryUtils.statChildren(this,path);
+<Line#7>    entries=childEntries.values();
+<Line#8>  }
+<Line#9> catch (  PathNotFoundException e) {
+<Line#10>    return 0;
+<Line#11>  }
+<Line#12>  try {
+<Line#13>    RegistryPathStatus registryPathStatus=stat(path);
+<Line#14>    ServiceRecord serviceRecord=resolve(path);
+<Line#15>    toDelete=selector.shouldSelect(path,registryPathStatus,serviceRecord);
+<Line#16>  }
+<Line#17> catch (  EOFException ignored) {
+<Line#18>  }
+<Line#19>catch (  InvalidRecordException ignored) {
+<Line#20>  }
+<Line#21>catch (  NoRecordException ignored) {
+<Line#22>  }
+<Line#23>catch (  PathNotFoundException e) {
+<Line#24>    return 0;
+<Line#25>  }
+<Line#26>  if (toDelete && !entries.isEmpty()) {
+<Line#27>    if (LOG.isDebugEnabled()) {
+<Line#28>      LOG.debug("Match on record @ {} with children ",path);
+<Line#29>    }
+<Line#30>switch (purgePolicy) {
+<Line#31>case SkipOnChildren:
+<Line#32>      if (LOG.isDebugEnabled()) {
+<Line#33>        LOG.debug("Skipping deletion");
+<Line#34>      }
+<Line#35>    toDelete=false;
+<Line#36>  break;
+<Line#37>case PurgeAll:
+<Line#38>if (LOG.isDebugEnabled()) {
+<Line#39>  LOG.debug("Scheduling for deletion with children");
+<Line#40>}
+<Line#41>toDelete=true;
+<Line#42>entries=new ArrayList<RegistryPathStatus>(0);
+<Line#43>break;
+<Line#44>case FailOnChildren:
+<Line#45>if (LOG.isDebugEnabled()) {
+<Line#46>LOG.debug("Failing deletion operation");
+<Line#47>}
+<Line#48>throw new PathIsNotEmptyDirectoryException(path);
+<Line#49>}
+<Line#50>}
+<Line#51>int deleteOps=0;
+<Line#52>if (toDelete) {
+<Line#53>try {
+<Line#54>zkDelete(path,true,callback);
+<Line#55>}
+<Line#56> catch (PathNotFoundException e) {
+<Line#57>return deleteOps;
+<Line#58>}
+<Line#59>deleteOps++;
+<Line#60>}
+<Line#61>for (RegistryPathStatus status : entries) {
+<Line#62>String childname=status.path;
+<Line#63>String childpath=RegistryPathUtils.join(path,childname);
+<Line#64>deleteOps+=purge(childpath,selector,purgePolicy,callback);
+<Line#65>}
+<Line#66>return deleteOps;
+<Line#67>}
+Label: <Line#33> LOG.debug("Skipping deletion")
+
+Example 5:
+<Line#1>{
+<Line#2>  boolean toDelete=false;
+<Line#3>  Map<String,RegistryPathStatus> childEntries;
+<Line#4>  Collection<RegistryPathStatus> entries;
+<Line#5>  try {
+<Line#6>    childEntries=RegistryUtils.statChildren(this,path);
+<Line#7>    entries=childEntries.values();
+<Line#8>  }
+<Line#9> catch (  PathNotFoundException e) {
+<Line#10>    return 0;
+<Line#11>  }
+<Line#12>  try {
+<Line#13>    RegistryPathStatus registryPathStatus=stat(path);
+<Line#14>    ServiceRecord serviceRecord=resolve(path);
+<Line#15>    toDelete=selector.shouldSelect(path,registryPathStatus,serviceRecord);
+<Line#16>  }
+<Line#17> catch (  EOFException ignored) {
+<Line#18>  }
+<Line#19>catch (  InvalidRecordException ignored) {
+<Line#20>  }
+<Line#21>catch (  NoRecordException ignored) {
+<Line#22>  }
+<Line#23>catch (  PathNotFoundException e) {
+<Line#24>    return 0;
+<Line#25>  }
+<Line#26>  if (toDelete && !entries.isEmpty()) {
+<Line#27>    if (LOG.isDebugEnabled()) {
+<Line#28>      LOG.debug("Match on record @ {} with children ",path);
+<Line#29>    }
+<Line#30>switch (purgePolicy) {
+<Line#31>case SkipOnChildren:
+<Line#32>      if (LOG.isDebugEnabled()) {
+<Line#33>        LOG.debug("Skipping deletion");
+<Line#34>      }
+<Line#35>    toDelete=false;
+<Line#36>  break;
+<Line#37>case PurgeAll:
+<Line#38>if (LOG.isDebugEnabled()) {
+<Line#39>  LOG.debug("Scheduling for deletion with children");
+<Line#40>}
+<Line#41>toDelete=true;
+<Line#42>entries=new ArrayList<RegistryPathStatus>(0);
+<Line#43>break;
+<Line#44>case FailOnChildren:
+<Line#45>if (LOG.isDebugEnabled()) {
+<Line#46>LOG.debug("Failing deletion operation");
+<Line#47>}
+<Line#48>throw new PathIsNotEmptyDirectoryException(path);
+<Line#49>}
+<Line#50>}
+<Line#51>int deleteOps=0;
+<Line#52>if (toDelete) {
+<Line#53>try {
+<Line#54>zkDelete(path,true,callback);
+<Line#55>}
+<Line#56> catch (PathNotFoundException e) {
+<Line#57>return deleteOps;
+<Line#58>}
+<Line#59>deleteOps++;
+<Line#60>}
+<Line#61>for (RegistryPathStatus status : entries) {
+<Line#62>String childname=status.path;
+<Line#63>String childpath=RegistryPathUtils.join(path,childname);
+<Line#64>deleteOps+=purge(childpath,selector,purgePolicy,callback);
+<Line#65>}
+<Line#66>return deleteOps;
+<Line#67>}
+Label: <Line#39> LOG.debug("Scheduling for deletion with children")
+

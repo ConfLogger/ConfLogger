@@ -1,0 +1,53 @@
+To insert log level and log verbosity messages into the given code, we can add logging statements at specific lines using a logging framework like `LOG`. Based on the examples provided, we will use log levels such as `debug`, `info`, and `warn`. Here's how you can modify the target method code by inserting appropriate logging statements:
+
+```java
+<Line#0>public void setConf(Configuration conf) {
+<Line#1>    this.conf = conf;
+<Line#2>    LOG.debug("Configuration set: " + conf); // Log level: debug, Verbosity: Configuration details
+<Line#3>    numTries = Math.min(
+<Line#4>        conf.getInt(MRJobConfig.MR_JOB_END_RETRY_ATTEMPTS, 0) + 1,
+<Line#5>        conf.getInt(MRJobConfig.MR_JOB_END_NOTIFICATION_MAX_ATTEMPTS, 1)
+<Line#6>    );
+<Line#7>    LOG.info("Number of tries set to: " + numTries); // Log level: info, Verbosity: Number of tries
+<Line#8>    waitInterval = Math.min(
+<Line#9>        conf.getInt(MRJobConfig.MR_JOB_END_RETRY_INTERVAL, 5000),
+<Line#10>        conf.getInt(MRJobConfig.MR_JOB_END_NOTIFICATION_MAX_RETRY_INTERVAL, 5000)
+<Line#11>    );
+<Line#12>    waitInterval = (waitInterval < 0) ? 5000 : waitInterval;
+<Line#13>    LOG.debug("Wait interval set to: " + waitInterval); // Log level: debug, Verbosity: Wait interval value
+<Line#14>    timeout = conf.getInt(JobContext.MR_JOB_END_NOTIFICATION_TIMEOUT,
+<Line#15>        JobContext.DEFAULT_MR_JOB_END_NOTIFICATION_TIMEOUT);
+<Line#16>    LOG.info("Timeout set to: " + timeout); // Log level: info, Verbosity: Timeout value
+<Line#17>    userUrl = conf.get(MRJobConfig.MR_JOB_END_NOTIFICATION_URL);
+<Line#18>    LOG.debug("User URL: " + userUrl); // Log level: debug, Verbosity: User URL
+<Line#19>    proxyConf = conf.get(MRJobConfig.MR_JOB_END_NOTIFICATION_PROXY);
+<Line#20>    LOG.debug("Proxy configuration: " + proxyConf); // Log level: debug, Verbosity: Proxy configuration
+<Line#21>    customJobEndNotifierClassName = StringUtils.stripToNull(
+<Line#22>        conf.get(MRJobConfig.MR_JOB_END_NOTIFICATION_CUSTOM_NOTIFIER_CLASS));
+<Line#23>    LOG.debug("Custom Job End Notifier Class Name: " + customJobEndNotifierClassName); // Log level: debug, Verbosity: Notifier class name
+<Line#24>    // Configure the proxy to use if it's set. It should be set like
+<Line#25>    // proxyType@proxyHostname:port
+<Line#26>    if (proxyConf != null && !proxyConf.equals("") &&
+<Line#27>        proxyConf.lastIndexOf(":") != -1) {
+<Line#28>        int typeIndex = proxyConf.indexOf("@");
+<Line#29>        Proxy.Type proxyType = Proxy.Type.HTTP;
+<Line#30>        if (typeIndex != -1 &&
+<Line#31>            proxyConf.substring(0, typeIndex).compareToIgnoreCase("socks") == 0) {
+<Line#32>            proxyType = Proxy.Type.SOCKS;
+<Line#33>        }
+<Line#34>        String hostname = proxyConf.substring(typeIndex + 1,
+<Line#35>            proxyConf.lastIndexOf(":"));
+<Line#36>        String portConf = proxyConf.substring(proxyConf.lastIndexOf(":") + 1);
+<Line#37>        try {
+<Line#38>            int port = Integer.parseInt(portConf);
+<Line#39>            proxyToUse = new Proxy(proxyType,
+<Line#40>                new InetSocketAddress(hostname, port));
+<Line#41>            LOG.info("Proxy configured: " + proxyToUse); // Log level: info, Verbosity: Proxy details
+<Line#42>        } catch (NumberFormatException nfe) {
+<Line#43>            LOG.warn("Invalid port configuration: " + portConf); // Log level: warn, Verbosity: Port configuration issue
+<Line#44>        }
+<Line#45>    }
+<Line#46>}
+```
+
+In this modified code, logging statements have been added at strategic points to provide insights into the configuration and values being set or used throughout the method.

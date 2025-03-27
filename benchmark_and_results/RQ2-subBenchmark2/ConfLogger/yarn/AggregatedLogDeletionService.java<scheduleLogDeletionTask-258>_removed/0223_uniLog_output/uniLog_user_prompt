@@ -1,0 +1,338 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>private void scheduleLogDeletionTask() throws IOException {
+<Line#1>Configuration conf = getConfig();
+<Line#2>if (!conf.getBoolean(YarnConfiguration.LOG_AGGREGATION_ENABLED,
+<Line#3>YarnConfiguration.DEFAULT_LOG_AGGREGATION_ENABLED)) {
+<Line#4>// Log aggregation is not enabled so don't bother
+<Line#5>return;
+<Line#6>}
+<Line#7>long retentionSecs = conf.getLong(
+<Line#8>YarnConfiguration.LOG_AGGREGATION_RETAIN_SECONDS,
+<Line#9>YarnConfiguration.DEFAULT_LOG_AGGREGATION_RETAIN_SECONDS);
+<Line#10>if (retentionSecs < 0) {
+<Line#11>return;
+<Line#12>}
+<Line#13>setLogAggCheckIntervalMsecs(retentionSecs);
+<Line#14>task = new LogDeletionTask(conf, retentionSecs, createRMClient());
+<Line#15>timer = new Timer();
+<Line#16>timer.scheduleAtFixedRate(task, 0, checkIntervalMsecs);
+<Line#17>}
+
+Example 1:
+<Line#1>{
+<Line#2>  enabled=conf.getBoolean(YarnConfiguration.SHARED_CACHE_ENABLED,YarnConfiguration.DEFAULT_SHARED_CACHE_ENABLED);
+<Line#3>  if (enabled) {
+<Line#4>    int threadCount=conf.getInt(YarnConfiguration.SHARED_CACHE_NM_UPLOADER_THREAD_COUNT,YarnConfiguration.DEFAULT_SHARED_CACHE_NM_UPLOADER_THREAD_COUNT);
+<Line#5>    uploaderPool=HadoopExecutors.newFixedThreadPool(threadCount,new ThreadFactoryBuilder().setNameFormat("Shared cache uploader #%d").build());
+<Line#6>    scmClient=createSCMClient(conf);
+<Line#7>    try {
+<Line#8>      fs=FileSystem.get(conf);
+<Line#9>      localFs=FileSystem.getLocal(conf);
+<Line#10>    }
+<Line#11> catch (    IOException e) {
+<Line#12>      LOG.error("Unexpected exception in getting the filesystem",e);
+<Line#13>      throw new RuntimeException(e);
+<Line#14>    }
+<Line#15>  }
+<Line#16>  super.serviceInit(conf);
+<Line#17>}
+Label: <Line#12> LOG.error("Unexpected exception in getting the filesystem",e)
+
+Example 2:
+<Line#1>{
+<Line#2>  LOG.info("Starting up YARN cluster");
+<Line#3>  if (conf == null) {
+<Line#4>    setConf(new YarnConfiguration());
+<Line#5>    conf.setBoolean(YarnConfiguration.YARN_MINICLUSTER_FIXED_PORTS,false);
+<Line#6>    conf.setBoolean(YarnConfiguration.YARN_MINICLUSTER_USE_RPC,false);
+<Line#7>    conf.setInt(YarnConfiguration.RM_MAX_COMPLETED_APPLICATIONS,YarnConfiguration.DEFAULT_RM_MAX_COMPLETED_APPLICATIONS);
+<Line#8>  }
+<Line#9>  conf.setInt(YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB,128);
+<Line#10>  conf.setLong(YarnConfiguration.DISPATCHER_DRAIN_EVENTS_TIMEOUT,1000);
+<Line#11>  conf.set("yarn.log.dir","target");
+<Line#12>  conf.set(YarnConfiguration.NM_AUX_SERVICES,"");
+<Line#13>  conf.set(YarnConfiguration.NM_VMEM_PMEM_RATIO,"8");
+<Line#14>  conf.set(YarnConfiguration.NM_CONTAINER_MON_RESOURCE_CALCULATOR,LinuxResourceCalculatorPlugin.class.getName());
+<Line#15>  conf.set(YarnConfiguration.NM_CONTAINER_MON_PROCESS_TREE,ProcfsBasedProcessTree.class.getName());
+<Line#16>  conf.setBoolean(YarnConfiguration.YARN_MINICLUSTER_CONTROL_RESOURCE_MONITORING,true);
+<Line#17>  conf.setBoolean(TIMELINE_SERVICE_ENABLED,false);
+<Line#18>  conf.setInt(YarnConfiguration.NM_MAX_PER_DISK_UTILIZATION_PERCENTAGE,100);
+<Line#19>  conf.setLong(DEBUG_NM_DELETE_DELAY_SEC,60000);
+<Line#20>  conf.setLong(AM_RESOURCE_MEM,526);
+<Line#21>  conf.setLong(YarnServiceConf.READINESS_CHECK_INTERVAL,5);
+<Line#22>  conf.setBoolean(NM_VMEM_CHECK_ENABLED,false);
+<Line#23>  conf.setBoolean(NM_PMEM_CHECK_ENABLED,false);
+<Line#24>  conf.set(HttpServer2.FILTER_INITIALIZER_PROPERTY,"org.apache.hadoop.security.AuthenticationFilterInitializer," + "org.apache.hadoop.security.HttpCrossOriginFilterInitializer");
+<Line#25>  zkCluster=new TestingCluster(1);
+<Line#26>  zkCluster.start();
+<Line#27>  conf.set(YarnConfiguration.RM_ZK_ADDRESS,zkCluster.getConnectString());
+<Line#28>  conf.set(KEY_REGISTRY_ZK_QUORUM,zkCluster.getConnectString());
+<Line#29>  LOG.info("ZK cluster: " + zkCluster.getConnectString());
+<Line#30>  curatorService=new CuratorService("testCuratorService");
+<Line#31>  curatorService.init(conf);
+<Line#32>  curatorService.start();
+<Line#33>  fs=FileSystem.get(conf);
+<Line#34>  basedir=new File("target","apps");
+<Line#35>  if (basedir.exists()) {
+<Line#36>    FileUtils.deleteDirectory(basedir);
+<Line#37>  }
+<Line#38> else {
+<Line#39>    basedir.mkdirs();
+<Line#40>  }
+<Line#41>  conf.set(YARN_SERVICE_BASE_PATH,basedir.getAbsolutePath());
+<Line#42>  if (yarnCluster == null) {
+<Line#43>    yarnCluster=new MiniYARNCluster(this.getClass().getSimpleName(),1,numNodeManager,1,1);
+<Line#44>    yarnCluster.init(conf);
+<Line#45>    yarnCluster.start();
+<Line#46>    waitForNMsToRegister();
+<Line#47>    URL url=Thread.currentThread().getContextClassLoader().getResource("yarn-site.xml");
+<Line#48>    if (url == null) {
+<Line#49>      throw new RuntimeException("Could not find 'yarn-site.xml' dummy file in classpath");
+<Line#50>    }
+<Line#51>    Configuration yarnClusterConfig=yarnCluster.getConfig();
+<Line#52>    yarnClusterConfig.set(YarnConfiguration.YARN_APPLICATION_CLASSPATH,new File(url.getPath()).getParent());
+<Line#53>    ByteArrayOutputStream bytesOut=new ByteArrayOutputStream();
+<Line#54>    yarnClusterConfig.writeXml(bytesOut);
+<Line#55>    bytesOut.close();
+<Line#56>    OutputStream os=new FileOutputStream(new File(url.getPath()));
+<Line#57>    os.write(bytesOut.toByteArray());
+<Line#58>    os.close();
+<Line#59>    LOG.info("Write yarn-site.xml configs to: " + url);
+<Line#60>  }
+<Line#61>  if (hdfsCluster == null) {
+<Line#62>    HdfsConfiguration hdfsConfig=new HdfsConfiguration();
+<Line#63>    hdfsCluster=new MiniDFSCluster.Builder(hdfsConfig).numDataNodes(1).build();
+<Line#64>  }
+<Line#65>  try {
+<Line#66>    Thread.sleep(2000);
+<Line#67>  }
+<Line#68> catch (  InterruptedException e) {
+<Line#69>    LOG.info("setup thread sleep interrupted. message=" + e.getMessage());
+<Line#70>  }
+<Line#71>}
+Label: <Line#2> LOG.info("Starting up YARN cluster")
+
+Example 3:
+<Line#1>{
+<Line#2>  LOG.info("Starting up YARN cluster");
+<Line#3>  if (conf == null) {
+<Line#4>    setConf(new YarnConfiguration());
+<Line#5>    conf.setBoolean(YarnConfiguration.YARN_MINICLUSTER_FIXED_PORTS,false);
+<Line#6>    conf.setBoolean(YarnConfiguration.YARN_MINICLUSTER_USE_RPC,false);
+<Line#7>    conf.setInt(YarnConfiguration.RM_MAX_COMPLETED_APPLICATIONS,YarnConfiguration.DEFAULT_RM_MAX_COMPLETED_APPLICATIONS);
+<Line#8>  }
+<Line#9>  conf.setInt(YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB,128);
+<Line#10>  conf.setLong(YarnConfiguration.DISPATCHER_DRAIN_EVENTS_TIMEOUT,1000);
+<Line#11>  conf.set("yarn.log.dir","target");
+<Line#12>  conf.set(YarnConfiguration.NM_AUX_SERVICES,"");
+<Line#13>  conf.set(YarnConfiguration.NM_VMEM_PMEM_RATIO,"8");
+<Line#14>  conf.set(YarnConfiguration.NM_CONTAINER_MON_RESOURCE_CALCULATOR,LinuxResourceCalculatorPlugin.class.getName());
+<Line#15>  conf.set(YarnConfiguration.NM_CONTAINER_MON_PROCESS_TREE,ProcfsBasedProcessTree.class.getName());
+<Line#16>  conf.setBoolean(YarnConfiguration.YARN_MINICLUSTER_CONTROL_RESOURCE_MONITORING,true);
+<Line#17>  conf.setBoolean(TIMELINE_SERVICE_ENABLED,false);
+<Line#18>  conf.setInt(YarnConfiguration.NM_MAX_PER_DISK_UTILIZATION_PERCENTAGE,100);
+<Line#19>  conf.setLong(DEBUG_NM_DELETE_DELAY_SEC,60000);
+<Line#20>  conf.setLong(AM_RESOURCE_MEM,526);
+<Line#21>  conf.setLong(YarnServiceConf.READINESS_CHECK_INTERVAL,5);
+<Line#22>  conf.setBoolean(NM_VMEM_CHECK_ENABLED,false);
+<Line#23>  conf.setBoolean(NM_PMEM_CHECK_ENABLED,false);
+<Line#24>  conf.set(HttpServer2.FILTER_INITIALIZER_PROPERTY,"org.apache.hadoop.security.AuthenticationFilterInitializer," + "org.apache.hadoop.security.HttpCrossOriginFilterInitializer");
+<Line#25>  zkCluster=new TestingCluster(1);
+<Line#26>  zkCluster.start();
+<Line#27>  conf.set(YarnConfiguration.RM_ZK_ADDRESS,zkCluster.getConnectString());
+<Line#28>  conf.set(KEY_REGISTRY_ZK_QUORUM,zkCluster.getConnectString());
+<Line#29>  LOG.info("ZK cluster: " + zkCluster.getConnectString());
+<Line#30>  curatorService=new CuratorService("testCuratorService");
+<Line#31>  curatorService.init(conf);
+<Line#32>  curatorService.start();
+<Line#33>  fs=FileSystem.get(conf);
+<Line#34>  basedir=new File("target","apps");
+<Line#35>  if (basedir.exists()) {
+<Line#36>    FileUtils.deleteDirectory(basedir);
+<Line#37>  }
+<Line#38> else {
+<Line#39>    basedir.mkdirs();
+<Line#40>  }
+<Line#41>  conf.set(YARN_SERVICE_BASE_PATH,basedir.getAbsolutePath());
+<Line#42>  if (yarnCluster == null) {
+<Line#43>    yarnCluster=new MiniYARNCluster(this.getClass().getSimpleName(),1,numNodeManager,1,1);
+<Line#44>    yarnCluster.init(conf);
+<Line#45>    yarnCluster.start();
+<Line#46>    waitForNMsToRegister();
+<Line#47>    URL url=Thread.currentThread().getContextClassLoader().getResource("yarn-site.xml");
+<Line#48>    if (url == null) {
+<Line#49>      throw new RuntimeException("Could not find 'yarn-site.xml' dummy file in classpath");
+<Line#50>    }
+<Line#51>    Configuration yarnClusterConfig=yarnCluster.getConfig();
+<Line#52>    yarnClusterConfig.set(YarnConfiguration.YARN_APPLICATION_CLASSPATH,new File(url.getPath()).getParent());
+<Line#53>    ByteArrayOutputStream bytesOut=new ByteArrayOutputStream();
+<Line#54>    yarnClusterConfig.writeXml(bytesOut);
+<Line#55>    bytesOut.close();
+<Line#56>    OutputStream os=new FileOutputStream(new File(url.getPath()));
+<Line#57>    os.write(bytesOut.toByteArray());
+<Line#58>    os.close();
+<Line#59>    LOG.info("Write yarn-site.xml configs to: " + url);
+<Line#60>  }
+<Line#61>  if (hdfsCluster == null) {
+<Line#62>    HdfsConfiguration hdfsConfig=new HdfsConfiguration();
+<Line#63>    hdfsCluster=new MiniDFSCluster.Builder(hdfsConfig).numDataNodes(1).build();
+<Line#64>  }
+<Line#65>  try {
+<Line#66>    Thread.sleep(2000);
+<Line#67>  }
+<Line#68> catch (  InterruptedException e) {
+<Line#69>    LOG.info("setup thread sleep interrupted. message=" + e.getMessage());
+<Line#70>  }
+<Line#71>}
+Label: <Line#29> LOG.info("ZK cluster: " + zkCluster.getConnectString())
+
+Example 4:
+<Line#1>{
+<Line#2>  LOG.info("Starting up YARN cluster");
+<Line#3>  if (conf == null) {
+<Line#4>    setConf(new YarnConfiguration());
+<Line#5>    conf.setBoolean(YarnConfiguration.YARN_MINICLUSTER_FIXED_PORTS,false);
+<Line#6>    conf.setBoolean(YarnConfiguration.YARN_MINICLUSTER_USE_RPC,false);
+<Line#7>    conf.setInt(YarnConfiguration.RM_MAX_COMPLETED_APPLICATIONS,YarnConfiguration.DEFAULT_RM_MAX_COMPLETED_APPLICATIONS);
+<Line#8>  }
+<Line#9>  conf.setInt(YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB,128);
+<Line#10>  conf.setLong(YarnConfiguration.DISPATCHER_DRAIN_EVENTS_TIMEOUT,1000);
+<Line#11>  conf.set("yarn.log.dir","target");
+<Line#12>  conf.set(YarnConfiguration.NM_AUX_SERVICES,"");
+<Line#13>  conf.set(YarnConfiguration.NM_VMEM_PMEM_RATIO,"8");
+<Line#14>  conf.set(YarnConfiguration.NM_CONTAINER_MON_RESOURCE_CALCULATOR,LinuxResourceCalculatorPlugin.class.getName());
+<Line#15>  conf.set(YarnConfiguration.NM_CONTAINER_MON_PROCESS_TREE,ProcfsBasedProcessTree.class.getName());
+<Line#16>  conf.setBoolean(YarnConfiguration.YARN_MINICLUSTER_CONTROL_RESOURCE_MONITORING,true);
+<Line#17>  conf.setBoolean(TIMELINE_SERVICE_ENABLED,false);
+<Line#18>  conf.setInt(YarnConfiguration.NM_MAX_PER_DISK_UTILIZATION_PERCENTAGE,100);
+<Line#19>  conf.setLong(DEBUG_NM_DELETE_DELAY_SEC,60000);
+<Line#20>  conf.setLong(AM_RESOURCE_MEM,526);
+<Line#21>  conf.setLong(YarnServiceConf.READINESS_CHECK_INTERVAL,5);
+<Line#22>  conf.setBoolean(NM_VMEM_CHECK_ENABLED,false);
+<Line#23>  conf.setBoolean(NM_PMEM_CHECK_ENABLED,false);
+<Line#24>  conf.set(HttpServer2.FILTER_INITIALIZER_PROPERTY,"org.apache.hadoop.security.AuthenticationFilterInitializer," + "org.apache.hadoop.security.HttpCrossOriginFilterInitializer");
+<Line#25>  zkCluster=new TestingCluster(1);
+<Line#26>  zkCluster.start();
+<Line#27>  conf.set(YarnConfiguration.RM_ZK_ADDRESS,zkCluster.getConnectString());
+<Line#28>  conf.set(KEY_REGISTRY_ZK_QUORUM,zkCluster.getConnectString());
+<Line#29>  LOG.info("ZK cluster: " + zkCluster.getConnectString());
+<Line#30>  curatorService=new CuratorService("testCuratorService");
+<Line#31>  curatorService.init(conf);
+<Line#32>  curatorService.start();
+<Line#33>  fs=FileSystem.get(conf);
+<Line#34>  basedir=new File("target","apps");
+<Line#35>  if (basedir.exists()) {
+<Line#36>    FileUtils.deleteDirectory(basedir);
+<Line#37>  }
+<Line#38> else {
+<Line#39>    basedir.mkdirs();
+<Line#40>  }
+<Line#41>  conf.set(YARN_SERVICE_BASE_PATH,basedir.getAbsolutePath());
+<Line#42>  if (yarnCluster == null) {
+<Line#43>    yarnCluster=new MiniYARNCluster(this.getClass().getSimpleName(),1,numNodeManager,1,1);
+<Line#44>    yarnCluster.init(conf);
+<Line#45>    yarnCluster.start();
+<Line#46>    waitForNMsToRegister();
+<Line#47>    URL url=Thread.currentThread().getContextClassLoader().getResource("yarn-site.xml");
+<Line#48>    if (url == null) {
+<Line#49>      throw new RuntimeException("Could not find 'yarn-site.xml' dummy file in classpath");
+<Line#50>    }
+<Line#51>    Configuration yarnClusterConfig=yarnCluster.getConfig();
+<Line#52>    yarnClusterConfig.set(YarnConfiguration.YARN_APPLICATION_CLASSPATH,new File(url.getPath()).getParent());
+<Line#53>    ByteArrayOutputStream bytesOut=new ByteArrayOutputStream();
+<Line#54>    yarnClusterConfig.writeXml(bytesOut);
+<Line#55>    bytesOut.close();
+<Line#56>    OutputStream os=new FileOutputStream(new File(url.getPath()));
+<Line#57>    os.write(bytesOut.toByteArray());
+<Line#58>    os.close();
+<Line#59>    LOG.info("Write yarn-site.xml configs to: " + url);
+<Line#60>  }
+<Line#61>  if (hdfsCluster == null) {
+<Line#62>    HdfsConfiguration hdfsConfig=new HdfsConfiguration();
+<Line#63>    hdfsCluster=new MiniDFSCluster.Builder(hdfsConfig).numDataNodes(1).build();
+<Line#64>  }
+<Line#65>  try {
+<Line#66>    Thread.sleep(2000);
+<Line#67>  }
+<Line#68> catch (  InterruptedException e) {
+<Line#69>    LOG.info("setup thread sleep interrupted. message=" + e.getMessage());
+<Line#70>  }
+<Line#71>}
+Label: <Line#59> LOG.info("Write yarn-site.xml configs to: " + url)
+
+Example 5:
+<Line#1>{
+<Line#2>  LOG.info("Starting up YARN cluster");
+<Line#3>  if (conf == null) {
+<Line#4>    setConf(new YarnConfiguration());
+<Line#5>    conf.setBoolean(YarnConfiguration.YARN_MINICLUSTER_FIXED_PORTS,false);
+<Line#6>    conf.setBoolean(YarnConfiguration.YARN_MINICLUSTER_USE_RPC,false);
+<Line#7>    conf.setInt(YarnConfiguration.RM_MAX_COMPLETED_APPLICATIONS,YarnConfiguration.DEFAULT_RM_MAX_COMPLETED_APPLICATIONS);
+<Line#8>  }
+<Line#9>  conf.setInt(YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB,128);
+<Line#10>  conf.setLong(YarnConfiguration.DISPATCHER_DRAIN_EVENTS_TIMEOUT,1000);
+<Line#11>  conf.set("yarn.log.dir","target");
+<Line#12>  conf.set(YarnConfiguration.NM_AUX_SERVICES,"");
+<Line#13>  conf.set(YarnConfiguration.NM_VMEM_PMEM_RATIO,"8");
+<Line#14>  conf.set(YarnConfiguration.NM_CONTAINER_MON_RESOURCE_CALCULATOR,LinuxResourceCalculatorPlugin.class.getName());
+<Line#15>  conf.set(YarnConfiguration.NM_CONTAINER_MON_PROCESS_TREE,ProcfsBasedProcessTree.class.getName());
+<Line#16>  conf.setBoolean(YarnConfiguration.YARN_MINICLUSTER_CONTROL_RESOURCE_MONITORING,true);
+<Line#17>  conf.setBoolean(TIMELINE_SERVICE_ENABLED,false);
+<Line#18>  conf.setInt(YarnConfiguration.NM_MAX_PER_DISK_UTILIZATION_PERCENTAGE,100);
+<Line#19>  conf.setLong(DEBUG_NM_DELETE_DELAY_SEC,60000);
+<Line#20>  conf.setLong(AM_RESOURCE_MEM,526);
+<Line#21>  conf.setLong(YarnServiceConf.READINESS_CHECK_INTERVAL,5);
+<Line#22>  conf.setBoolean(NM_VMEM_CHECK_ENABLED,false);
+<Line#23>  conf.setBoolean(NM_PMEM_CHECK_ENABLED,false);
+<Line#24>  conf.set(HttpServer2.FILTER_INITIALIZER_PROPERTY,"org.apache.hadoop.security.AuthenticationFilterInitializer," + "org.apache.hadoop.security.HttpCrossOriginFilterInitializer");
+<Line#25>  zkCluster=new TestingCluster(1);
+<Line#26>  zkCluster.start();
+<Line#27>  conf.set(YarnConfiguration.RM_ZK_ADDRESS,zkCluster.getConnectString());
+<Line#28>  conf.set(KEY_REGISTRY_ZK_QUORUM,zkCluster.getConnectString());
+<Line#29>  LOG.info("ZK cluster: " + zkCluster.getConnectString());
+<Line#30>  curatorService=new CuratorService("testCuratorService");
+<Line#31>  curatorService.init(conf);
+<Line#32>  curatorService.start();
+<Line#33>  fs=FileSystem.get(conf);
+<Line#34>  basedir=new File("target","apps");
+<Line#35>  if (basedir.exists()) {
+<Line#36>    FileUtils.deleteDirectory(basedir);
+<Line#37>  }
+<Line#38> else {
+<Line#39>    basedir.mkdirs();
+<Line#40>  }
+<Line#41>  conf.set(YARN_SERVICE_BASE_PATH,basedir.getAbsolutePath());
+<Line#42>  if (yarnCluster == null) {
+<Line#43>    yarnCluster=new MiniYARNCluster(this.getClass().getSimpleName(),1,numNodeManager,1,1);
+<Line#44>    yarnCluster.init(conf);
+<Line#45>    yarnCluster.start();
+<Line#46>    waitForNMsToRegister();
+<Line#47>    URL url=Thread.currentThread().getContextClassLoader().getResource("yarn-site.xml");
+<Line#48>    if (url == null) {
+<Line#49>      throw new RuntimeException("Could not find 'yarn-site.xml' dummy file in classpath");
+<Line#50>    }
+<Line#51>    Configuration yarnClusterConfig=yarnCluster.getConfig();
+<Line#52>    yarnClusterConfig.set(YarnConfiguration.YARN_APPLICATION_CLASSPATH,new File(url.getPath()).getParent());
+<Line#53>    ByteArrayOutputStream bytesOut=new ByteArrayOutputStream();
+<Line#54>    yarnClusterConfig.writeXml(bytesOut);
+<Line#55>    bytesOut.close();
+<Line#56>    OutputStream os=new FileOutputStream(new File(url.getPath()));
+<Line#57>    os.write(bytesOut.toByteArray());
+<Line#58>    os.close();
+<Line#59>    LOG.info("Write yarn-site.xml configs to: " + url);
+<Line#60>  }
+<Line#61>  if (hdfsCluster == null) {
+<Line#62>    HdfsConfiguration hdfsConfig=new HdfsConfiguration();
+<Line#63>    hdfsCluster=new MiniDFSCluster.Builder(hdfsConfig).numDataNodes(1).build();
+<Line#64>  }
+<Line#65>  try {
+<Line#66>    Thread.sleep(2000);
+<Line#67>  }
+<Line#68> catch (  InterruptedException e) {
+<Line#69>    LOG.info("setup thread sleep interrupted. message=" + e.getMessage());
+<Line#70>  }
+<Line#71>}
+Label: <Line#69> LOG.info("setup thread sleep interrupted. message=" + e.getMessage())
+

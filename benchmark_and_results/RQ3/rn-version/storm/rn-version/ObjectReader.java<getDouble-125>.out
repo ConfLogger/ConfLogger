@@ -1,0 +1,55 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getDouble(Ljava/lang/Object;Ljava/lang/Double;)Ljava/lang/Double;	methodLines:	125:132
+blockLines:	129:-1
+paras:	null
+TaintedStat:	NORMAL getDouble:conditional branch(eq, to iindex=14) 5,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getDouble(Ljava/lang/Object;Ljava/lang/Double;)Ljava/lang/Double; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, prepare(Lorg/apache/storm/task/WorkerTopologyContext;Lorg/apache/storm/generated/GlobalStreamId;Ljava/util/List;)V > Context: Everywhere[73]54 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 51,52 @157 exception:53
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, prepare(Lorg/apache/storm/task/WorkerTopologyContext;Lorg/apache/storm/generated/GlobalStreamId;Ljava/util/List;)V > Context: Everywhere[73]54 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 51,52 @157 exception:53
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, prepare(Lorg/apache/storm/task/WorkerTopologyContext;Lorg/apache/storm/generated/GlobalStreamId;Ljava/util/List;)V > Context: Everywhere[74]56 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getDouble(Ljava/lang/Object;)Ljava/lang/Double; > 54 @162 exception:55 v54
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getDouble(Ljava/lang/Object;)Ljava/lang/Double; > Context: Everywhere v1
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getDouble(Ljava/lang/Object;)Ljava/lang/Double; > Context: Everywhere[2]5 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getDouble(Ljava/lang/Object;Ljava/lang/Double;)Ljava/lang/Double; > 1,3 @2 exception:4 v1
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getDouble(Ljava/lang/Object;Ljava/lang/Double;)Ljava/lang/Double; > Context: Everywhere v1
+NORMAL getDouble:conditional branch(ne, to iindex=5) 4,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getDouble(Ljava/lang/Object;Ljava/lang/Double;)Ljava/lang/Double; > Context: Everywhere
+NORMAL getDouble:conditional branch(eq, to iindex=14) 5,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getDouble(Ljava/lang/Object;Ljava/lang/Double;)Ljava/lang/Double; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getDouble(Ljava/lang/Object;Ljava/lang/Double;)Ljava/lang/Double;	methodLines:	125:132
+blockLines:	126:-1
+paras:	null
+TaintedStat:	NORMAL getDouble:conditional branch(ne, to iindex=5) 4,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getDouble(Ljava/lang/Object;Ljava/lang/Double;)Ljava/lang/Double; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, prepare(Lorg/apache/storm/task/WorkerTopologyContext;Lorg/apache/storm/generated/GlobalStreamId;Ljava/util/List;)V > Context: Everywhere[81]62 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 59,60 @178 exception:61
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, prepare(Lorg/apache/storm/task/WorkerTopologyContext;Lorg/apache/storm/generated/GlobalStreamId;Ljava/util/List;)V > Context: Everywhere[81]62 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 59,60 @178 exception:61
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, prepare(Lorg/apache/storm/task/WorkerTopologyContext;Lorg/apache/storm/generated/GlobalStreamId;Ljava/util/List;)V > Context: Everywhere[82]64 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getDouble(Ljava/lang/Object;)Ljava/lang/Double; > 62 @183 exception:63 v62
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getDouble(Ljava/lang/Object;)Ljava/lang/Double; > Context: Everywhere v1
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getDouble(Ljava/lang/Object;)Ljava/lang/Double; > Context: Everywhere[2]5 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getDouble(Ljava/lang/Object;Ljava/lang/Double;)Ljava/lang/Double; > 1,3 @2 exception:4 v1
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getDouble(Ljava/lang/Object;Ljava/lang/Double;)Ljava/lang/Double; > Context: Everywhere v1
+NORMAL getDouble:conditional branch(ne, to iindex=5) 4,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getDouble(Ljava/lang/Object;Ljava/lang/Double;)Ljava/lang/Double; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static Double getDouble(Object o, Double defaultValue) {
+        if (null == o) {
+            return defaultValue;
+        }
+        if (o instanceof Number) {
+            return ((Number) o).doubleValue();
+        } else {
+            throw new IllegalArgumentException("Don't know how to convert (" + o + ") to double");
+        }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/utils/ObjectReader, getDouble(Ljava/lang/Object;)Ljava/lang/Double; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.storm.utils.ObjectReader.getDouble(Ljava/lang/Object;)Ljava/lang/Double;, BB[SSA:-1..-2]0 - org.apache.storm.utils.ObjectReader.getDouble(Ljava/lang/Object;)Ljava/lang/Double;, BB[SSA:3..6]2 - org.apache.storm.utils.ObjectReader.getDouble(Ljava/lang/Object;)Ljava/lang/Double;, BB[SSA:-1..-2]7 - org.apache.storm.utils.ObjectReader.getDouble(Ljava/lang/Object;)Ljava/lang/Double;], numberOfBasicBlocks=4, firstLineNumber=117, lastLineNumber=119, firstMethodNumber=117, lastMethodNumber=122, isFirstLineValid=false, methodSrcCode=
+    public static Double getDouble(Object o) {
+        Double result = getDouble(o, null);
+        if (null == result) {
+            throw new IllegalArgumentException("Don't know how to convert null to double");
+        }
+        return result;
+    }
+}

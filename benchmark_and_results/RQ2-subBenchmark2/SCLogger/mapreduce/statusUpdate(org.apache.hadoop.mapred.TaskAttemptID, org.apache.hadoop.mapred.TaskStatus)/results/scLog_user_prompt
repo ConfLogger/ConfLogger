@@ -1,0 +1,273 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId yarnAttemptID =
+<Line#1> TypeConverter.toYarn(taskAttemptID);
+<Line#2> 
+<Line#3> AMFeedback feedback = new AMFeedback();
+<Line#4> feedback.setTaskFound(true);
+<Line#5> 
+<Line#6> AtomicReference<TaskAttemptStatus> lastStatusRef =
+<Line#7> attemptIdToStatus.get(yarnAttemptID);
+<Line#8> if (lastStatusRef == null) {
+<Line#9> // The task is not known, but it could be in the process of tearing
+<Line#10> // down gracefully or receiving a thread dump signal. Tolerate unknown
+<Line#11> // tasks as long as they have unregistered recently.
+<Line#12> if (!taskHeartbeatHandler.hasRecentlyUnregistered(yarnAttemptID)) {
+<Line#13> feedback.setTaskFound(false);
+<Line#14> }
+<Line#15> return feedback;
+<Line#16> }
+<Line#17> 
+<Line#18> // Propagating preemption to the task if TASK_PREEMPTION is enabled
+<Line#19> if (getConfig().getBoolean(MRJobConfig.TASK_PREEMPTION, false)
+<Line#20> && preemptionPolicy.isPreempted(yarnAttemptID)) {
+<Line#21> feedback.setPreemption(true);
+<Line#22> }
+<Line#23> 
+<Line#24> if (taskStatus == null) {
+<Line#25> //We are using statusUpdate only as a simple ping
+<Line#26> if (LOG.isDebugEnabled()) {
+<Line#27> LOG.debug("Ping from " + taskAttemptID.toString());
+<Line#28> }
+<Line#29> // Consider ping from the tasks for liveliness check
+<Line#30> if (getConfig().getBoolean(MRJobConfig.MR_TASK_ENABLE_PING_FOR_LIVELINESS_CHECK,
+<Line#31> MRJobConfig.DEFAULT_MR_TASK_ENABLE_PING_FOR_LIVELINESS_CHECK)) {
+<Line#32> taskHeartbeatHandler.progressing(yarnAttemptID);
+<Line#33> }
+<Line#34> return feedback;
+<Line#35> }
+<Line#36> 
+<Line#37> // if we are here there is an actual status update to be processed
+<Line#38> 
+<Line#39> taskHeartbeatHandler.progressing(yarnAttemptID);
+<Line#40> TaskAttemptStatus taskAttemptStatus =
+<Line#41> new TaskAttemptStatus();
+<Line#42> taskAttemptStatus.id = yarnAttemptID;
+<Line#43> // Task sends the updated progress to the TT.
+<Line#44> taskAttemptStatus.progress = taskStatus.getProgress();
+<Line#45> // log the new progress
+<Line#46> taskAttemptLogProgressStamps.computeIfAbsent(taskAttemptID,
+<Line#47> k -> new TaskProgressLogPair(taskAttemptID))
+<Line#48> .update(taskStatus.getProgress());
+<Line#49> // Task sends the updated state-string to the TT.
+<Line#50> taskAttemptStatus.stateString = taskStatus.getStateString();
+<Line#51> // Task sends the updated phase to the TT.
+<Line#52> taskAttemptStatus.phase = TypeConverter.toYarn(taskStatus.getPhase());
+<Line#53> // Counters are updated by the task. Convert counters into new format as
+<Line#54> // that is the primary storage format inside the AM to avoid multiple
+<Line#55> // conversions and unnecessary heap usage.
+<Line#56> taskAttemptStatus.counters = new org.apache.hadoop.mapreduce.Counters(
+<Line#57> taskStatus.getCounters());
+<Line#58> 
+<Line#59> // Map Finish time set by the task (map only)
+<Line#60> if (taskStatus.getIsMap() && taskStatus.getMapFinishTime() != 0) {
+<Line#61> taskAttemptStatus.mapFinishTime = taskStatus.getMapFinishTime();
+<Line#62> }
+<Line#63> 
+<Line#64> // Shuffle Finish time set by the task (reduce only).
+<Line#65> if (!taskStatus.getIsMap() && taskStatus.getShuffleFinishTime() != 0) {
+<Line#66> taskAttemptStatus.shuffleFinishTime = taskStatus.getShuffleFinishTime();
+<Line#67> }
+<Line#68> 
+<Line#69> // Sort finish time set by the task (reduce only).
+<Line#70> if (!taskStatus.getIsMap() && taskStatus.getSortFinishTime() != 0) {
+<Line#71> taskAttemptStatus.sortFinishTime = taskStatus.getSortFinishTime();
+<Line#72> }
+<Line#73> 
+<Line#74> // Not Setting the task state. Used by speculation - will be set in TaskAttemptImpl
+<Line#75> //taskAttemptStatus.taskState =  TypeConverter.toYarn(taskStatus.getRunState());
+<Line#76> 
+<Line#77> //set the fetch failures
+<Line#78> if (taskStatus.getFetchFailedMaps() != null
+<Line#79> && taskStatus.getFetchFailedMaps().size() > 0) {
+<Line#80> taskAttemptStatus.fetchFailedMaps =
+<Line#81> new ArrayList<org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId>();
+<Line#82> for (TaskAttemptID failedMapId : taskStatus.getFetchFailedMaps()) {
+<Line#83> taskAttemptStatus.fetchFailedMaps.add(
+<Line#84> TypeConverter.toYarn(failedMapId));
+<Line#85> }
+<Line#86> }
+<Line#87> 
+<Line#88> // Task sends the information about the nextRecordRange to the TT
+<Line#89> 
+<Line#90> //    TODO: The following are not needed here, but needed to be set somewhere inside AppMaster.
+<Line#91> //    taskStatus.getRunState(); // Set by the TT/JT. Transform into a state TODO
+<Line#92> //    taskStatus.getStartTime(); // Used to be set by the TaskTracker. This should be set by getTask().
+<Line#93> //    taskStatus.getFinishTime(); // Used to be set by TT/JT. Should be set when task finishes
+<Line#94> //    // This was used by TT to do counter updates only once every minute. So this
+<Line#95> //    // isn't ever changed by the Task itself.
+<Line#96> //    taskStatus.getIncludeCounters();
+<Line#97> 
+<Line#98> coalesceStatusUpdate(yarnAttemptID, taskAttemptStatus, lastStatusRef);
+<Line#99> 
+<Line#100> return feedback;
+<Line#101> }
+
+Relevant Logging Patterns:
+Example 1:
+File: mapreduce__createNativeObject-81__.json
+Code:
+<Line#1>{
+<Line#2>  assertNativeLibraryLoaded();
+<Line#3>  final long ret=JNICreateNativeObject(clazz.getBytes(Charsets.UTF_8));
+<Line#4>  if (ret == 0) {
+<Line#5>    LOG.warn("Can't create NativeObject for class " + clazz + ", probably not exist.");
+<Line#6>  }
+<Line#7>  return ret;
+<Line#8>}
+Log: <Line#5>:# LOG.warn("Can't create NativeObject for class " + clazz + ", probably not exist."):#
+
+Example 2:
+File: mapreduce__createControlFile-122__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("creating control file: " + fileSize + " mega bytes, "+ nrFiles+ " files");
+<Line#3>  fs.delete(CONTROL_DIR,true);
+<Line#4>  for (int i=0; i < nrFiles; i++) {
+<Line#5>    String name=getFileName(i);
+<Line#6>    Path controlFile=new Path(CONTROL_DIR,"in_file_" + name);
+<Line#7>    SequenceFile.Writer writer=null;
+<Line#8>    try {
+<Line#9>      writer=SequenceFile.createWriter(fs,fsConfig,controlFile,Text.class,LongWritable.class,CompressionType.NONE);
+<Line#10>      writer.append(new Text(name),new LongWritable(fileSize));
+<Line#11>    }
+<Line#12> catch (    Exception e) {
+<Line#13>      throw new IOException(e.getLocalizedMessage());
+<Line#14>    }
+<Line#15> finally {
+<Line#16>      if (writer != null)       writer.close();
+<Line#17>      writer=null;
+<Line#18>    }
+<Line#19>  }
+<Line#20>  LOG.info("created control files for: " + nrFiles + " files");
+<Line#21>}
+Log: <Line#2>:# LOG.info("creating control file: " + fileSize + " mega bytes, "+ nrFiles+ " files"):#
+
+Example 3:
+File: mapreduce__createControlFile-122__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("creating control file: " + fileSize + " mega bytes, "+ nrFiles+ " files");
+<Line#3>  fs.delete(CONTROL_DIR,true);
+<Line#4>  for (int i=0; i < nrFiles; i++) {
+<Line#5>    String name=getFileName(i);
+<Line#6>    Path controlFile=new Path(CONTROL_DIR,"in_file_" + name);
+<Line#7>    SequenceFile.Writer writer=null;
+<Line#8>    try {
+<Line#9>      writer=SequenceFile.createWriter(fs,fsConfig,controlFile,Text.class,LongWritable.class,CompressionType.NONE);
+<Line#10>      writer.append(new Text(name),new LongWritable(fileSize));
+<Line#11>    }
+<Line#12> catch (    Exception e) {
+<Line#13>      throw new IOException(e.getLocalizedMessage());
+<Line#14>    }
+<Line#15> finally {
+<Line#16>      if (writer != null)       writer.close();
+<Line#17>      writer=null;
+<Line#18>    }
+<Line#19>  }
+<Line#20>  LOG.info("created control files for: " + nrFiles + " files");
+<Line#21>}
+Log: <Line#20>:# LOG.info("created control files for: " + nrFiles + " files"):#
+
+Example 4:
+File: mapreduce__addMap-1106__.json
+Code:
+<Line#1>{
+<Line#2>  ContainerRequest request=null;
+<Line#3>  if (event.getEarlierAttemptFailed()) {
+<Line#4>    earlierFailedMaps.add(event.getAttemptID());
+<Line#5>    request=new ContainerRequest(event,PRIORITY_FAST_FAIL_MAP,mapNodeLabelExpression);
+<Line#6>    LOG.info("Added " + event.getAttemptID() + " to list of failed maps");
+<Line#7>    maps.put(event.getAttemptID(),request);
+<Line#8>    addContainerReq(request);
+<Line#9>  }
+<Line#10> else {
+<Line#11>    if (mapsMod100 < numOpportunisticMapsPercent) {
+<Line#12>      request=new ContainerRequest(event,PRIORITY_OPPORTUNISTIC_MAP,mapNodeLabelExpression);
+<Line#13>      maps.put(event.getAttemptID(),request);
+<Line#14>      addOpportunisticResourceRequest(request.priority,request.capability);
+<Line#15>    }
+<Line#16> else {
+<Line#17>      request=new ContainerRequest(event,PRIORITY_MAP,mapNodeLabelExpression);
+<Line#18>      for (      String host : event.getHosts()) {
+<Line#19>        LinkedList<TaskAttemptId> list=mapsHostMapping.get(host);
+<Line#20>        if (list == null) {
+<Line#21>          list=new LinkedList<TaskAttemptId>();
+<Line#22>          mapsHostMapping.put(host,list);
+<Line#23>        }
+<Line#24>        list.add(event.getAttemptID());
+<Line#25>        if (LOG.isDebugEnabled()) {
+<Line#26>          LOG.debug("Added attempt req to host " + host);
+<Line#27>        }
+<Line#28>      }
+<Line#29>      for (      String rack : event.getRacks()) {
+<Line#30>        LinkedList<TaskAttemptId> list=mapsRackMapping.get(rack);
+<Line#31>        if (list == null) {
+<Line#32>          list=new LinkedList<TaskAttemptId>();
+<Line#33>          mapsRackMapping.put(rack,list);
+<Line#34>        }
+<Line#35>        list.add(event.getAttemptID());
+<Line#36>        if (LOG.isDebugEnabled()) {
+<Line#37>          LOG.debug("Added attempt req to rack " + rack);
+<Line#38>        }
+<Line#39>      }
+<Line#40>      maps.put(event.getAttemptID(),request);
+<Line#41>      addContainerReq(request);
+<Line#42>    }
+<Line#43>    mapsMod100++;
+<Line#44>    mapsMod100%=100;
+<Line#45>  }
+<Line#46>}
+Log: <Line#6>:# LOG.info("Added " + event.getAttemptID() + " to list of failed maps"):#
+
+Example 5:
+File: mapreduce__addMap-1106__.json
+Code:
+<Line#1>{
+<Line#2>  ContainerRequest request=null;
+<Line#3>  if (event.getEarlierAttemptFailed()) {
+<Line#4>    earlierFailedMaps.add(event.getAttemptID());
+<Line#5>    request=new ContainerRequest(event,PRIORITY_FAST_FAIL_MAP,mapNodeLabelExpression);
+<Line#6>    LOG.info("Added " + event.getAttemptID() + " to list of failed maps");
+<Line#7>    maps.put(event.getAttemptID(),request);
+<Line#8>    addContainerReq(request);
+<Line#9>  }
+<Line#10> else {
+<Line#11>    if (mapsMod100 < numOpportunisticMapsPercent) {
+<Line#12>      request=new ContainerRequest(event,PRIORITY_OPPORTUNISTIC_MAP,mapNodeLabelExpression);
+<Line#13>      maps.put(event.getAttemptID(),request);
+<Line#14>      addOpportunisticResourceRequest(request.priority,request.capability);
+<Line#15>    }
+<Line#16> else {
+<Line#17>      request=new ContainerRequest(event,PRIORITY_MAP,mapNodeLabelExpression);
+<Line#18>      for (      String host : event.getHosts()) {
+<Line#19>        LinkedList<TaskAttemptId> list=mapsHostMapping.get(host);
+<Line#20>        if (list == null) {
+<Line#21>          list=new LinkedList<TaskAttemptId>();
+<Line#22>          mapsHostMapping.put(host,list);
+<Line#23>        }
+<Line#24>        list.add(event.getAttemptID());
+<Line#25>        if (LOG.isDebugEnabled()) {
+<Line#26>          LOG.debug("Added attempt req to host " + host);
+<Line#27>        }
+<Line#28>      }
+<Line#29>      for (      String rack : event.getRacks()) {
+<Line#30>        LinkedList<TaskAttemptId> list=mapsRackMapping.get(rack);
+<Line#31>        if (list == null) {
+<Line#32>          list=new LinkedList<TaskAttemptId>();
+<Line#33>          mapsRackMapping.put(rack,list);
+<Line#34>        }
+<Line#35>        list.add(event.getAttemptID());
+<Line#36>        if (LOG.isDebugEnabled()) {
+<Line#37>          LOG.debug("Added attempt req to rack " + rack);
+<Line#38>        }
+<Line#39>      }
+<Line#40>      maps.put(event.getAttemptID(),request);
+<Line#41>      addContainerReq(request);
+<Line#42>    }
+<Line#43>    mapsMod100++;
+<Line#44>    mapsMod100%=100;
+<Line#45>  }
+<Line#46>}
+Log: <Line#26>:# LOG.debug("Added attempt req to host " + host):#

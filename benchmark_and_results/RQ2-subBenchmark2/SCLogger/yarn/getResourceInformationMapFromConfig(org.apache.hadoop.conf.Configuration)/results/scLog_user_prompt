@@ -1,0 +1,353 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> Configuration conf) {
+<Line#1> Map<String, ResourceInformation> resourceInformationMap = new HashMap<>();
+<Line#2> String[] resourceNames =
+<Line#3> conf.getTrimmedStrings(YarnConfiguration.RESOURCE_TYPES);
+<Line#4> 
+<Line#5> if (resourceNames != null && resourceNames.length != 0) {
+<Line#6> for (String resourceName : resourceNames) {
+<Line#7> String resourceUnits = conf.get(
+<Line#8> YarnConfiguration.RESOURCE_TYPES + "." + resourceName + UNITS, "");
+<Line#9> String resourceTypeName = conf.get(
+<Line#10> YarnConfiguration.RESOURCE_TYPES + "." + resourceName + TYPE,
+<Line#11> ResourceTypes.COUNTABLE.toString());
+<Line#12> Long minimumAllocation = conf.getLong(
+<Line#13> YarnConfiguration.RESOURCE_TYPES + "." + resourceName
+<Line#14> + MINIMUM_ALLOCATION, 0L);
+<Line#15> Long maximumAllocation = conf.getLong(
+<Line#16> YarnConfiguration.RESOURCE_TYPES + "." + resourceName
+<Line#17> + MAXIMUM_ALLOCATION, Long.MAX_VALUE);
+<Line#18> if (resourceName == null || resourceName.isEmpty()
+<Line#19> || resourceUnits == null || resourceTypeName == null) {
+<Line#20> throw new YarnRuntimeException(
+<Line#21> "Incomplete configuration for resource type '" + resourceName
+<Line#22> + "'. One of name, units or type is configured incorrectly.");
+<Line#23> }
+<Line#24> ResourceTypes resourceType = ResourceTypes.valueOf(resourceTypeName);
+<Line#25> String[] resourceTags = conf.getTrimmedStrings(
+<Line#26> YarnConfiguration.RESOURCE_TYPES + "." + resourceName + TAGS);
+<Line#27> Set<String> resourceTagSet = new HashSet<>();
+<Line#28> Collections.addAll(resourceTagSet, resourceTags);
+<Line#29> if (resourceInformationMap.containsKey(resourceName)) {
+<Line#30> throw new YarnRuntimeException(
+<Line#31> "Error in config, key '" + resourceName + "' specified twice");
+<Line#32> }
+<Line#33> resourceInformationMap.put(resourceName, ResourceInformation
+<Line#34> .newInstance(resourceName, resourceUnits, 0L, resourceType,
+<Line#35> minimumAllocation, maximumAllocation, resourceTagSet, null));
+<Line#36> }
+<Line#37> }
+<Line#38> 
+<Line#39> // Validate names of resource information map.
+<Line#40> for (String name : resourceInformationMap.keySet()) {
+<Line#41> validateNameOfResourceNameAndThrowException(name);
+<Line#42> }
+<Line#43> 
+<Line#44> checkSpecialResources(resourceInformationMap);
+<Line#45> addMandatoryResources(resourceInformationMap);
+<Line#46> 
+<Line#47> setAllocationForMandatoryResources(resourceInformationMap, conf);
+<Line#48> 
+<Line#49> return resourceInformationMap;
+<Line#50> }
+
+Related Context:
+Method A:
+<Line#0> /** 
+<Line#1>  * Set the name for the resource. A valid resource name must begin with a letter and contain only letters, numbers, and any of: '.', '_', or '-'. A valid resource name may also be optionally preceded by a name space followed by a slash. A valid name space consists of period-separated groups of letters, numbers, and dashes."
+<Line#2>  * @param rName name for the resource
+<Line#3>  */
+<Line#4> public void setName(String rName){
+<Line#5>   this.name=rName;
+<Line#6> }
+<Line#7> 
+Method B:
+<Line#0> @VisibleForTesting static void validateNameOfResourceNameAndThrowException(String resourceName) throws YarnRuntimeException {
+<Line#1>   Matcher matcher=RESOURCE_NAME_PATTERN.matcher(resourceName);
+<Line#2>   if (!matcher.matches()) {
+<Line#3>     String message=String.format("'%s' is not a valid resource name. A valid resource name must" + " begin with a letter and contain only letters, numbers, " + "and any of: '.', '_', or '-'. A valid resource name may also"+ " be optionally preceded by a name space followed by a slash."+ " A valid name space consists of period-separated groups of"+ " letters, numbers, and dashes.",resourceName);
+<Line#4>     throw new YarnRuntimeException(message);
+<Line#5>   }
+<Line#6> }
+<Line#7> 
+
+Relevant Logging Patterns:
+Example 1:
+File: yarn__doParse-178__.json
+Code:
+<Line#1>{
+<Line#2>  long count=0;
+<Line#3>  TimelineEntities entities=new TimelineEntities();
+<Line#4>  ArrayList<TimelineEntity> entityList=new ArrayList<TimelineEntity>(1);
+<Line#5>  long bytesParsed;
+<Line#6>  long bytesParsedLastBatch=0;
+<Line#7>  boolean postError=false;
+<Line#8>  try {
+<Line#9>    MappingIterator<TimelineEntity> iter=objMapper.readValues(parser,TimelineEntity.class);
+<Line#10>    while (iter.hasNext()) {
+<Line#11>      TimelineEntity entity=iter.next();
+<Line#12>      String etype=entity.getEntityType();
+<Line#13>      String eid=entity.getEntityId();
+<Line#14>      LOG.trace("Read entity {}",etype);
+<Line#15>      ++count;
+<Line#16>      bytesParsed=parser.getCurrentLocation().getCharOffset() + 1;
+<Line#17>      LOG.trace("Parser now at offset {}",bytesParsed);
+<Line#18>      try {
+<Line#19>        LOG.debug("Adding {}({}) to store",eid,etype);
+<Line#20>        entityList.add(entity);
+<Line#21>        entities.setEntities(entityList);
+<Line#22>        TimelinePutResponse response=tdm.postEntities(entities,ugi);
+<Line#23>        for (        TimelinePutResponse.TimelinePutError e : response.getErrors()) {
+<Line#24>          LOG.warn("Error putting entity: {} ({}): {}",e.getEntityId(),e.getEntityType(),e.getErrorCode());
+<Line#25>        }
+<Line#26>        setOffset(getOffset() + bytesParsed - bytesParsedLastBatch);
+<Line#27>        bytesParsedLastBatch=bytesParsed;
+<Line#28>        entityList.clear();
+<Line#29>      }
+<Line#30> catch (      YarnException e) {
+<Line#31>        postError=true;
+<Line#32>        throw new IOException("Error posting entities",e);
+<Line#33>      }
+<Line#34>catch (      IOException e) {
+<Line#35>        postError=true;
+<Line#36>        throw new IOException("Error posting entities",e);
+<Line#37>      }
+<Line#38>    }
+<Line#39>  }
+<Line#40> catch (  IOException e) {
+<Line#41>    if (appCompleted || postError) {
+<Line#42>      throw e;
+<Line#43>    }
+<Line#44>  }
+<Line#45>catch (  RuntimeException e) {
+<Line#46>    if (appCompleted || !(e.getCause() instanceof JsonParseException)) {
+<Line#47>      throw e;
+<Line#48>    }
+<Line#49>  }
+<Line#50>  return count;
+<Line#51>}
+Log: <Line#14>:# LOG.trace("Read entity {}",etype):#
+
+Example 2:
+File: yarn__doParse-178__.json
+Code:
+<Line#1>{
+<Line#2>  long count=0;
+<Line#3>  TimelineEntities entities=new TimelineEntities();
+<Line#4>  ArrayList<TimelineEntity> entityList=new ArrayList<TimelineEntity>(1);
+<Line#5>  long bytesParsed;
+<Line#6>  long bytesParsedLastBatch=0;
+<Line#7>  boolean postError=false;
+<Line#8>  try {
+<Line#9>    MappingIterator<TimelineEntity> iter=objMapper.readValues(parser,TimelineEntity.class);
+<Line#10>    while (iter.hasNext()) {
+<Line#11>      TimelineEntity entity=iter.next();
+<Line#12>      String etype=entity.getEntityType();
+<Line#13>      String eid=entity.getEntityId();
+<Line#14>      LOG.trace("Read entity {}",etype);
+<Line#15>      ++count;
+<Line#16>      bytesParsed=parser.getCurrentLocation().getCharOffset() + 1;
+<Line#17>      LOG.trace("Parser now at offset {}",bytesParsed);
+<Line#18>      try {
+<Line#19>        LOG.debug("Adding {}({}) to store",eid,etype);
+<Line#20>        entityList.add(entity);
+<Line#21>        entities.setEntities(entityList);
+<Line#22>        TimelinePutResponse response=tdm.postEntities(entities,ugi);
+<Line#23>        for (        TimelinePutResponse.TimelinePutError e : response.getErrors()) {
+<Line#24>          LOG.warn("Error putting entity: {} ({}): {}",e.getEntityId(),e.getEntityType(),e.getErrorCode());
+<Line#25>        }
+<Line#26>        setOffset(getOffset() + bytesParsed - bytesParsedLastBatch);
+<Line#27>        bytesParsedLastBatch=bytesParsed;
+<Line#28>        entityList.clear();
+<Line#29>      }
+<Line#30> catch (      YarnException e) {
+<Line#31>        postError=true;
+<Line#32>        throw new IOException("Error posting entities",e);
+<Line#33>      }
+<Line#34>catch (      IOException e) {
+<Line#35>        postError=true;
+<Line#36>        throw new IOException("Error posting entities",e);
+<Line#37>      }
+<Line#38>    }
+<Line#39>  }
+<Line#40> catch (  IOException e) {
+<Line#41>    if (appCompleted || postError) {
+<Line#42>      throw e;
+<Line#43>    }
+<Line#44>  }
+<Line#45>catch (  RuntimeException e) {
+<Line#46>    if (appCompleted || !(e.getCause() instanceof JsonParseException)) {
+<Line#47>      throw e;
+<Line#48>    }
+<Line#49>  }
+<Line#50>  return count;
+<Line#51>}
+Log: <Line#17>:# LOG.trace("Parser now at offset {}",bytesParsed):#
+
+Example 3:
+File: yarn__doParse-178__.json
+Code:
+<Line#1>{
+<Line#2>  long count=0;
+<Line#3>  TimelineEntities entities=new TimelineEntities();
+<Line#4>  ArrayList<TimelineEntity> entityList=new ArrayList<TimelineEntity>(1);
+<Line#5>  long bytesParsed;
+<Line#6>  long bytesParsedLastBatch=0;
+<Line#7>  boolean postError=false;
+<Line#8>  try {
+<Line#9>    MappingIterator<TimelineEntity> iter=objMapper.readValues(parser,TimelineEntity.class);
+<Line#10>    while (iter.hasNext()) {
+<Line#11>      TimelineEntity entity=iter.next();
+<Line#12>      String etype=entity.getEntityType();
+<Line#13>      String eid=entity.getEntityId();
+<Line#14>      LOG.trace("Read entity {}",etype);
+<Line#15>      ++count;
+<Line#16>      bytesParsed=parser.getCurrentLocation().getCharOffset() + 1;
+<Line#17>      LOG.trace("Parser now at offset {}",bytesParsed);
+<Line#18>      try {
+<Line#19>        LOG.debug("Adding {}({}) to store",eid,etype);
+<Line#20>        entityList.add(entity);
+<Line#21>        entities.setEntities(entityList);
+<Line#22>        TimelinePutResponse response=tdm.postEntities(entities,ugi);
+<Line#23>        for (        TimelinePutResponse.TimelinePutError e : response.getErrors()) {
+<Line#24>          LOG.warn("Error putting entity: {} ({}): {}",e.getEntityId(),e.getEntityType(),e.getErrorCode());
+<Line#25>        }
+<Line#26>        setOffset(getOffset() + bytesParsed - bytesParsedLastBatch);
+<Line#27>        bytesParsedLastBatch=bytesParsed;
+<Line#28>        entityList.clear();
+<Line#29>      }
+<Line#30> catch (      YarnException e) {
+<Line#31>        postError=true;
+<Line#32>        throw new IOException("Error posting entities",e);
+<Line#33>      }
+<Line#34>catch (      IOException e) {
+<Line#35>        postError=true;
+<Line#36>        throw new IOException("Error posting entities",e);
+<Line#37>      }
+<Line#38>    }
+<Line#39>  }
+<Line#40> catch (  IOException e) {
+<Line#41>    if (appCompleted || postError) {
+<Line#42>      throw e;
+<Line#43>    }
+<Line#44>  }
+<Line#45>catch (  RuntimeException e) {
+<Line#46>    if (appCompleted || !(e.getCause() instanceof JsonParseException)) {
+<Line#47>      throw e;
+<Line#48>    }
+<Line#49>  }
+<Line#50>  return count;
+<Line#51>}
+Log: <Line#19>:# LOG.debug("Adding {}({}) to store",eid,etype):#
+
+Example 4:
+File: yarn__doParse-178__.json
+Code:
+<Line#1>{
+<Line#2>  long count=0;
+<Line#3>  TimelineEntities entities=new TimelineEntities();
+<Line#4>  ArrayList<TimelineEntity> entityList=new ArrayList<TimelineEntity>(1);
+<Line#5>  long bytesParsed;
+<Line#6>  long bytesParsedLastBatch=0;
+<Line#7>  boolean postError=false;
+<Line#8>  try {
+<Line#9>    MappingIterator<TimelineEntity> iter=objMapper.readValues(parser,TimelineEntity.class);
+<Line#10>    while (iter.hasNext()) {
+<Line#11>      TimelineEntity entity=iter.next();
+<Line#12>      String etype=entity.getEntityType();
+<Line#13>      String eid=entity.getEntityId();
+<Line#14>      LOG.trace("Read entity {}",etype);
+<Line#15>      ++count;
+<Line#16>      bytesParsed=parser.getCurrentLocation().getCharOffset() + 1;
+<Line#17>      LOG.trace("Parser now at offset {}",bytesParsed);
+<Line#18>      try {
+<Line#19>        LOG.debug("Adding {}({}) to store",eid,etype);
+<Line#20>        entityList.add(entity);
+<Line#21>        entities.setEntities(entityList);
+<Line#22>        TimelinePutResponse response=tdm.postEntities(entities,ugi);
+<Line#23>        for (        TimelinePutResponse.TimelinePutError e : response.getErrors()) {
+<Line#24>          LOG.warn("Error putting entity: {} ({}): {}",e.getEntityId(),e.getEntityType(),e.getErrorCode());
+<Line#25>        }
+<Line#26>        setOffset(getOffset() + bytesParsed - bytesParsedLastBatch);
+<Line#27>        bytesParsedLastBatch=bytesParsed;
+<Line#28>        entityList.clear();
+<Line#29>      }
+<Line#30> catch (      YarnException e) {
+<Line#31>        postError=true;
+<Line#32>        throw new IOException("Error posting entities",e);
+<Line#33>      }
+<Line#34>catch (      IOException e) {
+<Line#35>        postError=true;
+<Line#36>        throw new IOException("Error posting entities",e);
+<Line#37>      }
+<Line#38>    }
+<Line#39>  }
+<Line#40> catch (  IOException e) {
+<Line#41>    if (appCompleted || postError) {
+<Line#42>      throw e;
+<Line#43>    }
+<Line#44>  }
+<Line#45>catch (  RuntimeException e) {
+<Line#46>    if (appCompleted || !(e.getCause() instanceof JsonParseException)) {
+<Line#47>      throw e;
+<Line#48>    }
+<Line#49>  }
+<Line#50>  return count;
+<Line#51>}
+Log: <Line#24>:# LOG.warn("Error putting entity: {} ({}): {}",e.getEntityId(),e.getEntityType(),e.getErrorCode()):#
+
+Example 5:
+File: yarn__write-236__.json
+Code:
+<Line#1>{
+<Line#2>  List<File> fileList=new ArrayList<File>(pendingUploadFiles);
+<Line#3>  Collections.sort(fileList);
+<Line#4>  for (  File logFile : fileList) {
+<Line#5>    if (logFile.isDirectory()) {
+<Line#6>      LOG.warn(logFile.getAbsolutePath() + " is a directory. Ignore it.");
+<Line#7>      continue;
+<Line#8>    }
+<Line#9>    FileInputStream in=null;
+<Line#10>    try {
+<Line#11>      in=secureOpenFile(logFile);
+<Line#12>    }
+<Line#13> catch (    IOException e) {
+<Line#14>      logErrorMessage(logFile,e);
+<Line#15>      IOUtils.cleanupWithLogger(LOG,in);
+<Line#16>      continue;
+<Line#17>    }
+<Line#18>    final long fileLength=logFile.length();
+<Line#19>    out.writeUTF(logFile.getName());
+<Line#20>    out.writeUTF(String.valueOf(fileLength));
+<Line#21>    try {
+<Line#22>      byte[] buf=new byte[65535];
+<Line#23>      int len=0;
+<Line#24>      long bytesLeft=fileLength;
+<Line#25>      while ((len=in.read(buf)) != -1) {
+<Line#26>        if (len < bytesLeft) {
+<Line#27>          out.write(buf,0,len);
+<Line#28>          bytesLeft-=len;
+<Line#29>        }
+<Line#30> else {
+<Line#31>          out.write(buf,0,(int)bytesLeft);
+<Line#32>          break;
+<Line#33>        }
+<Line#34>      }
+<Line#35>      long newLength=logFile.length();
+<Line#36>      if (fileLength < newLength) {
+<Line#37>        LOG.warn("Aggregated logs truncated by approximately " + (newLength - fileLength) + " bytes.");
+<Line#38>      }
+<Line#39>      this.uploadedFiles.add(logFile);
+<Line#40>    }
+<Line#41> catch (    IOException e) {
+<Line#42>      String message=logErrorMessage(logFile,e);
+<Line#43>      out.write(message.getBytes(Charset.forName("UTF-8")));
+<Line#44>    }
+<Line#45> finally {
+<Line#46>      IOUtils.cleanupWithLogger(LOG,in);
+<Line#47>    }
+<Line#48>  }
+<Line#49>}
+Log: <Line#6>:# LOG.warn(logFile.getAbsolutePath() + " is a directory. Ignore it."):#

@@ -1,0 +1,95 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	GeneralTopologyContext.java	methodSinagture:	org.apache.storm.task.GeneralTopologyContext.getTargets(Ljava/lang/String;)Ljava/util/Map;	methodLines:	146:162
+blockLines:	154:-1
+paras:	null
+TaintedStat:	NORMAL getTargets:conditional branch(ne, to iindex=56) 40,41 Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getTargets(Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getTargets(Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere[46]39 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,37 @115 exception:38
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getTargets(Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere[46]39 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,37 @115 exception:38
+NORMAL getTargets:40 = checkcast <Application,Ljava/util/Map>39 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getTargets(Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere
+NORMAL getTargets:conditional branch(ne, to iindex=56) 40,41 Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getTargets(Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public Map<String, Map<String, Grouping>> getTargets(String componentId) {
+        Map<String, Map<String, Grouping>> ret = new HashMap<>();
+        for (String otherComponentId : getComponentIds()) {
+            Map<GlobalStreamId, Grouping> inputs = getComponentCommon(otherComponentId).get_inputs();
+            for (Map.Entry<GlobalStreamId, Grouping> entry : inputs.entrySet()) {
+                GlobalStreamId id = entry.getKey();
+                if (id.get_componentId().equals(componentId)) {
+                    Map<String, Grouping> curr = ret.get(id.get_streamId());
+                    if (curr == null) {
+                        curr = new HashMap<>();
+                    }
+                    curr.put(otherComponentId, entry.getValue());
+                    ret.put(id.get_streamId(), curr);
+                }
+            }
+        }
+        return ret;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/worker/WorkerState, workerOutboundTasks()Ljava/util/Set; > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=775, lastMethodNumber=791, isFirstLineValid=true, methodSrcCode=
+    private Set<Integer> workerOutboundTasks() {
+        WorkerTopologyContext context = getWorkerTopologyContext();
+        Set<String> components = new HashSet<>();
+        for (Integer taskId : localTaskIds) {
+            for (Map<String, Grouping> value : context.getTargets(context.getComponentId(taskId)).values()) {
+                components.addAll(value.keySet());
+            }
+        }
+
+        Set<Integer> outboundTasks = new HashSet<>();
+
+        for (Map.Entry<String, List<Integer>> entry : Utils.reverseMap(taskToComponent).entrySet()) {
+            if (components.contains(entry.getKey())) {
+                outboundTasks.addAll(entry.getValue());
+            }
+        }
+        return outboundTasks;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/executor/Executor, outboundComponents(Lorg/apache/storm/task/WorkerTopologyContext;Ljava/lang/String;Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=555, lastMethodNumber=583, isFirstLineValid=true, methodSrcCode=
+        WorkerTopologyContext workerTopologyContext, String componentId, Map<String, Object> topoConf) {
+        Map<String, Map<String, LoadAwareCustomStreamGrouping>> ret = new HashMap<>();
+
+        Map<String, Map<String, Grouping>> outputGroupings = workerTopologyContext.getTargets(componentId);
+        for (Map.Entry<String, Map<String, Grouping>> entry : outputGroupings.entrySet()) {
+            String streamId = entry.getKey();
+            Map<String, Grouping> componentGrouping = entry.getValue();
+            Fields outFields = workerTopologyContext.getComponentOutputFields(componentId, streamId);
+            Map<String, LoadAwareCustomStreamGrouping> componentGrouper = new HashMap<String, LoadAwareCustomStreamGrouping>();
+            for (Map.Entry<String, Grouping> cg : componentGrouping.entrySet()) {
+                String component = cg.getKey();
+                Grouping grouping = cg.getValue();
+                List<Integer> outTasks = workerTopologyContext.getComponentTasks(component);
+                LoadAwareCustomStreamGrouping grouper = GrouperFactory.mkGrouper(
+                    workerTopologyContext, componentId, streamId, outFields, grouping, outTasks, topoConf);
+                componentGrouper.put(component, grouper);
+            }
+            if (componentGrouper.size() > 0) {
+                ret.put(streamId, componentGrouper);
+            }
+        }
+
+        for (String stream : workerTopologyContext.getComponentCommon(componentId).get_streams().keySet()) {
+            if (!ret.containsKey(stream)) {
+                ret.put(stream, null);
+            }
+        }
+
+        return ret;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/task/TopologyContext, getThisTargets()Ljava/util/Map; > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=247, lastMethodNumber=248, isFirstLineValid=true, methodSrcCode=
+    public Map<String, Map<String, Grouping>> getThisTargets() {
+        return getTargets(getThisComponentId());
+    }
+}

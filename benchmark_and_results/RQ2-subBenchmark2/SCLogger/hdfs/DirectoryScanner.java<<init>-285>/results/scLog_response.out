@@ -1,0 +1,1 @@
+<Line#8>:# LOG.info("DirectoryScanner initialized with scan interval: " + interval + " seconds and throttle limit: " + throttle + " ms/sec"):#

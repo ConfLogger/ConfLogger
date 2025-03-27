@@ -1,0 +1,3 @@
+public java.util.List<org.apache.zookeeper.data.ACL> getAcl(){
+  return acl;
+}

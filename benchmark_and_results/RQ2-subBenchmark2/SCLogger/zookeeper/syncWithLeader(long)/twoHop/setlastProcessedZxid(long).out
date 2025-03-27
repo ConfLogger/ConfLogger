@@ -1,0 +1,7 @@
+/** 
+ * the last processed zxid in the datatree
+ * @param zxid the last processed zxid in the datatree
+ */
+public void setlastProcessedZxid(long zxid){
+  dataTree.lastProcessedZxid=zxid;
+}

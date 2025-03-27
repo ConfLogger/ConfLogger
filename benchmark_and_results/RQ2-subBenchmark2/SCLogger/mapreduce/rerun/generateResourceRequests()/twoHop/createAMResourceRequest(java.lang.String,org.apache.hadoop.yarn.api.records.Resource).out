@@ -1,0 +1,9 @@
+private ResourceRequest createAMResourceRequest(String resource,Resource capability){
+  ResourceRequest resourceRequest=recordFactory.newRecordInstance(ResourceRequest.class);
+  resourceRequest.setPriority(AM_CONTAINER_PRIORITY);
+  resourceRequest.setResourceName(resource);
+  resourceRequest.setCapability(capability);
+  resourceRequest.setNumContainers(1);
+  resourceRequest.setRelaxLocality(true);
+  return resourceRequest;
+}

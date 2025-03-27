@@ -1,0 +1,4 @@
+<Line#2>:# LOG.info("Setting configuration for key field helper");:#
+<Line#6>:# LOG.debug("Number of partition fields: " + numOfPartitionFields);:#
+<Line#10>:# LOG.debug("Partitioner option: " + option);:#
+<Line#13>:# LOG.info("Configuration for key field helper set successfully");:#

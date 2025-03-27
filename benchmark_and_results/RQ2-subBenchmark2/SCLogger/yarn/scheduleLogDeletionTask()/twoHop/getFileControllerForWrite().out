@@ -1,0 +1,7 @@
+/** 
+ * Get  {@link LogAggregationFileController} to write.
+ * @return the LogAggregationFileController instance
+ */
+public LogAggregationFileController getFileControllerForWrite(){
+  return controllers.getFirst();
+}

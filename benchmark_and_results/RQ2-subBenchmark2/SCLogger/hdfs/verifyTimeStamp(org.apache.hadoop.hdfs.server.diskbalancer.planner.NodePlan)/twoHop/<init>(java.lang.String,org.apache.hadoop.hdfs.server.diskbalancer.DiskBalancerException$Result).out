@@ -1,0 +1,8 @@
+/** 
+ * Constructs an  {@code IOException} with the specified detail message.
+ * @param message The detail message (which is saved for later retrieval bythe  {@link #getMessage()} method)
+ */
+public DiskBalancerException(String message,Result result){
+  super(message);
+  this.result=result;
+}

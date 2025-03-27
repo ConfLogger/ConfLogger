@@ -1,0 +1,44 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	HttpServer2.java	methodSinagture:	org.apache.hadoop.http.HttpServer2.initSpnego(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V	methodLines:	1276:1290
+blockLines:	1279:-1
+paras:	null
+TaintedStat:	NORMAL initSpnego:conditional branch(eq, to iindex=22) 10,11 Node: < Application, Lorg/apache/hadoop/http/HttpServer2, initSpnego(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/http/HttpServer2, initSpnego(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V > Context: Everywhere[6]10 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 2,4 @11 exception:9
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/http/HttpServer2, initSpnego(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V > Context: Everywhere[6]10 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 2,4 @11 exception:9
+NORMAL initSpnego:conditional branch(eq, to iindex=22) 10,11 Node: < Application, Lorg/apache/hadoop/http/HttpServer2, initSpnego(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	HttpServer2.java	methodSinagture:	org.apache.hadoop.http.HttpServer2.initSpnego(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V	methodLines:	1276:1290
+blockLines:	1284:-1
+paras:	null
+TaintedStat:	NORMAL initSpnego:conditional branch(eq, to iindex=38) 21,11 Node: < Application, Lorg/apache/hadoop/http/HttpServer2, initSpnego(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/http/HttpServer2, initSpnego(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V > Context: Everywhere[24]21 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 2,5 @49 exception:20
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/http/HttpServer2, initSpnego(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V > Context: Everywhere[24]21 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 2,5 @49 exception:20
+NORMAL initSpnego:conditional branch(eq, to iindex=38) 21,11 Node: < Application, Lorg/apache/hadoop/http/HttpServer2, initSpnego(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+      String usernameConfKey, String keytabConfKey) throws IOException {
+    Map<String, String> params = new HashMap<>();
+    String principalInConf = conf.get(usernameConfKey);
+    if (principalInConf != null && !principalInConf.isEmpty()) {
+      params.put("kerberos.principal", SecurityUtil.getServerPrincipal(
+          principalInConf, hostName));
+    }
+    String httpKeytab = conf.get(keytabConfKey);
+    if (httpKeytab != null && !httpKeytab.isEmpty()) {
+      params.put("kerberos.keytab", httpKeytab);
+    }
+    params.put(AuthenticationFilter.AUTH_TYPE, "kerberos");
+    defineFilter(webAppContext, SPNEGO_FILTER,
+                 AuthenticationFilter.class.getName(), params, null);
+  }
+
+
+
+====================ctx:=======================

@@ -1,0 +1,79 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Job.java	methodSinagture:	org.apache.hadoop.mapreduce.Job.addCacheArchive(Ljava/net/URI;Lorg/apache/hadoop/conf/Configuration;)V	methodLines:	1173:1177
+blockLines:	1175:-1
+paras:	null
+TaintedStat:	NORMAL addCacheArchive:conditional branch(ne, to iindex=12) 6,7 Node: < Application, Lorg/apache/hadoop/mapreduce/Job, addCacheArchive(Ljava/net/URI;Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/mapreduce/Job, addCacheArchive(Ljava/net/URI;Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[2]6 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 2,4 @3 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/mapreduce/Job, addCacheArchive(Ljava/net/URI;Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[2]6 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 2,4 @3 exception:5
+NORMAL addCacheArchive:conditional branch(ne, to iindex=12) 6,7 Node: < Application, Lorg/apache/hadoop/mapreduce/Job, addCacheArchive(Ljava/net/URI;Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  public static void addCacheArchive(URI uri, Configuration conf) {
+    String archives = conf.get(MRJobConfig.CACHE_ARCHIVES);
+    conf.set(MRJobConfig.CACHE_ARCHIVES,
+        archives == null ? uri.toString() : archives + "," + uri.toString());
+  }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/mapreduce/Job, addCacheArchive(Ljava/net/URI;)V > Context: Everywhere, blocks=[BB[SSA:6..6]3 - org.apache.hadoop.mapreduce.Job.addCacheArchive(Ljava/net/URI;)V, BB[SSA:3..5]2 - org.apache.hadoop.mapreduce.Job.addCacheArchive(Ljava/net/URI;)V, BB[SSA:7..7]4 - org.apache.hadoop.mapreduce.Job.addCacheArchive(Ljava/net/URI;)V, BB[SSA:-1..-2]5 - org.apache.hadoop.mapreduce.Job.addCacheArchive(Ljava/net/URI;)V], numberOfBasicBlocks=4, firstLineNumber=1164, lastLineNumber=1165, firstMethodNumber=1162, lastMethodNumber=1165, isFirstLineValid=true, methodSrcCode=
+  public void addCacheArchive(URI uri) {
+    ensureState(JobState.DEFINE);
+    addCacheArchive(uri, conf);
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/mapreduce/Job, addArchiveToClassPath(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/fs/FileSystem;)V > Context: Everywhere, blocks=[BB[SSA:28..31]15 - org.apache.hadoop.mapreduce.Job.addArchiveToClassPath(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/fs/FileSystem;)V, BB[SSA:27..27]14 - org.apache.hadoop.mapreduce.Job.addArchiveToClassPath(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/fs/FileSystem;)V, BB[SSA:32..32]16 - org.apache.hadoop.mapreduce.Job.addArchiveToClassPath(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/fs/FileSystem;)V, BB[SSA:-1..-2]17 - org.apache.hadoop.mapreduce.Job.addArchiveToClassPath(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/fs/FileSystem;)V], numberOfBasicBlocks=4, firstLineNumber=1289, lastLineNumber=1291, firstMethodNumber=1285, lastMethodNumber=1291, isFirstLineValid=true, methodSrcCode=
+  public static void addArchiveToClassPath(Path archive, Configuration conf, FileSystem fs) {
+    String classpath = conf.get(MRJobConfig.CLASSPATH_ARCHIVES);
+    conf.set(MRJobConfig.CLASSPATH_ARCHIVES,
+        classpath == null ? archive.toString() : classpath + "," + archive.toString());
+    URI uri = fs.makeQualified(archive).toUri();
+    Job.addCacheArchive(uri, conf);
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/mapreduce/JobSubmitter, addMRFrameworkToDistributedCache(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere, blocks=[BB[SSA:83..85]38 - org.apache.hadoop.mapreduce.JobSubmitter.addMRFrameworkToDistributedCache(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:75..76]34 - org.apache.hadoop.mapreduce.JobSubmitter.addMRFrameworkToDistributedCache(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:86..86]39 - org.apache.hadoop.mapreduce.JobSubmitter.addMRFrameworkToDistributedCache(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:-1..-2]40 - org.apache.hadoop.mapreduce.JobSubmitter.addMRFrameworkToDistributedCache(Lorg/apache/hadoop/conf/Configuration;)V], numberOfBasicBlocks=4, firstLineNumber=463, lastLineNumber=471, firstMethodNumber=438, lastMethodNumber=471, isFirstLineValid=true, methodSrcCode=
+      throws IOException {
+    String framework =
+        conf.get(MRJobConfig.MAPREDUCE_APPLICATION_FRAMEWORK_PATH, "");
+    if (!framework.isEmpty()) {
+      URI uri;
+      try {
+        uri = new URI(framework);
+      } catch (URISyntaxException e) {
+        throw new IllegalArgumentException("Unable to parse '" + framework
+            + "' as a URI, check the setting for "
+            + MRJobConfig.MAPREDUCE_APPLICATION_FRAMEWORK_PATH, e);
+      }
+
+      String linkedName = uri.getFragment();
+
+      // resolve any symlinks in the URI path so using a "current" symlink
+      // to point to a specific version shows the specific version
+      // in the distributed cache configuration
+      FileSystem fs = FileSystem.get(uri, conf);
+      Path frameworkPath = fs.makeQualified(
+          new Path(uri.getScheme(), uri.getAuthority(), uri.getPath()));
+      FileContext fc = FileContext.getFileContext(frameworkPath.toUri(), conf);
+      frameworkPath = fc.resolvePath(frameworkPath);
+      uri = frameworkPath.toUri();
+      try {
+        uri = new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(),
+            null, linkedName);
+      } catch (URISyntaxException e) {
+        throw new IllegalArgumentException(e);
+      }
+
+      Job.addCacheArchive(uri, conf);
+    }
+  }
+}
+}

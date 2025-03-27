@@ -1,0 +1,80 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	FsPermission.java	methodSinagture:	org.apache.hadoop.fs.permission.FsPermission.getUMask(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/permission/FsPermission;	methodLines:	325:348
+blockLines:	333:-1
+paras:	null
+TaintedStat:	NORMAL getUMask:conditional branch(eq, to iindex=18) 7,4 Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, getUMask(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/permission/FsPermission; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, getUMask(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/permission/FsPermission; > Context: Everywhere[7]7 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 1,5 @10 exception:6
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, getUMask(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/permission/FsPermission; > Context: Everywhere[7]7 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 1,5 @10 exception:6
+NORMAL getUMask:conditional branch(eq, to iindex=18) 7,4 Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, getUMask(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/permission/FsPermission; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  public static FsPermission getUMask(Configuration conf) {
+    int umask = DEFAULT_UMASK;
+    
+    // To ensure backward compatibility first use the deprecated key.
+    // If the deprecated key is not present then check for the new key
+    if(conf != null) {
+      String confUmask = conf.get(UMASK_LABEL);
+      try {
+        if(confUmask != null) {
+          umask = new UmaskParser(confUmask).getUMask();
+        }
+      } catch(IllegalArgumentException iae) {
+        // Provide more explanation for user-facing message
+        String type = iae instanceof NumberFormatException ? "decimal"
+            : "octal or symbolic";
+        String error = "Unable to parse configuration " + UMASK_LABEL
+            + " with value " + confUmask + " as " + type + " umask.";
+        LOG.warn(error);
+
+        throw new IllegalArgumentException(error);
+      }
+    }
+    
+    return new FsPermission((short)umask);
+  }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/FileSystem, create(Lorg/apache/hadoop/fs/Path;ZISJLorg/apache/hadoop/util/Progressable;)Lorg/apache/hadoop/fs/FSDataOutputStream; > Context: Everywhere, blocks=[BB[SSA:5..5]3 - org.apache.hadoop.fs.FileSystem.create(Lorg/apache/hadoop/fs/Path;ZISJLorg/apache/hadoop/util/Progressable;)Lorg/apache/hadoop/fs/FSDataOutputStream;, BB[SSA:3..4]2 - org.apache.hadoop.fs.FileSystem.create(Lorg/apache/hadoop/fs/Path;ZISJLorg/apache/hadoop/util/Progressable;)Lorg/apache/hadoop/fs/FSDataOutputStream;, BB[SSA:6..6]4 - org.apache.hadoop.fs.FileSystem.create(Lorg/apache/hadoop/fs/Path;ZISJLorg/apache/hadoop/util/Progressable;)Lorg/apache/hadoop/fs/FSDataOutputStream;, BB[SSA:-1..-2]7 - org.apache.hadoop.fs.FileSystem.create(Lorg/apache/hadoop/fs/Path;ZISJLorg/apache/hadoop/util/Progressable;)Lorg/apache/hadoop/fs/FSDataOutputStream;], numberOfBasicBlocks=4, firstLineNumber=1234, lastLineNumber=1233, firstMethodNumber=1232, lastMethodNumber=1233, isFirstLineValid=true, methodSrcCode=
+                                            ) throws IOException {
+    return this.create(f, FsCreateModes.applyUMask(
+        FsPermission.getFileDefault(), FsPermission.getUMask(getConf())),
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/RawLocalFileSystem, mkOneDirWithMode(Lorg/apache/hadoop/fs/Path;Ljava/io/File;Lorg/apache/hadoop/fs/permission/FsPermission;)Z > Context: Everywhere, blocks=[BB[SSA:8..8]5 - org.apache.hadoop.fs.RawLocalFileSystem.mkOneDirWithMode(Lorg/apache/hadoop/fs/Path;Ljava/io/File;Lorg/apache/hadoop/fs/permission/FsPermission;)Z, BB[SSA:5..7]4 - org.apache.hadoop.fs.RawLocalFileSystem.mkOneDirWithMode(Lorg/apache/hadoop/fs/Path;Ljava/io/File;Lorg/apache/hadoop/fs/permission/FsPermission;)Z, BB[SSA:9..9]6 - org.apache.hadoop.fs.RawLocalFileSystem.mkOneDirWithMode(Lorg/apache/hadoop/fs/Path;Ljava/io/File;Lorg/apache/hadoop/fs/permission/FsPermission;)Z, BB[SSA:-1..-2]27 - org.apache.hadoop.fs.RawLocalFileSystem.mkOneDirWithMode(Lorg/apache/hadoop/fs/Path;Ljava/io/File;Lorg/apache/hadoop/fs/permission/FsPermission;)Z], numberOfBasicBlocks=4, firstLineNumber=780, lastLineNumber=780, firstMethodNumber=776, lastMethodNumber=798, isFirstLineValid=true, methodSrcCode=
+      throws IOException {
+    if (permission == null) {
+      permission = FsPermission.getDirDefault();
+    }
+    permission = permission.applyUMask(FsPermission.getUMask(getConf()));
+    if (Shell.WINDOWS && NativeIO.isAvailable()) {
+      try {
+        NativeIO.Windows.createDirectoryWithMode(p2f, permission.toShort());
+        return true;
+      } catch (IOException e) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(String.format(
+              "NativeIO.createDirectoryWithMode error, path = %s, mode = %o",
+              p2f, permission.toShort()), e);
+        }
+        return false;
+      }
+    } else {
+      boolean b = p2f.mkdir();
+      if (b) {
+        setPermission(p, permission);
+      }
+      return b;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/FileContext, getUMask()Lorg/apache/hadoop/fs/permission/FsPermission; > Context: Everywhere, blocks=[BB[SSA:9..9]6 - org.apache.hadoop.fs.FileContext.getUMask()Lorg/apache/hadoop/fs/permission/FsPermission;, BB[SSA:7..8]5 - org.apache.hadoop.fs.FileContext.getUMask()Lorg/apache/hadoop/fs/permission/FsPermission;, BB[SSA:10..10]7 - org.apache.hadoop.fs.FileContext.getUMask()Lorg/apache/hadoop/fs/permission/FsPermission;, BB[SSA:-1..-2]8 - org.apache.hadoop.fs.FileContext.getUMask()Lorg/apache/hadoop/fs/permission/FsPermission;], numberOfBasicBlocks=4, firstLineNumber=592, lastLineNumber=592, firstMethodNumber=591, lastMethodNumber=592, isFirstLineValid=true, methodSrcCode=
+  public FsPermission getUMask() {
+    return (umask != null ? umask : FsPermission.getUMask(conf));
+  }
+}

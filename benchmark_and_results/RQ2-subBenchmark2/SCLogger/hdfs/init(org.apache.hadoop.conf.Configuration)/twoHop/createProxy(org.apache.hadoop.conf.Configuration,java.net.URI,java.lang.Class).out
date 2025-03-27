@@ -1,0 +1,11 @@
+/** 
+ * Creates the namenode proxy with the passed protocol. This will handle creation of either HA- or non-HA-enabled proxy objects, depending upon if the provided URI is a configured logical URI.
+ * @param conf the configuration containing the required IPCproperties, client failover configurations, etc.
+ * @param nameNodeUri the URI pointing either to a specific NameNodeor to a logical nameservice.
+ * @param xface the IPC interface which should be created
+ * @return an object containing both the proxy and the associateddelegation token service it corresponds to
+ * @throws IOException if there is an error creating the proxy
+ */
+public static <T>ProxyAndInfo<T> createProxy(Configuration conf,URI nameNodeUri,Class<T> xface) throws IOException {
+  return createProxy(conf,nameNodeUri,xface,null);
+}

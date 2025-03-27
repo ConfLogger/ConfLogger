@@ -1,0 +1,237 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>public static IPrincipalToLocal getPrincipalToLocalPlugin(Map<String, Object> topoConf) {
+<Line#1>IPrincipalToLocal ptol = null;
+<Line#2>try {
+<Line#3>String ptolClassname = (String) topoConf.get(Config.STORM_PRINCIPAL_TO_LOCAL_PLUGIN);
+<Line#4>if (ptolClassname == null) {
+<Line#5>
+<Line#6>} else {
+<Line#7>ptol = ReflectionUtils.newInstance(ptolClassname);
+<Line#8>//TODO this can only ever be null if someone is doing something odd with mocking
+<Line#9>// We should really fix the mocking and remove this
+<Line#10>if (ptol != null) {
+<Line#11>ptol.prepare(topoConf);
+<Line#12>}
+<Line#13>}
+<Line#14>} catch (Exception e) {
+<Line#15>throw new RuntimeException(e);
+<Line#16>}
+<Line#17>return ptol;
+<Line#18>}
+
+Example 1:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    getClusterInfoCalls.mark();
+<Line#4>    checkAuthorization(null,null,"getClusterInfo");
+<Line#5>    return getClusterInfoImpl();
+<Line#6>  }
+<Line#7> catch (  Exception e) {
+<Line#8>    LOG.warn("Get cluster info exception.",e);
+<Line#9>    if (e instanceof TException) {
+<Line#10>      throw (TException)e;
+<Line#11>    }
+<Line#12>    throw new RuntimeException(e);
+<Line#13>  }
+<Line#14>}
+Label: <Line#8> LOG.warn("Get cluster info exception.",e)
+
+Example 2:
+<Line#1>{
+<Line#2>  Utils.validateTopologyName(name);
+<Line#3>  if (!Utils.isValidConf(topoConf)) {
+<Line#4>    throw new IllegalArgumentException("Storm conf is not valid. Must be json-serializable");
+<Line#5>  }
+<Line#6>  if (topology.get_spouts_size() == 0) {
+<Line#7>    throw new WrappedInvalidTopologyException("Topology " + name + " does not have any spout");
+<Line#8>  }
+<Line#9>  topoConf=new HashMap<>(topoConf);
+<Line#10>  topoConf.putAll(Utils.readCommandLineOpts());
+<Line#11>  Map<String,Object> conf=Utils.readStormConfig();
+<Line#12>  conf.putAll(topoConf);
+<Line#13>  topoConf.putAll(prepareZookeeperAuthentication(conf));
+<Line#14>  validateConfs(conf);
+<Line#15>  try {
+<Line#16>    Utils.validateCycleFree(topology,name);
+<Line#17>  }
+<Line#18> catch (  InvalidTopologyException ex) {
+<Line#19>    LOG.warn("",ex);
+<Line#20>  }
+<Line#21>  Map<String,String> passedCreds=new HashMap<>();
+<Line#22>  if (opts != null) {
+<Line#23>    Credentials tmpCreds=opts.get_creds();
+<Line#24>    if (tmpCreds != null) {
+<Line#25>      passedCreds=tmpCreds.get_creds();
+<Line#26>    }
+<Line#27>  }
+<Line#28>  Map<String,String> fullCreds=populateCredentials(conf,passedCreds);
+<Line#29>  if (!fullCreds.isEmpty()) {
+<Line#30>    if (opts == null) {
+<Line#31>      opts=new SubmitOptions(TopologyInitialStatus.ACTIVE);
+<Line#32>    }
+<Line#33>    opts.set_creds(new Credentials(fullCreds));
+<Line#34>  }
+<Line#35>  try {
+<Line#36>    String serConf=JSONValue.toJSONString(topoConf);
+<Line#37>    try (NimbusClient client=NimbusClient.getConfiguredClientAs(conf,asUser)){
+<Line#38>      if (!isTopologyNameAllowed(name,client)) {
+<Line#39>        throw new RuntimeException("Topology name " + name + " is either not allowed or it already exists on the cluster");
+<Line#40>      }
+<Line#41>      List<String> jarsBlobKeys=Collections.emptyList();
+<Line#42>      List<String> artifactsBlobKeys;
+<Line#43>      DependencyUploader uploader=new DependencyUploader();
+<Line#44>      try {
+<Line#45>        uploader.init();
+<Line#46>        jarsBlobKeys=uploadDependencyJarsToBlobStore(uploader);
+<Line#47>        artifactsBlobKeys=uploadDependencyArtifactsToBlobStore(uploader);
+<Line#48>      }
+<Line#49> catch (      Throwable e) {
+<Line#50>        uploader.deleteBlobs(jarsBlobKeys);
+<Line#51>        uploader.shutdown();
+<Line#52>        throw e;
+<Line#53>      }
+<Line#54>      try {
+<Line#55>        setDependencyBlobsToTopology(topology,jarsBlobKeys,artifactsBlobKeys);
+<Line#56>        submitTopologyInDistributeMode(name,topology,opts,progressListener,asUser,conf,serConf,client);
+<Line#57>      }
+<Line#58> catch (      AlreadyAliveException|InvalidTopologyException|AuthorizationException e) {
+<Line#59>        uploader.deleteBlobs(jarsBlobKeys);
+<Line#60>        throw e;
+<Line#61>      }
+<Line#62> finally {
+<Line#63>        uploader.shutdown();
+<Line#64>      }
+<Line#65>    }
+<Line#66>   }
+<Line#67> catch (  TException e) {
+<Line#68>    throw new RuntimeException(e);
+<Line#69>  }
+<Line#70>  invokeSubmitterHook(name,asUser,conf,topology);
+<Line#71>}
+Label: <Line#19> LOG.warn("",ex)
+
+Example 3:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    uploadNewCredentialsCalls.mark();
+<Line#4>    IStormClusterState state=stormClusterState;
+<Line#5>    String topoId=toTopoId(topoName);
+<Line#6>    if (topoId == null) {
+<Line#7>      throw new WrappedNotAliveException(topoName + " is not alive");
+<Line#8>    }
+<Line#9>    Map<String,Object> topoConf=tryReadTopoConf(topoId,topoCache);
+<Line#10>    topoConf=Utils.merge(conf,topoConf);
+<Line#11>    if (credentials == null) {
+<Line#12>      credentials=new Credentials(Collections.emptyMap());
+<Line#13>    }
+<Line#14>    checkAuthorization(topoName,topoConf,"uploadNewCredentials");
+<Line#15>    String realPrincipal=(String)topoConf.get(Config.TOPOLOGY_SUBMITTER_PRINCIPAL);
+<Line#16>    String realUser=(String)topoConf.get(Config.TOPOLOGY_SUBMITTER_USER);
+<Line#17>    String expectedOwner=null;
+<Line#18>    if (credentials.is_set_topoOwner()) {
+<Line#19>      expectedOwner=credentials.get_topoOwner();
+<Line#20>    }
+<Line#21> else {
+<Line#22>      Principal p=ReqContext.context().principal();
+<Line#23>      if (p != null) {
+<Line#24>        expectedOwner=p.getName();
+<Line#25>      }
+<Line#26>    }
+<Line#27>    if (expectedOwner == null) {
+<Line#28>      LOG.warn("Please check you settings. Credentials are being uploaded to {} with security disabled.",topoId);
+<Line#29>    }
+<Line#30> else     if (!realPrincipal.equals(expectedOwner) && !realUser.equals(expectedOwner)) {
+<Line#31>      throw new AuthorizationException(topoId + " is expected to be owned by " + expectedOwner+ " but is actually owned by "+ realPrincipal);
+<Line#32>    }
+<Line#33>synchronized (credUpdateLock) {
+<Line#34>      Credentials origCreds=state.credentials(topoId,null);
+<Line#35>      if (origCreds != null) {
+<Line#36>        Map<String,String> mergedCreds=origCreds.get_creds();
+<Line#37>        mergedCreds.putAll(credentials.get_creds());
+<Line#38>        credentials.set_creds(mergedCreds);
+<Line#39>      }
+<Line#40>      state.setCredentials(topoId,credentials,topoConf);
+<Line#41>    }
+<Line#42>  }
+<Line#43> catch (  Exception e) {
+<Line#44>    LOG.warn("Upload Creds topology exception. (topology name='{}')",topoName,e);
+<Line#45>    if (e instanceof TException) {
+<Line#46>      throw (TException)e;
+<Line#47>    }
+<Line#48>    throw new RuntimeException(e);
+<Line#49>  }
+<Line#50>}
+Label: <Line#28> LOG.warn("Please check you settings. Credentials are being uploaded to {} with security disabled.",topoId)
+
+Example 4:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    uploadNewCredentialsCalls.mark();
+<Line#4>    IStormClusterState state=stormClusterState;
+<Line#5>    String topoId=toTopoId(topoName);
+<Line#6>    if (topoId == null) {
+<Line#7>      throw new WrappedNotAliveException(topoName + " is not alive");
+<Line#8>    }
+<Line#9>    Map<String,Object> topoConf=tryReadTopoConf(topoId,topoCache);
+<Line#10>    topoConf=Utils.merge(conf,topoConf);
+<Line#11>    if (credentials == null) {
+<Line#12>      credentials=new Credentials(Collections.emptyMap());
+<Line#13>    }
+<Line#14>    checkAuthorization(topoName,topoConf,"uploadNewCredentials");
+<Line#15>    String realPrincipal=(String)topoConf.get(Config.TOPOLOGY_SUBMITTER_PRINCIPAL);
+<Line#16>    String realUser=(String)topoConf.get(Config.TOPOLOGY_SUBMITTER_USER);
+<Line#17>    String expectedOwner=null;
+<Line#18>    if (credentials.is_set_topoOwner()) {
+<Line#19>      expectedOwner=credentials.get_topoOwner();
+<Line#20>    }
+<Line#21> else {
+<Line#22>      Principal p=ReqContext.context().principal();
+<Line#23>      if (p != null) {
+<Line#24>        expectedOwner=p.getName();
+<Line#25>      }
+<Line#26>    }
+<Line#27>    if (expectedOwner == null) {
+<Line#28>      LOG.warn("Please check you settings. Credentials are being uploaded to {} with security disabled.",topoId);
+<Line#29>    }
+<Line#30> else     if (!realPrincipal.equals(expectedOwner) && !realUser.equals(expectedOwner)) {
+<Line#31>      throw new AuthorizationException(topoId + " is expected to be owned by " + expectedOwner+ " but is actually owned by "+ realPrincipal);
+<Line#32>    }
+<Line#33>synchronized (credUpdateLock) {
+<Line#34>      Credentials origCreds=state.credentials(topoId,null);
+<Line#35>      if (origCreds != null) {
+<Line#36>        Map<String,String> mergedCreds=origCreds.get_creds();
+<Line#37>        mergedCreds.putAll(credentials.get_creds());
+<Line#38>        credentials.set_creds(mergedCreds);
+<Line#39>      }
+<Line#40>      state.setCredentials(topoId,credentials,topoConf);
+<Line#41>    }
+<Line#42>  }
+<Line#43> catch (  Exception e) {
+<Line#44>    LOG.warn("Upload Creds topology exception. (topology name='{}')",topoName,e);
+<Line#45>    if (e instanceof TException) {
+<Line#46>      throw (TException)e;
+<Line#47>    }
+<Line#48>    throw new RuntimeException(e);
+<Line#49>  }
+<Line#50>}
+Label: <Line#44> LOG.warn("Upload Creds topology exception. (topology name='{}')",topoName,e)
+
+Example 5:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    getTopologySummariesCalls.mark();
+<Line#4>    checkAuthorization(null,null,"getTopologySummaries");
+<Line#5>    return getTopologySummariesImpl();
+<Line#6>  }
+<Line#7> catch (  Exception e) {
+<Line#8>    LOG.warn("Get TopologySummary info exception.",e);
+<Line#9>    if (e instanceof TException) {
+<Line#10>      throw (TException)e;
+<Line#11>    }
+<Line#12>    throw new RuntimeException(e);
+<Line#13>  }
+<Line#14>}
+Label: <Line#8> LOG.warn("Get TopologySummary info exception.",e)
+

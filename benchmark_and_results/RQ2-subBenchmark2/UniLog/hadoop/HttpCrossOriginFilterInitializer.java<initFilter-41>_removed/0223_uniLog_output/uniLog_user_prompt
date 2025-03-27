@@ -1,0 +1,315 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>String key = getEnabledConfigKey();
+<Line#1>boolean enabled = conf.getBoolean(key, false);
+<Line#2>if (enabled) {
+<Line#3>container.addGlobalFilter("Cross Origin Filter",
+<Line#4>CrossOriginFilter.class.getName(),
+<Line#5>getFilterParameters(conf, getPrefix()));
+<Line#6>} else {
+<Line#7>;
+<Line#8>}
+<Line#9>}
+
+Example 1:
+<Line#1>{
+<Line#2>  title("Kerberos Diagnostics scan at %s",new Date(System.currentTimeMillis()));
+<Line#3>  println("Hostname = %s",InetAddress.getLocalHost().getCanonicalHostName());
+<Line#4>  println("%s = %d",ARG_KEYLEN,minKeyLength);
+<Line#5>  println("%s = %s",ARG_KEYTAB,keytab);
+<Line#6>  println("%s = %s",ARG_PRINCIPAL,principal);
+<Line#7>  println("%s = %s",ARG_VERIFYSHORTNAME,checkShortName);
+<Line#8>  validateKeyLength();
+<Line#9>  println("JVM Kerberos Login Module = %s",getKrb5LoginModuleName());
+<Line#10>  title("Core System Properties");
+<Line#11>  for (  String prop : new String[]{"user.name","java.version","java.vendor",JAVA_SECURITY_KRB5_CONF,JAVA_SECURITY_KRB5_REALM,JAVA_SECURITY_KRB5_KDC_ADDRESS,SUN_SECURITY_KRB5_DEBUG,SUN_SECURITY_SPNEGO_DEBUG,SUN_SECURITY_JAAS_FILE}) {
+<Line#12>    printSysprop(prop);
+<Line#13>  }
+<Line#14>  endln();
+<Line#15>  title("All System Properties");
+<Line#16>  ArrayList<String> propList=new ArrayList<>(System.getProperties().stringPropertyNames());
+<Line#17>  Collections.sort(propList,String.CASE_INSENSITIVE_ORDER);
+<Line#18>  for (  String s : propList) {
+<Line#19>    printSysprop(s);
+<Line#20>  }
+<Line#21>  endln();
+<Line#22>  title("Environment Variables");
+<Line#23>  for (  String env : new String[]{HADOOP_JAAS_DEBUG,KRB5_CCNAME,KRB5_CONFIG,HADOOP_USER_NAME,HADOOP_PROXY_USER,HADOOP_TOKEN_FILE_LOCATION,"HADOOP_SECURE_LOG","HADOOP_OPTS","HADOOP_CLIENT_OPTS"}) {
+<Line#24>    printEnv(env);
+<Line#25>  }
+<Line#26>  endln();
+<Line#27>  title("Configuration Options");
+<Line#28>  for (  String prop : new String[]{KERBEROS_KINIT_COMMAND,HADOOP_SECURITY_AUTHENTICATION,HADOOP_SECURITY_AUTHORIZATION,"hadoop.kerberos.min.seconds.before.relogin","hadoop.security.dns.interface","hadoop.security.dns.nameserver",HADOOP_RPC_PROTECTION,HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS,HADOOP_SECURITY_CRYPTO_CODEC_CLASSES_KEY_PREFIX,HADOOP_SECURITY_GROUP_MAPPING,"hadoop.security.impersonation.provider.class",DFS_DATA_TRANSFER_PROTECTION,DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS}) {
+<Line#29>    printConfOpt(prop);
+<Line#30>  }
+<Line#31>  Configuration conf=getConf();
+<Line#32>  if (isSimpleAuthentication(conf)) {
+<Line#33>    println(HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#34>    failif(securityRequired,CAT_CONFIG,HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#35>    LOG.warn("Security is not enabled for the Hadoop cluster");
+<Line#36>  }
+<Line#37> else {
+<Line#38>    if (isSimpleAuthentication(new Configuration())) {
+<Line#39>      LOG.warn("The default cluster security is insecure");
+<Line#40>      failif(securityRequired,CAT_CONFIG,HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#41>    }
+<Line#42>  }
+<Line#43>  boolean krb5Debug=getAndSet(SUN_SECURITY_KRB5_DEBUG);
+<Line#44>  boolean spnegoDebug=getAndSet(SUN_SECURITY_SPNEGO_DEBUG);
+<Line#45>  try {
+<Line#46>    UserGroupInformation.setConfiguration(conf);
+<Line#47>    validateHadoopTokenFiles(conf);
+<Line#48>    validateKrb5File();
+<Line#49>    printDefaultRealm();
+<Line#50>    validateSasl(HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS);
+<Line#51>    if (conf.get(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS) != null) {
+<Line#52>      validateSasl(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS);
+<Line#53>    }
+<Line#54>    validateKinitExecutable();
+<Line#55>    validateJAAS(jaas);
+<Line#56>    validateNTPConf();
+<Line#57>    if (checkShortName) {
+<Line#58>      validateShortName();
+<Line#59>    }
+<Line#60>    if (!nologin) {
+<Line#61>      title("Logging in");
+<Line#62>      if (keytab != null) {
+<Line#63>        dumpKeytab(keytab);
+<Line#64>        loginFromKeytab();
+<Line#65>      }
+<Line#66> else {
+<Line#67>        UserGroupInformation loginUser=getLoginUser();
+<Line#68>        dumpUGI("Log in user",loginUser);
+<Line#69>        validateUGI("Login user",loginUser);
+<Line#70>        println("Ticket based login: %b",isLoginTicketBased());
+<Line#71>        println("Keytab based login: %b",isLoginKeytabBased());
+<Line#72>      }
+<Line#73>    }
+<Line#74>    return true;
+<Line#75>  }
+<Line#76>  finally {
+<Line#77>    System.setProperty(SUN_SECURITY_KRB5_DEBUG,Boolean.toString(krb5Debug));
+<Line#78>    System.setProperty(SUN_SECURITY_SPNEGO_DEBUG,Boolean.toString(spnegoDebug));
+<Line#79>  }
+<Line#80>}
+Label: <Line#35> LOG.warn("Security is not enabled for the Hadoop cluster")
+
+Example 2:
+<Line#1>{
+<Line#2>  title("Kerberos Diagnostics scan at %s",new Date(System.currentTimeMillis()));
+<Line#3>  println("Hostname = %s",InetAddress.getLocalHost().getCanonicalHostName());
+<Line#4>  println("%s = %d",ARG_KEYLEN,minKeyLength);
+<Line#5>  println("%s = %s",ARG_KEYTAB,keytab);
+<Line#6>  println("%s = %s",ARG_PRINCIPAL,principal);
+<Line#7>  println("%s = %s",ARG_VERIFYSHORTNAME,checkShortName);
+<Line#8>  validateKeyLength();
+<Line#9>  println("JVM Kerberos Login Module = %s",getKrb5LoginModuleName());
+<Line#10>  title("Core System Properties");
+<Line#11>  for (  String prop : new String[]{"user.name","java.version","java.vendor",JAVA_SECURITY_KRB5_CONF,JAVA_SECURITY_KRB5_REALM,JAVA_SECURITY_KRB5_KDC_ADDRESS,SUN_SECURITY_KRB5_DEBUG,SUN_SECURITY_SPNEGO_DEBUG,SUN_SECURITY_JAAS_FILE}) {
+<Line#12>    printSysprop(prop);
+<Line#13>  }
+<Line#14>  endln();
+<Line#15>  title("All System Properties");
+<Line#16>  ArrayList<String> propList=new ArrayList<>(System.getProperties().stringPropertyNames());
+<Line#17>  Collections.sort(propList,String.CASE_INSENSITIVE_ORDER);
+<Line#18>  for (  String s : propList) {
+<Line#19>    printSysprop(s);
+<Line#20>  }
+<Line#21>  endln();
+<Line#22>  title("Environment Variables");
+<Line#23>  for (  String env : new String[]{HADOOP_JAAS_DEBUG,KRB5_CCNAME,KRB5_CONFIG,HADOOP_USER_NAME,HADOOP_PROXY_USER,HADOOP_TOKEN_FILE_LOCATION,"HADOOP_SECURE_LOG","HADOOP_OPTS","HADOOP_CLIENT_OPTS"}) {
+<Line#24>    printEnv(env);
+<Line#25>  }
+<Line#26>  endln();
+<Line#27>  title("Configuration Options");
+<Line#28>  for (  String prop : new String[]{KERBEROS_KINIT_COMMAND,HADOOP_SECURITY_AUTHENTICATION,HADOOP_SECURITY_AUTHORIZATION,"hadoop.kerberos.min.seconds.before.relogin","hadoop.security.dns.interface","hadoop.security.dns.nameserver",HADOOP_RPC_PROTECTION,HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS,HADOOP_SECURITY_CRYPTO_CODEC_CLASSES_KEY_PREFIX,HADOOP_SECURITY_GROUP_MAPPING,"hadoop.security.impersonation.provider.class",DFS_DATA_TRANSFER_PROTECTION,DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS}) {
+<Line#29>    printConfOpt(prop);
+<Line#30>  }
+<Line#31>  Configuration conf=getConf();
+<Line#32>  if (isSimpleAuthentication(conf)) {
+<Line#33>    println(HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#34>    failif(securityRequired,CAT_CONFIG,HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#35>    LOG.warn("Security is not enabled for the Hadoop cluster");
+<Line#36>  }
+<Line#37> else {
+<Line#38>    if (isSimpleAuthentication(new Configuration())) {
+<Line#39>      LOG.warn("The default cluster security is insecure");
+<Line#40>      failif(securityRequired,CAT_CONFIG,HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#41>    }
+<Line#42>  }
+<Line#43>  boolean krb5Debug=getAndSet(SUN_SECURITY_KRB5_DEBUG);
+<Line#44>  boolean spnegoDebug=getAndSet(SUN_SECURITY_SPNEGO_DEBUG);
+<Line#45>  try {
+<Line#46>    UserGroupInformation.setConfiguration(conf);
+<Line#47>    validateHadoopTokenFiles(conf);
+<Line#48>    validateKrb5File();
+<Line#49>    printDefaultRealm();
+<Line#50>    validateSasl(HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS);
+<Line#51>    if (conf.get(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS) != null) {
+<Line#52>      validateSasl(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS);
+<Line#53>    }
+<Line#54>    validateKinitExecutable();
+<Line#55>    validateJAAS(jaas);
+<Line#56>    validateNTPConf();
+<Line#57>    if (checkShortName) {
+<Line#58>      validateShortName();
+<Line#59>    }
+<Line#60>    if (!nologin) {
+<Line#61>      title("Logging in");
+<Line#62>      if (keytab != null) {
+<Line#63>        dumpKeytab(keytab);
+<Line#64>        loginFromKeytab();
+<Line#65>      }
+<Line#66> else {
+<Line#67>        UserGroupInformation loginUser=getLoginUser();
+<Line#68>        dumpUGI("Log in user",loginUser);
+<Line#69>        validateUGI("Login user",loginUser);
+<Line#70>        println("Ticket based login: %b",isLoginTicketBased());
+<Line#71>        println("Keytab based login: %b",isLoginKeytabBased());
+<Line#72>      }
+<Line#73>    }
+<Line#74>    return true;
+<Line#75>  }
+<Line#76>  finally {
+<Line#77>    System.setProperty(SUN_SECURITY_KRB5_DEBUG,Boolean.toString(krb5Debug));
+<Line#78>    System.setProperty(SUN_SECURITY_SPNEGO_DEBUG,Boolean.toString(spnegoDebug));
+<Line#79>  }
+<Line#80>}
+Label: <Line#39> LOG.warn("The default cluster security is insecure")
+
+Example 3:
+<Line#1>{
+<Line#2>  if (line.hasOption("fs")) {
+<Line#3>    FileSystem.setDefaultUri(conf,line.getOptionValue("fs"));
+<Line#4>  }
+<Line#5>  if (line.hasOption("jt")) {
+<Line#6>    String optionValue=line.getOptionValue("jt");
+<Line#7>    if (optionValue.equalsIgnoreCase("local")) {
+<Line#8>      conf.set("mapreduce.framework.name",optionValue);
+<Line#9>    }
+<Line#10>    conf.set("yarn.resourcemanager.address",optionValue,"from -jt command line option");
+<Line#11>  }
+<Line#12>  if (line.hasOption("conf")) {
+<Line#13>    String[] values=line.getOptionValues("conf");
+<Line#14>    for (    String value : values) {
+<Line#15>      conf.addResource(new Path(value));
+<Line#16>    }
+<Line#17>  }
+<Line#18>  if (line.hasOption('D')) {
+<Line#19>    String[] property=line.getOptionValues('D');
+<Line#20>    for (    String prop : property) {
+<Line#21>      String[] keyval=prop.split("=",2);
+<Line#22>      if (keyval.length == 2) {
+<Line#23>        conf.set(keyval[0],keyval[1],"from command line");
+<Line#24>      }
+<Line#25>    }
+<Line#26>  }
+<Line#27>  if (line.hasOption("libjars")) {
+<Line#28>    conf.set("tmpjars",validateFiles(line.getOptionValue("libjars"),true),"from -libjars command line option");
+<Line#29>    URL[] libjars=getLibJars(conf);
+<Line#30>    if (libjars != null && libjars.length > 0) {
+<Line#31>      conf.setClassLoader(new URLClassLoader(libjars,conf.getClassLoader()));
+<Line#32>      Thread.currentThread().setContextClassLoader(new URLClassLoader(libjars,Thread.currentThread().getContextClassLoader()));
+<Line#33>    }
+<Line#34>  }
+<Line#35>  if (line.hasOption("files")) {
+<Line#36>    conf.set("tmpfiles",validateFiles(line.getOptionValue("files")),"from -files command line option");
+<Line#37>  }
+<Line#38>  if (line.hasOption("archives")) {
+<Line#39>    conf.set("tmparchives",validateFiles(line.getOptionValue("archives")),"from -archives command line option");
+<Line#40>  }
+<Line#41>  conf.setBoolean("mapreduce.client.genericoptionsparser.used",true);
+<Line#42>  if (line.hasOption("tokenCacheFile")) {
+<Line#43>    String fileName=line.getOptionValue("tokenCacheFile");
+<Line#44>    FileSystem localFs=FileSystem.getLocal(conf);
+<Line#45>    Path p=localFs.makeQualified(new Path(fileName));
+<Line#46>    localFs.getFileStatus(p);
+<Line#47>    if (LOG.isDebugEnabled()) {
+<Line#48>      LOG.debug("setting conf tokensFile: " + fileName);
+<Line#49>    }
+<Line#50>    UserGroupInformation.getCurrentUser().addCredentials(Credentials.readTokenStorageFile(p,conf));
+<Line#51>    conf.set("mapreduce.job.credentials.binary",p.toString(),"from -tokenCacheFile command line option");
+<Line#52>  }
+<Line#53>}
+Label: <Line#48> LOG.debug("setting conf tokensFile: " + fileName)
+
+Example 4:
+<Line#1>{
+<Line#2>  if (simpleKdc != null) {
+<Line#3>    try {
+<Line#4>      simpleKdc.stop();
+<Line#5>    }
+<Line#6> catch (    KrbException e) {
+<Line#7>      e.printStackTrace();
+<Line#8>    }
+<Line#9> finally {
+<Line#10>      if (conf.getProperty(DEBUG) != null) {
+<Line#11>        System.setProperty(SUN_SECURITY_KRB5_DEBUG,Boolean.toString(krb5Debug));
+<Line#12>      }
+<Line#13>    }
+<Line#14>  }
+<Line#15>  delete(workDir);
+<Line#16>  try {
+<Line#17>    Thread.sleep(1000);
+<Line#18>  }
+<Line#19> catch (  InterruptedException e) {
+<Line#20>    e.printStackTrace();
+<Line#21>  }
+<Line#22>  LOG.info("MiniKdc stopped.");
+<Line#23>}
+Label: <Line#22> LOG.info("MiniKdc stopped.")
+
+Example 5:
+<Line#1>{
+<Line#2>  LOG.info(Thread.currentThread().getName() + ": starting");
+<Line#3>  SERVER.set(Server.this);
+<Line#4>  connectionManager.startIdleScan();
+<Line#5>  while (running) {
+<Line#6>    SelectionKey key=null;
+<Line#7>    try {
+<Line#8>      getSelector().select();
+<Line#9>      Iterator<SelectionKey> iter=getSelector().selectedKeys().iterator();
+<Line#10>      while (iter.hasNext()) {
+<Line#11>        key=iter.next();
+<Line#12>        iter.remove();
+<Line#13>        try {
+<Line#14>          if (key.isValid()) {
+<Line#15>            if (key.isAcceptable())             doAccept(key);
+<Line#16>          }
+<Line#17>        }
+<Line#18> catch (        IOException e) {
+<Line#19>        }
+<Line#20>        key=null;
+<Line#21>      }
+<Line#22>    }
+<Line#23> catch (    OutOfMemoryError e) {
+<Line#24>      LOG.warn("Out of Memory in server select",e);
+<Line#25>      closeCurrentConnection(key,e);
+<Line#26>      connectionManager.closeIdle(true);
+<Line#27>      try {
+<Line#28>        Thread.sleep(60000);
+<Line#29>      }
+<Line#30> catch (      Exception ie) {
+<Line#31>      }
+<Line#32>    }
+<Line#33>catch (    Exception e) {
+<Line#34>      closeCurrentConnection(key,e);
+<Line#35>    }
+<Line#36>  }
+<Line#37>  LOG.info("Stopping " + Thread.currentThread().getName());
+<Line#38>synchronized (this) {
+<Line#39>    try {
+<Line#40>      acceptChannel.close();
+<Line#41>      selector.close();
+<Line#42>    }
+<Line#43> catch (    IOException e) {
+<Line#44>    }
+<Line#45>    selector=null;
+<Line#46>    acceptChannel=null;
+<Line#47>    connectionManager.stopIdleScan();
+<Line#48>    connectionManager.closeAll();
+<Line#49>  }
+<Line#50>}
+Label: <Line#2> LOG.info(Thread.currentThread().getName() + ": starting")
+

@@ -1,0 +1,94 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ResponseCache.java	methodSinagture:	org.apache.zookeeper.server.ResponseCache.get(Ljava/lang/String;Lorg/apache/zookeeper/data/Stat;)[B	methodLines:	59:69
+blockLines:	61:-1
+paras:	null
+TaintedStat:	NORMAL get:conditional branch(ne, to iindex=11) 8,9 Node: < Application, Lorg/apache/zookeeper/server/ResponseCache, get(Ljava/lang/String;Lorg/apache/zookeeper/data/Stat;)[B > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ResponseCache, get(Ljava/lang/String;Lorg/apache/zookeeper/data/Stat;)[B > Context: Everywhere[3]7 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,2 @5 exception:6
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ResponseCache, get(Ljava/lang/String;Lorg/apache/zookeeper/data/Stat;)[B > Context: Everywhere[3]7 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,2 @5 exception:6
+NORMAL get:8 = checkcast <Application,Lorg/apache/zookeeper/server/ResponseCache$Entry>7 <Application,Lorg/apache/zookeeper/server/ResponseCache$Entry> Node: < Application, Lorg/apache/zookeeper/server/ResponseCache, get(Ljava/lang/String;Lorg/apache/zookeeper/data/Stat;)[B > Context: Everywhere
+NORMAL get:conditional branch(ne, to iindex=11) 8,9 Node: < Application, Lorg/apache/zookeeper/server/ResponseCache, get(Ljava/lang/String;Lorg/apache/zookeeper/data/Stat;)[B > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public byte[] get(String key, Stat stat) {
+        Entry entry = cache.get(key);
+        if (entry == null) {
+            return null;
+        }
+        if (!stat.equals(entry.stat)) {
+            // The node has been modified, invalidate cache.
+            cache.remove(key);
+            return null;
+        } else {
+            return entry.data;
+        }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/ServerCnxn, serialize(Lorg/apache/zookeeper/proto/ReplyHeader;Lorg/apache/jute/Record;Ljava/lang/String;Ljava/lang/String;Lorg/apache/zookeeper/data/Stat;I)[Ljava/nio/ByteBuffer; > Context: Everywhere, blocks=[BB[SSA:53..56]23 - org.apache.zookeeper.server.ServerCnxn.serialize(Lorg/apache/zookeeper/proto/ReplyHeader;Lorg/apache/jute/Record;Ljava/lang/String;Ljava/lang/String;Lorg/apache/zookeeper/data/Stat;I)[Ljava/nio/ByteBuffer;, BB[SSA:51..52]22 - org.apache.zookeeper.server.ServerCnxn.serialize(Lorg/apache/zookeeper/proto/ReplyHeader;Lorg/apache/jute/Record;Ljava/lang/String;Ljava/lang/String;Lorg/apache/zookeeper/data/Stat;I)[Ljava/nio/ByteBuffer;, BB[SSA:57..60]24 - org.apache.zookeeper.server.ServerCnxn.serialize(Lorg/apache/zookeeper/proto/ReplyHeader;Lorg/apache/jute/Record;Ljava/lang/String;Ljava/lang/String;Lorg/apache/zookeeper/data/Stat;I)[Ljava/nio/ByteBuffer;, BB[SSA:-1..-2]54 - org.apache.zookeeper.server.ServerCnxn.serialize(Lorg/apache/zookeeper/proto/ReplyHeader;Lorg/apache/jute/Record;Ljava/lang/String;Ljava/lang/String;Lorg/apache/zookeeper/data/Stat;I)[Ljava/nio/ByteBuffer;], numberOfBasicBlocks=4, firstLineNumber=220, lastLineNumber=226, firstMethodNumber=197, lastMethodNumber=255, isFirstLineValid=true, methodSrcCode=
+                                     String cacheKey, Stat stat, int opCode) throws IOException {
+        byte[] header = serializeRecord(h);
+        byte[] data = null;
+        if (r != null) {
+            ResponseCache cache = null;
+            Counter cacheHit = null, cacheMiss = null;
+            switch (opCode) {
+                case OpCode.getData : {
+                    cache = zkServer.getReadResponseCache();
+                    cacheHit = ServerMetrics.getMetrics().RESPONSE_PACKET_CACHE_HITS;
+                    cacheMiss = ServerMetrics.getMetrics().RESPONSE_PACKET_CACHE_MISSING;
+                    break;
+                }
+                case OpCode.getChildren2 : {
+                    cache = zkServer.getGetChildrenResponseCache();
+                    cacheHit = ServerMetrics.getMetrics().RESPONSE_PACKET_GET_CHILDREN_CACHE_HITS;
+                    cacheMiss = ServerMetrics.getMetrics().RESPONSE_PACKET_GET_CHILDREN_CACHE_MISSING;
+                    break;
+                }
+                default:
+                    // op codes where response cache is not supported.
+            }
+
+            if (cache != null && stat != null && cacheKey != null && !cacheKey.endsWith(Quotas.statNode)) {
+                // Use cache to get serialized data.
+                //
+                // NB: Tag is ignored both during cache lookup and serialization,
+                // since is is not used in read responses, which are being cached.
+                data = cache.get(cacheKey, stat);
+                if (data == null) {
+                    // Cache miss, serialize the response and put it in cache.
+                    data = serializeRecord(r);
+                    cache.put(cacheKey, data, stat);
+                    cacheMiss.add(1);
+                } else {
+                    cacheHit.add(1);
+                }
+            } else {
+                data = serializeRecord(r);
+            }
+        }
+        int dataLength = data == null ? 0 : data.length;
+        int packetLength = header.length + dataLength;
+        ServerStats serverStats = serverStats();
+        if (serverStats != null) {
+            serverStats.updateClientResponseSize(packetLength);
+        }
+        ByteBuffer lengthBuffer = ByteBuffer.allocate(4).putInt(packetLength);
+        lengthBuffer.rewind();
+
+        int bufferLen = data != null ? 3 : 2;
+        ByteBuffer[] buffers = new ByteBuffer[bufferLen];
+
+        buffers[0] = lengthBuffer;
+        buffers[1] = ByteBuffer.wrap(header);
+        if (data != null) {
+            buffers[2] = ByteBuffer.wrap(data);
+        }
+        return buffers;
+    }
+}

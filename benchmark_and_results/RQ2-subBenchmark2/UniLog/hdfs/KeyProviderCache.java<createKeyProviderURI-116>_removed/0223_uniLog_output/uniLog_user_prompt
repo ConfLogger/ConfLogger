@@ -1,0 +1,114 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>private URI createKeyProviderURI(Configuration conf) {
+<Line#1>final String providerUriStr = conf.getTrimmed(
+<Line#2>CommonConfigurationKeysPublic.HADOOP_SECURITY_KEY_PROVIDER_PATH);
+<Line#3>// No provider set in conf
+<Line#4>if (providerUriStr == null || providerUriStr.isEmpty()) {
+<Line#5>return null;
+<Line#6>}
+<Line#7>final URI providerUri;
+<Line#8>try {
+<Line#9>providerUri = new URI(providerUriStr);
+<Line#10>} catch (URISyntaxException e) {
+<Line#11>return null;
+<Line#12>}
+<Line#13>return providerUri;
+<Line#14>}
+
+Example 1:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    if (contextClass == null) {
+<Line#4>      if (conf == null) {
+<Line#5>        Constructor<T> constructor=clazz.getConstructor();
+<Line#6>        return constructor.newInstance();
+<Line#7>      }
+<Line#8> else {
+<Line#9>        Constructor<T> constructor=clazz.getConstructor(Configuration.class);
+<Line#10>        return constructor.newInstance(conf);
+<Line#11>      }
+<Line#12>    }
+<Line#13> else {
+<Line#14>      Constructor<T> constructor=clazz.getConstructor(Configuration.class,contextClass);
+<Line#15>      return constructor.newInstance(conf,context);
+<Line#16>    }
+<Line#17>  }
+<Line#18> catch (  ReflectiveOperationException e) {
+<Line#19>    LOG.error("Could not instantiate: {}",clazz.getSimpleName(),e);
+<Line#20>    return null;
+<Line#21>  }
+<Line#22>}
+Label: <Line#19> LOG.error("Could not instantiate: {}",clazz.getSimpleName(),e)
+
+Example 2:
+<Line#1>{
+<Line#2>  if (this.vfs == null) {
+<Line#3>    return super.canonicalizeUri(uri);
+<Line#4>  }
+<Line#5>  ViewFileSystemOverloadScheme.MountPathInfo<FileSystem> mountPathInfo=null;
+<Line#6>  try {
+<Line#7>    mountPathInfo=this.vfs.getMountPathInfo(new Path(uri),getConf());
+<Line#8>  }
+<Line#9> catch (  IOException e) {
+<Line#10>    LOGGER.warn("Failed to resolve the uri as mount path",e);
+<Line#11>    return null;
+<Line#12>  }
+<Line#13>  checkDFS(mountPathInfo.getTargetFs(),"canonicalizeUri");
+<Line#14>  return ((DistributedFileSystem)mountPathInfo.getTargetFs()).canonicalizeUri(uri);
+<Line#15>}
+Label: <Line#10> LOGGER.warn("Failed to resolve the uri as mount path",e)
+
+Example 3:
+<Line#1>{
+<Line#2>  URI u=null;
+<Line#3>  try {
+<Line#4>    u=new URI(s);
+<Line#5>  }
+<Line#6> catch (  URISyntaxException e) {
+<Line#7>    LOG.error("Syntax error in URI " + s + ". Please check hdfs configuration.",e);
+<Line#8>  }
+<Line#9>  if (u == null || u.getScheme() == null) {
+<Line#10>    LOG.info("Assuming 'file' scheme for path " + s + " in configuration.");
+<Line#11>    u=fileAsURI(new File(s));
+<Line#12>  }
+<Line#13>  return u;
+<Line#14>}
+Label: <Line#7> LOG.error("Syntax error in URI " + s + ". Please check hdfs configuration.",e)
+
+Example 4:
+<Line#1>{
+<Line#2>  URI u=null;
+<Line#3>  try {
+<Line#4>    u=new URI(s);
+<Line#5>  }
+<Line#6> catch (  URISyntaxException e) {
+<Line#7>    LOG.error("Syntax error in URI " + s + ". Please check hdfs configuration.",e);
+<Line#8>  }
+<Line#9>  if (u == null || u.getScheme() == null) {
+<Line#10>    LOG.info("Assuming 'file' scheme for path " + s + " in configuration.");
+<Line#11>    u=fileAsURI(new File(s));
+<Line#12>  }
+<Line#13>  return u;
+<Line#14>}
+Label: <Line#10> LOG.info("Assuming 'file' scheme for path " + s + " in configuration.")
+
+Example 5:
+<Line#1>{
+<Line#2>  if (reconstructionQueuesInitializer != null) {
+<Line#3>    reconstructionQueuesInitializer.interrupt();
+<Line#4>    try {
+<Line#5>      reconstructionQueuesInitializer.join();
+<Line#6>    }
+<Line#7> catch (    final InterruptedException e) {
+<Line#8>      LOG.warn("Interrupted while waiting for " + "reconstructionQueueInitializer. Returning..");
+<Line#9>      return;
+<Line#10>    }
+<Line#11> finally {
+<Line#12>      reconstructionQueuesInitializer=null;
+<Line#13>    }
+<Line#14>  }
+<Line#15>}
+Label: <Line#8> LOG.warn("Interrupted while waiting for " + "reconstructionQueueInitializer. Returning..")
+

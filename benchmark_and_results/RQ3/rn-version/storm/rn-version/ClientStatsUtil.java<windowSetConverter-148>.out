@@ -1,0 +1,62 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ClientStatsUtil.java	methodSinagture:	org.apache.storm.stats.ClientStatsUtil.windowSetConverter(Ljava/util/Map;Lorg/apache/storm/stats/ClientStatsUtil$KeyTransformer;Lorg/apache/storm/stats/ClientStatsUtil$KeyTransformer;)Ljava/util/Map;	methodLines:	148:168
+blockLines:	156:-1
+paras:	null
+TaintedStat:	NORMAL windowSetConverter:conditional branch(ne, to iindex=35) 23,24 Node: < Application, Lorg/apache/storm/stats/ClientStatsUtil, windowSetConverter(Ljava/util/Map;Lorg/apache/storm/stats/ClientStatsUtil$KeyTransformer;Lorg/apache/storm/stats/ClientStatsUtil$KeyTransformer;)Ljava/util/Map; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/stats/ClientStatsUtil, windowSetConverter(Ljava/util/Map;Lorg/apache/storm/stats/ClientStatsUtil$KeyTransformer;Lorg/apache/storm/stats/ClientStatsUtil$KeyTransformer;)Ljava/util/Map; > Context: Everywhere[25]22 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,20 @65 exception:21
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/stats/ClientStatsUtil, windowSetConverter(Ljava/util/Map;Lorg/apache/storm/stats/ClientStatsUtil$KeyTransformer;Lorg/apache/storm/stats/ClientStatsUtil$KeyTransformer;)Ljava/util/Map; > Context: Everywhere[25]22 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,20 @65 exception:21
+NORMAL windowSetConverter:23 = checkcast <Application,Ljava/util/Map>22 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/stats/ClientStatsUtil, windowSetConverter(Ljava/util/Map;Lorg/apache/storm/stats/ClientStatsUtil$KeyTransformer;Lorg/apache/storm/stats/ClientStatsUtil$KeyTransformer;)Ljava/util/Map; > Context: Everywhere
+NORMAL windowSetConverter:conditional branch(ne, to iindex=35) 23,24 Node: < Application, Lorg/apache/storm/stats/ClientStatsUtil, windowSetConverter(Ljava/util/Map;Lorg/apache/storm/stats/ClientStatsUtil$KeyTransformer;Lorg/apache/storm/stats/ClientStatsUtil$KeyTransformer;)Ljava/util/Map; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+        Map stats, KeyTransformer<K2> secKeyFunc, KeyTransformer<K1> firstKeyFunc) {
+        Map ret = new HashMap();
+
+        for (Object o : stats.entrySet()) {
+            Map.Entry entry = (Map.Entry) o;
+            K1 key1 = firstKeyFunc.transform(entry.getKey());
+
+            Map subRetMap = (Map) ret.get(key1);
+            if (subRetMap == null) {
+                subRetMap = new HashMap();
+            }
+            ret.put(key1, subRetMap);
+
+            Map value = (Map) entry.getValue();
+            for (Object oo : value.entrySet()) {
+                Map.Entry subEntry = (Map.Entry) oo;
+                K2 key2 = secKeyFunc.transform(subEntry.getKey());
+                subRetMap.put(key2, subEntry.getValue());
+            }
+        }
+        return ret;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, renderStats()Lorg/apache/storm/generated/ExecutorStats; > Context: Everywhere, blocks=[BB[SSA:27..29]14 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:26..26]13 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:30..32]15 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:-1..-2]31 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:34..36]17 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:33..33]16 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:37..39]18 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:-1..-2]31 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:41..43]20 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:40..40]19 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:44..46]21 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:-1..-2]31 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:48..50]23 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:47..47]22 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:51..53]24 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:-1..-2]31 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:55..57]26 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:54..54]25 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:58..58]27 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;, BB[SSA:-1..-2]31 - org.apache.storm.stats.BoltExecutorStats.renderStats()Lorg/apache/storm/generated/ExecutorStats;], numberOfBasicBlocks=20, firstLineNumber=135, lastLineNumber=135, firstMethodNumber=122, lastMethodNumber=138, isFirstLineValid=true, methodSrcCode=
+    public ExecutorStats renderStats() {
+        ExecutorStats ret = new ExecutorStats();
+        // common stats
+        ret.set_emitted(valueStat(getEmitted()));
+        ret.set_transferred(valueStat(getTransferred()));
+        ret.set_rate(this.rate);
+
+        // bolt stats
+        BoltStats boltStats = new BoltStats(
+            ClientStatsUtil.windowSetConverter(valueStat(getAcked()), ClientStatsUtil.TO_GSID, ClientStatsUtil.IDENTITY),
+            ClientStatsUtil.windowSetConverter(valueStat(getFailed()), ClientStatsUtil.TO_GSID, ClientStatsUtil.IDENTITY),
+            ClientStatsUtil.windowSetConverter(valueStat(processLatencyStats), ClientStatsUtil.TO_GSID, ClientStatsUtil.IDENTITY),
+            ClientStatsUtil.windowSetConverter(valueStat(executedStats), ClientStatsUtil.TO_GSID, ClientStatsUtil.IDENTITY),
+            ClientStatsUtil.windowSetConverter(valueStat(executeLatencyStats), ClientStatsUtil.TO_GSID, ClientStatsUtil.IDENTITY));
+        ret.set_specific(ExecutorSpecificStats.bolt(boltStats));
+
+        return ret;
+    }
+}

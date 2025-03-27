@@ -1,0 +1,11 @@
+@Override public void initFilter(FilterContainer container,Configuration conf){
+String key = getEnabledConfigKey();
+boolean enabled = conf.getBoolean(key, false);
+if (enabled) {
+container.addGlobalFilter("Cross Origin Filter",
+CrossOriginFilter.class.getName(),
+getFilterParameters(conf, getPrefix()));
+} else {
+;
+}
+}

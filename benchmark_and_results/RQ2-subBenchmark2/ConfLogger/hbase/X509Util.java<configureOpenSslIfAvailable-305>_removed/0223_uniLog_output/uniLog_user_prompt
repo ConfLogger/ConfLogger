@@ -1,0 +1,123 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>Configuration conf) {
+<Line#1>if (OpenSsl.isAvailable() && conf.getBoolean(TLS_USE_OPENSSL, true)) {
+<Line#2>sslContextBuilder.sslProvider(SslProvider.OPENSSL);
+<Line#3>return true;
+<Line#4>} else {
+<Line#5>sslContextBuilder.sslProvider(SslProvider.JDK);
+<Line#6>return false;
+<Line#7>}
+
+Example 1:
+<Line#1>{
+<Line#2>  if (!saslRpcClient.isComplete()) {
+<Line#3>    return;
+<Line#4>  }
+<Line#5>  if (LOG.isTraceEnabled()) {
+<Line#6>    LOG.trace("SASL negotiation for {} is complete",provider.getSaslAuthMethod().getName());
+<Line#7>  }
+<Line#8>  saslRpcClient.setupSaslHandler(ctx.pipeline(),HANDLER_NAME);
+<Line#9>  removeHandlers(ctx);
+<Line#10>  setCryptoAESOption();
+<Line#11>  saslPromise.setSuccess(true);
+<Line#12>}
+Label: <Line#6> LOG.trace("SASL negotiation for {} is complete",provider.getSaslAuthMethod().getName())
+
+Example 2:
+<Line#1>{
+<Line#2>  assert eventLoop.inEventLoop();
+<Line#3>  if (error instanceof FallbackDisallowedException) {
+<Line#4>    return;
+<Line#5>  }
+<Line#6>  if (!provider.canRetry()) {
+<Line#7>    LOG.trace("SASL Provider does not support retries");
+<Line#8>    return;
+<Line#9>  }
+<Line#10>  if (reloginInProgress) {
+<Line#11>    return;
+<Line#12>  }
+<Line#13>  reloginInProgress=true;
+<Line#14>  RELOGIN_EXECUTOR.schedule(() -> {
+<Line#15>    try {
+<Line#16>      provider.relogin();
+<Line#17>    }
+<Line#18> catch (    IOException e) {
+<Line#19>      LOG.warn("Relogin failed",e);
+<Line#20>    }
+<Line#21>    eventLoop.execute(() -> {
+<Line#22>      reloginInProgress=false;
+<Line#23>    }
+<Line#24>);
+<Line#25>  }
+<Line#26>,ThreadLocalRandom.current().nextInt(reloginMaxBackoff),TimeUnit.MILLISECONDS);
+<Line#27>}
+Label: <Line#7> LOG.trace("SASL Provider does not support retries")
+
+Example 3:
+<Line#1>{
+<Line#2>  assert eventLoop.inEventLoop();
+<Line#3>  if (error instanceof FallbackDisallowedException) {
+<Line#4>    return;
+<Line#5>  }
+<Line#6>  if (!provider.canRetry()) {
+<Line#7>    LOG.trace("SASL Provider does not support retries");
+<Line#8>    return;
+<Line#9>  }
+<Line#10>  if (reloginInProgress) {
+<Line#11>    return;
+<Line#12>  }
+<Line#13>  reloginInProgress=true;
+<Line#14>  RELOGIN_EXECUTOR.schedule(() -> {
+<Line#15>    try {
+<Line#16>      provider.relogin();
+<Line#17>    }
+<Line#18> catch (    IOException e) {
+<Line#19>      LOG.warn("Relogin failed",e);
+<Line#20>    }
+<Line#21>    eventLoop.execute(() -> {
+<Line#22>      reloginInProgress=false;
+<Line#23>    }
+<Line#24>);
+<Line#25>  }
+<Line#26>,ThreadLocalRandom.current().nextInt(reloginMaxBackoff),TimeUnit.MILLISECONDS);
+<Line#27>}
+Label: <Line#19> LOG.warn("Relogin failed",e)
+
+Example 4:
+<Line#1>{
+<Line#2>  boolean isShowConf=false;
+<Line#3>  try {
+<Line#4>    if (Class.forName("org.apache.hadoop.conf.ConfServlet") != null) {
+<Line#5>      isShowConf=true;
+<Line#6>    }
+<Line#7>  }
+<Line#8> catch (  LinkageError e) {
+<Line#9>    LOG.warn("Error thrown: ",e);
+<Line#10>  }
+<Line#11>catch (  ClassNotFoundException ce) {
+<Line#12>    LOG.debug("ClassNotFound: ConfServlet");
+<Line#13>  }
+<Line#14>  return isShowConf;
+<Line#15>}
+Label: <Line#9> LOG.warn("Error thrown: ",e)
+
+Example 5:
+<Line#1>{
+<Line#2>  boolean isShowConf=false;
+<Line#3>  try {
+<Line#4>    if (Class.forName("org.apache.hadoop.conf.ConfServlet") != null) {
+<Line#5>      isShowConf=true;
+<Line#6>    }
+<Line#7>  }
+<Line#8> catch (  LinkageError e) {
+<Line#9>    LOG.warn("Error thrown: ",e);
+<Line#10>  }
+<Line#11>catch (  ClassNotFoundException ce) {
+<Line#12>    LOG.debug("ClassNotFound: ConfServlet");
+<Line#13>  }
+<Line#14>  return isShowConf;
+<Line#15>}
+Label: <Line#12> LOG.debug("ClassNotFound: ConfServlet")
+

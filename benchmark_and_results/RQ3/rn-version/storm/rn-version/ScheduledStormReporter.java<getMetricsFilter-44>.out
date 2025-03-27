@@ -1,0 +1,213 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ScheduledStormReporter.java	methodSinagture:	org.apache.storm.metrics2.reporters.ScheduledStormReporter.getMetricsFilter(Ljava/util/Map;)Lorg/apache/storm/metrics2/filters/StormMetricsFilter;	methodLines:	44:54
+blockLines:	49:-1
+paras:	null
+TaintedStat:	NORMAL getMetricsFilter:conditional branch(eq, to iindex=25) 11,3 Node: < Application, Lorg/apache/storm/metrics2/reporters/ScheduledStormReporter, getMetricsFilter(Ljava/util/Map;)Lorg/apache/storm/metrics2/filters/StormMetricsFilter; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/metrics2/reporters/ScheduledStormReporter, getMetricsFilter(Ljava/util/Map;)Lorg/apache/storm/metrics2/filters/StormMetricsFilter; > Context: Everywhere[12]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,8 @21 exception:9
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/metrics2/reporters/ScheduledStormReporter, getMetricsFilter(Ljava/util/Map;)Lorg/apache/storm/metrics2/filters/StormMetricsFilter; > Context: Everywhere[12]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,8 @21 exception:9
+NORMAL getMetricsFilter:11 = checkcast <Application,Ljava/lang/String>10 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/metrics2/reporters/ScheduledStormReporter, getMetricsFilter(Ljava/util/Map;)Lorg/apache/storm/metrics2/filters/StormMetricsFilter; > Context: Everywhere
+NORMAL getMetricsFilter:conditional branch(eq, to iindex=25) 11,3 Node: < Application, Lorg/apache/storm/metrics2/reporters/ScheduledStormReporter, getMetricsFilter(Ljava/util/Map;)Lorg/apache/storm/metrics2/filters/StormMetricsFilter; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ScheduledStormReporter.java	methodSinagture:	org.apache.storm.metrics2.reporters.ScheduledStormReporter.getMetricsFilter(Ljava/util/Map;)Lorg/apache/storm/metrics2/filters/StormMetricsFilter;	methodLines:	44:54
+blockLines:	47:-1
+paras:	null
+TaintedStat:	NORMAL getMetricsFilter:conditional branch(eq, to iindex=25) 7,3 Node: < Application, Lorg/apache/storm/metrics2/reporters/ScheduledStormReporter, getMetricsFilter(Ljava/util/Map;)Lorg/apache/storm/metrics2/filters/StormMetricsFilter; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/metrics2/reporters/ScheduledStormReporter, getMetricsFilter(Ljava/util/Map;)Lorg/apache/storm/metrics2/filters/StormMetricsFilter; > Context: Everywhere[4]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,4 @5 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/metrics2/reporters/ScheduledStormReporter, getMetricsFilter(Ljava/util/Map;)Lorg/apache/storm/metrics2/filters/StormMetricsFilter; > Context: Everywhere[4]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,4 @5 exception:5
+NORMAL getMetricsFilter:7 = checkcast <Application,Ljava/util/Map>6 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/metrics2/reporters/ScheduledStormReporter, getMetricsFilter(Ljava/util/Map;)Lorg/apache/storm/metrics2/filters/StormMetricsFilter; > Context: Everywhere
+NORMAL getMetricsFilter:conditional branch(eq, to iindex=25) 7,3 Node: < Application, Lorg/apache/storm/metrics2/reporters/ScheduledStormReporter, getMetricsFilter(Ljava/util/Map;)Lorg/apache/storm/metrics2/filters/StormMetricsFilter; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static StormMetricsFilter getMetricsFilter(Map<String, Object> reporterConf) {
+        StormMetricsFilter filter = null;
+        Map<String, Object> filterConf = (Map<String, Object>) reporterConf.get("filter");
+        if (filterConf != null) {
+            String clazz = (String) filterConf.get("class");
+            if (clazz != null) {
+                filter = ReflectionUtils.newInstance(clazz);
+                filter.prepare(filterConf);
+            }
+        }
+        return filter;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/metrics2/reporters/ConsoleStormReporter, init(Lcom/codahale/metrics/MetricRegistry;Lorg/apache/storm/metrics2/MetricRegistryProvider;Ljava/util/Map;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=45, lastMethodNumber=96, isFirstLineValid=true, methodSrcCode=
+    private void init(MetricRegistry registry, MetricRegistryProvider metricRegistryProvider, Map<String, Object> reporterConf) {
+        LOG.debug("Preparing ConsoleReporter");
+        ConsoleReporter.Builder builder = ConsoleReporter.forRegistry(registry);
+
+        builder.outputTo(System.out);
+        Locale locale = ClientMetricsUtils.getMetricsReporterLocale(reporterConf);
+        if (locale != null) {
+            builder.formattedFor(locale);
+        }
+
+        TimeUnit rateUnit = ClientMetricsUtils.getMetricsRateUnit(reporterConf);
+        if (rateUnit != null) {
+            builder.convertRatesTo(rateUnit);
+        }
+
+        TimeUnit durationUnit = ClientMetricsUtils.getMetricsDurationUnit(reporterConf);
+        if (durationUnit != null) {
+            builder.convertDurationsTo(durationUnit);
+        }
+
+        StormMetricsFilter filter = getMetricsFilter(reporterConf);
+        if (filter != null) {
+            builder.filter(filter);
+        }
+
+        //defaults to 10
+        reportingPeriod = getReportPeriod(reporterConf);
+
+        //defaults to seconds
+        reportingPeriodUnit = getReportPeriodUnit(reporterConf);
+
+        ScheduledReporter consoleReporter = builder.build();
+
+        boolean reportDimensions = isReportDimensionsEnabled(reporterConf);
+        if (reportDimensions) {
+            if (metricRegistryProvider == null) {
+                throw new RuntimeException("MetricRegistryProvider is required to enable reporting dimensions");
+            }
+            if (rateUnit == null) {
+                rateUnit = TimeUnit.SECONDS;
+            }
+            if (durationUnit == null) {
+                durationUnit = TimeUnit.MILLISECONDS;
+            }
+            DimensionalReporter dimensionalReporter = new DimensionalReporter(metricRegistryProvider, consoleReporter, this,
+                    "ConsoleDimensionalReporter",
+                    filter, rateUnit, durationUnit, null, true);
+            reporter = dimensionalReporter;
+        } else {
+            reporter = consoleReporter;
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/metrics2/reporters/CsvStormReporter, prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=56, lastMethodNumber=88, isFirstLineValid=true, methodSrcCode=
+    public void prepare(MetricRegistry metricsRegistry, Map<String, Object> topoConf, Map<String, Object> reporterConf) {
+        LOG.debug("Preparing...");
+        CsvReporter.Builder builder = CsvReporter.forRegistry(metricsRegistry);
+
+        Locale locale = ClientMetricsUtils.getMetricsReporterLocale(reporterConf);
+        if (locale != null) {
+            builder.formatFor(locale);
+        }
+
+        TimeUnit rateUnit = ClientMetricsUtils.getMetricsRateUnit(reporterConf);
+        if (rateUnit != null) {
+            builder.convertRatesTo(rateUnit);
+        }
+
+        TimeUnit durationUnit = ClientMetricsUtils.getMetricsDurationUnit(reporterConf);
+        if (durationUnit != null) {
+            builder.convertDurationsTo(durationUnit);
+        }
+
+        StormMetricsFilter filter = getMetricsFilter(reporterConf);
+        if (filter != null) {
+            builder.filter(filter);
+        }
+
+        //defaults to 10
+        reportingPeriod = getReportPeriod(reporterConf);
+
+        //defaults to seconds
+        reportingPeriodUnit = getReportPeriodUnit(reporterConf);
+
+        File csvMetricsDir = getCsvLogDir(topoConf, reporterConf);
+        reporter = builder.build(csvMetricsDir);
+    }
+}
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/metrics2/reporters/JmxStormReporter, prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V > Context: Everywhere, blocks=[BB[SSA:36..37]15 - org.apache.storm.metrics2.reporters.JmxStormReporter.prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V, BB[SSA:28..31]12 - org.apache.storm.metrics2.reporters.JmxStormReporter.prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V, BB[SSA:35..35]14 - org.apache.storm.metrics2.reporters.JmxStormReporter.prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V, BB[SSA:38..41]16 - org.apache.storm.metrics2.reporters.JmxStormReporter.prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V, BB[SSA:-1..-2]22 - org.apache.storm.metrics2.reporters.JmxStormReporter.prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V], numberOfBasicBlocks=5, firstLineNumber=49, lastLineNumber=55, firstMethodNumber=35, lastMethodNumber=65, isFirstLineValid=true, methodSrcCode=
+    public void prepare(MetricRegistry metricsRegistry, Map<String, Object> topoConf,  Map<String, Object> reporterConf) {
+        LOG.info("Preparing...");
+        JmxReporter.Builder builder = JmxReporter.forRegistry(metricsRegistry);
+
+        TimeUnit durationUnit = ClientMetricsUtils.getMetricsDurationUnit(reporterConf);
+        if (durationUnit != null) {
+            builder.convertDurationsTo(durationUnit);
+        }
+
+        TimeUnit rateUnit = ClientMetricsUtils.getMetricsRateUnit(reporterConf);
+        if (rateUnit != null) {
+            builder.convertRatesTo(rateUnit);
+        }
+
+        String domain = getMetricsJmxDomain(reporterConf);
+        if (domain != null) {
+            builder.inDomain(domain);
+        }
+
+        StormMetricsFilter filter = ScheduledStormReporter.getMetricsFilter(reporterConf);
+        if (filter != null) {
+            builder.filter(filter);
+        }
+        // other builder functions not exposed:
+        //  * createsObjectNamesWith(ObjectNameFactory onFactory)
+        //  * registerWith (MBeanServer)
+        //  * specificDurationUnits (Map<String,TimeUnit> specificDurationUnits)
+        //  * specificRateUnits(Map<String,TimeUnit> specificRateUnits)
+
+        reporter = builder.build();
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/metrics2/reporters/GraphiteStormReporter, prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=52, lastMethodNumber=94, isFirstLineValid=true, methodSrcCode=
+    public void prepare(MetricRegistry metricsRegistry, Map<String, Object> topoConf,  Map<String, Object> reporterConf) {
+        LOG.debug("Preparing...");
+        GraphiteReporter.Builder builder = GraphiteReporter.forRegistry(metricsRegistry);
+
+        TimeUnit durationUnit = ClientMetricsUtils.getMetricsDurationUnit(reporterConf);
+        if (durationUnit != null) {
+            builder.convertDurationsTo(durationUnit);
+        }
+
+        TimeUnit rateUnit = ClientMetricsUtils.getMetricsRateUnit(reporterConf);
+        if (rateUnit != null) {
+            builder.convertRatesTo(rateUnit);
+        }
+
+        StormMetricsFilter filter = getMetricsFilter(reporterConf);
+        if (filter != null) {
+            builder.filter(filter);
+        }
+        String prefix = getMetricsPrefixedWith(reporterConf);
+        if (prefix != null) {
+            builder.prefixedWith(prefix);
+        }
+
+        //defaults to 10
+        reportingPeriod = getReportPeriod(reporterConf);
+
+        //defaults to seconds
+        reportingPeriodUnit = getReportPeriodUnit(reporterConf);
+
+        // Not exposed:
+        // * withClock(Clock)
+
+        String host = getMetricsTargetHost(reporterConf);
+        Integer port = getMetricsTargetPort(reporterConf);
+        String transport = getMetricsTargetTransport(reporterConf);
+        GraphiteSender sender = null;
+        if (transport.equalsIgnoreCase("udp")) {
+            sender = new GraphiteUDP(host, port);
+        } else {
+            sender = new Graphite(host, port);
+        }
+        reporter = builder.build(sender);
+    }
+}
+}

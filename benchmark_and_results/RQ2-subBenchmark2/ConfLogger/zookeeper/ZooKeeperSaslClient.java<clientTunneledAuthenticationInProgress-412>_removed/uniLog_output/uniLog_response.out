@@ -1,0 +1,58 @@
+To add a log level and verbosity message to the target method code, we need to select appropriate lines where logging can provide useful information about the flow or state of the method. Here's how we can enhance the method with logging:
+
+```java
+public boolean clientTunneledAuthenticationInProgress() {
+    if (!isSASLConfigured) {
+        LOG.debug("SASL is not configured, returning false.");
+        return false;
+    }
+    // TODO: Rather than checking a disjunction here, should be a single member
+    // variable or method in this class to determine whether the client is
+    // configured to use SASL. (see also ZOOKEEPER-1455).
+    try {
+        if ((clientConfig.getJaasConfKey() != null)
+                || ((Configuration.getConfiguration() != null)
+                && (Configuration.getConfiguration().getAppConfigurationEntry(
+                clientConfig.getProperty(
+                        ZKClientConfig.LOGIN_CONTEXT_NAME_KEY,
+                        ZKClientConfig.LOGIN_CONTEXT_NAME_KEY_DEFAULT)) != null))) {
+            LOG.debug("Client is configured to use a valid login Configuration.");
+            // Client is configured to use a valid login Configuration, so
+            // authentication is either in progress, successful, or failed.
+
+            // 1. Authentication hasn't finished yet: we must wait for it to do so.
+            if (!isComplete() && !isFailed()) {
+                LOG.debug("Authentication in progress, waiting for completion.");
+                return true;
+            }
+
+            // 2. SASL authentication has succeeded or failed.
+            //noinspection RedundantIfStatement
+            if (!gotLastPacket) {
+                // ..but still in progress, because there is a final SASL
+                // message from server which must be received.
+                LOG.debug("SASL authentication message from server pending.");
+                return true;
+            }
+        }
+        // Either client is not configured to use a tunnelled authentication
+        // scheme, or tunnelled authentication has completed (successfully or
+        // not), and all server SASL messages have been received.
+        LOG.debug("Tunnelled authentication completed or not configured.");
+        return false;
+    } catch (SecurityException e) {
+        // Thrown if the caller does not have permission to retrieve the Configuration.
+        // In this case, simply returning false is correct.
+        LOG.warn("SecurityException: Could not retrieve login configuration", e);
+        return false;
+    }
+}
+```
+
+### Explanation of Inserted Logs:
+- **Line 2**: Added `LOG.debug` to indicate that SASL is not configured.
+- **Line 13**: Added `LOG.debug` to log when the client is configured to use a valid login configuration.
+- **Line 18**: Added `LOG.debug` to indicate that authentication is in progress.
+- **Line 24**: Added `LOG.debug` to indicate that the SASL authentication message from the server is pending.
+- **Line 33**: Added `LOG.debug` to indicate that the tunnelled authentication has completed or is not configured.
+- **Line 37**: Added `LOG.warn` to log the `SecurityException` with a warning level, including the exception details.

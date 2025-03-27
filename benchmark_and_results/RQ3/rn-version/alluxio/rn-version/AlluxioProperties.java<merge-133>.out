@@ -1,0 +1,121 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	AlluxioProperties.java	methodSinagture:	alluxio.conf.AlluxioProperties.merge(Ljava/util/Map;Lalluxio/conf/Source;)V	methodLines:	133:156
+blockLines:	134:-1
+paras:	null
+TaintedStat:	NORMAL merge:conditional branch(eq, to iindex=7) 2,5 Node: < Application, Lalluxio/conf/AlluxioProperties, merge(Ljava/util/Map;Lalluxio/conf/Source;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lalluxio/master/journal/ufs/UfsJournal, getJournalUfsConf()Lalluxio/underfs/UnderFileSystemConfiguration; > Context: Everywhere[1]4 = invokestatic < Application, Lalluxio/conf/Configuration, getNestedProperties(Lalluxio/conf/PropertyKey;)Ljava/util/Map; > 2 @3 exception:3
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lalluxio/master/journal/ufs/UfsJournal, getJournalUfsConf()Lalluxio/underfs/UnderFileSystemConfiguration; > Context: Everywhere[1]4 = invokestatic < Application, Lalluxio/conf/Configuration, getNestedProperties(Lalluxio/conf/PropertyKey;)Ljava/util/Map; > 2 @3 exception:3
+PARAM_CALLER:Node: < Application, Lalluxio/master/journal/ufs/UfsJournal, getJournalUfsConf()Lalluxio/underfs/UnderFileSystemConfiguration; > Context: Everywhere[6]10 = invokevirtual < Application, Lalluxio/underfs/UnderFileSystemConfiguration, createMountSpecificConf(Ljava/util/Map;)Lalluxio/underfs/UnderFileSystemConfiguration; > 8,4 @14 exception:9 v4
+PARAM_CALLEE:Node: < Application, Lalluxio/underfs/UnderFileSystemConfiguration, createMountSpecificConf(Ljava/util/Map;)Lalluxio/underfs/UnderFileSystemConfiguration; > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lalluxio/underfs/UnderFileSystemConfiguration, createMountSpecificConf(Ljava/util/Map;)Lalluxio/underfs/UnderFileSystemConfiguration; > Context: Everywhere[6]invokevirtual < Application, Lalluxio/conf/AlluxioProperties, merge(Ljava/util/Map;Lalluxio/conf/Source;)V > 5,2,6 @10 exception:7 v2
+PARAM_CALLEE:Node: < Application, Lalluxio/conf/AlluxioProperties, merge(Ljava/util/Map;Lalluxio/conf/Source;)V > Context: Everywhere v2
+NORMAL merge:conditional branch(eq, to iindex=7) 2,5 Node: < Application, Lalluxio/conf/AlluxioProperties, merge(Ljava/util/Map;Lalluxio/conf/Source;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  public void merge(Map<?, ?> properties, Source source) {
+    if (properties == null || properties.isEmpty()) {
+      return;
+    }
+    // merge the properties
+    for (Map.Entry<?, ?> entry : properties.entrySet()) {
+      String key = entry.getKey().toString().trim();
+      String value = entry.getValue() == null ? null : entry.getValue().toString().trim();
+      PropertyKey propertyKey;
+      if (PropertyKey.isValid(key)) {
+        propertyKey = PropertyKey.fromString(key);
+      } else {
+        // Add unrecognized properties
+        LOG.debug("Property {} from source {} is unrecognized", key, source);
+        // Workaround for issue https://alluxio.atlassian.net/browse/ALLUXIO-3108
+        // This will register the key as a valid PropertyKey
+        // TODO(adit): Do not add properties unrecognized by Ufs extensions when Configuration
+        // is made dynamic
+        propertyKey = PropertyKey.getOrBuildCustom(key);
+      }
+      put(propertyKey, propertyKey.parseValue(value), source);
+    }
+    mHash.markOutdated();
+  }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lalluxio/underfs/UnderFileSystemConfiguration, createMountSpecificConf(Ljava/util/Map;)Lalluxio/underfs/UnderFileSystemConfiguration; > Context: Everywhere, blocks=[BB[SSA:2..6]2 - alluxio.underfs.UnderFileSystemConfiguration.createMountSpecificConf(Ljava/util/Map;)Lalluxio/underfs/UnderFileSystemConfiguration;, BB[SSA:0..1]1 - alluxio.underfs.UnderFileSystemConfiguration.createMountSpecificConf(Ljava/util/Map;)Lalluxio/underfs/UnderFileSystemConfiguration;, BB[SSA:7..7]3 - alluxio.underfs.UnderFileSystemConfiguration.createMountSpecificConf(Ljava/util/Map;)Lalluxio/underfs/UnderFileSystemConfiguration;, BB[SSA:-1..-2]9 - alluxio.underfs.UnderFileSystemConfiguration.createMountSpecificConf(Ljava/util/Map;)Lalluxio/underfs/UnderFileSystemConfiguration;], numberOfBasicBlocks=4, firstLineNumber=105, lastLineNumber=107, firstMethodNumber=104, lastMethodNumber=107, isFirstLineValid=true, methodSrcCode=
+      Map<String, ? extends Object> mountConf) {
+    AlluxioProperties properties = copyProperties();
+    properties.merge(mountConf, Source.MOUNT_OPTION);
+    return new UnderFileSystemConfiguration(
+        new InstancedConfiguration(properties), mReadOnly);
+}
+CtxCodeBlock{node=Node: < Application, Lalluxio/conf/Configuration, overloadWithReferenceProperty(Lalluxio/conf/AlluxioProperties;)V > Context: Everywhere, blocks=[BB[SSA:17..18]12 - alluxio.conf.Configuration.overloadWithReferenceProperty(Lalluxio/conf/AlluxioProperties;)V, BB[SSA:13..16]11 - alluxio.conf.Configuration.overloadWithReferenceProperty(Lalluxio/conf/AlluxioProperties;)V, BB[SSA:19..19]13 - alluxio.conf.Configuration.overloadWithReferenceProperty(Lalluxio/conf/AlluxioProperties;)V, BB[SSA:-1..-2]15 - alluxio.conf.Configuration.overloadWithReferenceProperty(Lalluxio/conf/AlluxioProperties;)V], numberOfBasicBlocks=4, firstLineNumber=619, lastLineNumber=622, firstMethodNumber=618, lastMethodNumber=623, isFirstLineValid=true, methodSrcCode=
+    // try to load from classpath
+    for (final ReferenceProperty property : ServiceLoader.load(ReferenceProperty.class,
+        ReferenceProperty.class.getClassLoader())) {
+      alluxioProperties.merge(property.getProperties(), Source.REFERENCE);
+    }
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lalluxio/conf/Configuration, reloadProperties()V > Context: Everywhere, blocks=[BB[SSA:13..14]11 - alluxio.conf.Configuration.reloadProperties()V, BB[SSA:12..12]10 - alluxio.conf.Configuration.reloadProperties()V, BB[SSA:15..15]12 - alluxio.conf.Configuration.reloadProperties()V, BB[SSA:-1..-2]109 - alluxio.conf.Configuration.reloadProperties()V, BB[SSA:62..62]32 - alluxio.conf.Configuration.reloadProperties()V, BB[SSA:60..61]31 - alluxio.conf.Configuration.reloadProperties()V, BB[SSA:63..64]33 - alluxio.conf.Configuration.reloadProperties()V, BB[SSA:171..171]80 - alluxio.conf.Configuration.reloadProperties()V, BB[SSA:170..170]79 - alluxio.conf.Configuration.reloadProperties()V, BB[SSA:172..173]81 - alluxio.conf.Configuration.reloadProperties()V], numberOfBasicBlocks=10, firstLineNumber=602, lastLineNumber=603, firstMethodNumber=562, lastMethodNumber=615, isFirstLineValid=true, methodSrcCode=
+    // property file.
+    AlluxioProperties alluxioProperties = new AlluxioProperties();
+    // Can't directly pass System.getProperties() because it is not thread-safe
+    // This can cause a ConcurrentModificationException when merging.
+    alluxioProperties.merge(System.getProperties().entrySet().stream()
+            .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue)),
+        Source.SYSTEM_PROPERTY);
+    InstancedConfiguration conf = new InstancedConfiguration(alluxioProperties);
+    // Load site specific properties file if not in test mode. Note that we decide
+    // whether in test mode by default properties and system properties (via getBoolean).
+    if (!conf.getBoolean(PropertyKey.TEST_MODE)) {
+      // We are not in test mode, load site properties
+      // First try loading from config file
+      for (String path : conf.getList(PropertyKey.SITE_CONF_DIR)) {
+        String file = PathUtils.concatPath(path, Constants.SITE_PROPERTIES);
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+          Optional<Properties> properties = loadProperties(fileInputStream);
+          if (properties.isPresent()) {
+            alluxioProperties.merge(properties.get(), Source.siteProperty(file));
+            overloadWithReferenceProperty(alluxioProperties);
+            conf = new InstancedConfiguration(alluxioProperties);
+            conf.validate();
+            SERVER_CONFIG_REFERENCE.set(conf);
+            // If a site conf is successfully loaded, stop trying different paths.
+            return;
+          }
+        } catch (FileNotFoundException e) {
+          // skip
+        } catch (IOException e) {
+          LOG.warn("Failed to close property input stream from {}: {}", file, e.toString());
+        }
+      }
+
+      // Try to load from resource
+      URL resource =
+          ConfigurationUtils.class.getClassLoader().getResource(Constants.SITE_PROPERTIES);
+      if (resource != null) {
+        try (InputStream stream = resource.openStream()) {
+          Optional<Properties> properties = loadProperties(stream);
+          if (properties.isPresent()) {
+            alluxioProperties.merge(properties.get(), Source.siteProperty(resource.getPath()));
+            overloadWithReferenceProperty(alluxioProperties);
+            conf = new InstancedConfiguration(alluxioProperties);
+            conf.validate();
+            SERVER_CONFIG_REFERENCE.set(conf);
+          }
+        } catch (IOException e) {
+          LOG.warn("Failed to read properties from {}: {}", resource, e.toString());
+        }
+      }
+    }
+    conf.validate();
+    SERVER_CONFIG_REFERENCE.set(conf);
+  }
+
+}

@@ -1,0 +1,148 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>boolean oneExecutorPerWorker = (Boolean) topoConf.getOrDefault(Config.TOPOLOGY_RAS_ONE_EXECUTOR_PER_WORKER, false);
+<Line#1>boolean oneComponentPerWorker = (Boolean) topoConf.getOrDefault(Config.TOPOLOGY_RAS_ONE_COMPONENT_PER_WORKER, false);
+<Line#2>
+<Line#3>double topologyWorkerMaxHeapSize =
+<Line#4>ObjectReader.getDouble(topoConf.get(Config.TOPOLOGY_WORKER_MAX_HEAP_SIZE_MB));
+<Line#5>
+<Line#6>int numOfAckerExecutorsPerWorker = ObjectReader.getInt(topoConf.get(Config.TOPOLOGY_RAS_ACKER_EXECUTORS_PER_WORKER));
+<Line#7>double maxTopoExecMem = getMaxExecutorMemoryUsageForTopo(topology, topoConf);
+<Line#8>double ackerExecMem = getAckerExecutorMemoryUsageForTopo(topology, topoConf);
+<Line#9>double minMemReqForWorker = maxTopoExecMem + ackerExecMem * numOfAckerExecutorsPerWorker;
+<Line#10>
+<Line#11>// A worker need to have enough resources for a bigest topo executor + topology.acker.executors.per.worker ackers
+<Line#12>if (!oneExecutorPerWorker
+<Line#13>&& !oneComponentPerWorker
+<Line#14>&& topologyWorkerMaxHeapSize < minMemReqForWorker) {
+<Line#15>
+<Line#16>}
+<Line#17>}
+
+Example 1:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    setWorkerProfilerCalls.mark();
+<Line#4>    Map<String,Object> topoConf=tryReadTopoConf(topoId,topoCache);
+<Line#5>    topoConf=Utils.merge(conf,topoConf);
+<Line#6>    String topoName=(String)topoConf.get(Config.TOPOLOGY_NAME);
+<Line#7>    checkAuthorization(topoName,topoConf,"setWorkerProfiler");
+<Line#8>    IStormClusterState state=stormClusterState;
+<Line#9>    state.setWorkerProfileRequest(topoId,profileRequest);
+<Line#10>  }
+<Line#11> catch (  Exception e) {
+<Line#12>    LOG.warn("set worker profiler topology exception. (topology id='{}')",topoId,e);
+<Line#13>    if (e instanceof TException) {
+<Line#14>      throw (TException)e;
+<Line#15>    }
+<Line#16>    throw new RuntimeException(e);
+<Line#17>  }
+<Line#18>}
+Label: <Line#12> LOG.warn("set worker profiler topology exception. (topology id='{}')",topoId,e)
+
+Example 2:
+<Line#1>{
+<Line#2>  killTopologyWithOptsCalls.mark();
+<Line#3>  assertTopoActive(topoName,true);
+<Line#4>  try {
+<Line#5>    Map<String,Object> topoConf=tryReadTopoConfFromName(topoName);
+<Line#6>    topoConf=Utils.merge(conf,topoConf);
+<Line#7>    final String operation="killTopology";
+<Line#8>    checkAuthorization(topoName,topoConf,operation);
+<Line#9>    Integer waitAmount=null;
+<Line#10>    if (options.is_set_wait_secs()) {
+<Line#11>      waitAmount=options.get_wait_secs();
+<Line#12>    }
+<Line#13>    transitionName(topoName,TopologyActions.KILL,waitAmount,true);
+<Line#14>    notifyTopologyActionListener(topoName,operation);
+<Line#15>    addTopoToHistoryLog((String)topoConf.get(Config.STORM_ID),topoConf);
+<Line#16>  }
+<Line#17> catch (  Exception e) {
+<Line#18>    LOG.warn("Kill topology exception. (topology name='{}')",topoName,e);
+<Line#19>    if (e instanceof TException) {
+<Line#20>      throw (TException)e;
+<Line#21>    }
+<Line#22>    throw new RuntimeException(e);
+<Line#23>  }
+<Line#24>}
+Label: <Line#18> LOG.warn("Kill topology exception. (topology name='{}')",topoName,e)
+
+Example 3:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    getTopologyCalls.mark();
+<Line#4>    Map<String,Object> topoConf=tryReadTopoConf(id,topoCache);
+<Line#5>    topoConf=Utils.merge(conf,topoConf);
+<Line#6>    String topoName=(String)topoConf.get(Config.TOPOLOGY_NAME);
+<Line#7>    checkAuthorization(topoName,topoConf,"getTopology");
+<Line#8>    return StormCommon.systemTopology(topoConf,tryReadTopology(id,topoCache));
+<Line#9>  }
+<Line#10> catch (  Exception e) {
+<Line#11>    LOG.warn("Get topology exception. (topology id='{}')",id,e);
+<Line#12>    if (e instanceof TException) {
+<Line#13>      throw (TException)e;
+<Line#14>    }
+<Line#15>    throw new RuntimeException(e);
+<Line#16>  }
+<Line#17>}
+Label: <Line#11> LOG.warn("Get topology exception. (topology id='{}')",id,e)
+
+Example 4:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    getUserTopologyCalls.mark();
+<Line#4>    Map<String,Object> topoConf=tryReadTopoConf(id,topoCache);
+<Line#5>    topoConf=Utils.merge(conf,topoConf);
+<Line#6>    String topoName=(String)topoConf.get(Config.TOPOLOGY_NAME);
+<Line#7>    checkAuthorization(topoName,topoConf,"getUserTopology");
+<Line#8>    return tryReadTopology(id,topoCache);
+<Line#9>  }
+<Line#10> catch (  Exception e) {
+<Line#11>    LOG.warn("Get user topology exception. (topology id='{}')",id,e);
+<Line#12>    if (e instanceof TException) {
+<Line#13>      throw (TException)e;
+<Line#14>    }
+<Line#15>    throw new RuntimeException(e);
+<Line#16>  }
+<Line#17>}
+Label: <Line#11> LOG.warn("Get user topology exception. (topology id='{}')",id,e)
+
+Example 5:
+<Line#1>{
+<Line#2>  executorTransfer.initLocalRecvQueues();
+<Line#3>  workerReady.await();
+<Line#4>  while (!stormActive.get()) {
+<Line#5>    Utils.sleepNoSimulation(100);
+<Line#6>  }
+<Line#7>  LOG.info("Preparing bolt {}:{}",componentId,getTaskIds());
+<Line#8>  for (  Task taskData : idToTask) {
+<Line#9>    if (taskData == null) {
+<Line#10>      continue;
+<Line#11>    }
+<Line#12>    IBolt boltObject=(IBolt)taskData.getTaskObject();
+<Line#13>    TopologyContext userContext=taskData.getUserContext();
+<Line#14>    if (boltObject instanceof ICredentialsListener) {
+<Line#15>      ((ICredentialsListener)boltObject).setCredentials(credentials);
+<Line#16>    }
+<Line#17>    if (Constants.SYSTEM_COMPONENT_ID.equals(componentId)) {
+<Line#18>      BuiltinMetricsUtil.registerIconnectionServerMetric(workerData.getReceiver(),topoConf,userContext);
+<Line#19>      if (workerData.getAutoCredentials() != null) {
+<Line#20>        for (        IAutoCredentials autoCredential : workerData.getAutoCredentials()) {
+<Line#21>          if (autoCredential instanceof IMetricsRegistrant) {
+<Line#22>            IMetricsRegistrant registrant=(IMetricsRegistrant)autoCredential;
+<Line#23>            registrant.registerMetrics(userContext,topoConf);
+<Line#24>          }
+<Line#25>        }
+<Line#26>      }
+<Line#27>    }
+<Line#28>    this.outputCollector=new BoltOutputCollectorImpl(this,taskData,rand,hasEventLoggers,ackingEnabled,isDebug);
+<Line#29>    boltObject.prepare(topoConf,userContext,new OutputCollector(outputCollector));
+<Line#30>  }
+<Line#31>  openOrPrepareWasCalled.set(true);
+<Line#32>  LOG.info("Prepared bolt {}:{}",componentId,taskIds);
+<Line#33>  setupTicks(false);
+<Line#34>  setupMetrics();
+<Line#35>}
+Label: <Line#7> LOG.info("Preparing bolt {}:{}",componentId,getTaskIds())
+

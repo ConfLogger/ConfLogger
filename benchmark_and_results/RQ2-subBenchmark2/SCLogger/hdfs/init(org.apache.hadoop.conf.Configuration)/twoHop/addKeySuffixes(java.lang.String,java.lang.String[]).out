@@ -1,0 +1,7 @@
+/** 
+ * Return configuration key of format key.suffix1.suffix2...suffixN
+ */
+public static String addKeySuffixes(String key,String... suffixes){
+  String keySuffix=DFSUtilClient.concatSuffixes(suffixes);
+  return DFSUtilClient.addSuffix(key,keySuffix);
+}

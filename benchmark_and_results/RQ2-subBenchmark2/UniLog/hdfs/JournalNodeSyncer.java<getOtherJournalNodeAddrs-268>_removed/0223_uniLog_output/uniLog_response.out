@@ -1,0 +1,59 @@
+To insert log level and log verbosity messages into the provided code, we need to identify appropriate places where logging would be beneficial. These places are typically where errors might occur or where important decisions are made in the code. Below is the modified code with logging statements added:
+
+```java
+<Line#0>private List<InetSocketAddress> getOtherJournalNodeAddrs() {
+<Line#1>String uriStr = "";
+<Line#2>try {
+<Line#3>uriStr = conf.getTrimmed(DFSConfigKeys.DFS_NAMENODE_SHARED_EDITS_DIR_KEY);
+<Line#4>LOG.debug("Retrieved URI string for shared edits: " + uriStr); // Debug level log
+<Line#5>if (uriStr == null || uriStr.isEmpty()) {
+<Line#6>if (nameServiceId != null) {
+<Line#7>uriStr = conf.getTrimmed(DFSConfigKeys
+<Line#8>.DFS_NAMENODE_SHARED_EDITS_DIR_KEY + "." + nameServiceId);
+<Line#9>LOG.debug("Retrieved URI string for shared edits with nameServiceId: " + uriStr); // Debug level log
+<Line#10>}
+<Line#11>}
+<Line#12>
+<Line#13>if (uriStr == null || uriStr.isEmpty()) {
+<Line#14>HashSet<String> sharedEditsUri = Sets.newHashSet();
+<Line#15>if (nameServiceId != null) {
+<Line#16>Collection<String> nnIds = DFSUtilClient.getNameNodeIds(
+<Line#17>conf, nameServiceId);
+<Line#18>LOG.debug("NameNode IDs for nameServiceId " + nameServiceId + ": " + nnIds); // Debug level log
+<Line#19>for (String nnId : nnIds) {
+<Line#20>String suffix = nameServiceId + "." + nnId;
+<Line#21>uriStr = conf.getTrimmed(DFSConfigKeys
+<Line#22>.DFS_NAMENODE_SHARED_EDITS_DIR_KEY + "." + suffix);
+<Line#23>sharedEditsUri.add(uriStr);
+<Line#24>LOG.debug("Added URI string to sharedEditsUri: " + uriStr); // Debug level log
+<Line#25>}
+<Line#26>if (sharedEditsUri.size() > 1) {
+<Line#27>LOG.warn("Multiple shared edits URIs found, setting uriStr to null"); // Warning level log
+<Line#28>uriStr = null;
+<Line#29>}
+<Line#30>}
+<Line#31>}
+<Line#32>
+<Line#33>if (uriStr == null || uriStr.isEmpty()) {
+<Line#34>LOG.info("No valid URI string found, returning null"); // Info level log
+<Line#35>return null;
+<Line#36>} else {
+<Line#37>LOG.info("Valid URI string found, retrieving journal address list"); // Info level log
+<Line#38>return getJournalAddrList(uriStr);
+<Line#39>}
+<Line#40>
+<Line#41>} catch (URISyntaxException e) {
+<Line#42>LOG.error("URISyntaxException encountered: ", e); // Error level log
+<Line#43>} catch (IOException e) {
+<Line#44>LOG.error("IOException encountered: ", e); // Error level log
+<Line#45>}
+<Line#46>return null;
+<Line#47>}
+```
+
+In this modified code, I've added logging statements at strategic points to provide insight into the flow of execution and potential issues. The log levels used are:
+
+- **Debug**: For detailed information that might be useful for debugging.
+- **Info**: For general information about the execution flow.
+- **Warn**: To indicate a potential problem that might not be immediately critical but should be looked into.
+- **Error**: To log exceptions that are caught, which could indicate failures in the method's operation.

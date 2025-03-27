@@ -1,0 +1,42 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	X509AuthenticationProvider.java	methodSinagture:	org.apache.zookeeper.server.auth.X509AuthenticationProvider.matches(Ljava/lang/String;Ljava/lang/String;)Z	methodLines:	191:197
+blockLines:	193:-1
+paras:	null
+TaintedStat:	NORMAL matches:conditional branch(ne, to iindex=15) 14,15 Node: < Application, Lorg/apache/zookeeper/server/auth/X509AuthenticationProvider, matches(Ljava/lang/String;Ljava/lang/String;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/X509AuthenticationProvider, matches(Ljava/lang/String;Ljava/lang/String;)Z > Context: Everywhere[6]12 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 5 @11 exception:11
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/X509AuthenticationProvider, matches(Ljava/lang/String;Ljava/lang/String;)Z > Context: Everywhere[6]12 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 5 @11 exception:11
+NORMAL matches:14 = invokevirtual < Application, Ljava/lang/String, equals(Ljava/lang/Object;)Z > 2,12 @14 exception:13 Node: < Application, Lorg/apache/zookeeper/server/auth/X509AuthenticationProvider, matches(Ljava/lang/String;Ljava/lang/String;)Z > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL equals:conditional branch(ne, to iindex=5) 1,2 Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL equals:return 22 Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/X509AuthenticationProvider, matches(Ljava/lang/String;Ljava/lang/String;)Z > Context: Everywhere[7]14 = invokevirtual < Application, Ljava/lang/String, equals(Ljava/lang/Object;)Z > 2,12 @14 exception:13
+NORMAL matches:conditional branch(ne, to iindex=15) 14,15 Node: < Application, Lorg/apache/zookeeper/server/auth/X509AuthenticationProvider, matches(Ljava/lang/String;Ljava/lang/String;)Z > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	X509AuthenticationProvider.java	methodSinagture:	org.apache.zookeeper.server.auth.X509AuthenticationProvider.matches(Ljava/lang/String;Ljava/lang/String;)Z	methodLines:	191:197
+blockLines:	192:-1
+paras:	null
+TaintedStat:	NORMAL matches:conditional branch(eq, to iindex=19) 7,8 Node: < Application, Lorg/apache/zookeeper/server/auth/X509AuthenticationProvider, matches(Ljava/lang/String;Ljava/lang/String;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/X509AuthenticationProvider, matches(Ljava/lang/String;Ljava/lang/String;)Z > Context: Everywhere[1]7 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 5 @2 exception:6
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/X509AuthenticationProvider, matches(Ljava/lang/String;Ljava/lang/String;)Z > Context: Everywhere[1]7 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 5 @2 exception:6
+NORMAL matches:conditional branch(eq, to iindex=19) 7,8 Node: < Application, Lorg/apache/zookeeper/server/auth/X509AuthenticationProvider, matches(Ljava/lang/String;Ljava/lang/String;)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public boolean matches(String id, String aclExpr) {
+        if (System.getProperty(ZOOKEEPER_X509AUTHENTICATIONPROVIDER_SUPERUSER) != null) {
+            return id.equals(System.getProperty(ZOOKEEPER_X509AUTHENTICATIONPROVIDER_SUPERUSER))
+                   || id.equals(aclExpr);
+        }
+
+        return id.equals(aclExpr);
+    }
+
+
+====================ctx:=======================

@@ -1,0 +1,101 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	SaslServerCallbackHandler.java	methodSinagture:	org.apache.zookeeper.server.auth.SaslServerCallbackHandler.<init>(Ljavax/security/auth/login/Configuration;)V	methodLines:	47:73
+blockLines:	55:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(ne, to iindex=37) 12,13 Node: < Application, Lorg/apache/zookeeper/server/auth/SaslServerCallbackHandler, <init>(Ljavax/security/auth/login/Configuration;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/SaslServerCallbackHandler, <init>(Ljavax/security/auth/login/Configuration;)V > Context: Everywhere[9]10 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 7,8 @19 exception:9
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/SaslServerCallbackHandler, <init>(Ljavax/security/auth/login/Configuration;)V > Context: Everywhere[9]10 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 7,8 @19 exception:9
+NORMAL <init>:12 = invokevirtual < Application, Ljavax/security/auth/login/Configuration, getAppConfigurationEntry(Ljava/lang/String;)[Ljavax/security/auth/login/AppConfigurationEntry; > 2,10 @25 exception:11 Node: < Application, Lorg/apache/zookeeper/server/auth/SaslServerCallbackHandler, <init>(Ljavax/security/auth/login/Configuration;)V > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljavax/security/auth/login/Configuration$ConfigDelegate, getAppConfigurationEntry(Ljava/lang/String;)[Ljavax/security/auth/login/AppConfigurationEntry; > Context: Everywhere
+NORMAL getAppConfigurationEntry:return 6 Node: < Primordial, Ljavax/security/auth/login/Configuration$ConfigDelegate, getAppConfigurationEntry(Ljava/lang/String;)[Ljavax/security/auth/login/AppConfigurationEntry; > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljavax/security/auth/login/Configuration$ConfigDelegate, getAppConfigurationEntry(Ljava/lang/String;)[Ljavax/security/auth/login/AppConfigurationEntry; > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/SaslServerCallbackHandler, <init>(Ljavax/security/auth/login/Configuration;)V > Context: Everywhere[13]12 = invokevirtual < Application, Ljavax/security/auth/login/Configuration, getAppConfigurationEntry(Ljava/lang/String;)[Ljavax/security/auth/login/AppConfigurationEntry; > 2,10 @25 exception:11
+NORMAL <init>:conditional branch(ne, to iindex=37) 12,13 Node: < Application, Lorg/apache/zookeeper/server/auth/SaslServerCallbackHandler, <init>(Ljavax/security/auth/login/Configuration;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+
+    public SaslServerCallbackHandler(Configuration configuration) throws IOException {
+        String serverSection = System.getProperty(
+            ZooKeeperSaslServer.LOGIN_CONTEXT_NAME_KEY,
+            ZooKeeperSaslServer.DEFAULT_LOGIN_CONTEXT_NAME);
+
+        AppConfigurationEntry[] configurationEntries = configuration.getAppConfigurationEntry(serverSection);
+
+        if (configurationEntries == null) {
+            String errorMessage = "Could not find a '" + serverSection + "' entry in this configuration: Server cannot start.";
+            LOG.error(errorMessage);
+            throw new IOException(errorMessage);
+        }
+        credentials.clear();
+        for (AppConfigurationEntry entry : configurationEntries) {
+            Map<String, ?> options = entry.getOptions();
+            // Populate DIGEST-MD5 user -> password map with JAAS configuration entries from the "Server" section.
+            // Usernames are distinguished from other options by prefixing the username with a "user_" prefix.
+            for (Map.Entry<String, ?> pair : options.entrySet()) {
+                String key = pair.getKey();
+                if (key.startsWith(USER_PREFIX)) {
+                    String userName = key.substring(USER_PREFIX.length());
+                    credentials.put(userName, (String) pair.getValue());
+                }
+            }
+        }
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, configureSaslLogin()V > Context: Everywhere, blocks=[BB[SSA:86..86]41 - org.apache.zookeeper.server.ServerCnxnFactory.configureSaslLogin()V, BB[SSA:84..85]40 - org.apache.zookeeper.server.ServerCnxnFactory.configureSaslLogin()V, BB[SSA:87..87]42 - org.apache.zookeeper.server.ServerCnxnFactory.configureSaslLogin()V, BB[SSA:-1..-2]64 - org.apache.zookeeper.server.ServerCnxnFactory.configureSaslLogin()V], numberOfBasicBlocks=4, firstLineNumber=272, lastLineNumber=272, firstMethodNumber=236, lastMethodNumber=281, isFirstLineValid=true, methodSrcCode=
+    protected void configureSaslLogin() throws IOException {
+        String serverSection = System.getProperty(ZooKeeperSaslServer.LOGIN_CONTEXT_NAME_KEY, ZooKeeperSaslServer.DEFAULT_LOGIN_CONTEXT_NAME);
+
+        // Note that 'Configuration' here refers to javax.security.auth.login.Configuration.
+        AppConfigurationEntry[] entries = null;
+        SecurityException securityException = null;
+        try {
+            entries = Configuration.getConfiguration().getAppConfigurationEntry(serverSection);
+        } catch (SecurityException e) {
+            // handle below: might be harmless if the user doesn't intend to use JAAS authentication.
+            securityException = e;
+        }
+
+        // No entries in jaas.conf
+        // If there's a configuration exception fetching the jaas section and
+        // the user has required sasl by specifying a LOGIN_CONTEXT_NAME_KEY or a jaas file
+        // we throw an exception otherwise we continue without authentication.
+        if (entries == null) {
+            String jaasFile = System.getProperty(Environment.JAAS_CONF_KEY);
+            String loginContextName = System.getProperty(ZooKeeperSaslServer.LOGIN_CONTEXT_NAME_KEY);
+            if (securityException != null && (loginContextName != null || jaasFile != null)) {
+                String errorMessage = "No JAAS configuration section named '" + serverSection + "' was found";
+                if (jaasFile != null) {
+                    errorMessage += " in '" + jaasFile + "'.";
+                }
+                if (loginContextName != null) {
+                    errorMessage += " But " + ZooKeeperSaslServer.LOGIN_CONTEXT_NAME_KEY + " was set.";
+                }
+                LOG.error(errorMessage);
+                throw new IOException(errorMessage);
+            }
+            return;
+        }
+
+        // jaas.conf entry available
+        try {
+            saslServerCallbackHandler = new SaslServerCallbackHandler(Configuration.getConfiguration());
+            login = new Login(serverSection, saslServerCallbackHandler, new ZKConfig());
+            setLoginUser(login.getUserName());
+            login.startThreadIfNeeded();
+        } catch (LoginException e) {
+            throw new IOException("Could not configure server because SASL configuration did not allow the "
+                                  + " ZooKeeper server to authenticate itself properly: "
+                                  + e);
+        }
+    }
+
+}

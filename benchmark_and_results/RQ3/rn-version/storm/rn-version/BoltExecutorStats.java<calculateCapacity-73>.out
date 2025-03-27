@@ -1,0 +1,67 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	BoltExecutorStats.java	methodSinagture:	org.apache.storm.stats.BoltExecutorStats.calculateCapacity(J)D	methodLines:	73:95
+blockLines:	79:-1
+paras:	null
+TaintedStat:	NORMAL calculateCapacity:conditional branch(eq, to iindex=33) 15,25 Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere[10]14 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 11,12 @16 exception:13
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere[10]14 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 11,12 @16 exception:13
+NORMAL calculateCapacity:15 = checkcast <Application,Ljava/util/Map>14 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere
+NORMAL calculateCapacity:conditional branch(eq, to iindex=33) 15,25 Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	BoltExecutorStats.java	methodSinagture:	org.apache.storm.stats.BoltExecutorStats.calculateCapacity(J)D	methodLines:	73:95
+blockLines:	82:-1
+paras:	null
+TaintedStat:	NORMAL calculateCapacity:conditional branch(eq, to iindex=41) 22,25 Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere[18]21 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 19,12 @35 exception:20
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere[18]21 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 19,12 @35 exception:20
+NORMAL calculateCapacity:22 = checkcast <Application,Ljava/util/Map>21 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere
+NORMAL calculateCapacity:conditional branch(eq, to iindex=41) 22,25 Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private double calculateCapacity(long workerUptimeSecs) {
+        if (workerUptimeSecs > 0) {
+            Map<String, Double> execAvg = valueStat(this.getExecuteLatencies()).get(MultiCountStat.TEN_MIN_IN_SECONDS_STR);
+            Map<String, Long> exec = valueStat(this.getExecuted()).get(MultiCountStat.TEN_MIN_IN_SECONDS_STR);
+
+            Set<Object> allKeys = new HashSet<>();
+            if (execAvg != null) {
+                allKeys.addAll(execAvg.keySet());
+            }
+            if (exec != null) {
+                allKeys.addAll(exec.keySet());
+            }
+
+            double totalAvg = 0;
+            for (Object k : allKeys) {
+                double avg = getOr0(execAvg, k).doubleValue();
+                long cnt = getOr0(exec, k).longValue();
+                totalAvg += avg * cnt;
+            }
+
+            return totalAvg / (Math.min(workerUptimeSecs, MultiCountStat.TEN_MIN_IN_SECONDS) * 1000);
+        }
+        return 0.0;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, boltExecuteTuple(Ljava/lang/String;Ljava/lang/String;JJLorg/apache/storm/daemon/Task;)V > Context: Everywhere, blocks=[BB[SSA:24..26]10 - org.apache.storm.stats.BoltExecutorStats.boltExecuteTuple(Ljava/lang/String;Ljava/lang/String;JJLorg/apache/storm/daemon/Task;)V, BB[SSA:21..23]9 - org.apache.storm.stats.BoltExecutorStats.boltExecuteTuple(Ljava/lang/String;Ljava/lang/String;JJLorg/apache/storm/daemon/Task;)V, BB[SSA:27..29]11 - org.apache.storm.stats.BoltExecutorStats.boltExecuteTuple(Ljava/lang/String;Ljava/lang/String;JJLorg/apache/storm/daemon/Task;)V, BB[SSA:-1..-2]14 - org.apache.storm.stats.BoltExecutorStats.boltExecuteTuple(Ljava/lang/String;Ljava/lang/String;JJLorg/apache/storm/daemon/Task;)V], numberOfBasicBlocks=4, firstLineNumber=65, lastLineNumber=70, firstMethodNumber=62, lastMethodNumber=71, isFirstLineValid=true, methodSrcCode=
+                                 Task firstExecutorTask) {
+        List key = Lists.newArrayList(component, stream);
+        this.getExecuted().incBy(key, this.rate);
+        this.getExecuteLatencies().record(key, latencyMs);
+
+        // Calculate capacity:  This is really for the whole executor, but we will use the executor's first task
+        // for reporting the metric.
+        double capacity = calculateCapacity(workerUptimeSecs);
+        firstExecutorTask.getTaskMetrics().setCapacity(capacity);
+    }
+
+}

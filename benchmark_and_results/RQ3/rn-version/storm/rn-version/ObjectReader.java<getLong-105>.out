@@ -1,0 +1,67 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long;	methodLines:	105:114
+blockLines:	109:-1
+paras:	null
+TaintedStat:	NORMAL getLong:conditional branch(eq, to iindex=14) 5,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/policy/WaitStrategyPark, prepare(Ljava/util/Map;Lorg/apache/storm/policy/IWaitStrategy$WaitSituation;)V > Context: Everywhere[33]15 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,13 @78 exception:14
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/policy/WaitStrategyPark, prepare(Ljava/util/Map;Lorg/apache/storm/policy/IWaitStrategy$WaitSituation;)V > Context: Everywhere[33]15 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,13 @78 exception:14
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/policy/WaitStrategyPark, prepare(Ljava/util/Map;Lorg/apache/storm/policy/IWaitStrategy$WaitSituation;)V > Context: Everywhere[34]17 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;)Ljava/lang/Long; > 15 @83 exception:16 v15
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;)Ljava/lang/Long; > Context: Everywhere v1
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;)Ljava/lang/Long; > Context: Everywhere[2]5 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long; > 1,3 @2 exception:4 v1
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long; > Context: Everywhere v1
+NORMAL getLong:conditional branch(ne, to iindex=5) 4,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long; > Context: Everywhere
+NORMAL getLong:conditional branch(eq, to iindex=14) 5,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long;	methodLines:	105:114
+blockLines:	111:-1
+paras:	null
+TaintedStat:	NORMAL getLong:conditional branch(eq, to iindex=22) 7,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/worker/Worker, setupFlushTupleTimer(Ljava/util/Map;Ljava/util/List;)V > Context: Everywhere[12]17 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,15 @31 exception:16
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/worker/Worker, setupFlushTupleTimer(Ljava/util/Map;Ljava/util/List;)V > Context: Everywhere[12]17 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,15 @31 exception:16
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/worker/Worker, setupFlushTupleTimer(Ljava/util/Map;Ljava/util/List;)V > Context: Everywhere[13]19 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;)Ljava/lang/Long; > 17 @36 exception:18 v17
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;)Ljava/lang/Long; > Context: Everywhere v1
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;)Ljava/lang/Long; > Context: Everywhere[2]5 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long; > 1,3 @2 exception:4 v1
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long; > Context: Everywhere v1
+NORMAL getLong:7 = instanceof 1 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long; > Context: Everywhere
+NORMAL getLong:conditional branch(eq, to iindex=22) 7,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long;	methodLines:	105:114
+blockLines:	106:-1
+paras:	null
+TaintedStat:	NORMAL getLong:conditional branch(ne, to iindex=5) 4,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/worker/Worker, setupBackPressureCheckTimer(Ljava/util/Map;)V > Context: Everywhere[11]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,8 @26 exception:9
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/worker/Worker, setupBackPressureCheckTimer(Ljava/util/Map;)V > Context: Everywhere[11]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,8 @26 exception:9
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/worker/Worker, setupBackPressureCheckTimer(Ljava/util/Map;)V > Context: Everywhere[12]12 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;)Ljava/lang/Long; > 10 @31 exception:11 v10
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;)Ljava/lang/Long; > Context: Everywhere v1
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;)Ljava/lang/Long; > Context: Everywhere[2]5 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long; > 1,3 @2 exception:4 v1
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long; > Context: Everywhere v1
+NORMAL getLong:conditional branch(ne, to iindex=5) 4,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;Ljava/lang/Long;)Ljava/lang/Long; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static Long getLong(Object o, Long defaultValue) {
+        if (null == o) {
+            return defaultValue;
+        }
+        if (o instanceof Number) {
+            return ((Number) o).longValue();
+        } else if (o instanceof String) {
+            return Long.valueOf((String) o);
+        }
+        throw new IllegalArgumentException("Don't know how to convert " + o + " to a long");
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/utils/ObjectReader, getLong(Ljava/lang/Object;)Ljava/lang/Long; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.storm.utils.ObjectReader.getLong(Ljava/lang/Object;)Ljava/lang/Long;, BB[SSA:-1..-2]0 - org.apache.storm.utils.ObjectReader.getLong(Ljava/lang/Object;)Ljava/lang/Long;, BB[SSA:3..3]2 - org.apache.storm.utils.ObjectReader.getLong(Ljava/lang/Object;)Ljava/lang/Long;, BB[SSA:-1..-2]3 - org.apache.storm.utils.ObjectReader.getLong(Ljava/lang/Object;)Ljava/lang/Long;], numberOfBasicBlocks=4, firstLineNumber=101, lastLineNumber=102, firstMethodNumber=101, lastMethodNumber=102, isFirstLineValid=false, methodSrcCode=
+    public static Long getLong(Object o) {
+        return getLong(o, null);
+    }
+}

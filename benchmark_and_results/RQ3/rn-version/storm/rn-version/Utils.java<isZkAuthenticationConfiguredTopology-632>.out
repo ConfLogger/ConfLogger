@@ -1,0 +1,51 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Utils.java	methodSinagture:	org.apache.storm.utils.Utils.isZkAuthenticationConfiguredTopology(Ljava/util/Map;)Z	methodLines:	632:633
+blockLines:	634:-1
+paras:	null
+TaintedStat:	NORMAL isZkAuthenticationConfiguredTopology:conditional branch(eq, to iindex=17) 6,3 Node: < Application, Lorg/apache/storm/utils/Utils, isZkAuthenticationConfiguredTopology(Ljava/util/Map;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/Utils, isZkAuthenticationConfiguredTopology(Ljava/util/Map;)Z > Context: Everywhere[5]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,4 @8 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/Utils, isZkAuthenticationConfiguredTopology(Ljava/util/Map;)Z > Context: Everywhere[5]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,4 @8 exception:5
+NORMAL isZkAuthenticationConfiguredTopology:conditional branch(eq, to iindex=17) 6,3 Node: < Application, Lorg/apache/storm/utils/Utils, isZkAuthenticationConfiguredTopology(Ljava/util/Map;)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static boolean isZkAuthenticationConfiguredTopology(Map<String, Object> conf) {
+        return (conf != null
+                && conf.get(Config.STORM_ZOOKEEPER_TOPOLOGY_AUTH_SCHEME) != null
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/utils/Utils, getWorkerACL(Ljava/util/Map;)Ljava/util/List; > Context: Everywhere, blocks=[BB[SSA:0..1]1 - org.apache.storm.utils.Utils.getWorkerACL(Ljava/util/Map;)Ljava/util/List;, BB[SSA:-1..-2]0 - org.apache.storm.utils.Utils.getWorkerACL(Ljava/util/Map;)Ljava/util/List;, BB[SSA:2..3]2 - org.apache.storm.utils.Utils.getWorkerACL(Ljava/util/Map;)Ljava/util/List;, BB[SSA:-1..-2]9 - org.apache.storm.utils.Utils.getWorkerACL(Ljava/util/Map;)Ljava/util/List;], numberOfBasicBlocks=4, firstLineNumber=617, lastLineNumber=618, firstMethodNumber=617, lastMethodNumber=623, isFirstLineValid=false, methodSrcCode=
+    public static List<ACL> getWorkerACL(Map<String, Object> conf) {
+        if (!isZkAuthenticationConfiguredTopology(conf)) {
+            return null;
+        }
+        ArrayList<ACL> ret = new ArrayList<>(ZooDefs.Ids.CREATOR_ALL_ACL);
+        ret.add(getSuperUserAcl(conf));
+        return ret;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/cluster/ClusterUtils, mkTopoAcls(Ljava/util/Map;I)Ljava/util/List; > Context: Everywhere, blocks=[BB[SSA:6..8]3 - org.apache.storm.cluster.ClusterUtils.mkTopoAcls(Ljava/util/Map;I)Ljava/util/List;, BB[SSA:5..5]2 - org.apache.storm.cluster.ClusterUtils.mkTopoAcls(Ljava/util/Map;I)Ljava/util/List;, BB[SSA:9..10]4 - org.apache.storm.cluster.ClusterUtils.mkTopoAcls(Ljava/util/Map;I)Ljava/util/List;, BB[SSA:-1..-2]21 - org.apache.storm.cluster.ClusterUtils.mkTopoAcls(Ljava/util/Map;I)Ljava/util/List;], numberOfBasicBlocks=4, firstLineNumber=115, lastLineNumber=116, firstMethodNumber=113, lastMethodNumber=128, isFirstLineValid=true, methodSrcCode=
+    private static List<ACL> mkTopoAcls(Map<String, Object> topoConf, int perms) {
+        List<ACL> aclList = null;
+        String payload = (String) topoConf.get(Config.STORM_ZOOKEEPER_TOPOLOGY_AUTH_PAYLOAD);
+        if (Utils.isZkAuthenticationConfiguredTopology(topoConf)) {
+            aclList = new ArrayList<>();
+            ACL acl1 = ZooDefs.Ids.CREATOR_ALL_ACL.get(0);
+            aclList.add(acl1);
+            try {
+                ACL acl2 = new ACL(perms, new Id("digest", DigestAuthenticationProvider.generateDigest(payload)));
+                aclList.add(acl2);
+            } catch (NoSuchAlgorithmException e) {
+                //Should only happen on a badly configured system
+                throw new RuntimeException(e);
+            }
+        }
+        return aclList;
+    }
+}

@@ -1,0 +1,361 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>static String getPassword(Configuration conf, String alias) {
+<Line#1>String password = null;
+<Line#2>try {
+<Line#3>char[] passchars = conf.getPassword(alias);
+<Line#4>if (passchars != null) {
+<Line#5>password = new String(passchars);
+<Line#6>}
+<Line#7>}
+<Line#8>catch (IOException ioe) {
+<Line#9>
+<Line#10>password = null;
+<Line#11>}
+<Line#12>return password;
+<Line#13>}
+
+Example 1:
+<Line#1>{
+<Line#2>  Map<String,NamenodeHeartbeatService> ret=new HashMap<>();
+<Line#3>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_MONITOR_LOCAL_NAMENODE,RBFConfigKeys.DFS_ROUTER_MONITOR_LOCAL_NAMENODE_DEFAULT)) {
+<Line#4>    NamenodeHeartbeatService localHeartbeatService=createLocalNamenodeHeartbeatService();
+<Line#5>    if (localHeartbeatService != null) {
+<Line#6>      String nnDesc=localHeartbeatService.getNamenodeDesc();
+<Line#7>      ret.put(nnDesc,localHeartbeatService);
+<Line#8>    }
+<Line#9>  }
+<Line#10>  Collection<String> namenodes=this.conf.getTrimmedStringCollection(RBFConfigKeys.DFS_ROUTER_MONITOR_NAMENODE);
+<Line#11>  for (  String namenode : namenodes) {
+<Line#12>    String[] namenodeSplit=namenode.split("\\.");
+<Line#13>    String nsId=null;
+<Line#14>    String nnId=null;
+<Line#15>    if (namenodeSplit.length == 2) {
+<Line#16>      nsId=namenodeSplit[0];
+<Line#17>      nnId=namenodeSplit[1];
+<Line#18>    }
+<Line#19> else     if (namenodeSplit.length == 1) {
+<Line#20>      nsId=namenode;
+<Line#21>    }
+<Line#22> else {
+<Line#23>      LOG.error("Wrong Namenode to monitor: {}",namenode);
+<Line#24>    }
+<Line#25>    if (nsId != null) {
+<Line#26>      NamenodeHeartbeatService heartbeatService=createNamenodeHeartbeatService(nsId,nnId);
+<Line#27>      if (heartbeatService != null) {
+<Line#28>        ret.put(heartbeatService.getNamenodeDesc(),heartbeatService);
+<Line#29>      }
+<Line#30>    }
+<Line#31>  }
+<Line#32>  return ret.values();
+<Line#33>}
+Label: <Line#23> LOG.error("Wrong Namenode to monitor: {}",namenode)
+
+Example 2:
+<Line#1>{
+<Line#2>  String id=bpId;
+<Line#3>  if (id != null) {
+<Line#4>    return id;
+<Line#5>  }
+<Line#6>  DataNodeFaultInjector.get().delayWhenOfferServiceHoldLock();
+<Line#7>  readLock();
+<Line#8>  try {
+<Line#9>    if (bpNSInfo != null) {
+<Line#10>      return bpNSInfo.getBlockPoolID();
+<Line#11>    }
+<Line#12> else {
+<Line#13>      if (!quiet) {
+<Line#14>        LOG.warn("Block pool ID needed, but service not yet registered with " + "NN, trace:",new Exception());
+<Line#15>      }
+<Line#16>      return null;
+<Line#17>    }
+<Line#18>  }
+<Line#19>  finally {
+<Line#20>    readUnlock();
+<Line#21>  }
+<Line#22>}
+Label: <Line#14> LOG.warn("Block pool ID needed, but service not yet registered with " + "NN, trace:",new Exception())
+
+Example 3:
+<Line#1>{
+<Line#2>  updateCurrentThreadName("Replacing block " + block + " from "+ delHint);
+<Line#3>  DataOutputStream replyOut=new DataOutputStream(getOutputStream());
+<Line#4>  checkAccess(replyOut,true,block,blockToken,Op.REPLACE_BLOCK,BlockTokenIdentifier.AccessMode.REPLACE,new StorageType[]{storageType},new String[]{storageId});
+<Line#5>  if (!dataXceiverServer.balanceThrottler.acquire()) {
+<Line#6>    String msg="Not able to receive block " + block.getBlockId() + " from "+ peer.getRemoteAddressString()+ " because threads "+ "quota="+ dataXceiverServer.balanceThrottler.getMaxConcurrentMovers()+ " is exceeded.";
+<Line#7>    LOG.warn(msg);
+<Line#8>    sendResponse(ERROR,msg);
+<Line#9>    return;
+<Line#10>  }
+<Line#11>  Socket proxySock=null;
+<Line#12>  DataOutputStream proxyOut=null;
+<Line#13>  Status opStatus=SUCCESS;
+<Line#14>  String errMsg=null;
+<Line#15>  DataInputStream proxyReply=null;
+<Line#16>  boolean IoeDuringCopyBlockOperation=false;
+<Line#17>  try {
+<Line#18>    if (proxySource.equals(datanode.getDatanodeId())) {
+<Line#19>      ReplicaInfo oldReplica=datanode.data.moveBlockAcrossStorage(block,storageType,storageId);
+<Line#20>      if (oldReplica != null) {
+<Line#21>        LOG.info("Moved {} from StorageType {} to {}",block,oldReplica.getVolume().getStorageType(),storageType);
+<Line#22>      }
+<Line#23>    }
+<Line#24> else {
+<Line#25>      block.setNumBytes(dataXceiverServer.estimateBlockSize);
+<Line#26>      final String dnAddr=proxySource.getXferAddr(connectToDnViaHostname);
+<Line#27>      LOG.debug("Connecting to datanode {}",dnAddr);
+<Line#28>      InetSocketAddress proxyAddr=NetUtils.createSocketAddr(dnAddr);
+<Line#29>      proxySock=datanode.newSocket();
+<Line#30>      NetUtils.connect(proxySock,proxyAddr,dnConf.socketTimeout);
+<Line#31>      proxySock.setTcpNoDelay(dnConf.getDataTransferServerTcpNoDelay());
+<Line#32>      proxySock.setSoTimeout(dnConf.socketTimeout);
+<Line#33>      proxySock.setKeepAlive(true);
+<Line#34>      OutputStream unbufProxyOut=NetUtils.getOutputStream(proxySock,dnConf.socketWriteTimeout);
+<Line#35>      InputStream unbufProxyIn=NetUtils.getInputStream(proxySock);
+<Line#36>      DataEncryptionKeyFactory keyFactory=datanode.getDataEncryptionKeyFactoryForBlock(block);
+<Line#37>      IOStreamPair saslStreams=datanode.saslClient.socketSend(proxySock,unbufProxyOut,unbufProxyIn,keyFactory,blockToken,proxySource);
+<Line#38>      unbufProxyOut=saslStreams.out;
+<Line#39>      unbufProxyIn=saslStreams.in;
+<Line#40>      proxyOut=new DataOutputStream(new BufferedOutputStream(unbufProxyOut,smallBufferSize));
+<Line#41>      proxyReply=new DataInputStream(new BufferedInputStream(unbufProxyIn,ioFileBufferSize));
+<Line#42>      IoeDuringCopyBlockOperation=true;
+<Line#43>      new Sender(proxyOut).copyBlock(block,blockToken);
+<Line#44>      IoeDuringCopyBlockOperation=false;
+<Line#45>      BlockOpResponseProto copyResponse=BlockOpResponseProto.parseFrom(PBHelperClient.vintPrefixed(proxyReply));
+<Line#46>      String logInfo="copy block " + block + " from "+ proxySock.getRemoteSocketAddress();
+<Line#47>      DataTransferProtoUtil.checkBlockOpStatus(copyResponse,logInfo,true);
+<Line#48>      ReadOpChecksumInfoProto checksumInfo=copyResponse.getReadOpChecksumInfo();
+<Line#49>      DataChecksum remoteChecksum=DataTransferProtoUtil.fromProto(checksumInfo.getChecksum());
+<Line#50>      setCurrentBlockReceiver(getBlockReceiver(block,storageType,proxyReply,proxySock.getRemoteSocketAddress().toString(),proxySock.getLocalSocketAddress().toString(),null,0,0,0,"",null,datanode,remoteChecksum,CachingStrategy.newDropBehind(),false,false,storageId));
+<Line#51>      blockReceiver.receiveBlock(null,null,replyOut,null,dataXceiverServer.balanceThrottler,null,true);
+<Line#52>      final Replica r=blockReceiver.getReplica();
+<Line#53>      datanode.notifyNamenodeReceivedBlock(block,delHint,r.getStorageUuid(),r.isOnTransientStorage());
+<Line#54>      LOG.info("Moved {} from {}, delHint={}",block,peer.getRemoteAddressString(),delHint);
+<Line#55>    }
+<Line#56>  }
+<Line#57> catch (  IOException ioe) {
+<Line#58>    opStatus=ERROR;
+<Line#59>    if (ioe instanceof BlockPinningException) {
+<Line#60>      opStatus=Status.ERROR_BLOCK_PINNED;
+<Line#61>    }
+<Line#62>    errMsg="opReplaceBlock " + block + " received exception "+ ioe;
+<Line#63>    LOG.info(errMsg);
+<Line#64>    if (!IoeDuringCopyBlockOperation) {
+<Line#65>      incrDatanodeNetworkErrors();
+<Line#66>    }
+<Line#67>    throw ioe;
+<Line#68>  }
+<Line#69> finally {
+<Line#70>    if (opStatus == SUCCESS && proxyReply != null) {
+<Line#71>      try {
+<Line#72>        proxyReply.readChar();
+<Line#73>      }
+<Line#74> catch (      IOException ignored) {
+<Line#75>      }
+<Line#76>    }
+<Line#77>    dataXceiverServer.balanceThrottler.release();
+<Line#78>    try {
+<Line#79>      sendResponse(opStatus,errMsg);
+<Line#80>    }
+<Line#81> catch (    IOException ioe) {
+<Line#82>      LOG.warn("Error writing reply back to {}",peer.getRemoteAddressString());
+<Line#83>      incrDatanodeNetworkErrors();
+<Line#84>    }
+<Line#85>    IOUtils.closeStream(proxyOut);
+<Line#86>    IOUtils.closeStream(blockReceiver);
+<Line#87>    IOUtils.closeStream(proxyReply);
+<Line#88>    IOUtils.closeStream(replyOut);
+<Line#89>  }
+<Line#90>  datanode.metrics.addReplaceBlockOp(elapsed());
+<Line#91>}
+Label: <Line#7> LOG.warn(msg)
+
+Example 4:
+<Line#1>{
+<Line#2>  updateCurrentThreadName("Replacing block " + block + " from "+ delHint);
+<Line#3>  DataOutputStream replyOut=new DataOutputStream(getOutputStream());
+<Line#4>  checkAccess(replyOut,true,block,blockToken,Op.REPLACE_BLOCK,BlockTokenIdentifier.AccessMode.REPLACE,new StorageType[]{storageType},new String[]{storageId});
+<Line#5>  if (!dataXceiverServer.balanceThrottler.acquire()) {
+<Line#6>    String msg="Not able to receive block " + block.getBlockId() + " from "+ peer.getRemoteAddressString()+ " because threads "+ "quota="+ dataXceiverServer.balanceThrottler.getMaxConcurrentMovers()+ " is exceeded.";
+<Line#7>    LOG.warn(msg);
+<Line#8>    sendResponse(ERROR,msg);
+<Line#9>    return;
+<Line#10>  }
+<Line#11>  Socket proxySock=null;
+<Line#12>  DataOutputStream proxyOut=null;
+<Line#13>  Status opStatus=SUCCESS;
+<Line#14>  String errMsg=null;
+<Line#15>  DataInputStream proxyReply=null;
+<Line#16>  boolean IoeDuringCopyBlockOperation=false;
+<Line#17>  try {
+<Line#18>    if (proxySource.equals(datanode.getDatanodeId())) {
+<Line#19>      ReplicaInfo oldReplica=datanode.data.moveBlockAcrossStorage(block,storageType,storageId);
+<Line#20>      if (oldReplica != null) {
+<Line#21>        LOG.info("Moved {} from StorageType {} to {}",block,oldReplica.getVolume().getStorageType(),storageType);
+<Line#22>      }
+<Line#23>    }
+<Line#24> else {
+<Line#25>      block.setNumBytes(dataXceiverServer.estimateBlockSize);
+<Line#26>      final String dnAddr=proxySource.getXferAddr(connectToDnViaHostname);
+<Line#27>      LOG.debug("Connecting to datanode {}",dnAddr);
+<Line#28>      InetSocketAddress proxyAddr=NetUtils.createSocketAddr(dnAddr);
+<Line#29>      proxySock=datanode.newSocket();
+<Line#30>      NetUtils.connect(proxySock,proxyAddr,dnConf.socketTimeout);
+<Line#31>      proxySock.setTcpNoDelay(dnConf.getDataTransferServerTcpNoDelay());
+<Line#32>      proxySock.setSoTimeout(dnConf.socketTimeout);
+<Line#33>      proxySock.setKeepAlive(true);
+<Line#34>      OutputStream unbufProxyOut=NetUtils.getOutputStream(proxySock,dnConf.socketWriteTimeout);
+<Line#35>      InputStream unbufProxyIn=NetUtils.getInputStream(proxySock);
+<Line#36>      DataEncryptionKeyFactory keyFactory=datanode.getDataEncryptionKeyFactoryForBlock(block);
+<Line#37>      IOStreamPair saslStreams=datanode.saslClient.socketSend(proxySock,unbufProxyOut,unbufProxyIn,keyFactory,blockToken,proxySource);
+<Line#38>      unbufProxyOut=saslStreams.out;
+<Line#39>      unbufProxyIn=saslStreams.in;
+<Line#40>      proxyOut=new DataOutputStream(new BufferedOutputStream(unbufProxyOut,smallBufferSize));
+<Line#41>      proxyReply=new DataInputStream(new BufferedInputStream(unbufProxyIn,ioFileBufferSize));
+<Line#42>      IoeDuringCopyBlockOperation=true;
+<Line#43>      new Sender(proxyOut).copyBlock(block,blockToken);
+<Line#44>      IoeDuringCopyBlockOperation=false;
+<Line#45>      BlockOpResponseProto copyResponse=BlockOpResponseProto.parseFrom(PBHelperClient.vintPrefixed(proxyReply));
+<Line#46>      String logInfo="copy block " + block + " from "+ proxySock.getRemoteSocketAddress();
+<Line#47>      DataTransferProtoUtil.checkBlockOpStatus(copyResponse,logInfo,true);
+<Line#48>      ReadOpChecksumInfoProto checksumInfo=copyResponse.getReadOpChecksumInfo();
+<Line#49>      DataChecksum remoteChecksum=DataTransferProtoUtil.fromProto(checksumInfo.getChecksum());
+<Line#50>      setCurrentBlockReceiver(getBlockReceiver(block,storageType,proxyReply,proxySock.getRemoteSocketAddress().toString(),proxySock.getLocalSocketAddress().toString(),null,0,0,0,"",null,datanode,remoteChecksum,CachingStrategy.newDropBehind(),false,false,storageId));
+<Line#51>      blockReceiver.receiveBlock(null,null,replyOut,null,dataXceiverServer.balanceThrottler,null,true);
+<Line#52>      final Replica r=blockReceiver.getReplica();
+<Line#53>      datanode.notifyNamenodeReceivedBlock(block,delHint,r.getStorageUuid(),r.isOnTransientStorage());
+<Line#54>      LOG.info("Moved {} from {}, delHint={}",block,peer.getRemoteAddressString(),delHint);
+<Line#55>    }
+<Line#56>  }
+<Line#57> catch (  IOException ioe) {
+<Line#58>    opStatus=ERROR;
+<Line#59>    if (ioe instanceof BlockPinningException) {
+<Line#60>      opStatus=Status.ERROR_BLOCK_PINNED;
+<Line#61>    }
+<Line#62>    errMsg="opReplaceBlock " + block + " received exception "+ ioe;
+<Line#63>    LOG.info(errMsg);
+<Line#64>    if (!IoeDuringCopyBlockOperation) {
+<Line#65>      incrDatanodeNetworkErrors();
+<Line#66>    }
+<Line#67>    throw ioe;
+<Line#68>  }
+<Line#69> finally {
+<Line#70>    if (opStatus == SUCCESS && proxyReply != null) {
+<Line#71>      try {
+<Line#72>        proxyReply.readChar();
+<Line#73>      }
+<Line#74> catch (      IOException ignored) {
+<Line#75>      }
+<Line#76>    }
+<Line#77>    dataXceiverServer.balanceThrottler.release();
+<Line#78>    try {
+<Line#79>      sendResponse(opStatus,errMsg);
+<Line#80>    }
+<Line#81> catch (    IOException ioe) {
+<Line#82>      LOG.warn("Error writing reply back to {}",peer.getRemoteAddressString());
+<Line#83>      incrDatanodeNetworkErrors();
+<Line#84>    }
+<Line#85>    IOUtils.closeStream(proxyOut);
+<Line#86>    IOUtils.closeStream(blockReceiver);
+<Line#87>    IOUtils.closeStream(proxyReply);
+<Line#88>    IOUtils.closeStream(replyOut);
+<Line#89>  }
+<Line#90>  datanode.metrics.addReplaceBlockOp(elapsed());
+<Line#91>}
+Label: <Line#21> LOG.info("Moved {} from StorageType {} to {}",block,oldReplica.getVolume().getStorageType(),storageType)
+
+Example 5:
+<Line#1>{
+<Line#2>  updateCurrentThreadName("Replacing block " + block + " from "+ delHint);
+<Line#3>  DataOutputStream replyOut=new DataOutputStream(getOutputStream());
+<Line#4>  checkAccess(replyOut,true,block,blockToken,Op.REPLACE_BLOCK,BlockTokenIdentifier.AccessMode.REPLACE,new StorageType[]{storageType},new String[]{storageId});
+<Line#5>  if (!dataXceiverServer.balanceThrottler.acquire()) {
+<Line#6>    String msg="Not able to receive block " + block.getBlockId() + " from "+ peer.getRemoteAddressString()+ " because threads "+ "quota="+ dataXceiverServer.balanceThrottler.getMaxConcurrentMovers()+ " is exceeded.";
+<Line#7>    LOG.warn(msg);
+<Line#8>    sendResponse(ERROR,msg);
+<Line#9>    return;
+<Line#10>  }
+<Line#11>  Socket proxySock=null;
+<Line#12>  DataOutputStream proxyOut=null;
+<Line#13>  Status opStatus=SUCCESS;
+<Line#14>  String errMsg=null;
+<Line#15>  DataInputStream proxyReply=null;
+<Line#16>  boolean IoeDuringCopyBlockOperation=false;
+<Line#17>  try {
+<Line#18>    if (proxySource.equals(datanode.getDatanodeId())) {
+<Line#19>      ReplicaInfo oldReplica=datanode.data.moveBlockAcrossStorage(block,storageType,storageId);
+<Line#20>      if (oldReplica != null) {
+<Line#21>        LOG.info("Moved {} from StorageType {} to {}",block,oldReplica.getVolume().getStorageType(),storageType);
+<Line#22>      }
+<Line#23>    }
+<Line#24> else {
+<Line#25>      block.setNumBytes(dataXceiverServer.estimateBlockSize);
+<Line#26>      final String dnAddr=proxySource.getXferAddr(connectToDnViaHostname);
+<Line#27>      LOG.debug("Connecting to datanode {}",dnAddr);
+<Line#28>      InetSocketAddress proxyAddr=NetUtils.createSocketAddr(dnAddr);
+<Line#29>      proxySock=datanode.newSocket();
+<Line#30>      NetUtils.connect(proxySock,proxyAddr,dnConf.socketTimeout);
+<Line#31>      proxySock.setTcpNoDelay(dnConf.getDataTransferServerTcpNoDelay());
+<Line#32>      proxySock.setSoTimeout(dnConf.socketTimeout);
+<Line#33>      proxySock.setKeepAlive(true);
+<Line#34>      OutputStream unbufProxyOut=NetUtils.getOutputStream(proxySock,dnConf.socketWriteTimeout);
+<Line#35>      InputStream unbufProxyIn=NetUtils.getInputStream(proxySock);
+<Line#36>      DataEncryptionKeyFactory keyFactory=datanode.getDataEncryptionKeyFactoryForBlock(block);
+<Line#37>      IOStreamPair saslStreams=datanode.saslClient.socketSend(proxySock,unbufProxyOut,unbufProxyIn,keyFactory,blockToken,proxySource);
+<Line#38>      unbufProxyOut=saslStreams.out;
+<Line#39>      unbufProxyIn=saslStreams.in;
+<Line#40>      proxyOut=new DataOutputStream(new BufferedOutputStream(unbufProxyOut,smallBufferSize));
+<Line#41>      proxyReply=new DataInputStream(new BufferedInputStream(unbufProxyIn,ioFileBufferSize));
+<Line#42>      IoeDuringCopyBlockOperation=true;
+<Line#43>      new Sender(proxyOut).copyBlock(block,blockToken);
+<Line#44>      IoeDuringCopyBlockOperation=false;
+<Line#45>      BlockOpResponseProto copyResponse=BlockOpResponseProto.parseFrom(PBHelperClient.vintPrefixed(proxyReply));
+<Line#46>      String logInfo="copy block " + block + " from "+ proxySock.getRemoteSocketAddress();
+<Line#47>      DataTransferProtoUtil.checkBlockOpStatus(copyResponse,logInfo,true);
+<Line#48>      ReadOpChecksumInfoProto checksumInfo=copyResponse.getReadOpChecksumInfo();
+<Line#49>      DataChecksum remoteChecksum=DataTransferProtoUtil.fromProto(checksumInfo.getChecksum());
+<Line#50>      setCurrentBlockReceiver(getBlockReceiver(block,storageType,proxyReply,proxySock.getRemoteSocketAddress().toString(),proxySock.getLocalSocketAddress().toString(),null,0,0,0,"",null,datanode,remoteChecksum,CachingStrategy.newDropBehind(),false,false,storageId));
+<Line#51>      blockReceiver.receiveBlock(null,null,replyOut,null,dataXceiverServer.balanceThrottler,null,true);
+<Line#52>      final Replica r=blockReceiver.getReplica();
+<Line#53>      datanode.notifyNamenodeReceivedBlock(block,delHint,r.getStorageUuid(),r.isOnTransientStorage());
+<Line#54>      LOG.info("Moved {} from {}, delHint={}",block,peer.getRemoteAddressString(),delHint);
+<Line#55>    }
+<Line#56>  }
+<Line#57> catch (  IOException ioe) {
+<Line#58>    opStatus=ERROR;
+<Line#59>    if (ioe instanceof BlockPinningException) {
+<Line#60>      opStatus=Status.ERROR_BLOCK_PINNED;
+<Line#61>    }
+<Line#62>    errMsg="opReplaceBlock " + block + " received exception "+ ioe;
+<Line#63>    LOG.info(errMsg);
+<Line#64>    if (!IoeDuringCopyBlockOperation) {
+<Line#65>      incrDatanodeNetworkErrors();
+<Line#66>    }
+<Line#67>    throw ioe;
+<Line#68>  }
+<Line#69> finally {
+<Line#70>    if (opStatus == SUCCESS && proxyReply != null) {
+<Line#71>      try {
+<Line#72>        proxyReply.readChar();
+<Line#73>      }
+<Line#74> catch (      IOException ignored) {
+<Line#75>      }
+<Line#76>    }
+<Line#77>    dataXceiverServer.balanceThrottler.release();
+<Line#78>    try {
+<Line#79>      sendResponse(opStatus,errMsg);
+<Line#80>    }
+<Line#81> catch (    IOException ioe) {
+<Line#82>      LOG.warn("Error writing reply back to {}",peer.getRemoteAddressString());
+<Line#83>      incrDatanodeNetworkErrors();
+<Line#84>    }
+<Line#85>    IOUtils.closeStream(proxyOut);
+<Line#86>    IOUtils.closeStream(blockReceiver);
+<Line#87>    IOUtils.closeStream(proxyReply);
+<Line#88>    IOUtils.closeStream(replyOut);
+<Line#89>  }
+<Line#90>  datanode.metrics.addReplaceBlockOp(elapsed());
+<Line#91>}
+Label: <Line#27> LOG.debug("Connecting to datanode {}",dnAddr)
+

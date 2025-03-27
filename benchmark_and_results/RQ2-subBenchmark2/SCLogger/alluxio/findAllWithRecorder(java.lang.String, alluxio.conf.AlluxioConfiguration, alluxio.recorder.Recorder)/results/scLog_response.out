@@ -1,0 +1,13 @@
+<Line#2>:# LOG.debug("Checking if path is not null");:#
+<Line#4>:# LOG.debug("Checking if eligibleFactories is not empty");:#
+<Line#8>:# LOG.debug("Creating a new ArrayList for factories");:#
+<Line#9>:# LOG.debug("Setting libDir");:#
+<Line#10>:# LOG.debug("Setting extensionDir");:#
+<Line#11>:# LOG.debug("Scanning libraries");:#
+<Line#13>:# LOG.debug("Scanning extensions");:#
+<Line#17>:# LOG.debug("Checking if UNDERFS_VERSION is set by user");:#
+<Line#24>:# LOG.debug("Iterating through factories");:#
+<Line#27>:# LOG.debug("Checking if factory is an instance of UnderFileSystemFactory");:#
+<Line#31>:# LOG.debug("Checking if factory supports path");:#
+<Line#38>:# LOG.debug("Factory implementation isn't eligible for path");:#
+<Line#43>:# LOG.debug("Checking if eligibleFactories is empty");:#

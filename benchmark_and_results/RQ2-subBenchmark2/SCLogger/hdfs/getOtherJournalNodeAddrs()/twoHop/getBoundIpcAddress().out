@@ -1,0 +1,6 @@
+/** 
+ * @return the address the IPC server is bound to
+ */
+public InetSocketAddress getBoundIpcAddress(){
+  return rpcServer.getAddress();
+}

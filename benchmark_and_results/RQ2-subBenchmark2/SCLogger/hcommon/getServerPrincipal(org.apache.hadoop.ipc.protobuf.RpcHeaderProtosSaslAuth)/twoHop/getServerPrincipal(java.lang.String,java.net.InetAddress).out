@@ -1,0 +1,16 @@
+/** 
+ * Convert Kerberos principal name pattern to valid Kerberos principal names. It replaces hostname pattern with hostname, which should be fully-qualified domain name. If hostname is null or "0.0.0.0", it uses dynamically looked-up fqdn of the current host instead.
+ * @param principalConfig the Kerberos principal name conf value to convert
+ * @param hostname the fully-qualified domain name used for substitution
+ * @return converted Kerberos principal name
+ * @throws IOException if the client address cannot be determined
+ */
+@InterfaceAudience.Public @InterfaceStability.Evolving public static String getServerPrincipal(String principalConfig,String hostname) throws IOException {
+  String[] components=getComponents(principalConfig);
+  if (components == null || components.length != 3 || !components[1].equals(HOSTNAME_PATTERN)) {
+    return principalConfig;
+  }
+ else {
+    return replacePattern(components,hostname);
+  }
+}

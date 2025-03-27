@@ -1,0 +1,80 @@
+To insert log level and verbosity messages into the provided code, we need to identify key points in the code where logging would be beneficial for debugging or information purposes. Based on the pattern in the examples, let's insert log statements in the target method code:
+
+```java
+<Line#0>Configuration conf) throws URISyntaxException, IOException {
+<Line#1>Set<String> journalNodeList = new HashSet<>();
+<Line#2>String journalsUri = "";
+<Line#3>try {
+<Line#4>journalsUri = conf.get(DFS_NAMENODE_SHARED_EDITS_DIR_KEY);
+<Line#5>if (journalsUri == null) {
+<Line#6>Collection<String> nameserviceIds = DFSUtilClient.
+<Line#7>getNameServiceIds(conf);
+<Line#8>for (String nsId : nameserviceIds) {
+<Line#9>journalsUri = DFSUtilClient.getConfValue(
+<Line#10>null, nsId, conf, DFS_NAMENODE_SHARED_EDITS_DIR_KEY);
+<Line#11>if (journalsUri == null) {
+<Line#12>Collection<String> nnIds = DFSUtilClient.getNameNodeIds(conf, nsId);
+<Line#13>for (String nnId : nnIds) {
+<Line#14>String suffix = DFSUtilClient.concatSuffixes(nsId, nnId);
+<Line#15>journalsUri = DFSUtilClient.getConfValue(
+<Line#16>null, suffix, conf, DFS_NAMENODE_SHARED_EDITS_DIR_KEY);
+<Line#17>if (journalsUri == null ||
+<Line#18>!journalsUri.startsWith("qjournal://")) {
+<Line#19>LOG.warn("Invalid or missing journal URI: " + journalsUri);
+<Line#19>return journalNodeList;
+<Line#20>} else {
+<Line#21>URI uri = new URI(journalsUri);
+<Line#22>List<InetSocketAddress> socketAddresses = Util.
+<Line#23>getAddressesList(uri);
+<Line#24>for (InetSocketAddress is : socketAddresses) {
+<Line#25>journalNodeList.add(is.getHostName());
+<Line#26>}
+<Line#27>}
+<Line#28>}
+<Line#29>} else if (!journalsUri.startsWith("qjournal://")) {
+<Line#30>LOG.warn("Journal URI does not start with 'qjournal://': " + journalsUri);
+<Line#30>return journalNodeList;
+<Line#31>} else {
+<Line#32>URI uri = new URI(journalsUri);
+<Line#33>List<InetSocketAddress> socketAddresses = Util.
+<Line#34>getAddressesList(uri);
+<Line#35>for (InetSocketAddress is : socketAddresses) {
+<Line#36>journalNodeList.add(is.getHostName());
+<Line#37>}
+<Line#38>}
+<Line#39>}
+<Line#40>} else {
+<Line#41>if (!journalsUri.startsWith("qjournal://")) {
+<Line#42>LOG.warn("Journal URI does not start with 'qjournal://': " + journalsUri);
+<Line#42>return journalNodeList;
+<Line#43>} else {
+<Line#44>URI uri = new URI(journalsUri);
+<Line#45>List<InetSocketAddress> socketAddresses = Util.getAddressesList(uri);
+<Line#46>for (InetSocketAddress is : socketAddresses) {
+<Line#47>journalNodeList.add(is.getHostName());
+<Line#48>}
+<Line#49>}
+<Line#50>}
+<Line#51>} catch(UnknownHostException e) {
+<Line#52>LOG.error("Unknown host exception for URI: " + journalsUri, e);
+<Line#52>throw new UnknownHostException(journalsUri);
+<Line#53>} catch(URISyntaxException e)  {
+<Line#54>LOG.error("URI syntax exception for URI: " + journalsUri, e);
+<Line#54>throw new URISyntaxException(journalsUri, "The conf property " +
+<Line#55>DFS_NAMENODE_SHARED_EDITS_DIR_KEY + "is not" +
+<Line#56>" properly set with correct journal node uri");
+<Line#57>}
+<Line#58>
+<Line#59>LOG.info("Returning journal node list with size: " + journalNodeList.size());
+<Line#59>return journalNodeList;
+<Line#60>}
+```
+
+### Explanation:
+- **Log Levels**:
+  - **INFO**: Used for general information about the process, such as the size of the journal node list being returned.
+  - **WARN**: Used when a condition is not as expected but not necessarily an error, like when a journal URI is missing or doesn't start with the expected prefix.
+  - **ERROR**: Used when an exception is caught, indicating a problem that needs attention.
+
+- **Log Messages**:
+  - Each log message provides context about what the code is doing or what issue it encountered, which can help in debugging and understanding the flow of the program.

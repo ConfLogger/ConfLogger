@@ -1,0 +1,216 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>public static void makeMetricsLoggerAsync(Log metricsLog) {
+<Line#1>if (!(metricsLog instanceof Log4JLogger)) {
+<Line#2>return;
+<Line#3>}
+<Line#4>org.apache.log4j.Logger logger = ((Log4JLogger) metricsLog).getLogger();
+<Line#5>logger.setAdditivity(false); // Don't pollute actual logs with metrics dump
+<Line#6>
+<Line#7>@SuppressWarnings("unchecked")
+<Line#8>List<Appender> appenders = Collections.list(logger.getAllAppenders());
+<Line#9>// failsafe against trying to async it more than once
+<Line#10>if (!appenders.isEmpty() && !(appenders.get(0) instanceof AsyncAppender)) {
+<Line#11>AsyncAppender asyncAppender = new AsyncAppender();
+<Line#12>// change logger to have an async appender containing all the
+<Line#13>// previously configured appenders
+<Line#14>for (Appender appender : appenders) {
+<Line#15>logger.removeAppender(appender);
+<Line#16>asyncAppender.addAppender(appender);
+<Line#17>}
+<Line#18>logger.addAppender(asyncAppender);
+<Line#19>}
+<Line#20>}
+<Line#21>}
+
+Example 1:
+<Line#1>{
+<Line#2>  final DDatanode targetDn=p.target.getDDatanode();
+<Line#3>  ExecutorService moveExecutor=targetDn.getMoveExecutor();
+<Line#4>  if (moveExecutor == null) {
+<Line#5>    final int nThreads=moverThreadAllocator.allocate();
+<Line#6>    if (nThreads > 0) {
+<Line#7>      moveExecutor=targetDn.initMoveExecutor(nThreads);
+<Line#8>    }
+<Line#9>  }
+<Line#10>  if (moveExecutor == null) {
+<Line#11>    LOG.warn("No mover threads available: skip moving " + p);
+<Line#12>    targetDn.removePendingBlock(p);
+<Line#13>    p.proxySource.removePendingBlock(p);
+<Line#14>    return;
+<Line#15>  }
+<Line#16>  moveExecutor.execute(new Runnable(){
+<Line#17>    @Override public void run(){
+<Line#18>      p.dispatch();
+<Line#19>    }
+<Line#20>  }
+<Line#21>);
+<Line#22>}
+Label: <Line#11> LOG.warn("No mover threads available: skip moving " + p)
+
+Example 2:
+<Line#1>{
+<Line#2>  if (!errorState.hasDatanodeError() && !shouldHandleExternalError()) {
+<Line#3>    return false;
+<Line#4>  }
+<Line#5>  LOG.debug("start process datanode/external error, {}",this);
+<Line#6>  if (response != null) {
+<Line#7>    LOG.info("Error Recovery for " + block + " waiting for responder to exit. ");
+<Line#8>    return true;
+<Line#9>  }
+<Line#10>  closeStream();
+<Line#11>synchronized (dataQueue) {
+<Line#12>    dataQueue.addAll(0,ackQueue);
+<Line#13>    ackQueue.clear();
+<Line#14>    packetSendTime.clear();
+<Line#15>  }
+<Line#16>  if (!errorState.isRestartingNode() && ++pipelineRecoveryCount > 5) {
+<Line#17>    LOG.warn("Error recovering pipeline for writing " + block + ". Already retried 5 times for the same packet.");
+<Line#18>    lastException.set(new IOException("Failing write. Tried pipeline " + "recovery 5 times without success."));
+<Line#19>    streamerClosed=true;
+<Line#20>    return false;
+<Line#21>  }
+<Line#22>  setupPipelineForAppendOrRecovery();
+<Line#23>  if (!streamerClosed && dfsClient.clientRunning) {
+<Line#24>    if (stage == BlockConstructionStage.PIPELINE_CLOSE) {
+<Line#25>synchronized (dataQueue) {
+<Line#26>        DFSPacket endOfBlockPacket=dataQueue.remove();
+<Line#27>        Span span=endOfBlockPacket.getSpan();
+<Line#28>        if (span != null) {
+<Line#29>          span.finish();
+<Line#30>          endOfBlockPacket.setSpan(null);
+<Line#31>        }
+<Line#32>        assert endOfBlockPacket.isLastPacketInBlock();
+<Line#33>        assert lastAckedSeqno == endOfBlockPacket.getSeqno() - 1;
+<Line#34>        lastAckedSeqno=endOfBlockPacket.getSeqno();
+<Line#35>        pipelineRecoveryCount=0;
+<Line#36>        dataQueue.notifyAll();
+<Line#37>      }
+<Line#38>      endBlock();
+<Line#39>    }
+<Line#40> else {
+<Line#41>      initDataStreaming();
+<Line#42>    }
+<Line#43>  }
+<Line#44>  return false;
+<Line#45>}
+Label: <Line#5> LOG.debug("start process datanode/external error, {}",this)
+
+Example 3:
+<Line#1>{
+<Line#2>  if (!errorState.hasDatanodeError() && !shouldHandleExternalError()) {
+<Line#3>    return false;
+<Line#4>  }
+<Line#5>  LOG.debug("start process datanode/external error, {}",this);
+<Line#6>  if (response != null) {
+<Line#7>    LOG.info("Error Recovery for " + block + " waiting for responder to exit. ");
+<Line#8>    return true;
+<Line#9>  }
+<Line#10>  closeStream();
+<Line#11>synchronized (dataQueue) {
+<Line#12>    dataQueue.addAll(0,ackQueue);
+<Line#13>    ackQueue.clear();
+<Line#14>    packetSendTime.clear();
+<Line#15>  }
+<Line#16>  if (!errorState.isRestartingNode() && ++pipelineRecoveryCount > 5) {
+<Line#17>    LOG.warn("Error recovering pipeline for writing " + block + ". Already retried 5 times for the same packet.");
+<Line#18>    lastException.set(new IOException("Failing write. Tried pipeline " + "recovery 5 times without success."));
+<Line#19>    streamerClosed=true;
+<Line#20>    return false;
+<Line#21>  }
+<Line#22>  setupPipelineForAppendOrRecovery();
+<Line#23>  if (!streamerClosed && dfsClient.clientRunning) {
+<Line#24>    if (stage == BlockConstructionStage.PIPELINE_CLOSE) {
+<Line#25>synchronized (dataQueue) {
+<Line#26>        DFSPacket endOfBlockPacket=dataQueue.remove();
+<Line#27>        Span span=endOfBlockPacket.getSpan();
+<Line#28>        if (span != null) {
+<Line#29>          span.finish();
+<Line#30>          endOfBlockPacket.setSpan(null);
+<Line#31>        }
+<Line#32>        assert endOfBlockPacket.isLastPacketInBlock();
+<Line#33>        assert lastAckedSeqno == endOfBlockPacket.getSeqno() - 1;
+<Line#34>        lastAckedSeqno=endOfBlockPacket.getSeqno();
+<Line#35>        pipelineRecoveryCount=0;
+<Line#36>        dataQueue.notifyAll();
+<Line#37>      }
+<Line#38>      endBlock();
+<Line#39>    }
+<Line#40> else {
+<Line#41>      initDataStreaming();
+<Line#42>    }
+<Line#43>  }
+<Line#44>  return false;
+<Line#45>}
+Label: <Line#7> LOG.info("Error Recovery for " + block + " waiting for responder to exit. ")
+
+Example 4:
+<Line#1>{
+<Line#2>  if (!errorState.hasDatanodeError() && !shouldHandleExternalError()) {
+<Line#3>    return false;
+<Line#4>  }
+<Line#5>  LOG.debug("start process datanode/external error, {}",this);
+<Line#6>  if (response != null) {
+<Line#7>    LOG.info("Error Recovery for " + block + " waiting for responder to exit. ");
+<Line#8>    return true;
+<Line#9>  }
+<Line#10>  closeStream();
+<Line#11>synchronized (dataQueue) {
+<Line#12>    dataQueue.addAll(0,ackQueue);
+<Line#13>    ackQueue.clear();
+<Line#14>    packetSendTime.clear();
+<Line#15>  }
+<Line#16>  if (!errorState.isRestartingNode() && ++pipelineRecoveryCount > 5) {
+<Line#17>    LOG.warn("Error recovering pipeline for writing " + block + ". Already retried 5 times for the same packet.");
+<Line#18>    lastException.set(new IOException("Failing write. Tried pipeline " + "recovery 5 times without success."));
+<Line#19>    streamerClosed=true;
+<Line#20>    return false;
+<Line#21>  }
+<Line#22>  setupPipelineForAppendOrRecovery();
+<Line#23>  if (!streamerClosed && dfsClient.clientRunning) {
+<Line#24>    if (stage == BlockConstructionStage.PIPELINE_CLOSE) {
+<Line#25>synchronized (dataQueue) {
+<Line#26>        DFSPacket endOfBlockPacket=dataQueue.remove();
+<Line#27>        Span span=endOfBlockPacket.getSpan();
+<Line#28>        if (span != null) {
+<Line#29>          span.finish();
+<Line#30>          endOfBlockPacket.setSpan(null);
+<Line#31>        }
+<Line#32>        assert endOfBlockPacket.isLastPacketInBlock();
+<Line#33>        assert lastAckedSeqno == endOfBlockPacket.getSeqno() - 1;
+<Line#34>        lastAckedSeqno=endOfBlockPacket.getSeqno();
+<Line#35>        pipelineRecoveryCount=0;
+<Line#36>        dataQueue.notifyAll();
+<Line#37>      }
+<Line#38>      endBlock();
+<Line#39>    }
+<Line#40> else {
+<Line#41>      initDataStreaming();
+<Line#42>    }
+<Line#43>  }
+<Line#44>  return false;
+<Line#45>}
+Label: <Line#17> LOG.warn("Error recovering pipeline for writing " + block + ". Already retried 5 times for the same packet.")
+
+Example 5:
+<Line#1>{
+<Line#2>  int[] p=new int[parts];
+<Line#3>  for (int i=0; i < p.length; i++) {
+<Line#4>    p[i]=nextInt(n - i - 1) + 1;
+<Line#5>  }
+<Line#6>  Arrays.sort(p);
+<Line#7>  for (int i=1; i < p.length; i++) {
+<Line#8>    if (p[i] <= p[i - 1]) {
+<Line#9>      p[i]=p[i - 1] + 1;
+<Line#10>    }
+<Line#11>  }
+<Line#12>  LOG.info("partition=" + Arrays.toString(p));
+<Line#13>  assertTrue("i=0",p[0] > 0 && p[0] < n);
+<Line#14>  for (int i=1; i < p.length; i++) {
+<Line#15>    assertTrue("i=" + i,p[i] > p[i - 1] && p[i] < n);
+<Line#16>  }
+<Line#17>  return p;
+<Line#18>}
+Label: <Line#12> LOG.info("partition=" + Arrays.toString(p))
+

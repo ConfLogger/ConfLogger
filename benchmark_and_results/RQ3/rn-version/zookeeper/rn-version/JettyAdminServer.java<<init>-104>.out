@@ -1,0 +1,138 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	JettyAdminServer.java	methodSinagture:	org.apache.zookeeper.server.admin.JettyAdminServer.<init>(Ljava/lang/String;IILjava/lang/String;IZZZ)V	methodLines:	104:182
+blockLines:	115:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(ne, to iindex=34) 8,15 Node: < Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>(Ljava/lang/String;IILjava/lang/String;IZZZ)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>()V > Context: DelegatingContext [A=ReceiverInstanceContext<SITE_IN_NODE{synthetic  factory < Primordial, Ljava/lang/reflect/Constructor, newInstance([Ljava/lang/Object;)Ljava/lang/Object; >:Lorg/apache/zookeeper/server/admin/JettyAdminServer in DelegatingContext [A=DelegatingContext [A=ReceiverInstanceContext<[ConstantKey:< Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>()V >:<Primordial,Ljava/lang/reflect/Constructor>]>, B=CallStringContext: [ org.apache.zookeeper.server.admin.AdminServerFactory.createAdminServer()Lorg/apache/zookeeper/server/admin/AdminServer;@31 ]], B=Everywhere]}>, B=Everywhere][14]22 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 19,20 @34 exception:21
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>()V > Context: DelegatingContext [A=ReceiverInstanceContext<SITE_IN_NODE{synthetic  factory < Primordial, Ljava/lang/reflect/Constructor, newInstance([Ljava/lang/Object;)Ljava/lang/Object; >:Lorg/apache/zookeeper/server/admin/JettyAdminServer in DelegatingContext [A=DelegatingContext [A=ReceiverInstanceContext<[ConstantKey:< Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>()V >:<Primordial,Ljava/lang/reflect/Constructor>]>, B=CallStringContext: [ org.apache.zookeeper.server.admin.AdminServerFactory.createAdminServer()Lorg/apache/zookeeper/server/admin/AdminServer;@31 ]], B=Everywhere]}>, B=Everywhere][14]22 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 19,20 @34 exception:21
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>()V > Context: DelegatingContext [A=ReceiverInstanceContext<SITE_IN_NODE{synthetic  factory < Primordial, Ljava/lang/reflect/Constructor, newInstance([Ljava/lang/Object;)Ljava/lang/Object; >:Lorg/apache/zookeeper/server/admin/JettyAdminServer in DelegatingContext [A=DelegatingContext [A=ReceiverInstanceContext<[ConstantKey:< Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>()V >:<Primordial,Ljava/lang/reflect/Constructor>]>, B=CallStringContext: [ org.apache.zookeeper.server.admin.AdminServerFactory.createAdminServer()Lorg/apache/zookeeper/server/admin/AdminServer;@31 ]], B=Everywhere]}>, B=Everywhere][25]invokespecial < Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>(Ljava/lang/String;IILjava/lang/String;IZZZ)V > 1,6,12,18,22,28,31,34,37 @62 exception:38 v22
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>(Ljava/lang/String;IILjava/lang/String;IZZZ)V > Context: DelegatingContext [A=ReceiverInstanceContext<SITE_IN_NODE{synthetic  factory < Primordial, Ljava/lang/reflect/Constructor, newInstance([Ljava/lang/Object;)Ljava/lang/Object; >:Lorg/apache/zookeeper/server/admin/JettyAdminServer in DelegatingContext [A=DelegatingContext [A=ReceiverInstanceContext<[ConstantKey:< Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>()V >:<Primordial,Ljava/lang/reflect/Constructor>]>, B=CallStringContext: [ org.apache.zookeeper.server.admin.AdminServerFactory.createAdminServer()Lorg/apache/zookeeper/server/admin/AdminServer;@31 ]], B=Everywhere]}>, B=Everywhere] v5
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>(Ljava/lang/String;IILjava/lang/String;IZZZ)V > Context: DelegatingContext [A=ReceiverInstanceContext<SITE_IN_NODE{synthetic  factory < Primordial, Ljava/lang/reflect/Constructor, newInstance([Ljava/lang/Object;)Ljava/lang/Object; >:Lorg/apache/zookeeper/server/admin/JettyAdminServer in DelegatingContext [A=DelegatingContext [A=ReceiverInstanceContext<[ConstantKey:< Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>()V >:<Primordial,Ljava/lang/reflect/Constructor>]>, B=CallStringContext: [ org.apache.zookeeper.server.admin.AdminServerFactory.createAdminServer()Lorg/apache/zookeeper/server/admin/AdminServer;@31 ]], B=Everywhere]}>, B=Everywhere][251]137 = invokevirtual < Application, Ljava/lang/StringBuilder, append(Ljava/lang/String;)Ljava/lang/StringBuilder; > 134,5 @542 exception:136 v5
+PARAM_CALLEE:Node: < Primordial, Ljava/lang/StringBuilder, append(Ljava/lang/String;)Ljava/lang/StringBuilder; > Context: Everywhere v2
+PARAM_CALLER:Node: < Primordial, Ljava/lang/StringBuilder, append(Ljava/lang/String;)Ljava/lang/StringBuilder; > Context: Everywhere[2]5 = invokespecial < Primordial, Ljava/lang/AbstractStringBuilder, append(Ljava/lang/String;)Ljava/lang/AbstractStringBuilder; > 1,2 @2 exception:4 v2
+PARAM_CALLEE:Node: < Primordial, Ljava/lang/AbstractStringBuilder, append(Ljava/lang/String;)Ljava/lang/AbstractStringBuilder; > Context: Everywhere v2
+NORMAL append:6 = invokevirtual < Primordial, Ljava/lang/String, length()I > 2 @10 exception:5 Node: < Primordial, Ljava/lang/AbstractStringBuilder, append(Ljava/lang/String;)Ljava/lang/AbstractStringBuilder; > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, length()I > Context: Everywhere
+NORMAL length:return 7 Node: < Primordial, Ljava/lang/String, length()I > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, length()I > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Primordial, Ljava/lang/String, equalsIgnoreCase(Ljava/lang/String;)Z > Context: Everywhere[9]6 = invokevirtual < Primordial, Ljava/lang/String, length()I > 2 @14 exception:5
+NORMAL equalsIgnoreCase:conditional branch(ne, to iindex=25) 6,8 Node: < Primordial, Ljava/lang/String, equalsIgnoreCase(Ljava/lang/String;)Z > Context: Everywhere
+PHI Node: < Primordial, Ljava/lang/String, equalsIgnoreCase(Ljava/lang/String;)Z > Context: Everywhere:15 = phi  9,9,10
+NORMAL equalsIgnoreCase:return 15 Node: < Primordial, Ljava/lang/String, equalsIgnoreCase(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, equalsIgnoreCase(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Primordial, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > Context: Everywhere[2]5 = invokevirtual < Primordial, Ljava/lang/String, equalsIgnoreCase(Ljava/lang/String;)Z > 3,1 @3 exception:4
+NORMAL parseBoolean:return 5 Node: < Primordial, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Primordial, Ljava/lang/Boolean, getBoolean(Ljava/lang/String;)Z > Context: Everywhere[4]7 = invokestatic < Primordial, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > 5 @6 exception:6
+PHI Node: < Primordial, Ljava/lang/Boolean, getBoolean(Ljava/lang/String;)Z > Context: Everywhere:10 = phi  7,3
+NORMAL getBoolean:return 10 Node: < Primordial, Ljava/lang/Boolean, getBoolean(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/Boolean, getBoolean(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>()V > Context: Everywhere[22]34 = invokestatic < Application, Ljava/lang/Boolean, getBoolean(Ljava/lang/String;)Z > 32 @54 exception:33
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>()V > Context: Everywhere[25]invokespecial < Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>(Ljava/lang/String;IILjava/lang/String;IZZZ)V > 1,6,12,18,22,28,31,34,37 @62 exception:38 v34
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>(Ljava/lang/String;IILjava/lang/String;IZZZ)V > Context: Everywhere v8
+NORMAL <init>:conditional branch(ne, to iindex=34) 8,15 Node: < Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>(Ljava/lang/String;IILjava/lang/String;IZZZ)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+        boolean forceHttps,
+        boolean needClientAuth) throws IOException, GeneralSecurityException {
+
+        this.port = port;
+        this.idleTimeout = timeout;
+        this.commandUrl = commandUrl;
+        this.address = address;
+
+        server = new Server();
+        ServerConnector connector = null;
+
+        if (!portUnification && !forceHttps) {
+            connector = new ServerConnector(server);
+        } else {
+            SecureRequestCustomizer customizer = new SecureRequestCustomizer();
+            customizer.setStsMaxAge(DEFAULT_STS_MAX_AGE);
+            customizer.setStsIncludeSubDomains(true);
+
+            HttpConfiguration config = new HttpConfiguration();
+            config.setSecureScheme("https");
+            config.addCustomizer(customizer);
+
+            try (QuorumX509Util x509Util = new QuorumX509Util()) {
+                String privateKeyType = System.getProperty(x509Util.getSslKeystoreTypeProperty(), "");
+                String privateKeyPath = System.getProperty(x509Util.getSslKeystoreLocationProperty(), "");
+                String privateKeyPassword = getPasswordFromSystemPropertyOrFile(
+                        x509Util.getSslKeystorePasswdProperty(),
+                        x509Util.getSslKeystorePasswdPathProperty());
+
+                String certAuthType = System.getProperty(x509Util.getSslTruststoreTypeProperty(), "");
+                String certAuthPath = System.getProperty(x509Util.getSslTruststoreLocationProperty(), "");
+                String certAuthPassword = getPasswordFromSystemPropertyOrFile(
+                        x509Util.getSslTruststorePasswdProperty(),
+                        x509Util.getSslTruststorePasswdPathProperty());
+                KeyStore keyStore = null, trustStore = null;
+
+                try {
+                    keyStore = X509Util.loadKeyStore(privateKeyPath, privateKeyPassword, privateKeyType);
+                    trustStore = X509Util.loadTrustStore(certAuthPath, certAuthPassword, certAuthType);
+                    LOG.info("Successfully loaded private key from {}", privateKeyPath);
+                    LOG.info("Successfully loaded certificate authority from {}", certAuthPath);
+                } catch (Exception e) {
+                    LOG.error("Failed to load authentication certificates for admin server.", e);
+                    throw e;
+                }
+
+                SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
+                sslContextFactory.setKeyStore(keyStore);
+                sslContextFactory.setKeyStorePassword(privateKeyPassword);
+                sslContextFactory.setTrustStore(trustStore);
+                sslContextFactory.setTrustStorePassword(certAuthPassword);
+                sslContextFactory.setNeedClientAuth(needClientAuth);
+
+                if (forceHttps) {
+                    connector = new ServerConnector(server,
+                            new SslConnectionFactory(sslContextFactory, HttpVersion.fromVersion(httpVersion).asString()),
+                            new HttpConnectionFactory(config));
+                } else {
+                    connector = new ServerConnector(
+                            server,
+                            new UnifiedConnectionFactory(sslContextFactory, HttpVersion.fromVersion(httpVersion).asString()),
+                            new HttpConnectionFactory(config));
+                }
+            }
+        }
+
+        connector.setHost(address);
+        connector.setPort(port);
+        connector.setIdleTimeout(idleTimeout);
+
+        server.addConnector(connector);
+
+        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        context.setContextPath("/*");
+        constrainTraceMethod(context);
+        server.setHandler(context);
+
+        context.addServlet(new ServletHolder(new CommandServlet()), commandUrl + "/*");
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/admin/JettyAdminServer, <init>()V > Context: Everywhere, blocks=[BB[SSA:25..25]12 - org.apache.zookeeper.server.admin.JettyAdminServer.<init>()V, BB[SSA:23..24]11 - org.apache.zookeeper.server.admin.JettyAdminServer.<init>()V, BB[SSA:26..26]13 - org.apache.zookeeper.server.admin.JettyAdminServer.<init>()V, BB[SSA:-1..-2]14 - org.apache.zookeeper.server.admin.JettyAdminServer.<init>()V], numberOfBasicBlocks=4, firstLineNumber=93, lastLineNumber=95, firstMethodNumber=85, lastMethodNumber=95, isFirstLineValid=true, methodSrcCode=
+    public JettyAdminServer() throws AdminServerException, IOException, GeneralSecurityException {
+        this(
+            System.getProperty("zookeeper.admin.serverAddress", DEFAULT_ADDRESS),
+            Integer.getInteger("zookeeper.admin.serverPort", DEFAULT_PORT),
+            Integer.getInteger("zookeeper.admin.idleTimeout", DEFAULT_IDLE_TIMEOUT),
+            System.getProperty("zookeeper.admin.commandURL", DEFAULT_COMMAND_URL),
+            Integer.getInteger("zookeeper.admin.httpVersion", DEFAULT_HTTP_VERSION),
+            Boolean.getBoolean("zookeeper.admin.portUnification"),
+            Boolean.getBoolean("zookeeper.admin.forceHttps"),
+            Boolean.getBoolean("zookeeper.admin.needClientAuth"));
+    }
+
+}

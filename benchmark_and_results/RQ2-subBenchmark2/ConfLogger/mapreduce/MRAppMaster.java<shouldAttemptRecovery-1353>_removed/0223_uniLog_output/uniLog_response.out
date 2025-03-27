@@ -1,0 +1,54 @@
+To insert log level and log verbosity messages into the target method code, we need to identify the appropriate lines and insert the log statements accordingly. Based on the examples provided, the log statements typically use `LOG.info` or `LOG.warn` to indicate different levels of logging. Here's how you can insert log level and verbosity messages into the `shouldAttemptRecovery` method:
+
+```java
+<Line#0>private boolean shouldAttemptRecovery() throws IOException {
+<Line#1>if (isFirstAttempt()) {
+<Line#2>LOG.info("First attempt detected, no recovery needed."); // Log level: INFO
+<Line#3>return false;  // no need to recover on the first attempt
+<Line#4>}
+<Line#5>
+<Line#6>boolean recoveryEnabled = getConfig().getBoolean(
+<Line#7>MRJobConfig.MR_AM_JOB_RECOVERY_ENABLE,
+<Line#8>MRJobConfig.MR_AM_JOB_RECOVERY_ENABLE_DEFAULT);
+<Line#9>if (!recoveryEnabled) {
+<Line#10>LOG.info("Recovery is not enabled in the configuration."); // Log level: INFO
+<Line#11>return false;
+<Line#12>}
+<Line#13>
+<Line#14>boolean recoverySupportedByCommitter = isRecoverySupported();
+<Line#15>if (!recoverySupportedByCommitter) {
+<Line#16>LOG.info("Not attempting to recover. Recovery is not supported by " +
+<Line#17>committer.getClass() + ". Use an OutputCommitter that supports" +
+<Line#18>" recovery."); // Log level: INFO
+<Line#19>return false;
+<Line#20>}
+<Line#21>
+<Line#22>int reducerCount = getConfig().getInt(MRJobConfig.NUM_REDUCES, 0);
+<Line#23>
+<Line#24>// If a shuffle secret was not provided by the job client, one will be
+<Line#25>// generated in this job attempt. However, that disables recovery if
+<Line#26>// there are reducers as the shuffle secret would be job attempt specific.
+<Line#27>boolean shuffleKeyValidForRecovery =
+<Line#28>TokenCache.getShuffleSecretKey(jobCredentials) != null;
+<Line#29>if (reducerCount > 0 && !shuffleKeyValidForRecovery) {
+<Line#30>LOG.info("Not attempting to recover. The shuffle key is invalid for " +
+<Line#31>"recovery."); // Log level: INFO
+<Line#32>return false;
+<Line#33>}
+<Line#34>
+<Line#35>// If the intermediate data is encrypted, recovering the job requires the
+<Line#36>// access to the key. Until the encryption key is persisted, we should
+<Line#37>// avoid attempts to recover.
+<Line#38>boolean spillEncrypted = CryptoUtils.isEncryptedSpillEnabled(getConfig());
+<Line#39>if (reducerCount > 0 && spillEncrypted) {
+<Line#40>LOG.info("Not attempting to recover. Intermediate spill encryption" +
+<Line#41>" is enabled."); // Log level: INFO
+<Line#42>return false;
+<Line#43>}
+<Line#44>
+<Line#45>LOG.info("All conditions met for recovery attempt."); // Log level: INFO
+<Line#46>return true;
+<Line#47>}
+```
+
+In this code, `LOG.info` is used to log informational messages at various decision points within the method. Each message indicates the reason for the decision made, such as whether recovery is needed, enabled, or supported.

@@ -1,0 +1,96 @@
+To determine the appropriate log level and verbosity message for the given target method code, we will analyze the context and structure of the code to identify potential points where logging would be beneficial. Based on the examples provided, we can infer that logging is typically inserted at critical points such as configuration settings, error handling, and important operational steps.
+
+Let's analyze the target method code:
+
+```java
+<Line#0>Configuration conf) {
+<Line#1>Map<String, ResourceInformation> resourceInformationMap = new HashMap<>();
+<Line#2>String[] resourceNames =
+<Line#3>conf.getTrimmedStrings(YarnConfiguration.RESOURCE_TYPES);
+<Line#4>
+<Line#5>if (resourceNames != null && resourceNames.length != 0) {
+<Line#6>for (String resourceName : resourceNames) {
+<Line#7>String resourceUnits = conf.get(
+<Line#8>YarnConfiguration.RESOURCE_TYPES + "." + resourceName + UNITS, "");
+<Line#9>String resourceTypeName = conf.get(
+<Line#10>YarnConfiguration.RESOURCE_TYPES + "." + resourceName + TYPE,
+<Line#11>ResourceTypes.COUNTABLE.toString());
+<Line#12>Long minimumAllocation = conf.getLong(
+<Line#13>YarnConfiguration.RESOURCE_TYPES + "." + resourceName
+<Line#14>+ MINIMUM_ALLOCATION, 0L);
+<Line#15>Long maximumAllocation = conf.getLong(
+<Line#16>YarnConfiguration.RESOURCE_TYPES + "." + resourceName
+<Line#17>+ MAXIMUM_ALLOCATION, Long.MAX_VALUE);
+<Line#18>if (resourceName == null || resourceName.isEmpty()
+<Line#19>|| resourceUnits == null || resourceTypeName == null) {
+<Line#20>throw new YarnRuntimeException(
+<Line#21>"Incomplete configuration for resource type '" + resourceName
+<Line#22>+ "'. One of name, units or type is configured incorrectly.");
+<Line#23>}
+<Line#24>ResourceTypes resourceType = ResourceTypes.valueOf(resourceTypeName);
+<Line#25>String[] resourceTags = conf.getTrimmedStrings(
+<Line#26>YarnConfiguration.RESOURCE_TYPES + "." + resourceName + TAGS);
+<Line#27>Set<String> resourceTagSet = new HashSet<>();
+<Line#28>Collections.addAll(resourceTagSet, resourceTags);
+<Line#29>if (resourceInformationMap.containsKey(resourceName)) {
+<Line#30>throw new YarnRuntimeException(
+<Line#31>"Error in config, key '" + resourceName + "' specified twice");
+<Line#32>}
+<Line#33>resourceInformationMap.put(resourceName, ResourceInformation
+<Line#34>.newInstance(resourceName, resourceUnits, 0L, resourceType,
+<Line#35>minimumAllocation, maximumAllocation, resourceTagSet, null));
+<Line#36>}
+<Line#37>}
+<Line#38>
+<Line#39>// Validate names of resource information map.
+<Line#40>for (String name : resourceInformationMap.keySet()) {
+<Line#41>validateNameOfResourceNameAndThrowException(name);
+<Line#42>}
+<Line#43>
+<Line#44>checkSpecialResources(resourceInformationMap);
+<Line#45>addMandatoryResources(resourceInformationMap);
+<Line#46>
+<Line#47>setAllocationForMandatoryResources(resourceInformationMap, conf);
+<Line#48>
+<Line#49>return resourceInformationMap;
+<Line#50>}
+```
+
+Based on the analysis of the code and the examples, we can insert the following log statements:
+
+1. **After Line#5**: Log the start of processing resource names.
+   ```java
+   LOG.info("Processing resource names from configuration.");
+   ```
+
+2. **After Line#18**: Log a warning before throwing an exception for incomplete configuration.
+   ```java
+   LOG.warn("Incomplete configuration for resource type '{}'. One of name, units, or type is configured incorrectly.", resourceName);
+   ```
+
+3. **After Line#29**: Log a warning before throwing an exception for duplicate resource names.
+   ```java
+   LOG.warn("Duplicate resource type '{}' found in configuration.", resourceName);
+   ```
+
+4. **After Line#39**: Log the start of validation for resource names.
+   ```java
+   LOG.info("Validating resource names in the resource information map.");
+   ```
+
+5. **After Line#44**: Log the checking of special resources.
+   ```java
+   LOG.debug("Checking for special resources in the resource information map.");
+   ```
+
+6. **After Line#45**: Log the addition of mandatory resources.
+   ```java
+   LOG.debug("Adding mandatory resources to the resource information map.");
+   ```
+
+7. **After Line#47**: Log the setting of allocation for mandatory resources.
+   ```java
+   LOG.debug("Setting allocation for mandatory resources.");
+   ```
+
+These log statements provide insights into the flow of the method and help identify potential issues during configuration processing and validation.

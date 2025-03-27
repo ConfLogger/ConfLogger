@@ -1,0 +1,77 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	YarnConfiguration.java	methodSinagture:	org.apache.hadoop.yarn.conf.YarnConfiguration.getTimelineServiceVersions(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/Collection;	methodLines:	4780:4791
+blockLines:	4782:-1
+paras:	null
+TaintedStat:	NORMAL getTimelineServiceVersions:conditional branch(ne, to iindex=11) 5,6 Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, getTimelineServiceVersions(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/Collection; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, getTimelineServiceVersions(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/Collection; > Context: Everywhere[2]5 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 1,3 @3 exception:4
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, getTimelineServiceVersions(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/Collection; > Context: Everywhere[2]5 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 1,3 @3 exception:4
+NORMAL getTimelineServiceVersions:conditional branch(ne, to iindex=11) 5,6 Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, getTimelineServiceVersions(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/Collection; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+      Configuration conf) {
+    String versions = conf.get(TIMELINE_SERVICE_VERSIONS);
+    if (versions == null) {
+      versions = Float.toString(getTimelineServiceVersion(conf));
+    }
+    List<String> stringList = Arrays.asList(versions.split(","));
+    List<Float> floatList = new ArrayList<Float>();
+    for (String s : stringList) {
+      Float f = Float.parseFloat(s);
+      floatList.add(f);
+    }
+    return floatList;
+  }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, timelineServiceV1Enabled(Lorg/apache/hadoop/conf/Configuration;)Z > Context: Everywhere, blocks=[BB[SSA:6..7]3 - org.apache.hadoop.yarn.conf.YarnConfiguration.timelineServiceV1Enabled(Lorg/apache/hadoop/conf/Configuration;)Z, BB[SSA:4..5]2 - org.apache.hadoop.yarn.conf.YarnConfiguration.timelineServiceV1Enabled(Lorg/apache/hadoop/conf/Configuration;)Z, BB[SSA:8..10]4 - org.apache.hadoop.yarn.conf.YarnConfiguration.timelineServiceV1Enabled(Lorg/apache/hadoop/conf/Configuration;)Z, BB[SSA:-1..-2]15 - org.apache.hadoop.yarn.conf.YarnConfiguration.timelineServiceV1Enabled(Lorg/apache/hadoop/conf/Configuration;)Z], numberOfBasicBlocks=4, firstLineNumber=4739, lastLineNumber=4741, firstMethodNumber=4737, lastMethodNumber=4748, isFirstLineValid=true, methodSrcCode=
+  public static boolean timelineServiceV1Enabled(Configuration conf) {
+    boolean enabled = false;
+    if (timelineServiceEnabled(conf)) {
+      Collection<Float> versions = getTimelineServiceVersions(conf);
+      for (Float version : versions) {
+        if (version.intValue() == 1) {
+          enabled = true;
+          break;
+        }
+      }
+    }
+    return enabled;
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, timelineServiceV15Enabled(Lorg/apache/hadoop/conf/Configuration;)Z > Context: Everywhere, blocks=[BB[SSA:6..7]3 - org.apache.hadoop.yarn.conf.YarnConfiguration.timelineServiceV15Enabled(Lorg/apache/hadoop/conf/Configuration;)Z, BB[SSA:4..5]2 - org.apache.hadoop.yarn.conf.YarnConfiguration.timelineServiceV15Enabled(Lorg/apache/hadoop/conf/Configuration;)Z, BB[SSA:8..10]4 - org.apache.hadoop.yarn.conf.YarnConfiguration.timelineServiceV15Enabled(Lorg/apache/hadoop/conf/Configuration;)Z, BB[SSA:-1..-2]16 - org.apache.hadoop.yarn.conf.YarnConfiguration.timelineServiceV15Enabled(Lorg/apache/hadoop/conf/Configuration;)Z], numberOfBasicBlocks=4, firstLineNumber=4760, lastLineNumber=4762, firstMethodNumber=4758, lastMethodNumber=4769, isFirstLineValid=true, methodSrcCode=
+  public static boolean timelineServiceV15Enabled(Configuration conf) {
+    boolean enabled = false;
+    if (timelineServiceEnabled(conf)) {
+      Collection<Float> versions = getTimelineServiceVersions(conf);
+      for (Float version : versions) {
+        if (Float.compare(version, 1.5f) == 0) {
+          enabled = true;
+          break;
+        }
+      }
+    }
+    return enabled;
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, timelineServiceV2Enabled(Lorg/apache/hadoop/conf/Configuration;)Z > Context: Everywhere, blocks=[BB[SSA:6..7]3 - org.apache.hadoop.yarn.conf.YarnConfiguration.timelineServiceV2Enabled(Lorg/apache/hadoop/conf/Configuration;)Z, BB[SSA:4..5]2 - org.apache.hadoop.yarn.conf.YarnConfiguration.timelineServiceV2Enabled(Lorg/apache/hadoop/conf/Configuration;)Z, BB[SSA:8..10]4 - org.apache.hadoop.yarn.conf.YarnConfiguration.timelineServiceV2Enabled(Lorg/apache/hadoop/conf/Configuration;)Z, BB[SSA:-1..-2]15 - org.apache.hadoop.yarn.conf.YarnConfiguration.timelineServiceV2Enabled(Lorg/apache/hadoop/conf/Configuration;)Z], numberOfBasicBlocks=4, firstLineNumber=4718, lastLineNumber=4720, firstMethodNumber=4716, lastMethodNumber=4727, isFirstLineValid=true, methodSrcCode=
+  public static boolean timelineServiceV2Enabled(Configuration conf) {
+    boolean enabled = false;
+    if (timelineServiceEnabled(conf)) {
+      Collection<Float> versions = getTimelineServiceVersions(conf);
+      for (Float version : versions) {
+        if (version.intValue() == 2) {
+          enabled = true;
+          break;
+        }
+      }
+    }
+    return enabled;
+  }
+}

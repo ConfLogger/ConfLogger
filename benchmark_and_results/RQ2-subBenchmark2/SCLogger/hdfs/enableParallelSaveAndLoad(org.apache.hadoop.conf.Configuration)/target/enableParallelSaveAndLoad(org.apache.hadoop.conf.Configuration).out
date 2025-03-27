@@ -1,0 +1,10 @@
+private static boolean enableParallelSaveAndLoad(Configuration conf){
+  boolean loadInParallel=enableParallelLoad;
+  boolean compressionEnabled=conf.getBoolean(DFSConfigKeys.DFS_IMAGE_COMPRESS_KEY,DFSConfigKeys.DFS_IMAGE_COMPRESS_DEFAULT);
+  if (loadInParallel) {
+    if (compressionEnabled) {
+      loadInParallel=false;
+    }
+  }
+  return loadInParallel;
+}

@@ -1,0 +1,145 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ZKWatchManager.java	methodSinagture:	org.apache.zookeeper.ZKWatchManager.addTo(Ljava/util/Set;Ljava/util/Set;)V	methodLines:	113:117
+blockLines:	114:-1
+paras:	null
+TaintedStat:	NORMAL addTo:conditional branch(eq, to iindex=7) 2,5 Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, addTo(Ljava/util/Set;Ljava/util/Set;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, addPersistentWatches(Ljava/lang/String;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/util/Set;)V > Context: Everywhere[9]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,2 @14 exception:8
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, addPersistentWatches(Ljava/lang/String;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/util/Set;)V > Context: Everywhere[9]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,2 @14 exception:8
+NORMAL addPersistentWatches:10 = checkcast <Application,Ljava/util/Set>9 <Application,Ljava/util/Set> Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, addPersistentWatches(Ljava/lang/String;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/util/Set;)V > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, addPersistentWatches(Ljava/lang/String;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/util/Set;)V > Context: Everywhere[12]invokespecial < Application, Lorg/apache/zookeeper/ZKWatchManager, addTo(Ljava/util/Set;Ljava/util/Set;)V > 1,10,4 @23 exception:11 v10
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, addTo(Ljava/util/Set;Ljava/util/Set;)V > Context: Everywhere v2
+NORMAL addTo:conditional branch(eq, to iindex=7) 2,5 Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, addTo(Ljava/util/Set;Ljava/util/Set;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private void addTo(Set<Watcher> from, Set<Watcher> to) {
+        if (from != null) {
+            to.addAll(from);
+        }
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, addPersistentWatches(Ljava/lang/String;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/util/Set;)V > Context: Everywhere, blocks=[BB[SSA:11..12]6 - org.apache.zookeeper.ZKWatchManager.addPersistentWatches(Ljava/lang/String;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/util/Set;)V, BB[SSA:10..10]5 - org.apache.zookeeper.ZKWatchManager.addPersistentWatches(Ljava/lang/String;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/util/Set;)V, BB[SSA:13..14]7 - org.apache.zookeeper.ZKWatchManager.addPersistentWatches(Ljava/lang/String;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/util/Set;)V, BB[SSA:49..50]26 - org.apache.zookeeper.ZKWatchManager.addPersistentWatches(Ljava/lang/String;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/util/Set;)V, BB[SSA:48..48]25 - org.apache.zookeeper.ZKWatchManager.addPersistentWatches(Ljava/lang/String;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/util/Set;)V, BB[SSA:51..51]27 - org.apache.zookeeper.ZKWatchManager.addPersistentWatches(Ljava/lang/String;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/util/Set;)V], numberOfBasicBlocks=6, firstLineNumber=458, lastLineNumber=459, firstMethodNumber=445, lastMethodNumber=461, isFirstLineValid=true, methodSrcCode=
+    private void addPersistentWatches(String clientPath, Watcher.Event.EventType type, Set<Watcher> result) {
+        synchronized (persistentWatches) {
+            addTo(persistentWatches.get(clientPath), result);
+        }
+        // The semantics of persistent recursive watch promise no child events on descendant nodes. When there
+        // are standard child watches on descendants of node being watched in persistent recursive mode, server
+        // will deliver child events to client inevitably. So we have to filter out child events for persistent
+        // recursive watches on client side.
+        if (type == Watcher.Event.EventType.NodeChildrenChanged) {
+            return;
+        }
+        synchronized (persistentRecursiveWatches) {
+            for (String path : PathParentIterator.forAll(clientPath).asIterable()) {
+                addTo(persistentRecursiveWatches.get(path), result);
+            }
+        }
+    }
+}
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set; > Context: Everywhere, blocks=[BB[SSA:215..216]111 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:214..214]110 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:217..218]112 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:236..237]121 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:235..235]120 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:238..239]122 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:263..264]133 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:262..262]132 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:265..266]134 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:290..291]145 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:289..289]144 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:292..293]146 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:314..317]156 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:310..313]155 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:318..320]157 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:340..341]167 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:339..339]166 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;, BB[SSA:342..343]168 - org.apache.zookeeper.ZKWatchManager.materialize(Lorg/apache/zookeeper/Watcher$Event$KeeperState;Lorg/apache/zookeeper/Watcher$Event$EventType;Ljava/lang/String;)Ljava/util/Set;], numberOfBasicBlocks=18, firstLineNumber=428, lastLineNumber=429, firstMethodNumber=349, lastMethodNumber=442, isFirstLineValid=true, methodSrcCode=
+    ) {
+        final Set<Watcher> result = new HashSet<>();
+
+        switch (type) {
+        case None:
+            if (defaultWatcher != null) {
+                result.add(defaultWatcher);
+            }
+
+            boolean clear = disableAutoWatchReset && state != Watcher.Event.KeeperState.SyncConnected;
+            synchronized (dataWatches) {
+                for (Set<Watcher> ws : dataWatches.values()) {
+                    result.addAll(ws);
+                }
+                if (clear) {
+                    dataWatches.clear();
+                }
+            }
+
+            synchronized (existWatches) {
+                for (Set<Watcher> ws : existWatches.values()) {
+                    result.addAll(ws);
+                }
+                if (clear) {
+                    existWatches.clear();
+                }
+            }
+
+            synchronized (childWatches) {
+                for (Set<Watcher> ws : childWatches.values()) {
+                    result.addAll(ws);
+                }
+                if (clear) {
+                    childWatches.clear();
+                }
+            }
+
+            synchronized (persistentWatches) {
+                for (Set<Watcher> ws: persistentWatches.values()) {
+                    result.addAll(ws);
+                }
+            }
+
+            synchronized (persistentRecursiveWatches) {
+                for (Set<Watcher> ws: persistentRecursiveWatches.values()) {
+                    result.addAll(ws);
+                }
+            }
+
+            return result;
+        case NodeDataChanged:
+        case NodeCreated:
+            synchronized (dataWatches) {
+                addTo(dataWatches.remove(clientPath), result);
+            }
+            synchronized (existWatches) {
+                addTo(existWatches.remove(clientPath), result);
+            }
+            addPersistentWatches(clientPath, type, result);
+            break;
+        case NodeChildrenChanged:
+            synchronized (childWatches) {
+                addTo(childWatches.remove(clientPath), result);
+            }
+            addPersistentWatches(clientPath, type, result);
+            break;
+        case NodeDeleted:
+            synchronized (dataWatches) {
+                addTo(dataWatches.remove(clientPath), result);
+            }
+            // TODO This shouldn't be needed, but just in case
+            synchronized (existWatches) {
+                Set<Watcher> list = existWatches.remove(clientPath);
+                if (list != null) {
+                    addTo(list, result);
+                    LOG.warn("We are triggering an exists watch for delete! Shouldn't happen!");
+                }
+            }
+            synchronized (childWatches) {
+                addTo(childWatches.remove(clientPath), result);
+            }
+            addPersistentWatches(clientPath, type, result);
+            break;
+        default:
+            String errorMsg = String.format(
+                "Unhandled watch event type %s with state %s on path %s",
+                type,
+                state,
+                clientPath);
+            LOG.error(errorMsg);
+            throw new RuntimeException(errorMsg);
+        }
+
+        return result;
+    }
+}

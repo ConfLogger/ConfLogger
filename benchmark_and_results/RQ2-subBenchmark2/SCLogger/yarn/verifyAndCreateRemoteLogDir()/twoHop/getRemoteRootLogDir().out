@@ -1,0 +1,7 @@
+/** 
+ * Get the remote root log directory.
+ * @return the remote root log directory path
+ */
+public Path getRemoteRootLogDir(){
+  return this.remoteRootLogDir;
+}

@@ -1,0 +1,8 @@
+private JobContext getJobContextFromConf(Configuration conf){
+  if (newApiCommitter) {
+    return new JobContextImpl(conf,TypeConverter.fromYarn(getJobId()));
+  }
+ else {
+    return new org.apache.hadoop.mapred.JobContextImpl(new JobConf(conf),TypeConverter.fromYarn(getJobId()));
+  }
+}

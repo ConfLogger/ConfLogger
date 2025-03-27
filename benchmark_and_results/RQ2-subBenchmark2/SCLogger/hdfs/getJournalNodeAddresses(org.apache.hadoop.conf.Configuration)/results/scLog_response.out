@@ -1,0 +1,2 @@
+<Line#59>:# LOG.error("UnknownHostException occurred while getting journal node addresses. Invalid URI: " + journalsUri, e);#
+<Line#61>:# LOG.error("URISyntaxException occurred while getting journal node addresses. Invalid URI: " + journalsUri, e);#

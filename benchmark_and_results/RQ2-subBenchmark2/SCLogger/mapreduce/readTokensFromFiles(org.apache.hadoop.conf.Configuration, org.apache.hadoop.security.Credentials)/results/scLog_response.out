@@ -1,0 +1,8 @@
+<Line#2>:# LOG.info("Getting binary token filename from configuration: " + MRJobConfig.MAPREDUCE_JOB_CREDENTIALS_BINARY);:#
+<Line#4>:# LOG.info("Reading token storage file: " + binaryTokenFilename);:#
+<Line#8>:# LOG.info("Adding all credentials from binary");:#
+<Line#11>:# LOG.info("Getting tokens filename from configuration: " + "mapreduce.job.credentials.json");:#
+<Line#14>:# LOG.info("Converting tokens filename to local file path: " + localFileName);:#
+<Line#18>:# LOG.info("Reading JSON from local file");:#
+<Line#22>:# LOG.debug("Adding secret key: " + ent.getKey());:#
+<Line#26>:# LOG.error("Error parsing JSON: " + e.getMessage(), e);:#

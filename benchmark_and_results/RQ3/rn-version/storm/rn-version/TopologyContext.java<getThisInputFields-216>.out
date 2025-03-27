@@ -1,0 +1,72 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	TopologyContext.java	methodSinagture:	org.apache.storm.task.TopologyContext.getThisInputFields()Ljava/util/Map;	methodLines:	216:230
+blockLines:	223:-1
+paras:	null
+TaintedStat:	NORMAL getThisInputFields:conditional branch(ne, to iindex=54) 33,34 Node: < Application, Lorg/apache/storm/task/TopologyContext, getThisInputFields()Ljava/util/Map; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/task/TopologyContext, getThisInputFields()Ljava/util/Map; > Context: Everywhere[39]32 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,21 @98 exception:31
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/task/TopologyContext, getThisInputFields()Ljava/util/Map; > Context: Everywhere[39]32 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,21 @98 exception:31
+NORMAL getThisInputFields:33 = checkcast <Application,Ljava/util/Map>32 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/task/TopologyContext, getThisInputFields()Ljava/util/Map; > Context: Everywhere
+NORMAL getThisInputFields:conditional branch(ne, to iindex=54) 33,34 Node: < Application, Lorg/apache/storm/task/TopologyContext, getThisInputFields()Ljava/util/Map; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public Map<String, Map<String, List<String>>> getThisInputFields() {
+        Map<String, Map<String, List<String>>> outputMap = new HashMap<>();
+        for (Map.Entry<GlobalStreamId, Grouping> entry : this.getThisSources().entrySet()) {
+            String componentId = entry.getKey().get_componentId();
+            Set<String> streams = getComponentStreams(componentId);
+            for (String stream : streams) {
+                Map<String, List<String>> streamFieldMap = outputMap.get(componentId);
+                if (streamFieldMap == null) {
+                    streamFieldMap = new HashMap<>();
+                    outputMap.put(componentId, streamFieldMap);
+                }
+                streamFieldMap.put(stream, getComponentOutputFields(componentId, stream).toList());
+            }
+        }
+        return outputMap;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/task/TopologyContext, toJSONString()Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:156..160]78 - org.apache.storm.task.TopologyContext.toJSONString()Ljava/lang/String;, BB[SSA:152..155]77 - org.apache.storm.task.TopologyContext.toJSONString()Ljava/lang/String;, BB[SSA:161..161]79 - org.apache.storm.task.TopologyContext.toJSONString()Ljava/lang/String;, BB[SSA:-1..-2]82 - org.apache.storm.task.TopologyContext.toJSONString()Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=333, lastLineNumber=334, firstMethodNumber=303, lastMethodNumber=335, isFirstLineValid=true, methodSrcCode=
+    public String toJSONString() {
+        Map<String, Object> obj = new HashMap<>();
+        obj.put("task->component", this.getTaskToComponent());
+        obj.put("taskid", this.getThisTaskId());
+        obj.put("componentid", this.getThisComponentId());
+        List<String> streamList = new ArrayList<>();
+        streamList.addAll(this.getThisStreams());
+        obj.put("streams", streamList);
+        obj.put("stream->outputfields", this.getThisOutputFieldsForStreams());
+        // Convert targets to a JSON serializable format
+        Map<String, Map<String, Object>> stringTargets = new HashMap<>();
+        for (Map.Entry<String, Map<String, Grouping>> entry : this.getThisTargets().entrySet()) {
+            Map<String, Object> stringTargetMap = new HashMap<>();
+            for (Map.Entry<String, Grouping> innerEntry : entry.getValue().entrySet()) {
+                stringTargetMap.put(innerEntry.getKey(), groupingToJSONableMap(innerEntry.getValue()));
+            }
+            stringTargets.put(entry.getKey(), stringTargetMap);
+        }
+        obj.put("stream->target->grouping", stringTargets);
+        // Convert sources to a JSON serializable format
+        Map<String, Map<String, Object>> stringSources = new HashMap<>();
+        for (Map.Entry<GlobalStreamId, Grouping> entry : this.getThisSources().entrySet()) {
+            GlobalStreamId gid = entry.getKey();
+            Map<String, Object> stringSourceMap = stringSources.get(gid.get_componentId());
+            if (stringSourceMap == null) {
+                stringSourceMap = new HashMap<>();
+                stringSources.put(gid.get_componentId(), stringSourceMap);
+            }
+            stringSourceMap.put(gid.get_streamId(), groupingToJSONableMap(entry.getValue()));
+        }
+        obj.put("source->stream->grouping", stringSources);
+        obj.put("source->stream->fields", this.getThisInputFields());
+        return JSONValue.toJSONString(obj);
+    }
+}

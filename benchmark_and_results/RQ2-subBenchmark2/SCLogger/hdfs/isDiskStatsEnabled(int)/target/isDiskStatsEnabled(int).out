@@ -1,0 +1,9 @@
+public static boolean isDiskStatsEnabled(int fileIOSamplingPercentage){
+final boolean isEnabled;
+if (fileIOSamplingPercentage <= 0) {
+isEnabled = false;
+} else {
+isEnabled = true;
+}
+return isEnabled;
+}

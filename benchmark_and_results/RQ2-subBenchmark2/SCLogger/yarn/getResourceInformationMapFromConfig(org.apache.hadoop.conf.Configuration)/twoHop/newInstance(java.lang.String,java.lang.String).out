@@ -1,0 +1,10 @@
+/** 
+ * Create a new instance of ResourceInformation from another object.
+ * @param other the object from which the new object should be created
+ * @return the new ResourceInformation object
+ */
+public static ResourceInformation newInstance(ResourceInformation other){
+  ResourceInformation ret=new ResourceInformation();
+  copy(other,ret);
+  return ret;
+}

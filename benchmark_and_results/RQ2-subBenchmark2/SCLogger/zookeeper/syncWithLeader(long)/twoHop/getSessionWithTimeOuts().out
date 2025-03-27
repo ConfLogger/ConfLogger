@@ -1,0 +1,7 @@
+/** 
+ * get sessions with timeouts
+ * @return the hashmap of sessions with timeouts
+ */
+public ConcurrentHashMap<Long,Integer> getSessionWithTimeOuts(){
+  return sessionsWithTimeouts;
+}

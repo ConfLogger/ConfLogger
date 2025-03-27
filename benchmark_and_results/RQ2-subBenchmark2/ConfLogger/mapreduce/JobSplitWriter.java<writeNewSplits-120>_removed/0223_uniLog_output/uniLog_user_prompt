@@ -1,0 +1,240 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>SplitMetaInfo[] info = new SplitMetaInfo[array.length];
+<Line#1>if (array.length != 0) {
+<Line#2>SerializationFactory factory = new SerializationFactory(conf);
+<Line#3>int i = 0;
+<Line#4>int maxBlockLocations = conf.getInt(MRConfig.MAX_BLOCK_LOCATIONS_KEY,
+<Line#5>MRConfig.MAX_BLOCK_LOCATIONS_DEFAULT);
+<Line#6>long offset = out.getPos();
+<Line#7>for(T split: array) {
+<Line#8>long prevCount = out.getPos();
+<Line#9>Text.writeString(out, split.getClass().getName());
+<Line#10>Serializer<T> serializer =
+<Line#11>factory.getSerializer((Class<T>) split.getClass());
+<Line#12>serializer.open(out);
+<Line#13>serializer.serialize(split);
+<Line#14>long currCount = out.getPos();
+<Line#15>String[] locations = split.getLocations();
+<Line#16>if (locations.length > maxBlockLocations) {
+<Line#17>locations = Arrays.copyOf(locations, maxBlockLocations);
+<Line#18>}
+<Line#19>info[i++] =
+<Line#20>new JobSplit.SplitMetaInfo(
+<Line#21>locations, offset,
+<Line#22>split.getLength());
+<Line#23>offset += currCount - prevCount;
+<Line#24>}
+<Line#25>}
+<Line#26>return info;
+<Line#27>}
+
+Example 1:
+<Line#1>{
+<Line#2>  Configuration conf=context.getConfiguration();
+<Line#3>  int nThreads=conf.getInt(MRConfig.MULTIPLE_OUTPUTS_CLOSE_THREAD_COUNT,MRConfig.DEFAULT_MULTIPLE_OUTPUTS_CLOSE_THREAD_COUNT);
+<Line#4>  AtomicBoolean encounteredException=new AtomicBoolean(false);
+<Line#5>  ThreadFactory threadFactory=new ThreadFactoryBuilder().setNameFormat("MultipleOutputs-close").setUncaughtExceptionHandler(((t,e) -> {
+<Line#6>    LOG.error("Thread " + t + " failed unexpectedly",e);
+<Line#7>    encounteredException.set(true);
+<Line#8>  }
+<Line#9>)).build();
+<Line#10>  ExecutorService executorService=Executors.newFixedThreadPool(nThreads,threadFactory);
+<Line#11>  List<Callable<Object>> callableList=new ArrayList<>(recordWriters.size());
+<Line#12>  for (  RecordWriter writer : recordWriters.values()) {
+<Line#13>    callableList.add(() -> {
+<Line#14>      try {
+<Line#15>        writer.close(context);
+<Line#16>      }
+<Line#17> catch (      IOException e) {
+<Line#18>        LOG.error("Error while closing MultipleOutput file",e);
+<Line#19>        encounteredException.set(true);
+<Line#20>      }
+<Line#21>      return null;
+<Line#22>    }
+<Line#23>);
+<Line#24>  }
+<Line#25>  try {
+<Line#26>    executorService.invokeAll(callableList);
+<Line#27>  }
+<Line#28> catch (  InterruptedException e) {
+<Line#29>    LOG.warn("Closing is Interrupted");
+<Line#30>    Thread.currentThread().interrupt();
+<Line#31>  }
+<Line#32> finally {
+<Line#33>    executorService.shutdown();
+<Line#34>  }
+<Line#35>  if (encounteredException.get()) {
+<Line#36>    throw new IOException("One or more threads encountered exception during close. See prior errors.");
+<Line#37>  }
+<Line#38>}
+Label: <Line#6> LOG.error("Thread " + t + " failed unexpectedly",e)
+
+Example 2:
+<Line#1>{
+<Line#2>  Configuration conf=context.getConfiguration();
+<Line#3>  int nThreads=conf.getInt(MRConfig.MULTIPLE_OUTPUTS_CLOSE_THREAD_COUNT,MRConfig.DEFAULT_MULTIPLE_OUTPUTS_CLOSE_THREAD_COUNT);
+<Line#4>  AtomicBoolean encounteredException=new AtomicBoolean(false);
+<Line#5>  ThreadFactory threadFactory=new ThreadFactoryBuilder().setNameFormat("MultipleOutputs-close").setUncaughtExceptionHandler(((t,e) -> {
+<Line#6>    LOG.error("Thread " + t + " failed unexpectedly",e);
+<Line#7>    encounteredException.set(true);
+<Line#8>  }
+<Line#9>)).build();
+<Line#10>  ExecutorService executorService=Executors.newFixedThreadPool(nThreads,threadFactory);
+<Line#11>  List<Callable<Object>> callableList=new ArrayList<>(recordWriters.size());
+<Line#12>  for (  RecordWriter writer : recordWriters.values()) {
+<Line#13>    callableList.add(() -> {
+<Line#14>      try {
+<Line#15>        writer.close(context);
+<Line#16>      }
+<Line#17> catch (      IOException e) {
+<Line#18>        LOG.error("Error while closing MultipleOutput file",e);
+<Line#19>        encounteredException.set(true);
+<Line#20>      }
+<Line#21>      return null;
+<Line#22>    }
+<Line#23>);
+<Line#24>  }
+<Line#25>  try {
+<Line#26>    executorService.invokeAll(callableList);
+<Line#27>  }
+<Line#28> catch (  InterruptedException e) {
+<Line#29>    LOG.warn("Closing is Interrupted");
+<Line#30>    Thread.currentThread().interrupt();
+<Line#31>  }
+<Line#32> finally {
+<Line#33>    executorService.shutdown();
+<Line#34>  }
+<Line#35>  if (encounteredException.get()) {
+<Line#36>    throw new IOException("One or more threads encountered exception during close. See prior errors.");
+<Line#37>  }
+<Line#38>}
+Label: <Line#18> LOG.error("Error while closing MultipleOutput file",e)
+
+Example 3:
+<Line#1>{
+<Line#2>  Configuration conf=context.getConfiguration();
+<Line#3>  int nThreads=conf.getInt(MRConfig.MULTIPLE_OUTPUTS_CLOSE_THREAD_COUNT,MRConfig.DEFAULT_MULTIPLE_OUTPUTS_CLOSE_THREAD_COUNT);
+<Line#4>  AtomicBoolean encounteredException=new AtomicBoolean(false);
+<Line#5>  ThreadFactory threadFactory=new ThreadFactoryBuilder().setNameFormat("MultipleOutputs-close").setUncaughtExceptionHandler(((t,e) -> {
+<Line#6>    LOG.error("Thread " + t + " failed unexpectedly",e);
+<Line#7>    encounteredException.set(true);
+<Line#8>  }
+<Line#9>)).build();
+<Line#10>  ExecutorService executorService=Executors.newFixedThreadPool(nThreads,threadFactory);
+<Line#11>  List<Callable<Object>> callableList=new ArrayList<>(recordWriters.size());
+<Line#12>  for (  RecordWriter writer : recordWriters.values()) {
+<Line#13>    callableList.add(() -> {
+<Line#14>      try {
+<Line#15>        writer.close(context);
+<Line#16>      }
+<Line#17> catch (      IOException e) {
+<Line#18>        LOG.error("Error while closing MultipleOutput file",e);
+<Line#19>        encounteredException.set(true);
+<Line#20>      }
+<Line#21>      return null;
+<Line#22>    }
+<Line#23>);
+<Line#24>  }
+<Line#25>  try {
+<Line#26>    executorService.invokeAll(callableList);
+<Line#27>  }
+<Line#28> catch (  InterruptedException e) {
+<Line#29>    LOG.warn("Closing is Interrupted");
+<Line#30>    Thread.currentThread().interrupt();
+<Line#31>  }
+<Line#32> finally {
+<Line#33>    executorService.shutdown();
+<Line#34>  }
+<Line#35>  if (encounteredException.get()) {
+<Line#36>    throw new IOException("One or more threads encountered exception during close. See prior errors.");
+<Line#37>  }
+<Line#38>}
+Label: <Line#29> LOG.warn("Closing is Interrupted")
+
+Example 4:
+<Line#1>{
+<Line#2>  if (LOG.isDebugEnabled()) {
+<Line#3>    LOG.debug("Storing token " + tokenId.getSequenceNumber());
+<Line#4>  }
+<Line#5>  ByteArrayOutputStream memStream=new ByteArrayOutputStream();
+<Line#6>  DataOutputStream dataStream=new DataOutputStream(memStream);
+<Line#7>  try {
+<Line#8>    tokenId.write(dataStream);
+<Line#9>    dataStream.writeLong(renewDate);
+<Line#10>    dataStream.close();
+<Line#11>    dataStream=null;
+<Line#12>  }
+<Line#13>  finally {
+<Line#14>    IOUtils.cleanupWithLogger(LOG,dataStream);
+<Line#15>  }
+<Line#16>  String dbKey=getTokenDatabaseKey(tokenId);
+<Line#17>  try {
+<Line#18>    db.put(bytes(dbKey),memStream.toByteArray());
+<Line#19>  }
+<Line#20> catch (  DBException e) {
+<Line#21>    throw new IOException(e);
+<Line#22>  }
+<Line#23>}
+Label: <Line#3> LOG.debug("Storing token " + tokenId.getSequenceNumber())
+
+Example 5:
+<Line#1>{
+<Line#2>  this.fileSize=0;
+<Line#3>  BlockLocation[] locations;
+<Line#4>  if (stat instanceof LocatedFileStatus) {
+<Line#5>    locations=((LocatedFileStatus)stat).getBlockLocations();
+<Line#6>  }
+<Line#7> else {
+<Line#8>    FileSystem fs=stat.getPath().getFileSystem(conf);
+<Line#9>    locations=fs.getFileBlockLocations(stat,0,stat.getLen());
+<Line#10>  }
+<Line#11>  if (locations == null) {
+<Line#12>    blocks=new OneBlockInfo[0];
+<Line#13>  }
+<Line#14> else {
+<Line#15>    if (locations.length == 0 && !stat.isDirectory()) {
+<Line#16>      locations=new BlockLocation[]{new BlockLocation()};
+<Line#17>    }
+<Line#18>    if (!isSplitable) {
+<Line#19>      if (LOG.isDebugEnabled()) {
+<Line#20>        LOG.debug("File is not splittable so no parallelization " + "is possible: " + stat.getPath());
+<Line#21>      }
+<Line#22>      blocks=new OneBlockInfo[1];
+<Line#23>      fileSize=stat.getLen();
+<Line#24>      blocks[0]=new OneBlockInfo(stat.getPath(),0,fileSize,locations[0].getHosts(),locations[0].getTopologyPaths());
+<Line#25>    }
+<Line#26> else {
+<Line#27>      ArrayList<OneBlockInfo> blocksList=new ArrayList<OneBlockInfo>(locations.length);
+<Line#28>      for (int i=0; i < locations.length; i++) {
+<Line#29>        fileSize+=locations[i].getLength();
+<Line#30>        long left=locations[i].getLength();
+<Line#31>        long myOffset=locations[i].getOffset();
+<Line#32>        long myLength=0;
+<Line#33>        do {
+<Line#34>          if (maxSize == 0) {
+<Line#35>            myLength=left;
+<Line#36>          }
+<Line#37> else {
+<Line#38>            if (left > maxSize && left < 2 * maxSize) {
+<Line#39>              myLength=left / 2;
+<Line#40>            }
+<Line#41> else {
+<Line#42>              myLength=Math.min(maxSize,left);
+<Line#43>            }
+<Line#44>          }
+<Line#45>          OneBlockInfo oneblock=new OneBlockInfo(stat.getPath(),myOffset,myLength,locations[i].getHosts(),locations[i].getTopologyPaths());
+<Line#46>          left-=myLength;
+<Line#47>          myOffset+=myLength;
+<Line#48>          blocksList.add(oneblock);
+<Line#49>        }
+<Line#50> while (left > 0);
+<Line#51>      }
+<Line#52>      blocks=blocksList.toArray(new OneBlockInfo[blocksList.size()]);
+<Line#53>    }
+<Line#54>    populateBlockInfo(blocks,rackToBlocks,blockToNodes,nodeToBlocks,rackToNodes);
+<Line#55>  }
+<Line#56>}
+Label: <Line#20> LOG.debug("File is not splittable so no parallelization " + "is possible: " + stat.getPath())
+

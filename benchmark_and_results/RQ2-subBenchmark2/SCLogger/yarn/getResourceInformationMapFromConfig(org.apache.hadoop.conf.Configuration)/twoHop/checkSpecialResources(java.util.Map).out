@@ -1,0 +1,28 @@
+/** 
+ * Ensures that historical resource types (like  {@link ResourceInformation#MEMORY_URI},  {@link ResourceInformation#VCORES_URI}) are not getting overridden in the resourceInformationMap. Also checks whether  {@link ResourceInformation#SPECIAL_RESOURCES} are notconfigured poorly: having their proper units and types.
+ * @param resourceInformationMap Map object having keys as resources namesand  {@link ResourceInformation} objects asvalues
+ * @throws YarnRuntimeException if either of the two aboveconditions do not hold
+ */
+private static void checkSpecialResources(Map<String,ResourceInformation> resourceInformationMap) throws YarnRuntimeException {
+  String[] keys={"memory",ResourceInformation.MEMORY_URI,ResourceInformation.VCORES_URI};
+  for (  String key : keys) {
+    if (resourceInformationMap.containsKey(key)) {
+      LOG.warn("Attempt to define resource '" + key + "', but it is not allowed.");
+      throw new YarnRuntimeException("Attempt to re-define mandatory resource '" + key + "'.");
+    }
+  }
+  for (  Map.Entry<String,ResourceInformation> mandatoryResourceEntry : ResourceInformation.SPECIAL_RESOURCES.entrySet()) {
+    String key=mandatoryResourceEntry.getKey();
+    ResourceInformation mandatoryRI=mandatoryResourceEntry.getValue();
+    ResourceInformation newDefinedRI=resourceInformationMap.get(key);
+    if (newDefinedRI != null) {
+      String expectedUnit=mandatoryRI.getUnits();
+      ResourceTypes expectedType=mandatoryRI.getResourceType();
+      String actualUnit=newDefinedRI.getUnits();
+      ResourceTypes actualType=newDefinedRI.getResourceType();
+      if (!expectedUnit.equals(actualUnit) || !expectedType.equals(actualType)) {
+        throw new YarnRuntimeException("Defined mandatory resource type=" + key + " inside resource-types.xml, however its type or "+ "unit is conflict to mandatory resource types, expected type="+ expectedType+ ", unit="+ expectedUnit+ "; actual type="+ actualType+ " actual unit="+ actualUnit);
+      }
+    }
+  }
+}

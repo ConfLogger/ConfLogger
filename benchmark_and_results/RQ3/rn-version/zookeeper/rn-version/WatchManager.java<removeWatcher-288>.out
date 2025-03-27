@@ -1,0 +1,60 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	WatchManager.java	methodSinagture:	org.apache.zookeeper.server.watch.WatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z	methodLines:	288:316
+blockLines:	301:-1
+paras:	null
+TaintedStat:	NORMAL removeWatcher:conditional branch(eq, to iindex=65) 23,21 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere[26]20 = invokeinterface < Application, Ljava/util/Map, getOrDefault(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; > 9,2,18 @52 exception:19
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere[26]20 = invokeinterface < Application, Ljava/util/Map, getOrDefault(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; > 9,2,18 @52 exception:19
+NORMAL removeWatcher:21 = checkcast <Application,Lorg/apache/zookeeper/server/watch/WatchStats>20 <Application,Lorg/apache/zookeeper/server/watch/WatchStats> Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+NORMAL removeWatcher:conditional branch(eq, to iindex=65) 23,21 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	WatchManager.java	methodSinagture:	org.apache.zookeeper.server.watch.WatchManager.removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z	methodLines:	288:316
+blockLines:	291:-1
+paras:	null
+TaintedStat:	NORMAL removeWatcher:conditional branch(ne, to iindex=20) 13,14 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere[9]12 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 10,2 @20 exception:11
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere[9]12 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 10,2 @20 exception:11
+NORMAL removeWatcher:13 = checkcast <Application,Ljava/util/Set>12 <Application,Ljava/util/Set> Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+NORMAL removeWatcher:conditional branch(ne, to iindex=20) 13,14 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, removeWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public synchronized boolean removeWatcher(String path, Watcher watcher, WatcherMode watcherMode) {
+        Map<String, WatchStats> paths = watch2Paths.get(watcher);
+        Set<Watcher> watchers = watchTable.get(path);
+        if (paths == null || watchers == null) {
+            return false;
+        }
+
+        WatchStats oldStats;
+        WatchStats newStats;
+        if (watcherMode != null) {
+            oldStats = paths.getOrDefault(path, WatchStats.NONE);
+            newStats = oldStats.removeMode(watcherMode);
+            if (newStats != WatchStats.NONE) {
+                if (newStats != oldStats) {
+                    paths.put(path, newStats);
+                }
+            } else if (oldStats != WatchStats.NONE) {
+                unwatch(path, watcher, paths, watchers);
+            }
+        } else {
+            oldStats = unwatch(path, watcher, paths, watchers);
+            newStats = WatchStats.NONE;
+        }
+
+        if (oldStats.hasMode(WatcherMode.PERSISTENT_RECURSIVE) && !newStats.hasMode(WatcherMode.PERSISTENT_RECURSIVE)) {
+            --recursiveWatchQty;
+        }
+
+        return oldStats != newStats;
+    }
+
+
+====================ctx:=======================

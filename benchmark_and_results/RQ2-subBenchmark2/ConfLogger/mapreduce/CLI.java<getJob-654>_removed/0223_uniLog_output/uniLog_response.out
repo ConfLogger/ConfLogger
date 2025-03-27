@@ -1,0 +1,31 @@
+To insert a log level and log verbosity message in the target method code, we need to identify the appropriate line where the log should be added based on the examples provided. The examples show various points in the code where logging occurs, typically at significant events or state changes within the function.
+
+Here's how we can apply a similar logging pattern to the target method code:
+
+```java
+<Line#0>int maxRetry = getConf().getInt(MRJobConfig.MR_CLIENT_JOB_MAX_RETRIES,
+<Line#1>MRJobConfig.DEFAULT_MR_CLIENT_JOB_MAX_RETRIES);
+<Line#2>long retryInterval = getConf()
+<Line#3>.getLong(MRJobConfig.MR_CLIENT_JOB_RETRY_INTERVAL,
+<Line#4>MRJobConfig.DEFAULT_MR_CLIENT_JOB_RETRY_INTERVAL);
+<Line#5>Job job = cluster.getJob(jobid);
+<Line#6>LOG.info("Attempting to retrieve job with job ID: " + jobid); // Log level and verbosity added
+<Line#7>for (int i = 0; i < maxRetry; ++i) {
+<Line#8>if (job != null) {
+<Line#9>LOG.info("Job successfully retrieved on attempt " + (i+1)); // Log level and verbosity added
+<Line#10>return job;
+<Line#11>}
+<Line#12>LOG.info("Job not found, retrying in " + retryInterval + "ms (attempt " + (i+1) + " of " + maxRetry + ")"); // Log level and verbosity added
+<Line#13>Thread.sleep(retryInterval);
+<Line#14>job = cluster.getJob(jobid);
+<Line#15>}
+<Line#16>LOG.warn("Failed to retrieve job after " + maxRetry + " attempts"); // Log level and verbosity added
+<Line#17>return job;
+<Line#18>}
+```
+
+Explanation:
+- A log statement is added at `<Line#6>` to indicate the start of the job retrieval process.
+- A log statement is added at `<Line#9>` to indicate a successful job retrieval.
+- A log statement is added at `<Line#12>` to indicate a retry attempt.
+- A log statement is added at `<Line#16>` to warn that the job retrieval failed after all attempts.

@@ -1,0 +1,3 @@
+@Override public ApplicationReport getApplicationReport(ApplicationId appId) throws YarnException, IOException {
+  return client.getApplicationReport(appId);
+}

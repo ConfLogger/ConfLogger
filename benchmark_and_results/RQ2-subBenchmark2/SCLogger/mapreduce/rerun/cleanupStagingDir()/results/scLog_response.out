@@ -1,0 +1,5 @@
+<Line#5>:# LOG.debug("Retrieving job temp directory: " + jobTempDir):#
+<Line#8>:# LOG.debug("Checking if job files should be kept for directory: " + jobTempDir):#
+<Line#9>:# LOG.debug("Job temp directory is null, exiting cleanup method."):#
+<Line#13>:# LOG.info("Deleting job temp directory: " + jobTempDirPath):#
+<Line#17>:# LOG.error("Failed to delete job temp directory: " + jobTempDirPath + " due to IOException", io):#

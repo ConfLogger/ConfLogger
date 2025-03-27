@@ -1,0 +1,44 @@
+To add log level and log verbosity messages to the provided code, we need to identify the appropriate lines where logging should be inserted based on the examples. Here's how you can add logging to the `DirectoryScanner` method:
+
+```java
+<Line#0>*/
+<Line#1>public DirectoryScanner(FsDatasetSpi<?> dataset, Configuration conf) {
+<Line#2>  LOG.info("Initializing DirectoryScanner with dataset and configuration."); // Log level: INFO
+<Line#3>  this.dataset = dataset;
+<Line#4>  this.stats = new HashMap<>(DEFAULT_MAP_SIZE);
+<Line#5>  int interval = (int) conf.getTimeDuration(
+<Line#6>  DFSConfigKeys.DFS_DATANODE_DIRECTORYSCAN_INTERVAL_KEY,
+<Line#7>  DFSConfigKeys.DFS_DATANODE_DIRECTORYSCAN_INTERVAL_DEFAULT,
+<Line#8>  TimeUnit.SECONDS);
+<Line#9>  
+<Line#10>  LOG.debug("Scan interval set to " + interval + " seconds."); // Log level: DEBUG
+<Line#11>  scanPeriodMsecs = TimeUnit.SECONDS.toMillis(interval);
+<Line#12>  
+<Line#13>  int throttle = conf.getInt(
+<Line#14>  DFSConfigKeys.DFS_DATANODE_DIRECTORYSCAN_THROTTLE_LIMIT_MS_PER_SEC_KEY,
+<Line#15>  DFSConfigKeys.DFS_DATANODE_DIRECTORYSCAN_THROTTLE_LIMIT_MS_PER_SEC_DEFAULT);
+<Line#16>  
+<Line#17>  LOG.debug("Throttle limit set to " + throttle + " ms per second."); // Log level: DEBUG
+<Line#18>  if (throttle >= TimeUnit.SECONDS.toMillis(1)) {
+<Line#19>    throttle =
+<Line#20>    DFSConfigKeys.DFS_DATANODE_DIRECTORYSCAN_THROTTLE_LIMIT_MS_PER_SEC_DEFAULT;
+<Line#21>    LOG.warn("Throttle limit exceeded maximum allowed value. Resetting to default."); // Log level: WARN
+<Line#22>  }
+<Line#23>  
+<Line#24>  throttleLimitMsPerSec = throttle;
+<Line#25>  
+<Line#26>  int threads =
+<Line#27>  conf.getInt(DFSConfigKeys.DFS_DATANODE_DIRECTORYSCAN_THREADS_KEY,
+<Line#28>  DFSConfigKeys.DFS_DATANODE_DIRECTORYSCAN_THREADS_DEFAULT);
+<Line#29>  
+<Line#30>  LOG.debug("Number of threads for scanning set to " + threads + "."); // Log level: DEBUG
+<Line#31>  reportCompileThreadPool =
+<Line#32>  Executors.newFixedThreadPool(threads, new Daemon.DaemonFactory());
+<Line#33>  
+<Line#34>  masterThread =
+<Line#35>  new ScheduledThreadPoolExecutor(1, new Daemon.DaemonFactory());
+<Line#36>  LOG.info("DirectoryScanner initialized successfully."); // Log level: INFO
+<Line#37>}
+```
+
+This code includes logging statements at various levels (INFO, DEBUG, and WARN) to provide insights into the initialization process of the `DirectoryScanner`. The log messages are inserted at strategic points to reflect the current state and any important decisions made during the execution, such as resetting the throttle limit to a default value.

@@ -1,0 +1,8 @@
+@SuppressWarnings("unchecked") public static <T>T newInstance(String klass){
+  try {
+    return newInstance((Class<T>)Class.forName(klass));
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(e);
+  }
+}

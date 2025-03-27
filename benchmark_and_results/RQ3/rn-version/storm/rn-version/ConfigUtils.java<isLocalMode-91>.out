@@ -1,0 +1,294 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ConfigUtils.java	methodSinagture:	org.apache.storm.utils.ConfigUtils.isLocalMode(Ljava/util/Map;)Z	methodLines:	91:102
+blockLines:	93:-1
+paras:	null
+TaintedStat:	NORMAL isLocalMode:conditional branch(eq, to iindex=28) 6,7 Node: < Application, Lorg/apache/storm/utils/ConfigUtils, isLocalMode(Ljava/util/Map;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ConfigUtils, isLocalMode(Ljava/util/Map;)Z > Context: Everywhere[2]5 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,3 @3 exception:4
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ConfigUtils, isLocalMode(Ljava/util/Map;)Z > Context: Everywhere[2]5 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,3 @3 exception:4
+NORMAL isLocalMode:6 = checkcast <Application,Ljava/lang/String>5 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/utils/ConfigUtils, isLocalMode(Ljava/util/Map;)Z > Context: Everywhere
+NORMAL isLocalMode:conditional branch(eq, to iindex=28) 6,7 Node: < Application, Lorg/apache/storm/utils/ConfigUtils, isLocalMode(Ljava/util/Map;)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static boolean isLocalMode(Map<String, Object> conf) {
+        String mode = (String) conf.get(Config.STORM_CLUSTER_MODE);
+        if (mode != null) {
+            if ("local".equals(mode)) {
+                return true;
+            }
+            if ("distributed".equals(mode)) {
+                return false;
+            }
+            throw new IllegalArgumentException("Illegal cluster mode in conf: " + mode);
+        }
+        return true;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, <init>(Lorg/apache/storm/generated/StormTopology;Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;)V > Context: Everywhere, blocks=[BB[SSA:23..23]9 - org.apache.storm.task.GeneralTopologyContext.<init>(Lorg/apache/storm/generated/StormTopology;Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;)V, BB[SSA:20..22]8 - org.apache.storm.task.GeneralTopologyContext.<init>(Lorg/apache/storm/generated/StormTopology;Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;)V, BB[SSA:24..24]10 - org.apache.storm.task.GeneralTopologyContext.<init>(Lorg/apache/storm/generated/StormTopology;Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;)V, BB[SSA:-1..-2]12 - org.apache.storm.task.GeneralTopologyContext.<init>(Lorg/apache/storm/generated/StormTopology;Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;)V], numberOfBasicBlocks=4, firstLineNumber=59, lastLineNumber=59, firstMethodNumber=51, lastMethodNumber=60, isFirstLineValid=true, methodSrcCode=
+                                  Map<Integer, String> taskToComponent, Map<String, List<Integer>> componentToSortedTasks,
+                                  Map<String, Map<String, Fields>> componentToStreamToFields, String stormId) {
+        this.topology = topology;
+        this.topoConf = topoConf;
+        this.taskToComponent = taskToComponent;
+        this.stormId = stormId;
+        componentToTasks = componentToSortedTasks;
+        this.componentToStreamToFields = componentToStreamToFields;
+        doSanityCheck = ConfigUtils.isLocalMode(this.topoConf);
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/worker/Worker, loadWorker(Lorg/apache/storm/cluster/IStateStorage;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Map;Lorg/apache/storm/generated/Credentials;)Ljava/lang/Object; > Context: Everywhere, blocks=[BB[SSA:120..120]67 - org.apache.storm.daemon.worker.Worker.loadWorker(Lorg/apache/storm/cluster/IStateStorage;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Map;Lorg/apache/storm/generated/Credentials;)Ljava/lang/Object;, BB[SSA:117..119]66 - org.apache.storm.daemon.worker.Worker.loadWorker(Lorg/apache/storm/cluster/IStateStorage;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Map;Lorg/apache/storm/generated/Credentials;)Ljava/lang/Object;, BB[SSA:121..122]68 - org.apache.storm.daemon.worker.Worker.loadWorker(Lorg/apache/storm/cluster/IStateStorage;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Map;Lorg/apache/storm/generated/Credentials;)Ljava/lang/Object;, BB[SSA:-1..-2]200 - org.apache.storm.daemon.worker.Worker.loadWorker(Lorg/apache/storm/cluster/IStateStorage;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Map;Lorg/apache/storm/generated/Credentials;)Ljava/lang/Object;], numberOfBasicBlocks=4, firstLineNumber=254, lastLineNumber=255, firstMethodNumber=212, lastMethodNumber=340, isFirstLineValid=true, methodSrcCode=
+        throws Exception {
+        workerState =
+            new WorkerState(conf, context, topologyId, assignmentId, supervisorIfaceSupplier, port, workerId,
+                            topologyConf, stateStorage, stormClusterState,
+                            autoCreds, metricRegistry, initialCredentials);
+        this.heatbeatMeter = metricRegistry.meter("doHeartbeat-calls", workerState.getWorkerTopologyContext(),
+                Constants.SYSTEM_COMPONENT_ID, (int) Constants.SYSTEM_TASK_ID);
+
+        // Heartbeat here so that worker process dies if this fails
+        // it's important that worker heartbeat to supervisor ASAP so that supervisor knows
+        // that worker is running and moves on
+        doHeartBeat();
+
+        executorsAtom = new AtomicReference<>(null);
+
+        // launch heartbeat threads immediately so that slow-loading tasks don't cause the worker to timeout
+        // to the supervisor
+        workerState.heartbeatTimer
+            .scheduleRecurring(0, (Integer) conf.get(Config.WORKER_HEARTBEAT_FREQUENCY_SECS), () -> {
+                try {
+                    doHeartBeat();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+        Integer execHeartBeatFreqSecs = workerState.stormClusterState.isPacemakerStateStore()
+            ? (Integer) conf.get(Config.TASK_HEARTBEAT_FREQUENCY_SECS)
+            : (Integer) conf.get(Config.EXECUTOR_METRICS_FREQUENCY_SECS);
+        workerState.executorHeartbeatTimer
+            .scheduleRecurring(0, execHeartBeatFreqSecs,
+                               Worker.this::doExecutorHeartbeats);
+
+        workerState.refreshConnections();
+
+        workerState.activateWorkerWhenAllConnectionsReady();
+
+        workerState.refreshStormActive(null);
+
+        workerState.runWorkerStartHooks();
+
+        List<Executor> execs = new ArrayList<>();
+        for (List<Long> e : workerState.getLocalExecutors()) {
+            if (ConfigUtils.isLocalMode(conf)) {
+                Executor executor = LocalExecutor.mkExecutor(workerState, e, initCreds);
+                execs.add(executor);
+                for (int i = 0; i < executor.getTaskIds().size(); ++i) {
+                    workerState.localReceiveQueues.put(executor.getTaskIds().get(i), executor.getReceiveQueue());
+                }
+            } else {
+                Executor executor = Executor.mkExecutor(workerState, e, initCreds);
+                for (int i = 0; i < executor.getTaskIds().size(); ++i) {
+                    workerState.localReceiveQueues.put(executor.getTaskIds().get(i), executor.getReceiveQueue());
+                }
+                execs.add(executor);
+            }
+        }
+
+        List<IRunningExecutor> newExecutors = new ArrayList<IRunningExecutor>();
+        for (Executor executor : execs) {
+            newExecutors.add(executor.execute());
+        }
+        executorsAtom.set(newExecutors);
+
+        // This thread will send out messages destined for remote tasks (on other workers)
+        // If there are no remote outbound tasks, don't start the thread.
+        if (workerState.hasRemoteOutboundTasks()) {
+            transferThread = workerState.makeTransferThread();
+            transferThread.setName("Worker-Transfer");
+        }
+
+        establishLogSettingCallback();
+
+        final int credCheckMaxAllowed = 10;
+        final int[] credCheckErrCnt = new int[1]; // consecutive-error-count
+
+        workerState.refreshCredentialsTimer.scheduleRecurring(0,
+                                                              (Integer) conf.get(Config.TASK_CREDENTIALS_POLL_SECS), () -> {
+                try {
+                    checkCredentialsChanged();
+                    credCheckErrCnt[0] = 0;
+                } catch (Exception ex) {
+                    credCheckErrCnt[0]++;
+                    if (credCheckErrCnt[0] <= credCheckMaxAllowed) {
+                        LOG.warn("Ignoring {} of {} consecutive exceptions when checking for credential change",
+                            credCheckErrCnt[0], credCheckMaxAllowed, ex);
+                    } else {
+                        LOG.error("Received {} consecutive exceptions, {} tolerated, when checking for credential change",
+                            credCheckErrCnt[0], credCheckMaxAllowed, ex);
+                        throw ex;
+                    }
+                }
+            });
+
+        workerState.checkForUpdatedBlobsTimer.scheduleRecurring(0,
+                (Integer) conf.getOrDefault(Config.WORKER_BLOB_UPDATE_POLL_INTERVAL_SECS, 10),
+            () -> {
+                try {
+                    LOG.debug("Checking if blobs have updated");
+                    updateBlobUpdates();
+                } catch (IOException e) {
+                    // IOException from reading the version files to be ignored
+                    LOG.error(e.getStackTrace().toString());
+                }
+            }
+        );
+
+        // The jitter allows the clients to get the data at different times, and avoids thundering herd
+        if (!(Boolean) topologyConf.get(Config.TOPOLOGY_DISABLE_LOADAWARE_MESSAGING)) {
+            workerState.refreshLoadTimer.scheduleRecurringWithJitter(0, 1, 500, Worker.this::doRefreshLoad);
+        }
+
+        workerState.refreshConnectionsTimer.scheduleRecurring(0,
+                                                              (Integer) conf.get(Config.TASK_REFRESH_POLL_SECS),
+                                                              workerState::refreshConnections);
+
+        workerState.resetLogLevelsTimer.scheduleRecurring(0,
+                                                          (Integer) conf.get(Config.WORKER_LOG_LEVEL_RESET_POLL_SECS),
+                                                          logConfigManager::resetLogLevels);
+
+        workerState.refreshActiveTimer.scheduleRecurring(0, (Integer) conf.get(Config.TASK_REFRESH_POLL_SECS),
+                                                         workerState::refreshStormActive);
+
+        setupFlushTupleTimer(topologyConf, newExecutors);
+        setupBackPressureCheckTimer(topologyConf);
+
+        LOG.info("Worker has topology config {}", ConfigUtils.maskPasswords(topologyConf));
+        LOG.info("Worker {} for storm {} on {}:{}  has finished loading", workerId, topologyId, assignmentId, port);
+        return this;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/supervisor/ClientSupervisorUtils, doRequiredTopoFilesExist(Ljava/util/Map;Ljava/lang/String;)Z > Context: Everywhere, blocks=[BB[SSA:30..32]14 - org.apache.storm.daemon.supervisor.ClientSupervisorUtils.doRequiredTopoFilesExist(Ljava/util/Map;Ljava/lang/String;)Z, BB[SSA:28..29]13 - org.apache.storm.daemon.supervisor.ClientSupervisorUtils.doRequiredTopoFilesExist(Ljava/util/Map;Ljava/lang/String;)Z, BB[SSA:33..34]15 - org.apache.storm.daemon.supervisor.ClientSupervisorUtils.doRequiredTopoFilesExist(Ljava/util/Map;Ljava/lang/String;)Z, BB[SSA:-1..-2]20 - org.apache.storm.daemon.supervisor.ClientSupervisorUtils.doRequiredTopoFilesExist(Ljava/util/Map;Ljava/lang/String;)Z], numberOfBasicBlocks=4, firstLineNumber=56, lastLineNumber=57, firstMethodNumber=43, lastMethodNumber=60, isFirstLineValid=true, methodSrcCode=
+    static boolean doRequiredTopoFilesExist(Map<String, Object> conf, String stormId) throws IOException {
+        String stormroot = ConfigUtils.supervisorStormDistRoot(conf, stormId);
+        String stormcodepath = ConfigUtils.supervisorStormCodePath(stormroot);
+        String stormconfpath = ConfigUtils.supervisorStormConfPath(stormroot);
+        if (!Utils.checkFileExists(stormroot)) {
+            return false;
+        }
+        if (!Utils.checkFileExists(stormcodepath)) {
+            return false;
+        }
+        if (!Utils.checkFileExists(stormconfpath)) {
+            return false;
+        }
+        String stormjarpath = ConfigUtils.supervisorStormJarPath(stormroot);
+        if (ConfigUtils.isLocalMode(conf) || Utils.checkFileExists(stormjarpath)) {
+            return true;
+        }
+        return false;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/worker/WorkerState, suicideIfLocalAssignmentsChanged(Lorg/apache/storm/generated/Assignment;)V > Context: Everywhere, blocks=[BB[SSA:41..41]19 - org.apache.storm.daemon.worker.WorkerState.suicideIfLocalAssignmentsChanged(Lorg/apache/storm/generated/Assignment;)V, BB[SSA:39..40]18 - org.apache.storm.daemon.worker.WorkerState.suicideIfLocalAssignmentsChanged(Lorg/apache/storm/generated/Assignment;)V, BB[SSA:42..43]20 - org.apache.storm.daemon.worker.WorkerState.suicideIfLocalAssignmentsChanged(Lorg/apache/storm/generated/Assignment;)V, BB[SSA:-1..-2]26 - org.apache.storm.daemon.worker.WorkerState.suicideIfLocalAssignmentsChanged(Lorg/apache/storm/generated/Assignment;)V], numberOfBasicBlocks=4, firstLineNumber=403, lastLineNumber=403, firstMethodNumber=389, lastMethodNumber=409, isFirstLineValid=true, methodSrcCode=
+    public void suicideIfLocalAssignmentsChanged(Assignment assignment) {
+        boolean shouldHalt = false;
+        if (assignment != null) {
+            Set<List<Long>> assignedExecutors = new HashSet<>(readWorkerExecutors(assignmentId, port, assignment));
+            if (!localExecutors.equals(assignedExecutors)) {
+                LOG.info("Found conflicting assignments. We shouldn't be alive!" + " Assigned: " + assignedExecutors
+                         + ", Current: " + localExecutors);
+                shouldHalt = true;
+            }
+        } else {
+            LOG.info("Assigment is null. We should not be alive!");
+            shouldHalt = true;
+        }
+        if (shouldHalt) {
+            if (!ConfigUtils.isLocalMode(conf)) {
+                suicideCallback.run();
+            } else {
+                LOG.info("Local worker tried to commit suicide!");
+            }
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/worker/Worker, start()V > Context: Everywhere, blocks=[BB[SSA:34..34]16 - org.apache.storm.daemon.worker.Worker.start()V, BB[SSA:32..33]15 - org.apache.storm.daemon.worker.Worker.start()V, BB[SSA:35..36]17 - org.apache.storm.daemon.worker.Worker.start()V, BB[SSA:-1..-2]66 - org.apache.storm.daemon.worker.Worker.start()V], numberOfBasicBlocks=4, firstLineNumber=180, lastLineNumber=180, firstMethodNumber=174, lastMethodNumber=208, isFirstLineValid=true, methodSrcCode=
+    public void start() throws Exception {
+        LOG.info("Launching worker for {} on {}:{} with id {} and conf {}", topologyId, assignmentId, port, workerId,
+                 ConfigUtils.maskPasswords(conf));
+        // because in local mode, its not a separate
+        // process. supervisor will register it in this case
+        // if ConfigUtils.isLocalMode(conf) returns false then it is in distributed mode.
+        if (!ConfigUtils.isLocalMode(conf)) {
+            // Distributed mode
+            SysOutOverSLF4J.sendSystemOutAndErrToSLF4J();
+            String pid = Utils.processPid();
+            FileUtils.touch(new File(ConfigUtils.workerPidPath(conf, workerId, pid)));
+            FileUtils.writeStringToFile(new File(ConfigUtils.workerArtifactsPidPath(conf, topologyId, port)), pid,
+                                        Charset.forName("UTF-8"));
+        }
+
+        ClusterStateContext csContext = new ClusterStateContext(DaemonType.WORKER, topologyConf);
+        IStateStorage stateStorage = ClusterUtils.mkStateStorage(conf, topologyConf, csContext);
+        IStormClusterState stormClusterState = ClusterUtils.mkStormClusterState(stateStorage, null, csContext);
+
+        metricRegistry.start(topologyConf, port);
+        SharedMetricRegistries.add(WORKER_METRICS_REGISTRY, metricRegistry.getRegistry());
+
+        Credentials initialCredentials = stormClusterState.credentials(topologyId, null);
+        Map<String, String> initCreds = new HashMap<>();
+        if (initialCredentials != null) {
+            initCreds.putAll(initialCredentials.get_creds());
+        }
+        autoCreds = ClientAuthUtils.getAutoCredentials(topologyConf);
+        subject = ClientAuthUtils.populateSubject(null, autoCreds, initCreds);
+
+        Subject.doAs(subject, (PrivilegedExceptionAction<Object>)
+            () -> loadWorker(stateStorage, stormClusterState, initCreds, initialCredentials)
+        );
+
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/worker/Worker, heartbeatToMasterIfLocalbeatFail(Lorg/apache/storm/generated/LSWorkerHeartbeat;)V > Context: Everywhere, blocks=[BB[SSA:2..2]2 - org.apache.storm.daemon.worker.Worker.heartbeatToMasterIfLocalbeatFail(Lorg/apache/storm/generated/LSWorkerHeartbeat;)V, BB[SSA:0..1]1 - org.apache.storm.daemon.worker.Worker.heartbeatToMasterIfLocalbeatFail(Lorg/apache/storm/generated/LSWorkerHeartbeat;)V, BB[SSA:3..4]3 - org.apache.storm.daemon.worker.Worker.heartbeatToMasterIfLocalbeatFail(Lorg/apache/storm/generated/LSWorkerHeartbeat;)V, BB[SSA:-1..-2]42 - org.apache.storm.daemon.worker.Worker.heartbeatToMasterIfLocalbeatFail(Lorg/apache/storm/generated/LSWorkerHeartbeat;)V], numberOfBasicBlocks=4, firstLineNumber=481, lastLineNumber=481, firstMethodNumber=480, lastMethodNumber=501, isFirstLineValid=true, methodSrcCode=
+    private void heartbeatToMasterIfLocalbeatFail(LSWorkerHeartbeat lsWorkerHeartbeat) {
+        if (ConfigUtils.isLocalMode(this.conf)) {
+            return;
+        }
+
+        //In distributed mode, send heartbeat directly to master if local supervisor goes down.
+        SupervisorWorkerHeartbeat workerHeartbeat = new SupervisorWorkerHeartbeat(lsWorkerHeartbeat.get_topology_id(),
+                                                                                  lsWorkerHeartbeat.get_executors(),
+                                                                                  lsWorkerHeartbeat.get_time_secs());
+        try (SupervisorIfaceFactory fac = supervisorIfaceSupplier.get()) {
+            fac.getIface().sendSupervisorWorkerHeartbeat(workerHeartbeat);
+        } catch (Exception tr1) {
+            //If any error/exception thrown, report directly to nimbus.
+            LOG.warn("Exception when send heartbeat to local supervisor", tr1.getMessage());
+            try (NimbusClient nimbusClient = NimbusClient.getConfiguredClient(topologyConf)) {
+                nimbusClient.getClient().sendSupervisorWorkerHeartbeat(workerHeartbeat);
+            } catch (Exception tr2) {
+                //if any error/exception thrown, just ignore.
+                LOG.error("Exception when send heartbeat to master", tr2.getMessage());
+            }
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/StormCommon, validateDistributedMode(Ljava/util/Map;)V > Context: Everywhere, blocks=[BB[SSA:0..1]1 - org.apache.storm.daemon.StormCommon.validateDistributedMode(Ljava/util/Map;)V, BB[SSA:-1..-2]0 - org.apache.storm.daemon.StormCommon.validateDistributedMode(Ljava/util/Map;)V, BB[SSA:2..3]2 - org.apache.storm.daemon.StormCommon.validateDistributedMode(Ljava/util/Map;)V, BB[SSA:-1..-2]7 - org.apache.storm.daemon.StormCommon.validateDistributedMode(Ljava/util/Map;)V], numberOfBasicBlocks=4, firstLineNumber=89, lastLineNumber=90, firstMethodNumber=89, lastMethodNumber=93, isFirstLineValid=false, methodSrcCode=
+    public static void validateDistributedMode(Map<String, Object> conf) {
+        if (ConfigUtils.isLocalMode(conf)) {
+            throw new IllegalArgumentException("Cannot start server in local mode!");
+        }
+    }
+
+}

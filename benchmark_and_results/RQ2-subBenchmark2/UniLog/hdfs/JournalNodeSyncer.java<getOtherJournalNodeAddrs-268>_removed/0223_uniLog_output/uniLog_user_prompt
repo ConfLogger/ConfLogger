@@ -1,0 +1,267 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>private List<InetSocketAddress> getOtherJournalNodeAddrs() {
+<Line#1>String uriStr = "";
+<Line#2>try {
+<Line#3>uriStr = conf.getTrimmed(DFSConfigKeys.DFS_NAMENODE_SHARED_EDITS_DIR_KEY);
+<Line#4>
+<Line#5>if (uriStr == null || uriStr.isEmpty()) {
+<Line#6>if (nameServiceId != null) {
+<Line#7>uriStr = conf.getTrimmed(DFSConfigKeys
+<Line#8>.DFS_NAMENODE_SHARED_EDITS_DIR_KEY + "." + nameServiceId);
+<Line#9>}
+<Line#10>}
+<Line#11>
+<Line#12>if (uriStr == null || uriStr.isEmpty()) {
+<Line#13>HashSet<String> sharedEditsUri = Sets.newHashSet();
+<Line#14>if (nameServiceId != null) {
+<Line#15>Collection<String> nnIds = DFSUtilClient.getNameNodeIds(
+<Line#16>conf, nameServiceId);
+<Line#17>for (String nnId : nnIds) {
+<Line#18>String suffix = nameServiceId + "." + nnId;
+<Line#19>uriStr = conf.getTrimmed(DFSConfigKeys
+<Line#20>.DFS_NAMENODE_SHARED_EDITS_DIR_KEY + "." + suffix);
+<Line#21>sharedEditsUri.add(uriStr);
+<Line#22>}
+<Line#23>if (sharedEditsUri.size() > 1) {
+<Line#24>uriStr = null;
+<Line#25>}
+<Line#26>}
+<Line#27>}
+<Line#28>
+<Line#29>if (uriStr == null || uriStr.isEmpty()) {
+<Line#30>return null;
+<Line#31>} else {
+<Line#32>return getJournalAddrList(uriStr);
+<Line#33>}
+<Line#34>
+<Line#35>} catch (URISyntaxException e) {
+<Line#36>} catch (IOException e) {
+<Line#37>}
+<Line#38>return null;
+<Line#39>}
+
+Example 1:
+<Line#1>{
+<Line#2>  String id=bpId;
+<Line#3>  if (id != null) {
+<Line#4>    return id;
+<Line#5>  }
+<Line#6>  DataNodeFaultInjector.get().delayWhenOfferServiceHoldLock();
+<Line#7>  readLock();
+<Line#8>  try {
+<Line#9>    if (bpNSInfo != null) {
+<Line#10>      return bpNSInfo.getBlockPoolID();
+<Line#11>    }
+<Line#12> else {
+<Line#13>      if (!quiet) {
+<Line#14>        LOG.warn("Block pool ID needed, but service not yet registered with " + "NN, trace:",new Exception());
+<Line#15>      }
+<Line#16>      return null;
+<Line#17>    }
+<Line#18>  }
+<Line#19>  finally {
+<Line#20>    readUnlock();
+<Line#21>  }
+<Line#22>}
+Label: <Line#14> LOG.warn("Block pool ID needed, but service not yet registered with " + "NN, trace:",new Exception())
+
+Example 2:
+<Line#1>{
+<Line#2>  int dataLen=(int)Math.min(endOffset - offset,(chunkSize * (long)maxChunks));
+<Line#3>  int numChunks=numberOfChunks(dataLen);
+<Line#4>  int checksumDataLen=numChunks * checksumSize;
+<Line#5>  int packetLen=dataLen + checksumDataLen + 4;
+<Line#6>  boolean lastDataPacket=offset + dataLen == endOffset && dataLen > 0;
+<Line#7>  int headerLen=writePacketHeader(pkt,dataLen,packetLen);
+<Line#8>  int headerOff=pkt.position() - headerLen;
+<Line#9>  int checksumOff=pkt.position();
+<Line#10>  byte[] buf=pkt.array();
+<Line#11>  if (checksumSize > 0 && ris.getChecksumIn() != null) {
+<Line#12>    readChecksum(buf,checksumOff,checksumDataLen);
+<Line#13>    if (lastDataPacket && lastChunkChecksum != null) {
+<Line#14>      int start=checksumOff + checksumDataLen - checksumSize;
+<Line#15>      byte[] updatedChecksum=lastChunkChecksum.getChecksum();
+<Line#16>      if (updatedChecksum != null) {
+<Line#17>        System.arraycopy(updatedChecksum,0,buf,start,checksumSize);
+<Line#18>      }
+<Line#19>    }
+<Line#20>  }
+<Line#21>  int dataOff=checksumOff + checksumDataLen;
+<Line#22>  if (!transferTo) {
+<Line#23>    try {
+<Line#24>      ris.readDataFully(buf,dataOff,dataLen);
+<Line#25>    }
+<Line#26> catch (    IOException ioe) {
+<Line#27>      if (ioe.getMessage().startsWith(EIO_ERROR)) {
+<Line#28>        throw new DiskFileCorruptException("A disk IO error occurred",ioe);
+<Line#29>      }
+<Line#30>      throw ioe;
+<Line#31>    }
+<Line#32>    if (verifyChecksum) {
+<Line#33>      verifyChecksum(buf,dataOff,dataLen,numChunks,checksumOff);
+<Line#34>    }
+<Line#35>  }
+<Line#36>  try {
+<Line#37>    if (transferTo) {
+<Line#38>      SocketOutputStream sockOut=(SocketOutputStream)out;
+<Line#39>      sockOut.write(buf,headerOff,dataOff - headerOff);
+<Line#40>      FileChannel fileCh=((FileInputStream)ris.getDataIn()).getChannel();
+<Line#41>      LongWritable waitTime=new LongWritable();
+<Line#42>      LongWritable transferTime=new LongWritable();
+<Line#43>      fileIoProvider.transferToSocketFully(ris.getVolumeRef().getVolume(),sockOut,fileCh,blockInPosition,dataLen,waitTime,transferTime);
+<Line#44>      datanode.metrics.addSendDataPacketBlockedOnNetworkNanos(waitTime.get());
+<Line#45>      datanode.metrics.addSendDataPacketTransferNanos(transferTime.get());
+<Line#46>      blockInPosition+=dataLen;
+<Line#47>    }
+<Line#48> else {
+<Line#49>      out.write(buf,headerOff,dataOff + dataLen - headerOff);
+<Line#50>    }
+<Line#51>  }
+<Line#52> catch (  IOException e) {
+<Line#53>    if (e instanceof SocketTimeoutException) {
+<Line#54>      LOG.warn("Sending packets timed out.",e);
+<Line#55>    }
+<Line#56> else {
+<Line#57>      String ioem=e.getMessage();
+<Line#58>      if (ioem != null) {
+<Line#59>        if (ioem.startsWith(EIO_ERROR)) {
+<Line#60>          throw new DiskFileCorruptException("A disk IO error occurred",e);
+<Line#61>        }
+<Line#62>        String causeMessage=e.getCause() != null ? e.getCause().getMessage() : "";
+<Line#63>        causeMessage=causeMessage != null ? causeMessage : "";
+<Line#64>        if (!ioem.startsWith("Broken pipe") && !ioem.startsWith("Connection reset") && !causeMessage.startsWith("Broken pipe")&& !causeMessage.startsWith("Connection reset")) {
+<Line#65>          LOG.error("BlockSender.sendChunks() exception: ",e);
+<Line#66>          datanode.getBlockScanner().markSuspectBlock(ris.getVolumeRef().getVolume().getStorageID(),block);
+<Line#67>        }
+<Line#68>      }
+<Line#69>    }
+<Line#70>    throw ioeToSocketException(e);
+<Line#71>  }
+<Line#72>  if (throttler != null) {
+<Line#73>    throttler.throttle(packetLen);
+<Line#74>  }
+<Line#75>  return dataLen;
+<Line#76>}
+Label: <Line#54> LOG.warn("Sending packets timed out.",e)
+
+Example 3:
+<Line#1>{
+<Line#2>  int dataLen=(int)Math.min(endOffset - offset,(chunkSize * (long)maxChunks));
+<Line#3>  int numChunks=numberOfChunks(dataLen);
+<Line#4>  int checksumDataLen=numChunks * checksumSize;
+<Line#5>  int packetLen=dataLen + checksumDataLen + 4;
+<Line#6>  boolean lastDataPacket=offset + dataLen == endOffset && dataLen > 0;
+<Line#7>  int headerLen=writePacketHeader(pkt,dataLen,packetLen);
+<Line#8>  int headerOff=pkt.position() - headerLen;
+<Line#9>  int checksumOff=pkt.position();
+<Line#10>  byte[] buf=pkt.array();
+<Line#11>  if (checksumSize > 0 && ris.getChecksumIn() != null) {
+<Line#12>    readChecksum(buf,checksumOff,checksumDataLen);
+<Line#13>    if (lastDataPacket && lastChunkChecksum != null) {
+<Line#14>      int start=checksumOff + checksumDataLen - checksumSize;
+<Line#15>      byte[] updatedChecksum=lastChunkChecksum.getChecksum();
+<Line#16>      if (updatedChecksum != null) {
+<Line#17>        System.arraycopy(updatedChecksum,0,buf,start,checksumSize);
+<Line#18>      }
+<Line#19>    }
+<Line#20>  }
+<Line#21>  int dataOff=checksumOff + checksumDataLen;
+<Line#22>  if (!transferTo) {
+<Line#23>    try {
+<Line#24>      ris.readDataFully(buf,dataOff,dataLen);
+<Line#25>    }
+<Line#26> catch (    IOException ioe) {
+<Line#27>      if (ioe.getMessage().startsWith(EIO_ERROR)) {
+<Line#28>        throw new DiskFileCorruptException("A disk IO error occurred",ioe);
+<Line#29>      }
+<Line#30>      throw ioe;
+<Line#31>    }
+<Line#32>    if (verifyChecksum) {
+<Line#33>      verifyChecksum(buf,dataOff,dataLen,numChunks,checksumOff);
+<Line#34>    }
+<Line#35>  }
+<Line#36>  try {
+<Line#37>    if (transferTo) {
+<Line#38>      SocketOutputStream sockOut=(SocketOutputStream)out;
+<Line#39>      sockOut.write(buf,headerOff,dataOff - headerOff);
+<Line#40>      FileChannel fileCh=((FileInputStream)ris.getDataIn()).getChannel();
+<Line#41>      LongWritable waitTime=new LongWritable();
+<Line#42>      LongWritable transferTime=new LongWritable();
+<Line#43>      fileIoProvider.transferToSocketFully(ris.getVolumeRef().getVolume(),sockOut,fileCh,blockInPosition,dataLen,waitTime,transferTime);
+<Line#44>      datanode.metrics.addSendDataPacketBlockedOnNetworkNanos(waitTime.get());
+<Line#45>      datanode.metrics.addSendDataPacketTransferNanos(transferTime.get());
+<Line#46>      blockInPosition+=dataLen;
+<Line#47>    }
+<Line#48> else {
+<Line#49>      out.write(buf,headerOff,dataOff + dataLen - headerOff);
+<Line#50>    }
+<Line#51>  }
+<Line#52> catch (  IOException e) {
+<Line#53>    if (e instanceof SocketTimeoutException) {
+<Line#54>      LOG.warn("Sending packets timed out.",e);
+<Line#55>    }
+<Line#56> else {
+<Line#57>      String ioem=e.getMessage();
+<Line#58>      if (ioem != null) {
+<Line#59>        if (ioem.startsWith(EIO_ERROR)) {
+<Line#60>          throw new DiskFileCorruptException("A disk IO error occurred",e);
+<Line#61>        }
+<Line#62>        String causeMessage=e.getCause() != null ? e.getCause().getMessage() : "";
+<Line#63>        causeMessage=causeMessage != null ? causeMessage : "";
+<Line#64>        if (!ioem.startsWith("Broken pipe") && !ioem.startsWith("Connection reset") && !causeMessage.startsWith("Broken pipe")&& !causeMessage.startsWith("Connection reset")) {
+<Line#65>          LOG.error("BlockSender.sendChunks() exception: ",e);
+<Line#66>          datanode.getBlockScanner().markSuspectBlock(ris.getVolumeRef().getVolume().getStorageID(),block);
+<Line#67>        }
+<Line#68>      }
+<Line#69>    }
+<Line#70>    throw ioeToSocketException(e);
+<Line#71>  }
+<Line#72>  if (throttler != null) {
+<Line#73>    throttler.throttle(packetLen);
+<Line#74>  }
+<Line#75>  return dataLen;
+<Line#76>}
+Label: <Line#65> LOG.error("BlockSender.sendChunks() exception: ",e)
+
+Example 4:
+<Line#1>{
+<Line#2>  if (isMaster || exportedKeys == null) {
+<Line#3>    return;
+<Line#4>  }
+<Line#5>  LOG.info("Setting block keys");
+<Line#6>  removeExpiredKeys();
+<Line#7>  this.currentKey=exportedKeys.getCurrentKey();
+<Line#8>  BlockKey[] receivedKeys=exportedKeys.getAllKeys();
+<Line#9>  for (int i=0; i < receivedKeys.length; i++) {
+<Line#10>    if (receivedKeys[i] != null) {
+<Line#11>      this.allKeys.put(receivedKeys[i].getKeyId(),receivedKeys[i]);
+<Line#12>    }
+<Line#13>  }
+<Line#14>}
+Label: <Line#5> LOG.info("Setting block keys")
+
+Example 5:
+<Line#1>{
+<Line#2>  if (ris.getDataInFd() != null && ((dropCacheBehindAllReads) || (dropCacheBehindLargeReads && isLongRead()))) {
+<Line#3>    try {
+<Line#4>      ris.dropCacheBehindReads(block.getBlockName(),lastCacheDropOffset,offset - lastCacheDropOffset,POSIX_FADV_DONTNEED);
+<Line#5>    }
+<Line#6> catch (    Exception e) {
+<Line#7>      LOG.warn("Unable to drop cache on file close",e);
+<Line#8>    }
+<Line#9>  }
+<Line#10>  if (curReadahead != null) {
+<Line#11>    curReadahead.cancel();
+<Line#12>  }
+<Line#13>  try {
+<Line#14>    ris.closeStreams();
+<Line#15>  }
+<Line#16>  finally {
+<Line#17>    IOUtils.closeStream(ris);
+<Line#18>    ris=null;
+<Line#19>  }
+<Line#20>}
+Label: <Line#7> LOG.warn("Unable to drop cache on file close",e)
+

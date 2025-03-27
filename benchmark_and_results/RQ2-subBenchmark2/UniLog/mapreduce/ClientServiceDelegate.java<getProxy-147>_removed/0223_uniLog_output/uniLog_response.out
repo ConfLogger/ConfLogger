@@ -1,0 +1,33 @@
+To insert log level and log verbosity messages in the provided code, we need to identify the lines where logging statements are present and then label them accordingly. Here are the lines with logging statements in the provided code:
+
+1. `<Line#23> LOG.info("Could not get Job info from RM for job " + jobId + ". Redirecting to job history server.");`
+   - Label: `<Line#23> LOG.info("Could not get Job info from RM for job " + jobId + ". Redirecting to job history server.");`
+
+2. `<Line#29> LOG.debug("AM not assigned to Job. Waiting to get the AM ...");`
+   - Label: `<Line#29> LOG.debug("AM not assigned to Job. Waiting to get the AM ...");`
+
+3. `<Line#32> LOG.debug("Application state is " + application.getYarnApplicationState());`
+   - Label: `<Line#32> LOG.debug("Application state is " + application.getYarnApplicationState());`
+
+4. `<Line#37> LOG.info("Job " + jobId + " is running, but the host is unknown." + " Verify user has VIEW_JOB access.");`
+   - Label: `<Line#37> LOG.info("Job " + jobId + " is running, but the host is unknown." + " Verify user has VIEW_JOB access.");`
+
+5. `<Line#55> LOG.debug("Connecting to " + serviceAddr);`
+   - Label: `<Line#55> LOG.debug("Connecting to " + serviceAddr);`
+
+6. `<Line#74> LOG.info("Could not connect to " + serviceAddr + ". Waiting for getting the latest AM address...");`
+   - Label: `<Line#74> LOG.info("Could not connect to " + serviceAddr + ". Waiting for getting the latest AM address...");`
+
+7. `<Line#79> LOG.warn("getProxy() call interruped", e1);`
+   - Label: `<Line#79> LOG.warn("getProxy() call interruped", e1);`
+
+8. `<Line#88> LOG.info("Could not get Job info from RM for job " + jobId + ". Redirecting to job history server.");`
+   - Label: `<Line#88> LOG.info("Could not get Job info from RM for job " + jobId + ". Redirecting to job history server.");`
+
+9. `<Line#93> LOG.warn("getProxy() call interruped", e);`
+   - Label: `<Line#93> LOG.warn("getProxy() call interruped", e);`
+
+10. `<Line#130> LOG.info("Application state is completed. FinalApplicationStatus=" + application.getFinalApplicationStatus().toString() + ". Redirecting to job history server");`
+    - Label: `<Line#130> LOG.info("Application state is completed. FinalApplicationStatus=" + application.getFinalApplicationStatus().toString() + ". Redirecting to job history server");`
+
+These labels indicate the log level (e.g., info, debug, warn) and the message being logged at that line.

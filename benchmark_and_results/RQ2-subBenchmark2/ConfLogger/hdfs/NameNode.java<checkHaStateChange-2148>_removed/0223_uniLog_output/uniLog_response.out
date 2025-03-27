@@ -1,0 +1,42 @@
+To insert a log level and log verbosity message into the given code, we need to identify the appropriate lines where logging should be added. The examples provided show logging in response to exceptions or specific conditions. Let's apply this to the target method code.
+
+### Target method code with added logging:
+
+```java
+<Line#0>throws AccessControlException {
+<Line#1>boolean autoHaEnabled = getConf().getBoolean(
+<Line#2>DFS_HA_AUTO_FAILOVER_ENABLED_KEY, DFS_HA_AUTO_FAILOVER_ENABLED_DEFAULT);
+<Line#3>switch (req.getSource()) {
+<Line#4>case REQUEST_BY_USER:
+<Line#5>if (autoHaEnabled) {
+<Line#6>throw new AccessControlException(
+<Line#7>"Manual HA control for this NameNode is disallowed, because " +
+<Line#8>"automatic HA is enabled.");
+<Line#9>LOG.warn("AccessControlException: Manual HA control disallowed due to automatic HA being enabled.");
+<Line#10>}
+<Line#11>break;
+<Line#12>case REQUEST_BY_USER_FORCED:
+<Line#13>if (autoHaEnabled) {
+<Line#14>LOG.info("Auto HA is enabled, but request is forced by user.");
+<Line#15>}
+<Line#16>break;
+<Line#17>case REQUEST_BY_ZKFC:
+<Line#18>if (!autoHaEnabled) {
+<Line#19>throw new AccessControlException(
+<Line#20>"Request from ZK failover controller at " +
+<Line#21>Server.getRemoteAddress() + " denied since automatic HA " +
+<Line#22>"is not enabled");
+<Line#23>LOG.error("AccessControlException: ZKFC request denied as automatic HA is not enabled.");
+<Line#24>}
+<Line#25>break;
+<Line#26>}
+<Line#27>}
+```
+
+### Explanation:
+
+- **Line#9**: Added a warning log when an `AccessControlException` is thrown due to manual HA control being disallowed. This provides insight into why the exception was triggered.
+  
+- **Line#14**: Added an info log to indicate that although auto HA is enabled, the request is being forced by the user. This is less severe than an exception and provides traceability.
+
+- **Line#23**: Added an error log when an `AccessControlException` is thrown because a ZKFC request was denied due to automatic HA not being enabled. This helps in identifying configuration issues or unexpected behavior.

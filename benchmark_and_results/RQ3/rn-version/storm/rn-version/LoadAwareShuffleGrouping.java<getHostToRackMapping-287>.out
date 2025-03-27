@@ -1,0 +1,73 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	LoadAwareShuffleGrouping.java	methodSinagture:	org.apache.storm.grouping.LoadAwareShuffleGrouping.getHostToRackMapping(Ljava/util/Map;Ljava/util/Map;)Ljava/util/Map;	methodLines:	287:308
+blockLines:	295:-1
+paras:	null
+TaintedStat:	NORMAL getHostToRackMapping:conditional branch(eq, to iindex=42) 31,32 Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, getHostToRackMapping(Ljava/util/Map;Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, getHostToRackMapping(Ljava/util/Map;Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere[32]30 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,28 @80 exception:29
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, getHostToRackMapping(Ljava/util/Map;Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere[32]30 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,28 @80 exception:29
+NORMAL getHostToRackMapping:[null]: 31 = checkcast <Application,Ljava/lang/String>30 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, getHostToRackMapping(Ljava/util/Map;Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere
+NORMAL getHostToRackMapping:conditional branch(eq, to iindex=42) 31,32 Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, getHostToRackMapping(Ljava/util/Map;Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	LoadAwareShuffleGrouping.java	methodSinagture:	org.apache.storm.grouping.LoadAwareShuffleGrouping.getHostToRackMapping(Ljava/util/Map;Ljava/util/Map;)Ljava/util/Map;	methodLines:	287:308
+blockLines:	305:-1
+paras:	null
+TaintedStat:	NORMAL getHostToRackMapping:conditional branch(eq, to iindex=63) 43,32 Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, getHostToRackMapping(Ljava/util/Map;Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, getHostToRackMapping(Ljava/util/Map;Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere[53]42 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,40 @133 exception:41
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, getHostToRackMapping(Ljava/util/Map;Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere[53]42 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,40 @133 exception:41
+NORMAL getHostToRackMapping:43 = checkcast <Application,Ljava/lang/String>42 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, getHostToRackMapping(Ljava/util/Map;Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere
+NORMAL getHostToRackMapping:conditional branch(eq, to iindex=63) 43,32 Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, getHostToRackMapping(Ljava/util/Map;Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private Map<String, String> getHostToRackMapping(Map<Integer, NodeInfo> taskToNodePort, Map<String, String> nodeToHost) {
+        Set<String> hosts = new HashSet<>();
+        for (int task : targetTasks) {
+            //if this task containing worker will be killed by a assignments sync,
+            //taskToNodePort will be an empty map which is refreshed by WorkerState
+            if (taskToNodePort.containsKey(task)) {
+                String node = taskToNodePort.get(task).get_node();
+                String hostname = nodeToHost.get(node);
+                if (hostname != null) {
+                    hosts.add(hostname);
+                }
+            } else {
+                LOG.error("Could not find task NodeInfo from local cache.");
+            }
+        }
+
+        String node = sourceNodeInfo.get_node();
+        String hostname = nodeToHost.get(node);
+        if (hostname != null) {
+            hosts.add(hostname);
+        }
+        return dnsToSwitchMapping.resolve(new ArrayList<>(hosts));
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, refreshLocalityGroup()V > Context: Everywhere, blocks=[BB[SSA:9..13]7 - org.apache.storm.grouping.LoadAwareShuffleGrouping.refreshLocalityGroup()V, BB[SSA:8..8]6 - org.apache.storm.grouping.LoadAwareShuffleGrouping.refreshLocalityGroup()V, BB[SSA:14..16]8 - org.apache.storm.grouping.LoadAwareShuffleGrouping.refreshLocalityGroup()V, BB[SSA:-1..-2]39 - org.apache.storm.grouping.LoadAwareShuffleGrouping.refreshLocalityGroup()V], numberOfBasicBlocks=4, firstLineNumber=118, lastLineNumber=122, firstMethodNumber=116, lastMethodNumber=132, isFirstLineValid=true, methodSrcCode=
+        // but this is okay since it will only cause a temporary misjudgement on LocalityScope
+        Map<Integer, NodeInfo> cachedTaskToNodePort = taskToNodePort.get();
+        Map<String, String> cachedNodeToHost = nodeToHost.get();
+
+        Map<String, String> hostToRack = getHostToRackMapping(cachedTaskToNodePort, cachedNodeToHost);
+
+        localityGroup.values().stream().forEach(v -> v.clear());
+
+        for (int target : targetTasks) {
+            LocalityScope scope = calculateScope(cachedTaskToNodePort, cachedNodeToHost, hostToRack, target);
+            LOG.debug("targetTask {} is in LocalityScope {}", target, scope);
+            if (!localityGroup.containsKey(scope)) {
+                localityGroup.put(scope, new ArrayList<>());
+            }
+            localityGroup.get(scope).add(target);
+        }
+    }
+
+}

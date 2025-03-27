@@ -1,0 +1,93 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	GeneralTopologyContext.java	methodSinagture:	org.apache.storm.task.GeneralTopologyContext.getComponentTasks(Ljava/lang/String;)Ljava/util/List;	methodLines:	105:110
+blockLines:	107:-1
+paras:	null
+TaintedStat:	NORMAL getComponentTasks:conditional branch(ne, to iindex=13) 7,8 Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getComponentTasks(Ljava/lang/String;)Ljava/util/List; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getComponentTasks(Ljava/lang/String;)Ljava/util/List; > Context: Everywhere[3]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,2 @5 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getComponentTasks(Ljava/lang/String;)Ljava/util/List; > Context: Everywhere[3]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,2 @5 exception:5
+NORMAL getComponentTasks:7 = checkcast <Application,Ljava/util/List>6 <Application,Ljava/util/List> Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getComponentTasks(Ljava/lang/String;)Ljava/util/List; > Context: Everywhere
+NORMAL getComponentTasks:conditional branch(ne, to iindex=13) 7,8 Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getComponentTasks(Ljava/lang/String;)Ljava/util/List; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public List<Integer> getComponentTasks(String componentId) {
+        List<Integer> ret = componentToTasks.get(componentId);
+        if (ret == null) {
+            return new ArrayList<>();
+        } else {
+            return new ArrayList<>(ret);
+        }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/streams/ProcessorBoltDelegate, getStreamInputTaskCount(Lorg/apache/storm/task/TopologyContext;Ljava/lang/String;)I > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=325, lastMethodNumber=332, isFirstLineValid=true, methodSrcCode=
+    private int getStreamInputTaskCount(TopologyContext context, String stream) {
+        int count = 0;
+        for (GlobalStreamId inputStream : context.getThisSources().keySet()) {
+            if (stream.equals(getStreamId(inputStream))) {
+                count += context.getComponentTasks(inputStream.get_componentId()).size();
+            }
+        }
+        return count;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/executor/Executor, outboundComponents(Lorg/apache/storm/task/WorkerTopologyContext;Ljava/lang/String;Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=555, lastMethodNumber=583, isFirstLineValid=true, methodSrcCode=
+        WorkerTopologyContext workerTopologyContext, String componentId, Map<String, Object> topoConf) {
+        Map<String, Map<String, LoadAwareCustomStreamGrouping>> ret = new HashMap<>();
+
+        Map<String, Map<String, Grouping>> outputGroupings = workerTopologyContext.getTargets(componentId);
+        for (Map.Entry<String, Map<String, Grouping>> entry : outputGroupings.entrySet()) {
+            String streamId = entry.getKey();
+            Map<String, Grouping> componentGrouping = entry.getValue();
+            Fields outFields = workerTopologyContext.getComponentOutputFields(componentId, streamId);
+            Map<String, LoadAwareCustomStreamGrouping> componentGrouper = new HashMap<String, LoadAwareCustomStreamGrouping>();
+            for (Map.Entry<String, Grouping> cg : componentGrouping.entrySet()) {
+                String component = cg.getKey();
+                Grouping grouping = cg.getValue();
+                List<Integer> outTasks = workerTopologyContext.getComponentTasks(component);
+                LoadAwareCustomStreamGrouping grouper = GrouperFactory.mkGrouper(
+                    workerTopologyContext, componentId, streamId, outFields, grouping, outTasks, topoConf);
+                componentGrouper.put(component, grouper);
+            }
+            if (componentGrouper.size() > 0) {
+                ret.put(streamId, componentGrouper);
+            }
+        }
+
+        for (String stream : workerTopologyContext.getComponentCommon(componentId).get_streams().keySet()) {
+            if (!ret.containsKey(stream)) {
+                ret.put(stream, null);
+            }
+        }
+
+        return ret;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/topology/BaseStatefulBoltExecutor, getCheckpointInputTaskCount(Lorg/apache/storm/task/TopologyContext;)I > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=56, lastMethodNumber=63, isFirstLineValid=true, methodSrcCode=
+    private int getCheckpointInputTaskCount(TopologyContext context) {
+        int count = 0;
+        for (GlobalStreamId inputStream : context.getThisSources().keySet()) {
+            if (CHECKPOINT_STREAM_ID.equals(inputStream.get_streamId())) {
+                count += context.getComponentTasks(inputStream.get_componentId()).size();
+            }
+        }
+        return count;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/task/TopologyContext, getThisTaskIndex()I > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=200, lastMethodNumber=208, isFirstLineValid=true, methodSrcCode=
+    public int getThisTaskIndex() {
+        List<Integer> tasks = new ArrayList<>(getComponentTasks(getThisComponentId()));
+        Collections.sort(tasks);
+        for (int i = 0; i < tasks.size(); i++) {
+            if (tasks.get(i) == getThisTaskId()) {
+                return i;
+            }
+        }
+        throw new RuntimeException("Fatal: could not find this task id in this component");
+    }
+}

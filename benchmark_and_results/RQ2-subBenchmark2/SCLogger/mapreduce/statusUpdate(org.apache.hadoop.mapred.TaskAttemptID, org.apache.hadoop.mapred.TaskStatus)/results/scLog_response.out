@@ -1,0 +1,21 @@
+<Line#2>:# LOG.info("Converting taskAttemptID to Yarn format");:#
+<Line#6>:# LOG.debug("Getting last status reference for yarnAttemptID");:#
+<Line#9>:# LOG.warn("Last status reference for yarnAttemptID is null");:#
+<Line#13>:# LOG.info("Setting taskFound to false in feedback");:#
+<Line#19>:# LOG.debug("Checking if TASK_PREEMPTION is enabled");:#
+<Line#21>:# LOG.info("Setting preemption to true in feedback");:#
+<Line#24>:# LOG.warn("Task status is null");:#
+<Line#27>:# LOG.debug("Received ping from " + taskAttemptID.toString());:#
+<Line#32>:# LOG.info("Updating taskHeartbeatHandler with yarnAttemptID");:#
+<Line#39>:# LOG.info("Updating taskHeartbeatHandler with yarnAttemptID");:#
+<Line#44>:# LOG.debug("Updating taskAttemptStatus progress with taskStatus progress");:#
+<Line#48>:# LOG.info("Updating taskAttemptLogProgressStamps with taskStatus progress");:#
+<Line#50>:# LOG.debug("Updating taskAttemptStatus stateString with taskStatus stateString");:#
+<Line#52>:# LOG.info("Updating taskAttemptStatus phase with taskStatus phase");:#
+<Line#56>:# LOG.debug("Creating new Counters object with taskStatus counters");:#
+<Line#60>:# LOG.info("Setting mapFinishTime in taskAttemptStatus");:#
+<Line#66>:# LOG.info("Setting shuffleFinishTime in taskAttemptStatus");:#
+<Line#71>:# LOG.info("Setting sortFinishTime in taskAttemptStatus");:#
+<Line#78>:# LOG.warn("Fetch failed maps in taskStatus is not null");:#
+<Line#84>:# LOG.info("Adding failedMapId to fetchFailedMaps in taskAttemptStatus");:#
+<Line#98>:# LOG.debug("Coalescing status update");:#

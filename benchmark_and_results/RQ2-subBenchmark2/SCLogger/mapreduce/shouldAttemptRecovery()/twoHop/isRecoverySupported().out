@@ -1,0 +1,14 @@
+private boolean isRecoverySupported() throws IOException {
+  boolean isSupported=false;
+  Configuration conf=getConfig();
+  if (committer != null) {
+    final JobContext _jobContext=getJobContextFromConf(conf);
+    isSupported=callWithJobClassLoader(conf,new ExceptionAction<Boolean>(){
+      public Boolean call(      Configuration conf) throws IOException {
+        return committer.isRecoverySupported(_jobContext);
+      }
+    }
+);
+  }
+  return isSupported;
+}

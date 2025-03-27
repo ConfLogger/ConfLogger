@@ -1,0 +1,367 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	FileTxnSnapLog.java	methodSinagture:	org.apache.zookeeper.server.persistence.FileTxnSnapLog.<init>(Ljava/io/File;Ljava/io/File;)V	methodLines:	111:174
+blockLines:	146:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(ne, to iindex=128) 19,32 Node: < Application, Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog, <init>(Ljava/io/File;Ljava/io/File;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog, <init>(Ljava/io/File;Ljava/io/File;)V > Context: Everywhere[199]72 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 70,15 @412 exception:71
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog, <init>(Ljava/io/File;Ljava/io/File;)V > Context: Everywhere[199]72 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 70,15 @412 exception:71
+NORMAL <init>:74 = invokestatic < Application, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > 72 @415 exception:73 Node: < Application, Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog, <init>(Ljava/io/File;Ljava/io/File;)V > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL parseBoolean:return 5 Node: < Primordial, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog, <init>(Ljava/io/File;Ljava/io/File;)V > Context: Everywhere[24]19 = invokestatic < Application, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > 17 @51 exception:18
+NORMAL <init>:conditional branch(ne, to iindex=128) 19,32 Node: < Application, Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog, <init>(Ljava/io/File;Ljava/io/File;)V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	FileTxnSnapLog.java	methodSinagture:	org.apache.zookeeper.server.persistence.FileTxnSnapLog.<init>(Ljava/io/File;Ljava/io/File;)V	methodLines:	111:174
+blockLines:	127:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(ne, to iindex=62) 19,32 Node: < Application, Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog, <init>(Ljava/io/File;Ljava/io/File;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog, <init>(Ljava/io/File;Ljava/io/File;)V > Context: Everywhere[23]17 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 14,15 @48 exception:16
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog, <init>(Ljava/io/File;Ljava/io/File;)V > Context: Everywhere[23]17 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 14,15 @48 exception:16
+NORMAL <init>:19 = invokestatic < Application, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > 17 @51 exception:18 Node: < Application, Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog, <init>(Ljava/io/File;Ljava/io/File;)V > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL parseBoolean:return 5 Node: < Primordial, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog, <init>(Ljava/io/File;Ljava/io/File;)V > Context: Everywhere[24]19 = invokestatic < Application, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > 17 @51 exception:18
+NORMAL <init>:conditional branch(ne, to iindex=62) 19,32 Node: < Application, Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog, <init>(Ljava/io/File;Ljava/io/File;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+     */
+    public FileTxnSnapLog(File dataDir, File snapDir) throws IOException {
+        LOG.debug("Opening datadir:{} snapDir:{}", dataDir, snapDir);
+
+        this.dataDir = new File(dataDir, version + VERSION);
+        this.snapDir = new File(snapDir, version + VERSION);
+
+        // by default create snap/log dirs, but otherwise complain instead
+        // See ZOOKEEPER-1161 for more details
+        boolean enableAutocreate = Boolean.parseBoolean(
+            System.getProperty(ZOOKEEPER_DATADIR_AUTOCREATE, ZOOKEEPER_DATADIR_AUTOCREATE_DEFAULT));
+
+        trustEmptySnapshot = Boolean.getBoolean(ZOOKEEPER_SNAPSHOT_TRUST_EMPTY);
+        LOG.info("{} : {}", ZOOKEEPER_SNAPSHOT_TRUST_EMPTY, trustEmptySnapshot);
+
+        if (!this.dataDir.exists()) {
+            if (!enableAutocreate) {
+                throw new DatadirException(String.format(
+                    "Missing data directory %s, automatic data directory creation is disabled (%s is false)."
+                    + " Please create this directory manually.",
+                    this.dataDir,
+                    ZOOKEEPER_DATADIR_AUTOCREATE));
+            }
+
+            if (!this.dataDir.mkdirs() && !this.dataDir.exists()) {
+                throw new DatadirException("Unable to create data directory " + this.dataDir);
+            }
+        }
+        if (!this.dataDir.canWrite()) {
+            throw new DatadirException("Cannot write to data directory " + this.dataDir);
+        }
+
+        if (!this.snapDir.exists()) {
+            // by default create this directory, but otherwise complain instead
+            // See ZOOKEEPER-1161 for more details
+            if (!enableAutocreate) {
+                throw new DatadirException(String.format(
+                    "Missing snap directory %s, automatic data directory creation is disabled (%s is false)."
+                    + "Please create this directory manually.",
+                    this.snapDir,
+                    ZOOKEEPER_DATADIR_AUTOCREATE));
+            }
+
+            if (!this.snapDir.mkdirs() && !this.snapDir.exists()) {
+                throw new DatadirException("Unable to create snap directory " + this.snapDir);
+            }
+        }
+        if (!this.snapDir.canWrite()) {
+            throw new DatadirException("Cannot write to snap directory " + this.snapDir);
+        }
+
+        // check content of transaction log and snapshot dirs if they are two different directories
+        // See ZOOKEEPER-2967 for more details
+        if (!this.dataDir.getPath().equals(this.snapDir.getPath())) {
+            checkLogDir();
+            checkSnapDir();
+        }
+
+        txnLog = new FileTxnLog(this.dataDir);
+        snapLog = new FileSnap(this.snapDir);
+
+        autoCreateDB = Boolean.parseBoolean(
+            System.getProperty(ZOOKEEPER_DB_AUTOCREATE, ZOOKEEPER_DB_AUTOCREATE_DEFAULT));
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, createFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)Lorg/apache/zookeeper/server/quorum/QuorumPeer; > Context: Everywhere, blocks=[BB[SSA:11..11]6 - org.apache.zookeeper.server.quorum.QuorumPeer.createFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)Lorg/apache/zookeeper/server/quorum/QuorumPeer;, BB[SSA:9..10]5 - org.apache.zookeeper.server.quorum.QuorumPeer.createFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)Lorg/apache/zookeeper/server/quorum/QuorumPeer;, BB[SSA:12..12]7 - org.apache.zookeeper.server.quorum.QuorumPeer.createFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)Lorg/apache/zookeeper/server/quorum/QuorumPeer;, BB[SSA:-1..-2]88 - org.apache.zookeeper.server.quorum.QuorumPeer.createFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)Lorg/apache/zookeeper/server/quorum/QuorumPeer;], numberOfBasicBlocks=4, firstLineNumber=2662, lastLineNumber=2662, firstMethodNumber=2660, lastMethodNumber=2709, isFirstLineValid=true, methodSrcCode=
+    public static QuorumPeer createFromConfig(QuorumPeerConfig config) throws IOException {
+        QuorumPeer quorumPeer = new QuorumPeer();
+        quorumPeer.setTxnFactory(new FileTxnSnapLog(config.getDataLogDir(), config.getDataDir()));
+        quorumPeer.enableLocalSessions(config.areLocalSessionsEnabled());
+        quorumPeer.enableLocalSessionsUpgrading(config.isLocalSessionsUpgradingEnabled());
+        quorumPeer.setElectionType(config.getElectionAlg());
+        quorumPeer.setMyid(config.getServerId());
+        quorumPeer.setTickTime(config.getTickTime());
+        quorumPeer.setMinSessionTimeout(config.getMinSessionTimeout());
+        quorumPeer.setMaxSessionTimeout(config.getMaxSessionTimeout());
+        quorumPeer.setInitLimit(config.getInitLimit());
+        quorumPeer.setSyncLimit(config.getSyncLimit());
+        quorumPeer.setConnectToLearnerMasterLimit(config.getConnectToLearnerMasterLimit());
+        quorumPeer.setObserverMasterPort(config.getObserverMasterPort());
+        quorumPeer.setConfigFileName(config.getConfigFilename());
+        quorumPeer.setClientPortListenBacklog(config.getClientPortListenBacklog());
+        quorumPeer.setZKDatabase(new ZKDatabase(quorumPeer.getTxnFactory()));
+        quorumPeer.setQuorumVerifier(config.getQuorumVerifier(), false);
+        if (config.getLastSeenQuorumVerifier() != null) {
+            quorumPeer.setLastSeenQuorumVerifier(config.getLastSeenQuorumVerifier(), false);
+        }
+        quorumPeer.initConfigInZKDatabase();
+        quorumPeer.setSslQuorum(config.isSslQuorum());
+        quorumPeer.setUsePortUnification(config.shouldUsePortUnification());
+        quorumPeer.setLearnerType(config.getPeerType());
+        quorumPeer.setSyncEnabled(config.getSyncEnabled());
+        quorumPeer.setQuorumListenOnAllIPs(config.getQuorumListenOnAllIPs());
+        if (config.sslQuorumReloadCertFiles) {
+            quorumPeer.getX509Util().enableCertFileReloading();
+        }
+        quorumPeer.setMultiAddressEnabled(config.isMultiAddressEnabled());
+        quorumPeer.setMultiAddressReachabilityCheckEnabled(config.isMultiAddressReachabilityCheckEnabled());
+        quorumPeer.setMultiAddressReachabilityCheckTimeoutMs(config.getMultiAddressReachabilityCheckTimeoutMs());
+
+        // sets quorum sasl authentication configurations
+        quorumPeer.setQuorumSaslEnabled(config.quorumEnableSasl);
+        if (quorumPeer.isQuorumSaslAuthEnabled()) {
+            quorumPeer.setQuorumServerSaslRequired(config.quorumServerRequireSasl);
+            quorumPeer.setQuorumLearnerSaslRequired(config.quorumLearnerRequireSasl);
+            quorumPeer.setQuorumServicePrincipal(config.quorumServicePrincipal);
+            quorumPeer.setQuorumServerLoginContext(config.quorumServerLoginContext);
+            quorumPeer.setQuorumLearnerLoginContext(config.quorumLearnerLoginContext);
+        }
+        quorumPeer.setQuorumCnxnThreadsSize(config.quorumCnxnThreadsSize);
+
+        if (config.jvmPauseMonitorToRun) {
+            quorumPeer.setJvmPauseMonitor(new JvmPauseMonitor(config));
+        }
+
+        return quorumPeer;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeerMain, runFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)V > Context: Everywhere, blocks=[BB[SSA:89..89]46 - org.apache.zookeeper.server.quorum.QuorumPeerMain.runFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)V, BB[SSA:87..88]45 - org.apache.zookeeper.server.quorum.QuorumPeerMain.runFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)V, BB[SSA:90..90]47 - org.apache.zookeeper.server.quorum.QuorumPeerMain.runFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)V], numberOfBasicBlocks=3, firstLineNumber=178, lastLineNumber=178, firstMethodNumber=146, lastMethodNumber=242, isFirstLineValid=true, methodSrcCode=
+        try {
+            ManagedUtil.registerLog4jMBeans();
+        } catch (JMException e) {
+            LOG.warn("Unable to register log4j JMX control", e);
+        }
+
+        LOG.info("Starting quorum peer, myid=" + config.getServerId());
+        final MetricsProvider metricsProvider;
+        try {
+            metricsProvider = MetricsProviderBootstrap.startMetricsProvider(
+                config.getMetricsProviderClassName(),
+                config.getMetricsProviderConfiguration());
+        } catch (MetricsProviderLifeCycleException error) {
+            throw new IOException("Cannot boot MetricsProvider " + config.getMetricsProviderClassName(), error);
+        }
+        try {
+            ServerMetrics.metricsProviderInitialized(metricsProvider);
+            ProviderRegistry.initialize();
+            ServerCnxnFactory cnxnFactory = null;
+            ServerCnxnFactory secureCnxnFactory = null;
+
+            if (config.getClientPortAddress() != null) {
+                cnxnFactory = ServerCnxnFactory.createFactory();
+                cnxnFactory.configure(config.getClientPortAddress(), config.getMaxClientCnxns(), config.getClientPortListenBacklog(), false);
+            }
+
+            if (config.getSecureClientPortAddress() != null) {
+                secureCnxnFactory = ServerCnxnFactory.createFactory();
+                secureCnxnFactory.configure(config.getSecureClientPortAddress(), config.getMaxClientCnxns(), config.getClientPortListenBacklog(), true);
+            }
+
+            quorumPeer = getQuorumPeer();
+            quorumPeer.setTxnFactory(new FileTxnSnapLog(config.getDataLogDir(), config.getDataDir()));
+            quorumPeer.enableLocalSessions(config.areLocalSessionsEnabled());
+            quorumPeer.enableLocalSessionsUpgrading(config.isLocalSessionsUpgradingEnabled());
+            //quorumPeer.setQuorumPeers(config.getAllMembers());
+            quorumPeer.setElectionType(config.getElectionAlg());
+            quorumPeer.setMyid(config.getServerId());
+            quorumPeer.setTickTime(config.getTickTime());
+            quorumPeer.setMinSessionTimeout(config.getMinSessionTimeout());
+            quorumPeer.setMaxSessionTimeout(config.getMaxSessionTimeout());
+            quorumPeer.setInitLimit(config.getInitLimit());
+            quorumPeer.setSyncLimit(config.getSyncLimit());
+            quorumPeer.setConnectToLearnerMasterLimit(config.getConnectToLearnerMasterLimit());
+            quorumPeer.setObserverMasterPort(config.getObserverMasterPort());
+            quorumPeer.setConfigFileName(config.getConfigFilename());
+            quorumPeer.setClientPortListenBacklog(config.getClientPortListenBacklog());
+            quorumPeer.setZKDatabase(new ZKDatabase(quorumPeer.getTxnFactory()));
+            quorumPeer.setQuorumVerifier(config.getQuorumVerifier(), false);
+            if (config.getLastSeenQuorumVerifier() != null) {
+                quorumPeer.setLastSeenQuorumVerifier(config.getLastSeenQuorumVerifier(), false);
+            }
+            quorumPeer.initConfigInZKDatabase();
+            quorumPeer.setCnxnFactory(cnxnFactory);
+            quorumPeer.setSecureCnxnFactory(secureCnxnFactory);
+            quorumPeer.setSslQuorum(config.isSslQuorum());
+            quorumPeer.setUsePortUnification(config.shouldUsePortUnification());
+            quorumPeer.setLearnerType(config.getPeerType());
+            quorumPeer.setSyncEnabled(config.getSyncEnabled());
+            quorumPeer.setQuorumListenOnAllIPs(config.getQuorumListenOnAllIPs());
+            if (config.sslQuorumReloadCertFiles) {
+                quorumPeer.getX509Util().enableCertFileReloading();
+            }
+            quorumPeer.setMultiAddressEnabled(config.isMultiAddressEnabled());
+            quorumPeer.setMultiAddressReachabilityCheckEnabled(config.isMultiAddressReachabilityCheckEnabled());
+            quorumPeer.setMultiAddressReachabilityCheckTimeoutMs(config.getMultiAddressReachabilityCheckTimeoutMs());
+
+            // sets quorum sasl authentication configurations
+            quorumPeer.setQuorumSaslEnabled(config.quorumEnableSasl);
+            if (quorumPeer.isQuorumSaslAuthEnabled()) {
+                quorumPeer.setQuorumServerSaslRequired(config.quorumServerRequireSasl);
+                quorumPeer.setQuorumLearnerSaslRequired(config.quorumLearnerRequireSasl);
+                quorumPeer.setQuorumServicePrincipal(config.quorumServicePrincipal);
+                quorumPeer.setQuorumServerLoginContext(config.quorumServerLoginContext);
+                quorumPeer.setQuorumLearnerLoginContext(config.quorumLearnerLoginContext);
+            }
+            quorumPeer.setQuorumCnxnThreadsSize(config.quorumCnxnThreadsSize);
+            quorumPeer.initialize();
+
+            if (config.jvmPauseMonitorToRun) {
+                quorumPeer.setJvmPauseMonitor(new JvmPauseMonitor(config));
+            }
+
+            quorumPeer.start();
+            ZKAuditProvider.addZKStartStopAuditLog();
+            quorumPeer.join();
+        } catch (InterruptedException e) {
+            // warn, but generally this is ok
+            LOG.warn("Quorum Peer interrupted", e);
+        } finally {
+            try {
+                metricsProvider.stop();
+            } catch (Throwable error) {
+                LOG.warn("Error while stopping metrics", error);
+            }
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/ZooKeeperServerMain, runFromConfig(Lorg/apache/zookeeper/server/ServerConfig;)V > Context: Everywhere, blocks=[BB[SSA:38..38]22 - org.apache.zookeeper.server.ZooKeeperServerMain.runFromConfig(Lorg/apache/zookeeper/server/ServerConfig;)V, BB[SSA:36..37]21 - org.apache.zookeeper.server.ZooKeeperServerMain.runFromConfig(Lorg/apache/zookeeper/server/ServerConfig;)V, BB[SSA:39..43]23 - org.apache.zookeeper.server.ZooKeeperServerMain.runFromConfig(Lorg/apache/zookeeper/server/ServerConfig;)V], numberOfBasicBlocks=3, firstLineNumber=139, lastLineNumber=141, firstMethodNumber=122, lastMethodNumber=213, isFirstLineValid=true, methodSrcCode=
+    public void runFromConfig(ServerConfig config) throws IOException, AdminServerException {
+        LOG.info("Starting server");
+        FileTxnSnapLog txnLog = null;
+        try {
+            try {
+                metricsProvider = MetricsProviderBootstrap.startMetricsProvider(
+                    config.getMetricsProviderClassName(),
+                    config.getMetricsProviderConfiguration());
+            } catch (MetricsProviderLifeCycleException error) {
+                throw new IOException("Cannot boot MetricsProvider " + config.getMetricsProviderClassName(), error);
+            }
+            ServerMetrics.metricsProviderInitialized(metricsProvider);
+            ProviderRegistry.initialize();
+            // Note that this thread isn't going to be doing anything else,
+            // so rather than spawning another thread, we will just call
+            // run() in this thread.
+            // create a file logger url from the command line args
+            txnLog = new FileTxnSnapLog(config.dataLogDir, config.dataDir);
+            JvmPauseMonitor jvmPauseMonitor = null;
+            if (config.jvmPauseMonitorToRun) {
+                jvmPauseMonitor = new JvmPauseMonitor(config);
+            }
+            final ZooKeeperServer zkServer = new ZooKeeperServer(jvmPauseMonitor, txnLog, config.tickTime, config.minSessionTimeout, config.maxSessionTimeout, config.listenBacklog, null, config.initialConfig);
+            txnLog.setServerStats(zkServer.serverStats());
+
+            // Registers shutdown handler which will be used to know the
+            // server error or shutdown state changes.
+            final CountDownLatch shutdownLatch = new CountDownLatch(1);
+            zkServer.registerServerShutdownHandler(new ZooKeeperServerShutdownHandler(shutdownLatch));
+
+            // Start Admin server
+            adminServer = AdminServerFactory.createAdminServer();
+            adminServer.setZooKeeperServer(zkServer);
+            adminServer.start();
+
+            boolean needStartZKServer = true;
+            if (config.getClientPortAddress() != null) {
+                cnxnFactory = ServerCnxnFactory.createFactory();
+                cnxnFactory.configure(config.getClientPortAddress(), config.getMaxClientCnxns(), config.getClientPortListenBacklog(), false);
+                cnxnFactory.startup(zkServer);
+                // zkServer has been started. So we don't need to start it again in secureCnxnFactory.
+                needStartZKServer = false;
+            }
+            if (config.getSecureClientPortAddress() != null) {
+                secureCnxnFactory = ServerCnxnFactory.createFactory();
+                secureCnxnFactory.configure(config.getSecureClientPortAddress(), config.getMaxClientCnxns(), config.getClientPortListenBacklog(), true);
+                secureCnxnFactory.startup(zkServer, needStartZKServer);
+            }
+
+            containerManager = new ContainerManager(
+                zkServer.getZKDatabase(),
+                zkServer.firstProcessor,
+                Integer.getInteger("znode.container.checkIntervalMs", (int) TimeUnit.MINUTES.toMillis(1)),
+                Integer.getInteger("znode.container.maxPerMinute", 10000),
+                Long.getLong("znode.container.maxNeverUsedIntervalMs", 0)
+            );
+            containerManager.start();
+            ZKAuditProvider.addZKStartStopAuditLog();
+
+            serverStarted();
+
+            // Watch status of ZooKeeper server. It will do a graceful shutdown
+            // if the server is not running or hits an internal error.
+            shutdownLatch.await();
+
+            shutdown();
+
+            if (cnxnFactory != null) {
+                cnxnFactory.join();
+            }
+            if (secureCnxnFactory != null) {
+                secureCnxnFactory.join();
+            }
+            if (zkServer.canShutdown()) {
+                zkServer.shutdown(true);
+            }
+        } catch (InterruptedException e) {
+            // warn, but generally this is ok
+            LOG.warn("Server interrupted", e);
+        } finally {
+            if (txnLog != null) {
+                txnLog.close();
+            }
+            if (metricsProvider != null) {
+                try {
+                    metricsProvider.stop();
+                } catch (Throwable error) {
+                    LOG.warn("Error while stopping metrics", error);
+                }
+            }
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/PurgeTxnLog, purge(Ljava/io/File;Ljava/io/File;I)V > Context: Everywhere, blocks=[BB[SSA:9..12]6 - org.apache.zookeeper.server.PurgeTxnLog.purge(Ljava/io/File;Ljava/io/File;I)V, BB[SSA:8..8]5 - org.apache.zookeeper.server.PurgeTxnLog.purge(Ljava/io/File;Ljava/io/File;I)V, BB[SSA:13..16]7 - org.apache.zookeeper.server.PurgeTxnLog.purge(Ljava/io/File;Ljava/io/File;I)V, BB[SSA:-1..-2]14 - org.apache.zookeeper.server.PurgeTxnLog.purge(Ljava/io/File;Ljava/io/File;I)V], numberOfBasicBlocks=4, firstLineNumber=80, lastLineNumber=82, firstMethodNumber=75, lastMethodNumber=87, isFirstLineValid=true, methodSrcCode=
+    public static void purge(File dataDir, File snapDir, int num) throws IOException {
+        if (num < 3) {
+            throw new IllegalArgumentException(COUNT_ERR_MSG);
+        }
+
+        FileTxnSnapLog txnLog = new FileTxnSnapLog(dataDir, snapDir);
+
+        List<File> snaps = txnLog.findNValidSnapshots(num);
+        int numSnaps = snaps.size();
+        if (numSnaps > 0) {
+            purgeOlderSnapshots(txnLog, snaps.get(numSnaps - 1));
+        }
+    }
+
+}

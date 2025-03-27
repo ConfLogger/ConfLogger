@@ -1,0 +1,84 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	KerberosName.java	methodSinagture:	org.apache.zookeeper.server.auth.KerberosName.<clinit>()V	methodLines:	53:101
+blockLines:	85:-1
+paras:	null
+TaintedStat:	NORMAL <clinit>:conditional branch(eq, to iindex=32) 19,20 Node: < Application, Lorg/apache/zookeeper/server/auth/KerberosName, <clinit>()V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/KerberosName, <clinit>()V > Context: Everywhere[17]19 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 17 @44 exception:18
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/KerberosName, <clinit>()V > Context: Everywhere[17]19 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 17 @44 exception:18
+NORMAL <clinit>:conditional branch(eq, to iindex=32) 19,20 Node: < Application, Lorg/apache/zookeeper/server/auth/KerberosName, <clinit>()V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	KerberosName.java	methodSinagture:	org.apache.zookeeper.server.auth.KerberosName.<clinit>()V	methodLines:	53:101
+blockLines:	86:-1
+paras:	null
+TaintedStat:	NORMAL <clinit>:conditional branch(eq, to iindex=32) 25,26 Node: < Application, Lorg/apache/zookeeper/server/auth/KerberosName, <clinit>()V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/KerberosName, <clinit>()V > Context: Everywhere[21]22 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 17 @52 exception:21
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/KerberosName, <clinit>()V > Context: Everywhere[21]22 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 17 @52 exception:21
+NORMAL <clinit>:25 = invokevirtual < Application, Ljava/lang/String, equals(Ljava/lang/Object;)Z > 22,23 @57 exception:24 Node: < Application, Lorg/apache/zookeeper/server/auth/KerberosName, <clinit>()V > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL equals:conditional branch(ne, to iindex=5) 1,2 Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL equals:return 22 Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/KerberosName, <clinit>()V > Context: Everywhere[23]25 = invokevirtual < Application, Ljava/lang/String, equals(Ljava/lang/Object;)Z > 22,23 @57 exception:24
+NORMAL <clinit>:conditional branch(eq, to iindex=32) 25,26 Node: < Application, Lorg/apache/zookeeper/server/auth/KerberosName, <clinit>()V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+     */
+    private static final Pattern nameParser = Pattern.compile("([^/@]*)(/([^/@]*))?@([^/@]*)");
+
+    /**
+     * A pattern that matches a string with out '$' and then a single
+     * parameter with $n.
+     */
+    private static Pattern parameterPattern = Pattern.compile("([^$]*)(\\$(\\d*))?");
+
+    /**
+     * A pattern for parsing a auth_to_local rule.
+     */
+    private static final Pattern ruleParser = Pattern.compile(
+        "\\s*((DEFAULT)|(RULE:\\[(\\d*):([^\\]]*)](\\(([^)]*)\\))?"
+        + "(s/([^/]*)/([^/]*)/(g)?)?))");
+
+    /**
+     * A pattern that recognizes simple/non-simple names.
+     */
+    private static final Pattern nonSimplePattern = Pattern.compile("[/@]");
+
+    /**
+     * The list of translation rules.
+     */
+    private static List<Rule> rules;
+
+    private static String defaultRealm;
+
+    static {
+        try {
+            defaultRealm = KerberosUtil.getDefaultRealm();
+        } catch (Exception ke) {
+            if ((System.getProperty("zookeeper.requireKerberosConfig") != null)
+                && (System.getProperty("zookeeper.requireKerberosConfig").equals("true"))) {
+                throw new IllegalArgumentException("Can't get Kerberos configuration", ke);
+            } else {
+                defaultRealm = "";
+            }
+        }
+        try {
+            // setConfiguration() will work even if the above try() fails due
+            // to a missing Kerberos configuration (unless zookeeper.requireKerberosConfig
+            // is set to true, which would not allow execution to reach here due to the
+            // throwing of an IllegalArgumentException above).
+            setConfiguration();
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Could not configure Kerberos principal name mapping.");
+        }
+    }
+
+
+
+====================ctx:=======================

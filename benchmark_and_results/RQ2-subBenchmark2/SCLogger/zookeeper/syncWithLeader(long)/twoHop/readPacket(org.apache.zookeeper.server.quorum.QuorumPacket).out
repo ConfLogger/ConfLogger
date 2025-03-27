@@ -1,0 +1,15 @@
+/** 
+ * read a packet from the leader
+ * @param pp the packet to be instantiated
+ * @throws IOException
+ */
+void readPacket(QuorumPacket pp) throws IOException {
+synchronized (leaderIs) {
+    leaderIs.readRecord(pp,"packet");
+    messageTracker.trackReceived(pp.getType());
+  }
+  if (LOG.isTraceEnabled()) {
+    final long traceMask=(pp.getType() == Leader.PING) ? ZooTrace.SERVER_PING_TRACE_MASK : ZooTrace.SERVER_PACKET_TRACE_MASK;
+    ZooTrace.logQuorumPacket(LOG,traceMask,'i',pp);
+  }
+}

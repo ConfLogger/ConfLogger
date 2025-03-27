@@ -1,0 +1,461 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>public List<T> findAllWithRecorder(String path, S conf, Recorder recorder) {
+<Line#1>Preconditions.checkArgument(path != null, "path may not be null");
+<Line#2>
+<Line#3>List<T> eligibleFactories = scanRegistered(path, conf);
+<Line#4>if (!eligibleFactories.isEmpty()) {
+<Line#5>return eligibleFactories;
+<Line#6>}
+<Line#7>
+<Line#8>List<T> factories = new ArrayList<>(mFactories);
+<Line#9>String libDir = PathUtils.concatPath(conf.getString(PropertyKey.HOME), "lib");
+<Line#10>String extensionDir = conf.getString(PropertyKey.EXTENSIONS_DIR);
+<Line#11>scanLibs(factories, libDir);
+<Line#12>recorder.record("Loaded {} factory core jars from {}", factories.size(), libDir);
+<Line#13>scanExtensions(factories, extensionDir);
+<Line#14>recorder.record("Loaded extension jars from {}.%n"
+<Line#15>+ "The total number of loaded factory core jars is {}", extensionDir, factories.size());
+<Line#16>
+<Line#17>if (conf.isSetByUser(PropertyKey.UNDERFS_VERSION)) {
+<Line#18>recorder.record("alluxio.underfs.version is set by user, target version is {}",
+<Line#19>conf.getString(PropertyKey.UNDERFS_VERSION));
+<Line#20>} else {
+<Line#21>recorder.record("alluxio.underfs.version is not set by user");
+<Line#22>}
+<Line#23>
+<Line#24>for (T factory : factories) {
+<Line#25>// if `getVersion` returns null set the version to "unknown"
+<Line#26>String version = UNKNOWN_VERSION;
+<Line#27>if (factory instanceof UnderFileSystemFactory) {
+<Line#28>version = Optional.ofNullable(((UnderFileSystemFactory) factory)
+<Line#29>.getVersion()).orElse(UNKNOWN_VERSION);
+<Line#30>}
+<Line#31>if (factory.supportsPath(path, conf)) {
+<Line#32>String message =
+<Line#33>String.format("Adding factory %s of version %s which supports path %s",
+<Line#34>factory.getClass().getSimpleName(), version, path);
+<Line#35>recorder.record(message);
+<Line#36>LOG.debug(message);
+<Line#37>eligibleFactories.add(factory);
+<Line#38>} else {
+<Line#39>recorder.record("Factory implementation {} of version {} "
+<Line#40>+ "isn't eligible for path {}", factory.getClass().getSimpleName(), version, path);
+<Line#41>}
+<Line#42>}
+<Line#43>if (eligibleFactories.isEmpty()) {
+<Line#44>String message = String.format("No factory implementation supports the path %s", path);
+<Line#45>recorder.record(message);
+<Line#46>LOG.warn(message);
+<Line#47>}
+<Line#48>return eligibleFactories;
+<Line#49>}
+
+Example 1:
+<Line#1>{
+<Line#2>  Set<String> targetSet=Arrays.stream(targets).map(String::trim).collect(Collectors.toSet());
+<Line#3>  List<TargetInfo> targetInfoList=new ArrayList<>();
+<Line#4>  if (targetSet.contains(ROLE_MASTERS)) {
+<Line#5>    System.out.println("The logLevel command will only take effect on the primary master, " + "instead of on all the masters. ");
+<Line#6>    targetSet.remove(ROLE_MASTERS);
+<Line#7>    targetSet.add(ROLE_MASTER);
+<Line#8>    System.out.println("Target `masters` is replaced with `master`.");
+<Line#9>  }
+<Line#10>  if (targetSet.contains(ROLE_JOB_MASTERS)) {
+<Line#11>    System.out.println("The logLevel command will only take effect on the primary job master, " + "instead of on all the masters. ");
+<Line#12>    targetSet.remove(ROLE_JOB_MASTERS);
+<Line#13>    targetSet.add(ROLE_JOB_MASTER);
+<Line#14>    System.out.println("Target `job_masters` is replaced with `job_master`.");
+<Line#15>  }
+<Line#16>  ClientContext clientContext=ClientContext.create(conf);
+<Line#17>  FileSystemContext fsContext=null;
+<Line#18>  JobMasterClient jobClient=null;
+<Line#19>  for (  String target : targetSet) {
+<Line#20>    if (target.isEmpty()) {
+<Line#21>      continue;
+<Line#22>    }
+<Line#23> else     if (target.equals(ROLE_MASTER)) {
+<Line#24>      if (fsContext == null) {
+<Line#25>        fsContext=FileSystemContext.create(clientContext);
+<Line#26>      }
+<Line#27>      String masterHost=fsContext.getMasterAddress().getHostName();
+<Line#28>      int masterPort=NetworkAddressUtils.getPort(ServiceType.MASTER_WEB,conf);
+<Line#29>      TargetInfo master=new TargetInfo(masterHost,masterPort,ROLE_MASTER);
+<Line#30>      targetInfoList.add(master);
+<Line#31>    }
+<Line#32> else     if (target.equals(ROLE_JOB_MASTER)) {
+<Line#33>      if (jobClient == null) {
+<Line#34>        jobClient=JobMasterClient.Factory.create(JobMasterClientContext.newBuilder(clientContext).build());
+<Line#35>      }
+<Line#36>      String jobMasterHost=jobClient.getRemoteHostName();
+<Line#37>      int jobMasterPort=NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB,conf);
+<Line#38>      TargetInfo jobMaster=new TargetInfo(jobMasterHost,jobMasterPort,ROLE_JOB_MASTER);
+<Line#39>      targetInfoList.add(jobMaster);
+<Line#40>    }
+<Line#41> else     if (target.equals(ROLE_WORKERS)) {
+<Line#42>      if (fsContext == null) {
+<Line#43>        fsContext=FileSystemContext.create(ClientContext.create(conf));
+<Line#44>      }
+<Line#45>      WorkerClusterView workers=fsContext.getCachedWorkers();
+<Line#46>      if (workers.size() == 0) {
+<Line#47>        System.out.println("No workers found");
+<Line#48>        System.exit(1);
+<Line#49>      }
+<Line#50>      for (      WorkerInfo workerInfo : workers) {
+<Line#51>        WorkerNetAddress netAddress=workerInfo.getAddress();
+<Line#52>        TargetInfo worker=new TargetInfo(netAddress.getHost(),netAddress.getWebPort(),ROLE_WORKER);
+<Line#53>        targetInfoList.add(worker);
+<Line#54>      }
+<Line#55>    }
+<Line#56> else     if (target.equals(ROLE_JOB_WORKERS)) {
+<Line#57>      if (jobClient == null) {
+<Line#58>        jobClient=JobMasterClient.Factory.create(JobMasterClientContext.newBuilder(clientContext).build());
+<Line#59>      }
+<Line#60>      List<JobWorkerHealth> jobWorkerInfoList=jobClient.getAllWorkerHealth();
+<Line#61>      if (jobWorkerInfoList.size() == 0) {
+<Line#62>        System.out.println("No job workers found");
+<Line#63>        System.exit(1);
+<Line#64>      }
+<Line#65>      int jobWorkerPort=conf.getInt(PropertyKey.JOB_WORKER_WEB_PORT);
+<Line#66>      for (      JobWorkerHealth jobWorkerInfo : jobWorkerInfoList) {
+<Line#67>        String jobWorkerHost=jobWorkerInfo.getHostname();
+<Line#68>        TargetInfo jobWorker=new TargetInfo(jobWorkerHost,jobWorkerPort,ROLE_JOB_WORKER);
+<Line#69>        targetInfoList.add(jobWorker);
+<Line#70>      }
+<Line#71>    }
+<Line#72> else     if (target.contains(":")) {
+<Line#73>      String[] targetInfoParts=target.split(":");
+<Line#74>      int port=Integer.parseInt(targetInfoParts[1]);
+<Line#75>      String role;
+<Line#76>      if (targetInfoParts.length > 2) {
+<Line#77>        role=targetInfoParts[2];
+<Line#78>      }
+<Line#79> else {
+<Line#80>        role=inferRoleFromPort(port,conf);
+<Line#81>      }
+<Line#82>      LOG.debug("Port {} maps to role {}",port,role);
+<Line#83>      TargetInfo unspecifiedTarget=new TargetInfo(targetInfoParts[0],port,role);
+<Line#84>      System.out.format("Role inferred from port: %s%n",unspecifiedTarget);
+<Line#85>      targetInfoList.add(unspecifiedTarget);
+<Line#86>    }
+<Line#87> else {
+<Line#88>      throw new IOException(String.format("Unrecognized target argument: %s. " + "Please pass the targets in the form of <host>:<port>, " + "with comma as the separator.",target));
+<Line#89>    }
+<Line#90>  }
+<Line#91>  return targetInfoList;
+<Line#92>}
+Label: <Line#82> LOG.debug("Port {} maps to role {}",port,role)
+
+Example 2:
+<Line#1>{
+<Line#2>  LOG.info("Process starting.");
+<Line#3>  mRunning=true;
+<Line#4>  mJournalSystem.start();
+<Line#5>  startMasterComponents(false);
+<Line#6>  mServices.forEach(SimpleService::start);
+<Line#7>  if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+<Line#8>    LOG.info("Waiting for journals to catch up.");
+<Line#9>    mJournalSystem.waitForCatchup();
+<Line#10>  }
+<Line#11>  LOG.info("Starting leader selector.");
+<Line#12>  mLeaderSelector.start(getRpcAddress());
+<Line#13>  while (!Thread.interrupted()) {
+<Line#14>    if (!mRunning) {
+<Line#15>      LOG.info("master process is not running. Breaking out");
+<Line#16>      break;
+<Line#17>    }
+<Line#18>    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+<Line#19>      LOG.info("Waiting for journals to catch up.");
+<Line#20>      mJournalSystem.waitForCatchup();
+<Line#21>    }
+<Line#22>    LOG.info("Started in stand-by mode.");
+<Line#23>    mLeaderSelector.waitForState(NodeState.PRIMARY);
+<Line#24>    mLastGainPrimacyTime=CommonUtils.getCurrentMs();
+<Line#25>    if (!mRunning) {
+<Line#26>      break;
+<Line#27>    }
+<Line#28>    try {
+<Line#29>      if (!promote()) {
+<Line#30>        continue;
+<Line#31>      }
+<Line#32>      mServices.forEach(SimpleService::promote);
+<Line#33>      LOG.info("Primary started");
+<Line#34>    }
+<Line#35> catch (    Throwable t) {
+<Line#36>      if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED)) {
+<Line#37>        takeEmergencyBackup();
+<Line#38>      }
+<Line#39>      throw t;
+<Line#40>    }
+<Line#41>    mLeaderSelector.waitForState(NodeState.STANDBY);
+<Line#42>    mLastLosePrimacyTime=CommonUtils.getCurrentMs();
+<Line#43>    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+<Line#44>      stop();
+<Line#45>    }
+<Line#46> else {
+<Line#47>      if (!mRunning) {
+<Line#48>        break;
+<Line#49>      }
+<Line#50>      ExecutorService es=null;
+<Line#51>      List<Future<Void>> dumpFutures=new ArrayList<>();
+<Line#52>      try {
+<Line#53>        es=Executors.newFixedThreadPool(2,ThreadFactoryUtils.build("info-dumper-%d",true));
+<Line#54>        dumpFutures.addAll(ProcessUtils.dumpInformationOnFailover(es));
+<Line#55>      }
+<Line#56> catch (      Throwable t) {
+<Line#57>        LOG.warn("Failed to dump metrics and jstacks before demotion",t);
+<Line#58>      }
+<Line#59>      LOG.info("Losing the leadership.");
+<Line#60>      mServices.forEach(SimpleService::demote);
+<Line#61>      demote();
+<Line#62>      for (      Future<Void> f : dumpFutures) {
+<Line#63>        try {
+<Line#64>          f.get();
+<Line#65>        }
+<Line#66> catch (        InterruptedException|ExecutionException e) {
+<Line#67>          LOG.warn("Failed to dump metrics and jstacks before demotion",e);
+<Line#68>        }
+<Line#69>      }
+<Line#70>      if (es != null) {
+<Line#71>        es.shutdownNow();
+<Line#72>      }
+<Line#73>    }
+<Line#74>  }
+<Line#75>}
+Label: <Line#2> LOG.info("Process starting.")
+
+Example 3:
+<Line#1>{
+<Line#2>  LOG.info("Process starting.");
+<Line#3>  mRunning=true;
+<Line#4>  mJournalSystem.start();
+<Line#5>  startMasterComponents(false);
+<Line#6>  mServices.forEach(SimpleService::start);
+<Line#7>  if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+<Line#8>    LOG.info("Waiting for journals to catch up.");
+<Line#9>    mJournalSystem.waitForCatchup();
+<Line#10>  }
+<Line#11>  LOG.info("Starting leader selector.");
+<Line#12>  mLeaderSelector.start(getRpcAddress());
+<Line#13>  while (!Thread.interrupted()) {
+<Line#14>    if (!mRunning) {
+<Line#15>      LOG.info("master process is not running. Breaking out");
+<Line#16>      break;
+<Line#17>    }
+<Line#18>    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+<Line#19>      LOG.info("Waiting for journals to catch up.");
+<Line#20>      mJournalSystem.waitForCatchup();
+<Line#21>    }
+<Line#22>    LOG.info("Started in stand-by mode.");
+<Line#23>    mLeaderSelector.waitForState(NodeState.PRIMARY);
+<Line#24>    mLastGainPrimacyTime=CommonUtils.getCurrentMs();
+<Line#25>    if (!mRunning) {
+<Line#26>      break;
+<Line#27>    }
+<Line#28>    try {
+<Line#29>      if (!promote()) {
+<Line#30>        continue;
+<Line#31>      }
+<Line#32>      mServices.forEach(SimpleService::promote);
+<Line#33>      LOG.info("Primary started");
+<Line#34>    }
+<Line#35> catch (    Throwable t) {
+<Line#36>      if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED)) {
+<Line#37>        takeEmergencyBackup();
+<Line#38>      }
+<Line#39>      throw t;
+<Line#40>    }
+<Line#41>    mLeaderSelector.waitForState(NodeState.STANDBY);
+<Line#42>    mLastLosePrimacyTime=CommonUtils.getCurrentMs();
+<Line#43>    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+<Line#44>      stop();
+<Line#45>    }
+<Line#46> else {
+<Line#47>      if (!mRunning) {
+<Line#48>        break;
+<Line#49>      }
+<Line#50>      ExecutorService es=null;
+<Line#51>      List<Future<Void>> dumpFutures=new ArrayList<>();
+<Line#52>      try {
+<Line#53>        es=Executors.newFixedThreadPool(2,ThreadFactoryUtils.build("info-dumper-%d",true));
+<Line#54>        dumpFutures.addAll(ProcessUtils.dumpInformationOnFailover(es));
+<Line#55>      }
+<Line#56> catch (      Throwable t) {
+<Line#57>        LOG.warn("Failed to dump metrics and jstacks before demotion",t);
+<Line#58>      }
+<Line#59>      LOG.info("Losing the leadership.");
+<Line#60>      mServices.forEach(SimpleService::demote);
+<Line#61>      demote();
+<Line#62>      for (      Future<Void> f : dumpFutures) {
+<Line#63>        try {
+<Line#64>          f.get();
+<Line#65>        }
+<Line#66> catch (        InterruptedException|ExecutionException e) {
+<Line#67>          LOG.warn("Failed to dump metrics and jstacks before demotion",e);
+<Line#68>        }
+<Line#69>      }
+<Line#70>      if (es != null) {
+<Line#71>        es.shutdownNow();
+<Line#72>      }
+<Line#73>    }
+<Line#74>  }
+<Line#75>}
+Label: <Line#8> LOG.info("Waiting for journals to catch up.")
+
+Example 4:
+<Line#1>{
+<Line#2>  LOG.info("Process starting.");
+<Line#3>  mRunning=true;
+<Line#4>  mJournalSystem.start();
+<Line#5>  startMasterComponents(false);
+<Line#6>  mServices.forEach(SimpleService::start);
+<Line#7>  if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+<Line#8>    LOG.info("Waiting for journals to catch up.");
+<Line#9>    mJournalSystem.waitForCatchup();
+<Line#10>  }
+<Line#11>  LOG.info("Starting leader selector.");
+<Line#12>  mLeaderSelector.start(getRpcAddress());
+<Line#13>  while (!Thread.interrupted()) {
+<Line#14>    if (!mRunning) {
+<Line#15>      LOG.info("master process is not running. Breaking out");
+<Line#16>      break;
+<Line#17>    }
+<Line#18>    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+<Line#19>      LOG.info("Waiting for journals to catch up.");
+<Line#20>      mJournalSystem.waitForCatchup();
+<Line#21>    }
+<Line#22>    LOG.info("Started in stand-by mode.");
+<Line#23>    mLeaderSelector.waitForState(NodeState.PRIMARY);
+<Line#24>    mLastGainPrimacyTime=CommonUtils.getCurrentMs();
+<Line#25>    if (!mRunning) {
+<Line#26>      break;
+<Line#27>    }
+<Line#28>    try {
+<Line#29>      if (!promote()) {
+<Line#30>        continue;
+<Line#31>      }
+<Line#32>      mServices.forEach(SimpleService::promote);
+<Line#33>      LOG.info("Primary started");
+<Line#34>    }
+<Line#35> catch (    Throwable t) {
+<Line#36>      if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED)) {
+<Line#37>        takeEmergencyBackup();
+<Line#38>      }
+<Line#39>      throw t;
+<Line#40>    }
+<Line#41>    mLeaderSelector.waitForState(NodeState.STANDBY);
+<Line#42>    mLastLosePrimacyTime=CommonUtils.getCurrentMs();
+<Line#43>    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+<Line#44>      stop();
+<Line#45>    }
+<Line#46> else {
+<Line#47>      if (!mRunning) {
+<Line#48>        break;
+<Line#49>      }
+<Line#50>      ExecutorService es=null;
+<Line#51>      List<Future<Void>> dumpFutures=new ArrayList<>();
+<Line#52>      try {
+<Line#53>        es=Executors.newFixedThreadPool(2,ThreadFactoryUtils.build("info-dumper-%d",true));
+<Line#54>        dumpFutures.addAll(ProcessUtils.dumpInformationOnFailover(es));
+<Line#55>      }
+<Line#56> catch (      Throwable t) {
+<Line#57>        LOG.warn("Failed to dump metrics and jstacks before demotion",t);
+<Line#58>      }
+<Line#59>      LOG.info("Losing the leadership.");
+<Line#60>      mServices.forEach(SimpleService::demote);
+<Line#61>      demote();
+<Line#62>      for (      Future<Void> f : dumpFutures) {
+<Line#63>        try {
+<Line#64>          f.get();
+<Line#65>        }
+<Line#66> catch (        InterruptedException|ExecutionException e) {
+<Line#67>          LOG.warn("Failed to dump metrics and jstacks before demotion",e);
+<Line#68>        }
+<Line#69>      }
+<Line#70>      if (es != null) {
+<Line#71>        es.shutdownNow();
+<Line#72>      }
+<Line#73>    }
+<Line#74>  }
+<Line#75>}
+Label: <Line#11> LOG.info("Starting leader selector.")
+
+Example 5:
+<Line#1>{
+<Line#2>  LOG.info("Process starting.");
+<Line#3>  mRunning=true;
+<Line#4>  mJournalSystem.start();
+<Line#5>  startMasterComponents(false);
+<Line#6>  mServices.forEach(SimpleService::start);
+<Line#7>  if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+<Line#8>    LOG.info("Waiting for journals to catch up.");
+<Line#9>    mJournalSystem.waitForCatchup();
+<Line#10>  }
+<Line#11>  LOG.info("Starting leader selector.");
+<Line#12>  mLeaderSelector.start(getRpcAddress());
+<Line#13>  while (!Thread.interrupted()) {
+<Line#14>    if (!mRunning) {
+<Line#15>      LOG.info("master process is not running. Breaking out");
+<Line#16>      break;
+<Line#17>    }
+<Line#18>    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+<Line#19>      LOG.info("Waiting for journals to catch up.");
+<Line#20>      mJournalSystem.waitForCatchup();
+<Line#21>    }
+<Line#22>    LOG.info("Started in stand-by mode.");
+<Line#23>    mLeaderSelector.waitForState(NodeState.PRIMARY);
+<Line#24>    mLastGainPrimacyTime=CommonUtils.getCurrentMs();
+<Line#25>    if (!mRunning) {
+<Line#26>      break;
+<Line#27>    }
+<Line#28>    try {
+<Line#29>      if (!promote()) {
+<Line#30>        continue;
+<Line#31>      }
+<Line#32>      mServices.forEach(SimpleService::promote);
+<Line#33>      LOG.info("Primary started");
+<Line#34>    }
+<Line#35> catch (    Throwable t) {
+<Line#36>      if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED)) {
+<Line#37>        takeEmergencyBackup();
+<Line#38>      }
+<Line#39>      throw t;
+<Line#40>    }
+<Line#41>    mLeaderSelector.waitForState(NodeState.STANDBY);
+<Line#42>    mLastLosePrimacyTime=CommonUtils.getCurrentMs();
+<Line#43>    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+<Line#44>      stop();
+<Line#45>    }
+<Line#46> else {
+<Line#47>      if (!mRunning) {
+<Line#48>        break;
+<Line#49>      }
+<Line#50>      ExecutorService es=null;
+<Line#51>      List<Future<Void>> dumpFutures=new ArrayList<>();
+<Line#52>      try {
+<Line#53>        es=Executors.newFixedThreadPool(2,ThreadFactoryUtils.build("info-dumper-%d",true));
+<Line#54>        dumpFutures.addAll(ProcessUtils.dumpInformationOnFailover(es));
+<Line#55>      }
+<Line#56> catch (      Throwable t) {
+<Line#57>        LOG.warn("Failed to dump metrics and jstacks before demotion",t);
+<Line#58>      }
+<Line#59>      LOG.info("Losing the leadership.");
+<Line#60>      mServices.forEach(SimpleService::demote);
+<Line#61>      demote();
+<Line#62>      for (      Future<Void> f : dumpFutures) {
+<Line#63>        try {
+<Line#64>          f.get();
+<Line#65>        }
+<Line#66> catch (        InterruptedException|ExecutionException e) {
+<Line#67>          LOG.warn("Failed to dump metrics and jstacks before demotion",e);
+<Line#68>        }
+<Line#69>      }
+<Line#70>      if (es != null) {
+<Line#71>        es.shutdownNow();
+<Line#72>      }
+<Line#73>    }
+<Line#74>  }
+<Line#75>}
+Label: <Line#15> LOG.info("master process is not running. Breaking out")
+

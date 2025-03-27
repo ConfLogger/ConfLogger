@@ -1,0 +1,64 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	RawLocalFileSystem.java	methodSinagture:	org.apache.hadoop.fs.RawLocalFileSystem.mkdirsWithOptionalPermission(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/fs/permission/FsPermission;)Z	methodLines:	817:835
+blockLines:	818:-1
+paras:	null
+TaintedStat:	NORMAL mkdirsWithOptionalPermission:conditional branch(ne, to iindex=8) 2,5 Node: < Application, Lorg/apache/hadoop/fs/RawLocalFileSystem, mkdirsWithOptionalPermission(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/fs/permission/FsPermission;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/fs/LocalDirAllocator$AllocatorPerContext, confChanged(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/LocalDirAllocator$AllocatorPerContext$Context; > Context: Everywhere[8]10 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 2,8 @16 exception:9
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/fs/LocalDirAllocator$AllocatorPerContext, confChanged(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/LocalDirAllocator$AllocatorPerContext$Context; > Context: Everywhere[8]10 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 2,8 @16 exception:9
+NORMAL confChanged:15 = invokevirtual < Application, Ljava/lang/String, equals(Ljava/lang/Object;)Z > 10,13 @60 exception:14 Node: < Application, Lorg/apache/hadoop/fs/LocalDirAllocator$AllocatorPerContext, confChanged(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/LocalDirAllocator$AllocatorPerContext$Context; > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL equals:conditional branch(ne, to iindex=5) 1,2 Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL equals:return 22 Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/fs/LocalDirAllocator$AllocatorPerContext, confChanged(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/LocalDirAllocator$AllocatorPerContext$Context; > Context: Everywhere[29]15 = invokevirtual < Application, Ljava/lang/String, equals(Ljava/lang/Object;)Z > 10,13 @60 exception:14
+NORMAL confChanged:conditional branch(ne, to iindex=215) 15,16 Node: < Application, Lorg/apache/hadoop/fs/LocalDirAllocator$AllocatorPerContext, confChanged(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/LocalDirAllocator$AllocatorPerContext$Context; > Context: Everywhere
+NORMAL confChanged:conditional branch(ge, to iindex=177) 121,25 Node: < Application, Lorg/apache/hadoop/fs/LocalDirAllocator$AllocatorPerContext, confChanged(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/LocalDirAllocator$AllocatorPerContext$Context; > Context: Everywhere
+NORMAL confChanged:30 = new <Application,Lorg/apache/hadoop/fs/Path>@127 Node: < Application, Lorg/apache/hadoop/fs/LocalDirAllocator$AllocatorPerContext, confChanged(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/LocalDirAllocator$AllocatorPerContext$Context; > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/fs/LocalDirAllocator$AllocatorPerContext, confChanged(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/LocalDirAllocator$AllocatorPerContext$Context; > Context: Everywhere[73]36 = invokevirtual < Application, Lorg/apache/hadoop/fs/FileSystem, mkdirs(Lorg/apache/hadoop/fs/Path;)Z > 34,30 @147 exception:35 v30
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/fs/FileSystem, mkdirs(Lorg/apache/hadoop/fs/Path;)Z > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/fs/FileSystem, mkdirs(Lorg/apache/hadoop/fs/Path;)Z > Context: Everywhere[3]7 = invokevirtual < Application, Lorg/apache/hadoop/fs/FileSystem, mkdirs(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/fs/permission/FsPermission;)Z > 1,2,5 @5 exception:6 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/fs/RawLocalFileSystem, mkdirs(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/fs/permission/FsPermission;)Z > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/fs/RawLocalFileSystem, mkdirs(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/fs/permission/FsPermission;)Z > Context: Everywhere[3]6 = invokespecial < Application, Lorg/apache/hadoop/fs/RawLocalFileSystem, mkdirsWithOptionalPermission(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/fs/permission/FsPermission;)Z > 1,2,3 @3 exception:5 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/fs/RawLocalFileSystem, mkdirsWithOptionalPermission(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/fs/permission/FsPermission;)Z > Context: Everywhere v2
+NORMAL mkdirsWithOptionalPermission:conditional branch(ne, to iindex=8) 2,5 Node: < Application, Lorg/apache/hadoop/fs/RawLocalFileSystem, mkdirsWithOptionalPermission(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/fs/permission/FsPermission;)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+      throws IOException {
+    if(f == null) {
+      throw new IllegalArgumentException("mkdirs path arg is null");
+    }
+    Path parent = f.getParent();
+    File p2f = pathToFile(f);
+    File parent2f = null;
+    if(parent != null) {
+      parent2f = pathToFile(parent);
+      if(parent2f != null && parent2f.exists() && !parent2f.isDirectory()) {
+        throw new ParentNotDirectoryException("Parent path is not a directory: "
+            + parent);
+      }
+    }
+    if (p2f.exists() && !p2f.isDirectory()) {
+      throw new FileAlreadyExistsException("Destination exists" +
+              " and is not a directory: " + p2f.getCanonicalPath());
+    }
+    return (parent == null || parent2f.exists() || mkdirs(parent)) &&
+      (mkOneDirWithMode(f, p2f, permission) || p2f.isDirectory());
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/RawLocalFileSystem, mkdirs(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/fs/permission/FsPermission;)Z > Context: Everywhere, blocks=[BB[SSA:0..3]1 - org.apache.hadoop.fs.RawLocalFileSystem.mkdirs(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/fs/permission/FsPermission;)Z, BB[SSA:-1..-2]0 - org.apache.hadoop.fs.RawLocalFileSystem.mkdirs(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/fs/permission/FsPermission;)Z, BB[SSA:4..4]2 - org.apache.hadoop.fs.RawLocalFileSystem.mkdirs(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/fs/permission/FsPermission;)Z, BB[SSA:-1..-2]3 - org.apache.hadoop.fs.RawLocalFileSystem.mkdirs(Lorg/apache/hadoop/fs/Path;Lorg/apache/hadoop/fs/permission/FsPermission;)Z], numberOfBasicBlocks=4, firstLineNumber=812, lastLineNumber=813, firstMethodNumber=812, lastMethodNumber=813, isFirstLineValid=false, methodSrcCode=
+  public boolean mkdirs(Path f, FsPermission permission) throws IOException {
+    return mkdirsWithOptionalPermission(f, permission);
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/RawLocalFileSystem, mkdirs(Lorg/apache/hadoop/fs/Path;)Z > Context: Everywhere, blocks=[BB[SSA:0..3]1 - org.apache.hadoop.fs.RawLocalFileSystem.mkdirs(Lorg/apache/hadoop/fs/Path;)Z, BB[SSA:-1..-2]0 - org.apache.hadoop.fs.RawLocalFileSystem.mkdirs(Lorg/apache/hadoop/fs/Path;)Z, BB[SSA:4..4]2 - org.apache.hadoop.fs.RawLocalFileSystem.mkdirs(Lorg/apache/hadoop/fs/Path;)Z, BB[SSA:-1..-2]3 - org.apache.hadoop.fs.RawLocalFileSystem.mkdirs(Lorg/apache/hadoop/fs/Path;)Z], numberOfBasicBlocks=4, firstLineNumber=807, lastLineNumber=808, firstMethodNumber=807, lastMethodNumber=808, isFirstLineValid=false, methodSrcCode=
+  public boolean mkdirs(Path f) throws IOException {
+    return mkdirsWithOptionalPermission(f, null);
+  }
+}

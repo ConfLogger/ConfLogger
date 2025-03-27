@@ -1,0 +1,900 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>Configuration conf) {
+<Line#1>Map<String, ResourceInformation> resourceInformationMap = new HashMap<>();
+<Line#2>String[] resourceNames =
+<Line#3>conf.getTrimmedStrings(YarnConfiguration.RESOURCE_TYPES);
+<Line#4>
+<Line#5>if (resourceNames != null && resourceNames.length != 0) {
+<Line#6>for (String resourceName : resourceNames) {
+<Line#7>String resourceUnits = conf.get(
+<Line#8>YarnConfiguration.RESOURCE_TYPES + "." + resourceName + UNITS, "");
+<Line#9>String resourceTypeName = conf.get(
+<Line#10>YarnConfiguration.RESOURCE_TYPES + "." + resourceName + TYPE,
+<Line#11>ResourceTypes.COUNTABLE.toString());
+<Line#12>Long minimumAllocation = conf.getLong(
+<Line#13>YarnConfiguration.RESOURCE_TYPES + "." + resourceName
+<Line#14>+ MINIMUM_ALLOCATION, 0L);
+<Line#15>Long maximumAllocation = conf.getLong(
+<Line#16>YarnConfiguration.RESOURCE_TYPES + "." + resourceName
+<Line#17>+ MAXIMUM_ALLOCATION, Long.MAX_VALUE);
+<Line#18>if (resourceName == null || resourceName.isEmpty()
+<Line#19>|| resourceUnits == null || resourceTypeName == null) {
+<Line#20>throw new YarnRuntimeException(
+<Line#21>"Incomplete configuration for resource type '" + resourceName
+<Line#22>+ "'. One of name, units or type is configured incorrectly.");
+<Line#23>}
+<Line#24>ResourceTypes resourceType = ResourceTypes.valueOf(resourceTypeName);
+<Line#25>String[] resourceTags = conf.getTrimmedStrings(
+<Line#26>YarnConfiguration.RESOURCE_TYPES + "." + resourceName + TAGS);
+<Line#27>Set<String> resourceTagSet = new HashSet<>();
+<Line#28>Collections.addAll(resourceTagSet, resourceTags);
+<Line#29>if (resourceInformationMap.containsKey(resourceName)) {
+<Line#30>throw new YarnRuntimeException(
+<Line#31>"Error in config, key '" + resourceName + "' specified twice");
+<Line#32>}
+<Line#33>resourceInformationMap.put(resourceName, ResourceInformation
+<Line#34>.newInstance(resourceName, resourceUnits, 0L, resourceType,
+<Line#35>minimumAllocation, maximumAllocation, resourceTagSet, null));
+<Line#36>}
+<Line#37>}
+<Line#38>
+<Line#39>// Validate names of resource information map.
+<Line#40>for (String name : resourceInformationMap.keySet()) {
+<Line#41>validateNameOfResourceNameAndThrowException(name);
+<Line#42>}
+<Line#43>
+<Line#44>checkSpecialResources(resourceInformationMap);
+<Line#45>addMandatoryResources(resourceInformationMap);
+<Line#46>
+<Line#47>setAllocationForMandatoryResources(resourceInformationMap, conf);
+<Line#48>
+<Line#49>return resourceInformationMap;
+<Line#50>}
+
+Example 1:
+<Line#1>{
+<Line#2>  if (webapp == null) {
+<Line#3>    webapp=new WebApp(){
+<Line#4>      @Override public void setup(){
+<Line#5>      }
+<Line#6>    }
+<Line#7>;
+<Line#8>  }
+<Line#9>  webapp.setName(name);
+<Line#10>  webapp.setWebServices(wsName);
+<Line#11>  String basePath="/" + name;
+<Line#12>  webapp.setRedirectPath(basePath);
+<Line#13>  List<String> pathList=new ArrayList<String>();
+<Line#14>  if (basePath.equals("/")) {
+<Line#15>    webapp.addServePathSpec("/*");
+<Line#16>    pathList.add("/*");
+<Line#17>  }
+<Line#18> else {
+<Line#19>    webapp.addServePathSpec(basePath);
+<Line#20>    webapp.addServePathSpec(basePath + "/*");
+<Line#21>    pathList.add(basePath + "/*");
+<Line#22>  }
+<Line#23>  if (wsName != null && !wsName.equals(basePath)) {
+<Line#24>    if (wsName.equals("/")) {
+<Line#25>      webapp.addServePathSpec("/*");
+<Line#26>      pathList.add("/*");
+<Line#27>    }
+<Line#28> else {
+<Line#29>      webapp.addServePathSpec("/" + wsName);
+<Line#30>      webapp.addServePathSpec("/" + wsName + "/*");
+<Line#31>      pathList.add("/" + wsName + "/*");
+<Line#32>    }
+<Line#33>  }
+<Line#34>  for (  ServletStruct s : servlets) {
+<Line#35>    if (!pathList.contains(s.spec)) {
+<Line#36>      if (!s.loadExistingFilters) {
+<Line#37>        pathList.add(s.spec);
+<Line#38>      }
+<Line#39>    }
+<Line#40>  }
+<Line#41>  if (conf == null) {
+<Line#42>    conf=new Configuration();
+<Line#43>  }
+<Line#44>  try {
+<Line#45>    if (application != null) {
+<Line#46>      webapp.setHostClass(application.getClass());
+<Line#47>    }
+<Line#48> else {
+<Line#49>      String cls=inferHostClass();
+<Line#50>      LOG.debug("setting webapp host class to {}",cls);
+<Line#51>      webapp.setHostClass(Class.forName(cls));
+<Line#52>    }
+<Line#53>    if (devMode) {
+<Line#54>      if (port > 0) {
+<Line#55>        try {
+<Line#56>          new URL("http://localhost:" + port + "/__stop").getContent();
+<Line#57>          LOG.info("stopping existing webapp instance");
+<Line#58>          Thread.sleep(100);
+<Line#59>        }
+<Line#60> catch (        ConnectException e) {
+<Line#61>          LOG.info("no existing webapp instance found: {}",e.toString());
+<Line#62>        }
+<Line#63>catch (        Exception e) {
+<Line#64>          LOG.warn("error stopping existing instance: {}",e.toString());
+<Line#65>        }
+<Line#66>      }
+<Line#67> else {
+<Line#68>        LOG.error("dev mode does NOT work with ephemeral port!");
+<Line#69>        System.exit(1);
+<Line#70>      }
+<Line#71>    }
+<Line#72>    String httpScheme;
+<Line#73>    if (this.httpPolicy == null) {
+<Line#74>      httpScheme=WebAppUtils.getHttpSchemePrefix(conf);
+<Line#75>    }
+<Line#76> else {
+<Line#77>      httpScheme=(httpPolicy == Policy.HTTPS_ONLY) ? WebAppUtils.HTTPS_PREFIX : WebAppUtils.HTTP_PREFIX;
+<Line#78>    }
+<Line#79>    HttpServer2.Builder builder=new HttpServer2.Builder().setName(name).setConf(conf).setFindPort(findPort).setACL(new AccessControlList(conf.get(YarnConfiguration.YARN_ADMIN_ACL,YarnConfiguration.DEFAULT_YARN_ADMIN_ACL))).setPathSpec(pathList.toArray(new String[0]));
+<Line#80>    IntegerRanges ranges=null;
+<Line#81>    if (portRangeConfigKey != null) {
+<Line#82>      ranges=conf.getRange(portRangeConfigKey,"");
+<Line#83>    }
+<Line#84>    int startPort=port;
+<Line#85>    if (ranges != null && !ranges.isEmpty()) {
+<Line#86>      startPort=ranges.getRangeStart();
+<Line#87>      builder.setPortRanges(ranges);
+<Line#88>    }
+<Line#89>    builder.addEndpoint(URI.create(httpScheme + bindAddress + ":"+ startPort));
+<Line#90>    boolean hasSpnegoConf=spnegoPrincipalKey != null && conf.get(spnegoPrincipalKey) != null && spnegoKeytabKey != null && conf.get(spnegoKeytabKey) != null;
+<Line#91>    if (hasSpnegoConf) {
+<Line#92>      builder.setUsernameConfKey(spnegoPrincipalKey).setKeytabConfKey(spnegoKeytabKey).setSecurityEnabled(UserGroupInformation.isSecurityEnabled());
+<Line#93>    }
+<Line#94>    if (httpScheme.equals(WebAppUtils.HTTPS_PREFIX)) {
+<Line#95>      String amKeystoreLoc=System.getenv("KEYSTORE_FILE_LOCATION");
+<Line#96>      if (amKeystoreLoc != null) {
+<Line#97>        LOG.info("Setting keystore location to " + amKeystoreLoc);
+<Line#98>        String password=System.getenv("KEYSTORE_PASSWORD");
+<Line#99>        builder.keyStore(amKeystoreLoc,password,"jks");
+<Line#100>      }
+<Line#101> else {
+<Line#102>        LOG.info("Loading standard ssl config");
+<Line#103>        WebAppUtils.loadSslConfiguration(builder,conf);
+<Line#104>      }
+<Line#105>      builder.needsClientAuth(needsClientAuth);
+<Line#106>      if (needsClientAuth) {
+<Line#107>        String amTruststoreLoc=System.getenv("TRUSTSTORE_FILE_LOCATION");
+<Line#108>        if (amTruststoreLoc != null) {
+<Line#109>          LOG.info("Setting truststore location to " + amTruststoreLoc);
+<Line#110>          String password=System.getenv("TRUSTSTORE_PASSWORD");
+<Line#111>          builder.trustStore(amTruststoreLoc,password,"jks");
+<Line#112>        }
+<Line#113>      }
+<Line#114>    }
+<Line#115>    HttpServer2 server=builder.build();
+<Line#116>    for (    ServletStruct struct : servlets) {
+<Line#117>      if (!struct.loadExistingFilters) {
+<Line#118>        server.addInternalServlet(struct.name,struct.spec,struct.clazz,struct.params);
+<Line#119>      }
+<Line#120> else {
+<Line#121>        server.addServlet(struct.name,struct.spec,struct.clazz);
+<Line#122>      }
+<Line#123>    }
+<Line#124>    for (    Map.Entry<String,Object> entry : attributes.entrySet()) {
+<Line#125>      server.setAttribute(entry.getKey(),entry.getValue());
+<Line#126>    }
+<Line#127>    Map<String,String> params=getConfigParameters(csrfConfigPrefix);
+<Line#128>    if (hasCSRFEnabled(params)) {
+<Line#129>      LOG.info("CSRF Protection has been enabled for the {} application. " + "Please ensure that there is an authentication mechanism " + "enabled (kerberos, custom, etc).",name);
+<Line#130>      String restCsrfClassName=RestCsrfPreventionFilter.class.getName();
+<Line#131>      HttpServer2.defineFilter(server.getWebAppContext(),restCsrfClassName,restCsrfClassName,params,new String[]{"/*"});
+<Line#132>    }
+<Line#133>    params=getConfigParameters(xfsConfigPrefix);
+<Line#134>    if (hasXFSEnabled()) {
+<Line#135>      String xfsClassName=XFrameOptionsFilter.class.getName();
+<Line#136>      HttpServer2.defineFilter(server.getWebAppContext(),xfsClassName,xfsClassName,params,new String[]{"/*"});
+<Line#137>    }
+<Line#138>    HttpServer2.defineFilter(server.getWebAppContext(),"guice",GuiceFilter.class.getName(),null,new String[]{"/*"});
+<Line#139>    webapp.setConf(conf);
+<Line#140>    webapp.setHttpServer(server);
+<Line#141>  }
+<Line#142> catch (  ClassNotFoundException e) {
+<Line#143>    throw new WebAppException("Error starting http server",e);
+<Line#144>  }
+<Line#145>catch (  IOException e) {
+<Line#146>    throw new WebAppException("Error starting http server",e);
+<Line#147>  }
+<Line#148>  Injector injector=Guice.createInjector(webapp,new AbstractModule(){
+<Line#149>    @Override protected void configure(){
+<Line#150>      if (api != null) {
+<Line#151>        bind(api).toInstance(application);
+<Line#152>      }
+<Line#153>      if (appClientProtocol != null) {
+<Line#154>        bind(ApplicationClientProtocol.class).toInstance(appClientProtocol);
+<Line#155>      }
+<Line#156>    }
+<Line#157>  }
+<Line#158>);
+<Line#159>  LOG.info("Registered webapp guice modules");
+<Line#160>  webapp.setGuiceFilter(injector.getInstance(GuiceFilter.class));
+<Line#161>  if (devMode) {
+<Line#162>    injector.getInstance(Dispatcher.class).setDevMode(devMode);
+<Line#163>    LOG.info("in dev mode!");
+<Line#164>  }
+<Line#165>  return webapp;
+<Line#166>}
+Label: <Line#50> LOG.debug("setting webapp host class to {}",cls)
+
+Example 2:
+<Line#1>{
+<Line#2>  if (webapp == null) {
+<Line#3>    webapp=new WebApp(){
+<Line#4>      @Override public void setup(){
+<Line#5>      }
+<Line#6>    }
+<Line#7>;
+<Line#8>  }
+<Line#9>  webapp.setName(name);
+<Line#10>  webapp.setWebServices(wsName);
+<Line#11>  String basePath="/" + name;
+<Line#12>  webapp.setRedirectPath(basePath);
+<Line#13>  List<String> pathList=new ArrayList<String>();
+<Line#14>  if (basePath.equals("/")) {
+<Line#15>    webapp.addServePathSpec("/*");
+<Line#16>    pathList.add("/*");
+<Line#17>  }
+<Line#18> else {
+<Line#19>    webapp.addServePathSpec(basePath);
+<Line#20>    webapp.addServePathSpec(basePath + "/*");
+<Line#21>    pathList.add(basePath + "/*");
+<Line#22>  }
+<Line#23>  if (wsName != null && !wsName.equals(basePath)) {
+<Line#24>    if (wsName.equals("/")) {
+<Line#25>      webapp.addServePathSpec("/*");
+<Line#26>      pathList.add("/*");
+<Line#27>    }
+<Line#28> else {
+<Line#29>      webapp.addServePathSpec("/" + wsName);
+<Line#30>      webapp.addServePathSpec("/" + wsName + "/*");
+<Line#31>      pathList.add("/" + wsName + "/*");
+<Line#32>    }
+<Line#33>  }
+<Line#34>  for (  ServletStruct s : servlets) {
+<Line#35>    if (!pathList.contains(s.spec)) {
+<Line#36>      if (!s.loadExistingFilters) {
+<Line#37>        pathList.add(s.spec);
+<Line#38>      }
+<Line#39>    }
+<Line#40>  }
+<Line#41>  if (conf == null) {
+<Line#42>    conf=new Configuration();
+<Line#43>  }
+<Line#44>  try {
+<Line#45>    if (application != null) {
+<Line#46>      webapp.setHostClass(application.getClass());
+<Line#47>    }
+<Line#48> else {
+<Line#49>      String cls=inferHostClass();
+<Line#50>      LOG.debug("setting webapp host class to {}",cls);
+<Line#51>      webapp.setHostClass(Class.forName(cls));
+<Line#52>    }
+<Line#53>    if (devMode) {
+<Line#54>      if (port > 0) {
+<Line#55>        try {
+<Line#56>          new URL("http://localhost:" + port + "/__stop").getContent();
+<Line#57>          LOG.info("stopping existing webapp instance");
+<Line#58>          Thread.sleep(100);
+<Line#59>        }
+<Line#60> catch (        ConnectException e) {
+<Line#61>          LOG.info("no existing webapp instance found: {}",e.toString());
+<Line#62>        }
+<Line#63>catch (        Exception e) {
+<Line#64>          LOG.warn("error stopping existing instance: {}",e.toString());
+<Line#65>        }
+<Line#66>      }
+<Line#67> else {
+<Line#68>        LOG.error("dev mode does NOT work with ephemeral port!");
+<Line#69>        System.exit(1);
+<Line#70>      }
+<Line#71>    }
+<Line#72>    String httpScheme;
+<Line#73>    if (this.httpPolicy == null) {
+<Line#74>      httpScheme=WebAppUtils.getHttpSchemePrefix(conf);
+<Line#75>    }
+<Line#76> else {
+<Line#77>      httpScheme=(httpPolicy == Policy.HTTPS_ONLY) ? WebAppUtils.HTTPS_PREFIX : WebAppUtils.HTTP_PREFIX;
+<Line#78>    }
+<Line#79>    HttpServer2.Builder builder=new HttpServer2.Builder().setName(name).setConf(conf).setFindPort(findPort).setACL(new AccessControlList(conf.get(YarnConfiguration.YARN_ADMIN_ACL,YarnConfiguration.DEFAULT_YARN_ADMIN_ACL))).setPathSpec(pathList.toArray(new String[0]));
+<Line#80>    IntegerRanges ranges=null;
+<Line#81>    if (portRangeConfigKey != null) {
+<Line#82>      ranges=conf.getRange(portRangeConfigKey,"");
+<Line#83>    }
+<Line#84>    int startPort=port;
+<Line#85>    if (ranges != null && !ranges.isEmpty()) {
+<Line#86>      startPort=ranges.getRangeStart();
+<Line#87>      builder.setPortRanges(ranges);
+<Line#88>    }
+<Line#89>    builder.addEndpoint(URI.create(httpScheme + bindAddress + ":"+ startPort));
+<Line#90>    boolean hasSpnegoConf=spnegoPrincipalKey != null && conf.get(spnegoPrincipalKey) != null && spnegoKeytabKey != null && conf.get(spnegoKeytabKey) != null;
+<Line#91>    if (hasSpnegoConf) {
+<Line#92>      builder.setUsernameConfKey(spnegoPrincipalKey).setKeytabConfKey(spnegoKeytabKey).setSecurityEnabled(UserGroupInformation.isSecurityEnabled());
+<Line#93>    }
+<Line#94>    if (httpScheme.equals(WebAppUtils.HTTPS_PREFIX)) {
+<Line#95>      String amKeystoreLoc=System.getenv("KEYSTORE_FILE_LOCATION");
+<Line#96>      if (amKeystoreLoc != null) {
+<Line#97>        LOG.info("Setting keystore location to " + amKeystoreLoc);
+<Line#98>        String password=System.getenv("KEYSTORE_PASSWORD");
+<Line#99>        builder.keyStore(amKeystoreLoc,password,"jks");
+<Line#100>      }
+<Line#101> else {
+<Line#102>        LOG.info("Loading standard ssl config");
+<Line#103>        WebAppUtils.loadSslConfiguration(builder,conf);
+<Line#104>      }
+<Line#105>      builder.needsClientAuth(needsClientAuth);
+<Line#106>      if (needsClientAuth) {
+<Line#107>        String amTruststoreLoc=System.getenv("TRUSTSTORE_FILE_LOCATION");
+<Line#108>        if (amTruststoreLoc != null) {
+<Line#109>          LOG.info("Setting truststore location to " + amTruststoreLoc);
+<Line#110>          String password=System.getenv("TRUSTSTORE_PASSWORD");
+<Line#111>          builder.trustStore(amTruststoreLoc,password,"jks");
+<Line#112>        }
+<Line#113>      }
+<Line#114>    }
+<Line#115>    HttpServer2 server=builder.build();
+<Line#116>    for (    ServletStruct struct : servlets) {
+<Line#117>      if (!struct.loadExistingFilters) {
+<Line#118>        server.addInternalServlet(struct.name,struct.spec,struct.clazz,struct.params);
+<Line#119>      }
+<Line#120> else {
+<Line#121>        server.addServlet(struct.name,struct.spec,struct.clazz);
+<Line#122>      }
+<Line#123>    }
+<Line#124>    for (    Map.Entry<String,Object> entry : attributes.entrySet()) {
+<Line#125>      server.setAttribute(entry.getKey(),entry.getValue());
+<Line#126>    }
+<Line#127>    Map<String,String> params=getConfigParameters(csrfConfigPrefix);
+<Line#128>    if (hasCSRFEnabled(params)) {
+<Line#129>      LOG.info("CSRF Protection has been enabled for the {} application. " + "Please ensure that there is an authentication mechanism " + "enabled (kerberos, custom, etc).",name);
+<Line#130>      String restCsrfClassName=RestCsrfPreventionFilter.class.getName();
+<Line#131>      HttpServer2.defineFilter(server.getWebAppContext(),restCsrfClassName,restCsrfClassName,params,new String[]{"/*"});
+<Line#132>    }
+<Line#133>    params=getConfigParameters(xfsConfigPrefix);
+<Line#134>    if (hasXFSEnabled()) {
+<Line#135>      String xfsClassName=XFrameOptionsFilter.class.getName();
+<Line#136>      HttpServer2.defineFilter(server.getWebAppContext(),xfsClassName,xfsClassName,params,new String[]{"/*"});
+<Line#137>    }
+<Line#138>    HttpServer2.defineFilter(server.getWebAppContext(),"guice",GuiceFilter.class.getName(),null,new String[]{"/*"});
+<Line#139>    webapp.setConf(conf);
+<Line#140>    webapp.setHttpServer(server);
+<Line#141>  }
+<Line#142> catch (  ClassNotFoundException e) {
+<Line#143>    throw new WebAppException("Error starting http server",e);
+<Line#144>  }
+<Line#145>catch (  IOException e) {
+<Line#146>    throw new WebAppException("Error starting http server",e);
+<Line#147>  }
+<Line#148>  Injector injector=Guice.createInjector(webapp,new AbstractModule(){
+<Line#149>    @Override protected void configure(){
+<Line#150>      if (api != null) {
+<Line#151>        bind(api).toInstance(application);
+<Line#152>      }
+<Line#153>      if (appClientProtocol != null) {
+<Line#154>        bind(ApplicationClientProtocol.class).toInstance(appClientProtocol);
+<Line#155>      }
+<Line#156>    }
+<Line#157>  }
+<Line#158>);
+<Line#159>  LOG.info("Registered webapp guice modules");
+<Line#160>  webapp.setGuiceFilter(injector.getInstance(GuiceFilter.class));
+<Line#161>  if (devMode) {
+<Line#162>    injector.getInstance(Dispatcher.class).setDevMode(devMode);
+<Line#163>    LOG.info("in dev mode!");
+<Line#164>  }
+<Line#165>  return webapp;
+<Line#166>}
+Label: <Line#57> LOG.info("stopping existing webapp instance")
+
+Example 3:
+<Line#1>{
+<Line#2>  if (webapp == null) {
+<Line#3>    webapp=new WebApp(){
+<Line#4>      @Override public void setup(){
+<Line#5>      }
+<Line#6>    }
+<Line#7>;
+<Line#8>  }
+<Line#9>  webapp.setName(name);
+<Line#10>  webapp.setWebServices(wsName);
+<Line#11>  String basePath="/" + name;
+<Line#12>  webapp.setRedirectPath(basePath);
+<Line#13>  List<String> pathList=new ArrayList<String>();
+<Line#14>  if (basePath.equals("/")) {
+<Line#15>    webapp.addServePathSpec("/*");
+<Line#16>    pathList.add("/*");
+<Line#17>  }
+<Line#18> else {
+<Line#19>    webapp.addServePathSpec(basePath);
+<Line#20>    webapp.addServePathSpec(basePath + "/*");
+<Line#21>    pathList.add(basePath + "/*");
+<Line#22>  }
+<Line#23>  if (wsName != null && !wsName.equals(basePath)) {
+<Line#24>    if (wsName.equals("/")) {
+<Line#25>      webapp.addServePathSpec("/*");
+<Line#26>      pathList.add("/*");
+<Line#27>    }
+<Line#28> else {
+<Line#29>      webapp.addServePathSpec("/" + wsName);
+<Line#30>      webapp.addServePathSpec("/" + wsName + "/*");
+<Line#31>      pathList.add("/" + wsName + "/*");
+<Line#32>    }
+<Line#33>  }
+<Line#34>  for (  ServletStruct s : servlets) {
+<Line#35>    if (!pathList.contains(s.spec)) {
+<Line#36>      if (!s.loadExistingFilters) {
+<Line#37>        pathList.add(s.spec);
+<Line#38>      }
+<Line#39>    }
+<Line#40>  }
+<Line#41>  if (conf == null) {
+<Line#42>    conf=new Configuration();
+<Line#43>  }
+<Line#44>  try {
+<Line#45>    if (application != null) {
+<Line#46>      webapp.setHostClass(application.getClass());
+<Line#47>    }
+<Line#48> else {
+<Line#49>      String cls=inferHostClass();
+<Line#50>      LOG.debug("setting webapp host class to {}",cls);
+<Line#51>      webapp.setHostClass(Class.forName(cls));
+<Line#52>    }
+<Line#53>    if (devMode) {
+<Line#54>      if (port > 0) {
+<Line#55>        try {
+<Line#56>          new URL("http://localhost:" + port + "/__stop").getContent();
+<Line#57>          LOG.info("stopping existing webapp instance");
+<Line#58>          Thread.sleep(100);
+<Line#59>        }
+<Line#60> catch (        ConnectException e) {
+<Line#61>          LOG.info("no existing webapp instance found: {}",e.toString());
+<Line#62>        }
+<Line#63>catch (        Exception e) {
+<Line#64>          LOG.warn("error stopping existing instance: {}",e.toString());
+<Line#65>        }
+<Line#66>      }
+<Line#67> else {
+<Line#68>        LOG.error("dev mode does NOT work with ephemeral port!");
+<Line#69>        System.exit(1);
+<Line#70>      }
+<Line#71>    }
+<Line#72>    String httpScheme;
+<Line#73>    if (this.httpPolicy == null) {
+<Line#74>      httpScheme=WebAppUtils.getHttpSchemePrefix(conf);
+<Line#75>    }
+<Line#76> else {
+<Line#77>      httpScheme=(httpPolicy == Policy.HTTPS_ONLY) ? WebAppUtils.HTTPS_PREFIX : WebAppUtils.HTTP_PREFIX;
+<Line#78>    }
+<Line#79>    HttpServer2.Builder builder=new HttpServer2.Builder().setName(name).setConf(conf).setFindPort(findPort).setACL(new AccessControlList(conf.get(YarnConfiguration.YARN_ADMIN_ACL,YarnConfiguration.DEFAULT_YARN_ADMIN_ACL))).setPathSpec(pathList.toArray(new String[0]));
+<Line#80>    IntegerRanges ranges=null;
+<Line#81>    if (portRangeConfigKey != null) {
+<Line#82>      ranges=conf.getRange(portRangeConfigKey,"");
+<Line#83>    }
+<Line#84>    int startPort=port;
+<Line#85>    if (ranges != null && !ranges.isEmpty()) {
+<Line#86>      startPort=ranges.getRangeStart();
+<Line#87>      builder.setPortRanges(ranges);
+<Line#88>    }
+<Line#89>    builder.addEndpoint(URI.create(httpScheme + bindAddress + ":"+ startPort));
+<Line#90>    boolean hasSpnegoConf=spnegoPrincipalKey != null && conf.get(spnegoPrincipalKey) != null && spnegoKeytabKey != null && conf.get(spnegoKeytabKey) != null;
+<Line#91>    if (hasSpnegoConf) {
+<Line#92>      builder.setUsernameConfKey(spnegoPrincipalKey).setKeytabConfKey(spnegoKeytabKey).setSecurityEnabled(UserGroupInformation.isSecurityEnabled());
+<Line#93>    }
+<Line#94>    if (httpScheme.equals(WebAppUtils.HTTPS_PREFIX)) {
+<Line#95>      String amKeystoreLoc=System.getenv("KEYSTORE_FILE_LOCATION");
+<Line#96>      if (amKeystoreLoc != null) {
+<Line#97>        LOG.info("Setting keystore location to " + amKeystoreLoc);
+<Line#98>        String password=System.getenv("KEYSTORE_PASSWORD");
+<Line#99>        builder.keyStore(amKeystoreLoc,password,"jks");
+<Line#100>      }
+<Line#101> else {
+<Line#102>        LOG.info("Loading standard ssl config");
+<Line#103>        WebAppUtils.loadSslConfiguration(builder,conf);
+<Line#104>      }
+<Line#105>      builder.needsClientAuth(needsClientAuth);
+<Line#106>      if (needsClientAuth) {
+<Line#107>        String amTruststoreLoc=System.getenv("TRUSTSTORE_FILE_LOCATION");
+<Line#108>        if (amTruststoreLoc != null) {
+<Line#109>          LOG.info("Setting truststore location to " + amTruststoreLoc);
+<Line#110>          String password=System.getenv("TRUSTSTORE_PASSWORD");
+<Line#111>          builder.trustStore(amTruststoreLoc,password,"jks");
+<Line#112>        }
+<Line#113>      }
+<Line#114>    }
+<Line#115>    HttpServer2 server=builder.build();
+<Line#116>    for (    ServletStruct struct : servlets) {
+<Line#117>      if (!struct.loadExistingFilters) {
+<Line#118>        server.addInternalServlet(struct.name,struct.spec,struct.clazz,struct.params);
+<Line#119>      }
+<Line#120> else {
+<Line#121>        server.addServlet(struct.name,struct.spec,struct.clazz);
+<Line#122>      }
+<Line#123>    }
+<Line#124>    for (    Map.Entry<String,Object> entry : attributes.entrySet()) {
+<Line#125>      server.setAttribute(entry.getKey(),entry.getValue());
+<Line#126>    }
+<Line#127>    Map<String,String> params=getConfigParameters(csrfConfigPrefix);
+<Line#128>    if (hasCSRFEnabled(params)) {
+<Line#129>      LOG.info("CSRF Protection has been enabled for the {} application. " + "Please ensure that there is an authentication mechanism " + "enabled (kerberos, custom, etc).",name);
+<Line#130>      String restCsrfClassName=RestCsrfPreventionFilter.class.getName();
+<Line#131>      HttpServer2.defineFilter(server.getWebAppContext(),restCsrfClassName,restCsrfClassName,params,new String[]{"/*"});
+<Line#132>    }
+<Line#133>    params=getConfigParameters(xfsConfigPrefix);
+<Line#134>    if (hasXFSEnabled()) {
+<Line#135>      String xfsClassName=XFrameOptionsFilter.class.getName();
+<Line#136>      HttpServer2.defineFilter(server.getWebAppContext(),xfsClassName,xfsClassName,params,new String[]{"/*"});
+<Line#137>    }
+<Line#138>    HttpServer2.defineFilter(server.getWebAppContext(),"guice",GuiceFilter.class.getName(),null,new String[]{"/*"});
+<Line#139>    webapp.setConf(conf);
+<Line#140>    webapp.setHttpServer(server);
+<Line#141>  }
+<Line#142> catch (  ClassNotFoundException e) {
+<Line#143>    throw new WebAppException("Error starting http server",e);
+<Line#144>  }
+<Line#145>catch (  IOException e) {
+<Line#146>    throw new WebAppException("Error starting http server",e);
+<Line#147>  }
+<Line#148>  Injector injector=Guice.createInjector(webapp,new AbstractModule(){
+<Line#149>    @Override protected void configure(){
+<Line#150>      if (api != null) {
+<Line#151>        bind(api).toInstance(application);
+<Line#152>      }
+<Line#153>      if (appClientProtocol != null) {
+<Line#154>        bind(ApplicationClientProtocol.class).toInstance(appClientProtocol);
+<Line#155>      }
+<Line#156>    }
+<Line#157>  }
+<Line#158>);
+<Line#159>  LOG.info("Registered webapp guice modules");
+<Line#160>  webapp.setGuiceFilter(injector.getInstance(GuiceFilter.class));
+<Line#161>  if (devMode) {
+<Line#162>    injector.getInstance(Dispatcher.class).setDevMode(devMode);
+<Line#163>    LOG.info("in dev mode!");
+<Line#164>  }
+<Line#165>  return webapp;
+<Line#166>}
+Label: <Line#61> LOG.info("no existing webapp instance found: {}",e.toString())
+
+Example 4:
+<Line#1>{
+<Line#2>  if (webapp == null) {
+<Line#3>    webapp=new WebApp(){
+<Line#4>      @Override public void setup(){
+<Line#5>      }
+<Line#6>    }
+<Line#7>;
+<Line#8>  }
+<Line#9>  webapp.setName(name);
+<Line#10>  webapp.setWebServices(wsName);
+<Line#11>  String basePath="/" + name;
+<Line#12>  webapp.setRedirectPath(basePath);
+<Line#13>  List<String> pathList=new ArrayList<String>();
+<Line#14>  if (basePath.equals("/")) {
+<Line#15>    webapp.addServePathSpec("/*");
+<Line#16>    pathList.add("/*");
+<Line#17>  }
+<Line#18> else {
+<Line#19>    webapp.addServePathSpec(basePath);
+<Line#20>    webapp.addServePathSpec(basePath + "/*");
+<Line#21>    pathList.add(basePath + "/*");
+<Line#22>  }
+<Line#23>  if (wsName != null && !wsName.equals(basePath)) {
+<Line#24>    if (wsName.equals("/")) {
+<Line#25>      webapp.addServePathSpec("/*");
+<Line#26>      pathList.add("/*");
+<Line#27>    }
+<Line#28> else {
+<Line#29>      webapp.addServePathSpec("/" + wsName);
+<Line#30>      webapp.addServePathSpec("/" + wsName + "/*");
+<Line#31>      pathList.add("/" + wsName + "/*");
+<Line#32>    }
+<Line#33>  }
+<Line#34>  for (  ServletStruct s : servlets) {
+<Line#35>    if (!pathList.contains(s.spec)) {
+<Line#36>      if (!s.loadExistingFilters) {
+<Line#37>        pathList.add(s.spec);
+<Line#38>      }
+<Line#39>    }
+<Line#40>  }
+<Line#41>  if (conf == null) {
+<Line#42>    conf=new Configuration();
+<Line#43>  }
+<Line#44>  try {
+<Line#45>    if (application != null) {
+<Line#46>      webapp.setHostClass(application.getClass());
+<Line#47>    }
+<Line#48> else {
+<Line#49>      String cls=inferHostClass();
+<Line#50>      LOG.debug("setting webapp host class to {}",cls);
+<Line#51>      webapp.setHostClass(Class.forName(cls));
+<Line#52>    }
+<Line#53>    if (devMode) {
+<Line#54>      if (port > 0) {
+<Line#55>        try {
+<Line#56>          new URL("http://localhost:" + port + "/__stop").getContent();
+<Line#57>          LOG.info("stopping existing webapp instance");
+<Line#58>          Thread.sleep(100);
+<Line#59>        }
+<Line#60> catch (        ConnectException e) {
+<Line#61>          LOG.info("no existing webapp instance found: {}",e.toString());
+<Line#62>        }
+<Line#63>catch (        Exception e) {
+<Line#64>          LOG.warn("error stopping existing instance: {}",e.toString());
+<Line#65>        }
+<Line#66>      }
+<Line#67> else {
+<Line#68>        LOG.error("dev mode does NOT work with ephemeral port!");
+<Line#69>        System.exit(1);
+<Line#70>      }
+<Line#71>    }
+<Line#72>    String httpScheme;
+<Line#73>    if (this.httpPolicy == null) {
+<Line#74>      httpScheme=WebAppUtils.getHttpSchemePrefix(conf);
+<Line#75>    }
+<Line#76> else {
+<Line#77>      httpScheme=(httpPolicy == Policy.HTTPS_ONLY) ? WebAppUtils.HTTPS_PREFIX : WebAppUtils.HTTP_PREFIX;
+<Line#78>    }
+<Line#79>    HttpServer2.Builder builder=new HttpServer2.Builder().setName(name).setConf(conf).setFindPort(findPort).setACL(new AccessControlList(conf.get(YarnConfiguration.YARN_ADMIN_ACL,YarnConfiguration.DEFAULT_YARN_ADMIN_ACL))).setPathSpec(pathList.toArray(new String[0]));
+<Line#80>    IntegerRanges ranges=null;
+<Line#81>    if (portRangeConfigKey != null) {
+<Line#82>      ranges=conf.getRange(portRangeConfigKey,"");
+<Line#83>    }
+<Line#84>    int startPort=port;
+<Line#85>    if (ranges != null && !ranges.isEmpty()) {
+<Line#86>      startPort=ranges.getRangeStart();
+<Line#87>      builder.setPortRanges(ranges);
+<Line#88>    }
+<Line#89>    builder.addEndpoint(URI.create(httpScheme + bindAddress + ":"+ startPort));
+<Line#90>    boolean hasSpnegoConf=spnegoPrincipalKey != null && conf.get(spnegoPrincipalKey) != null && spnegoKeytabKey != null && conf.get(spnegoKeytabKey) != null;
+<Line#91>    if (hasSpnegoConf) {
+<Line#92>      builder.setUsernameConfKey(spnegoPrincipalKey).setKeytabConfKey(spnegoKeytabKey).setSecurityEnabled(UserGroupInformation.isSecurityEnabled());
+<Line#93>    }
+<Line#94>    if (httpScheme.equals(WebAppUtils.HTTPS_PREFIX)) {
+<Line#95>      String amKeystoreLoc=System.getenv("KEYSTORE_FILE_LOCATION");
+<Line#96>      if (amKeystoreLoc != null) {
+<Line#97>        LOG.info("Setting keystore location to " + amKeystoreLoc);
+<Line#98>        String password=System.getenv("KEYSTORE_PASSWORD");
+<Line#99>        builder.keyStore(amKeystoreLoc,password,"jks");
+<Line#100>      }
+<Line#101> else {
+<Line#102>        LOG.info("Loading standard ssl config");
+<Line#103>        WebAppUtils.loadSslConfiguration(builder,conf);
+<Line#104>      }
+<Line#105>      builder.needsClientAuth(needsClientAuth);
+<Line#106>      if (needsClientAuth) {
+<Line#107>        String amTruststoreLoc=System.getenv("TRUSTSTORE_FILE_LOCATION");
+<Line#108>        if (amTruststoreLoc != null) {
+<Line#109>          LOG.info("Setting truststore location to " + amTruststoreLoc);
+<Line#110>          String password=System.getenv("TRUSTSTORE_PASSWORD");
+<Line#111>          builder.trustStore(amTruststoreLoc,password,"jks");
+<Line#112>        }
+<Line#113>      }
+<Line#114>    }
+<Line#115>    HttpServer2 server=builder.build();
+<Line#116>    for (    ServletStruct struct : servlets) {
+<Line#117>      if (!struct.loadExistingFilters) {
+<Line#118>        server.addInternalServlet(struct.name,struct.spec,struct.clazz,struct.params);
+<Line#119>      }
+<Line#120> else {
+<Line#121>        server.addServlet(struct.name,struct.spec,struct.clazz);
+<Line#122>      }
+<Line#123>    }
+<Line#124>    for (    Map.Entry<String,Object> entry : attributes.entrySet()) {
+<Line#125>      server.setAttribute(entry.getKey(),entry.getValue());
+<Line#126>    }
+<Line#127>    Map<String,String> params=getConfigParameters(csrfConfigPrefix);
+<Line#128>    if (hasCSRFEnabled(params)) {
+<Line#129>      LOG.info("CSRF Protection has been enabled for the {} application. " + "Please ensure that there is an authentication mechanism " + "enabled (kerberos, custom, etc).",name);
+<Line#130>      String restCsrfClassName=RestCsrfPreventionFilter.class.getName();
+<Line#131>      HttpServer2.defineFilter(server.getWebAppContext(),restCsrfClassName,restCsrfClassName,params,new String[]{"/*"});
+<Line#132>    }
+<Line#133>    params=getConfigParameters(xfsConfigPrefix);
+<Line#134>    if (hasXFSEnabled()) {
+<Line#135>      String xfsClassName=XFrameOptionsFilter.class.getName();
+<Line#136>      HttpServer2.defineFilter(server.getWebAppContext(),xfsClassName,xfsClassName,params,new String[]{"/*"});
+<Line#137>    }
+<Line#138>    HttpServer2.defineFilter(server.getWebAppContext(),"guice",GuiceFilter.class.getName(),null,new String[]{"/*"});
+<Line#139>    webapp.setConf(conf);
+<Line#140>    webapp.setHttpServer(server);
+<Line#141>  }
+<Line#142> catch (  ClassNotFoundException e) {
+<Line#143>    throw new WebAppException("Error starting http server",e);
+<Line#144>  }
+<Line#145>catch (  IOException e) {
+<Line#146>    throw new WebAppException("Error starting http server",e);
+<Line#147>  }
+<Line#148>  Injector injector=Guice.createInjector(webapp,new AbstractModule(){
+<Line#149>    @Override protected void configure(){
+<Line#150>      if (api != null) {
+<Line#151>        bind(api).toInstance(application);
+<Line#152>      }
+<Line#153>      if (appClientProtocol != null) {
+<Line#154>        bind(ApplicationClientProtocol.class).toInstance(appClientProtocol);
+<Line#155>      }
+<Line#156>    }
+<Line#157>  }
+<Line#158>);
+<Line#159>  LOG.info("Registered webapp guice modules");
+<Line#160>  webapp.setGuiceFilter(injector.getInstance(GuiceFilter.class));
+<Line#161>  if (devMode) {
+<Line#162>    injector.getInstance(Dispatcher.class).setDevMode(devMode);
+<Line#163>    LOG.info("in dev mode!");
+<Line#164>  }
+<Line#165>  return webapp;
+<Line#166>}
+Label: <Line#64> LOG.warn("error stopping existing instance: {}",e.toString())
+
+Example 5:
+<Line#1>{
+<Line#2>  if (webapp == null) {
+<Line#3>    webapp=new WebApp(){
+<Line#4>      @Override public void setup(){
+<Line#5>      }
+<Line#6>    }
+<Line#7>;
+<Line#8>  }
+<Line#9>  webapp.setName(name);
+<Line#10>  webapp.setWebServices(wsName);
+<Line#11>  String basePath="/" + name;
+<Line#12>  webapp.setRedirectPath(basePath);
+<Line#13>  List<String> pathList=new ArrayList<String>();
+<Line#14>  if (basePath.equals("/")) {
+<Line#15>    webapp.addServePathSpec("/*");
+<Line#16>    pathList.add("/*");
+<Line#17>  }
+<Line#18> else {
+<Line#19>    webapp.addServePathSpec(basePath);
+<Line#20>    webapp.addServePathSpec(basePath + "/*");
+<Line#21>    pathList.add(basePath + "/*");
+<Line#22>  }
+<Line#23>  if (wsName != null && !wsName.equals(basePath)) {
+<Line#24>    if (wsName.equals("/")) {
+<Line#25>      webapp.addServePathSpec("/*");
+<Line#26>      pathList.add("/*");
+<Line#27>    }
+<Line#28> else {
+<Line#29>      webapp.addServePathSpec("/" + wsName);
+<Line#30>      webapp.addServePathSpec("/" + wsName + "/*");
+<Line#31>      pathList.add("/" + wsName + "/*");
+<Line#32>    }
+<Line#33>  }
+<Line#34>  for (  ServletStruct s : servlets) {
+<Line#35>    if (!pathList.contains(s.spec)) {
+<Line#36>      if (!s.loadExistingFilters) {
+<Line#37>        pathList.add(s.spec);
+<Line#38>      }
+<Line#39>    }
+<Line#40>  }
+<Line#41>  if (conf == null) {
+<Line#42>    conf=new Configuration();
+<Line#43>  }
+<Line#44>  try {
+<Line#45>    if (application != null) {
+<Line#46>      webapp.setHostClass(application.getClass());
+<Line#47>    }
+<Line#48> else {
+<Line#49>      String cls=inferHostClass();
+<Line#50>      LOG.debug("setting webapp host class to {}",cls);
+<Line#51>      webapp.setHostClass(Class.forName(cls));
+<Line#52>    }
+<Line#53>    if (devMode) {
+<Line#54>      if (port > 0) {
+<Line#55>        try {
+<Line#56>          new URL("http://localhost:" + port + "/__stop").getContent();
+<Line#57>          LOG.info("stopping existing webapp instance");
+<Line#58>          Thread.sleep(100);
+<Line#59>        }
+<Line#60> catch (        ConnectException e) {
+<Line#61>          LOG.info("no existing webapp instance found: {}",e.toString());
+<Line#62>        }
+<Line#63>catch (        Exception e) {
+<Line#64>          LOG.warn("error stopping existing instance: {}",e.toString());
+<Line#65>        }
+<Line#66>      }
+<Line#67> else {
+<Line#68>        LOG.error("dev mode does NOT work with ephemeral port!");
+<Line#69>        System.exit(1);
+<Line#70>      }
+<Line#71>    }
+<Line#72>    String httpScheme;
+<Line#73>    if (this.httpPolicy == null) {
+<Line#74>      httpScheme=WebAppUtils.getHttpSchemePrefix(conf);
+<Line#75>    }
+<Line#76> else {
+<Line#77>      httpScheme=(httpPolicy == Policy.HTTPS_ONLY) ? WebAppUtils.HTTPS_PREFIX : WebAppUtils.HTTP_PREFIX;
+<Line#78>    }
+<Line#79>    HttpServer2.Builder builder=new HttpServer2.Builder().setName(name).setConf(conf).setFindPort(findPort).setACL(new AccessControlList(conf.get(YarnConfiguration.YARN_ADMIN_ACL,YarnConfiguration.DEFAULT_YARN_ADMIN_ACL))).setPathSpec(pathList.toArray(new String[0]));
+<Line#80>    IntegerRanges ranges=null;
+<Line#81>    if (portRangeConfigKey != null) {
+<Line#82>      ranges=conf.getRange(portRangeConfigKey,"");
+<Line#83>    }
+<Line#84>    int startPort=port;
+<Line#85>    if (ranges != null && !ranges.isEmpty()) {
+<Line#86>      startPort=ranges.getRangeStart();
+<Line#87>      builder.setPortRanges(ranges);
+<Line#88>    }
+<Line#89>    builder.addEndpoint(URI.create(httpScheme + bindAddress + ":"+ startPort));
+<Line#90>    boolean hasSpnegoConf=spnegoPrincipalKey != null && conf.get(spnegoPrincipalKey) != null && spnegoKeytabKey != null && conf.get(spnegoKeytabKey) != null;
+<Line#91>    if (hasSpnegoConf) {
+<Line#92>      builder.setUsernameConfKey(spnegoPrincipalKey).setKeytabConfKey(spnegoKeytabKey).setSecurityEnabled(UserGroupInformation.isSecurityEnabled());
+<Line#93>    }
+<Line#94>    if (httpScheme.equals(WebAppUtils.HTTPS_PREFIX)) {
+<Line#95>      String amKeystoreLoc=System.getenv("KEYSTORE_FILE_LOCATION");
+<Line#96>      if (amKeystoreLoc != null) {
+<Line#97>        LOG.info("Setting keystore location to " + amKeystoreLoc);
+<Line#98>        String password=System.getenv("KEYSTORE_PASSWORD");
+<Line#99>        builder.keyStore(amKeystoreLoc,password,"jks");
+<Line#100>      }
+<Line#101> else {
+<Line#102>        LOG.info("Loading standard ssl config");
+<Line#103>        WebAppUtils.loadSslConfiguration(builder,conf);
+<Line#104>      }
+<Line#105>      builder.needsClientAuth(needsClientAuth);
+<Line#106>      if (needsClientAuth) {
+<Line#107>        String amTruststoreLoc=System.getenv("TRUSTSTORE_FILE_LOCATION");
+<Line#108>        if (amTruststoreLoc != null) {
+<Line#109>          LOG.info("Setting truststore location to " + amTruststoreLoc);
+<Line#110>          String password=System.getenv("TRUSTSTORE_PASSWORD");
+<Line#111>          builder.trustStore(amTruststoreLoc,password,"jks");
+<Line#112>        }
+<Line#113>      }
+<Line#114>    }
+<Line#115>    HttpServer2 server=builder.build();
+<Line#116>    for (    ServletStruct struct : servlets) {
+<Line#117>      if (!struct.loadExistingFilters) {
+<Line#118>        server.addInternalServlet(struct.name,struct.spec,struct.clazz,struct.params);
+<Line#119>      }
+<Line#120> else {
+<Line#121>        server.addServlet(struct.name,struct.spec,struct.clazz);
+<Line#122>      }
+<Line#123>    }
+<Line#124>    for (    Map.Entry<String,Object> entry : attributes.entrySet()) {
+<Line#125>      server.setAttribute(entry.getKey(),entry.getValue());
+<Line#126>    }
+<Line#127>    Map<String,String> params=getConfigParameters(csrfConfigPrefix);
+<Line#128>    if (hasCSRFEnabled(params)) {
+<Line#129>      LOG.info("CSRF Protection has been enabled for the {} application. " + "Please ensure that there is an authentication mechanism " + "enabled (kerberos, custom, etc).",name);
+<Line#130>      String restCsrfClassName=RestCsrfPreventionFilter.class.getName();
+<Line#131>      HttpServer2.defineFilter(server.getWebAppContext(),restCsrfClassName,restCsrfClassName,params,new String[]{"/*"});
+<Line#132>    }
+<Line#133>    params=getConfigParameters(xfsConfigPrefix);
+<Line#134>    if (hasXFSEnabled()) {
+<Line#135>      String xfsClassName=XFrameOptionsFilter.class.getName();
+<Line#136>      HttpServer2.defineFilter(server.getWebAppContext(),xfsClassName,xfsClassName,params,new String[]{"/*"});
+<Line#137>    }
+<Line#138>    HttpServer2.defineFilter(server.getWebAppContext(),"guice",GuiceFilter.class.getName(),null,new String[]{"/*"});
+<Line#139>    webapp.setConf(conf);
+<Line#140>    webapp.setHttpServer(server);
+<Line#141>  }
+<Line#142> catch (  ClassNotFoundException e) {
+<Line#143>    throw new WebAppException("Error starting http server",e);
+<Line#144>  }
+<Line#145>catch (  IOException e) {
+<Line#146>    throw new WebAppException("Error starting http server",e);
+<Line#147>  }
+<Line#148>  Injector injector=Guice.createInjector(webapp,new AbstractModule(){
+<Line#149>    @Override protected void configure(){
+<Line#150>      if (api != null) {
+<Line#151>        bind(api).toInstance(application);
+<Line#152>      }
+<Line#153>      if (appClientProtocol != null) {
+<Line#154>        bind(ApplicationClientProtocol.class).toInstance(appClientProtocol);
+<Line#155>      }
+<Line#156>    }
+<Line#157>  }
+<Line#158>);
+<Line#159>  LOG.info("Registered webapp guice modules");
+<Line#160>  webapp.setGuiceFilter(injector.getInstance(GuiceFilter.class));
+<Line#161>  if (devMode) {
+<Line#162>    injector.getInstance(Dispatcher.class).setDevMode(devMode);
+<Line#163>    LOG.info("in dev mode!");
+<Line#164>  }
+<Line#165>  return webapp;
+<Line#166>}
+Label: <Line#68> LOG.error("dev mode does NOT work with ephemeral port!")
+

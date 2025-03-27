@@ -1,0 +1,8 @@
+/** 
+ * Force shutdown of the JVM using System.exit.
+ * @param code the exit code
+ * @see ExitCode
+ */
+public static void requestSystemExit(int code){
+  systemExitProcedure.accept(code);
+}

@@ -1,0 +1,7 @@
+/** 
+ * returns timestamp when this plan was created.
+ * @return long
+ */
+public long getTimeStamp(){
+  return timeStamp;
+}

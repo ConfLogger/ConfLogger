@@ -1,0 +1,17 @@
+To insert log levels and log verbosity messages in the target method code, we will follow the pattern from the examples provided. Let's add log statements at the appropriate lines in the target method:
+
+```java
+<Line#0>// Read progress monitor poll interval from config. Default is 1 second.
+<Line#1>int progMonitorPollIntervalMillis = conf.getInt(
+<Line#2>PROGRESS_MONITOR_POLL_INTERVAL_KEY, DEFAULT_MONITOR_POLL_INTERVAL);
+<Line#3>if (progMonitorPollIntervalMillis < 1) {
+<Line#4>    LOG.warn("Configured poll interval is less than 1 millisecond. Using default value.");
+<Line#5>    progMonitorPollIntervalMillis = DEFAULT_MONITOR_POLL_INTERVAL;
+<Line#6>}
+<Line#7>LOG.info("Returning progress monitor poll interval: " + progMonitorPollIntervalMillis + " milliseconds.");
+<Line#8>return progMonitorPollIntervalMillis;
+<Line#9>}
+```
+
+- At `<Line#4>`, a warning log is added to notify when the configured poll interval is less than 1 millisecond, and the default value is used instead.
+- At `<Line#7>`, an info log is added to indicate the value of the poll interval being returned.

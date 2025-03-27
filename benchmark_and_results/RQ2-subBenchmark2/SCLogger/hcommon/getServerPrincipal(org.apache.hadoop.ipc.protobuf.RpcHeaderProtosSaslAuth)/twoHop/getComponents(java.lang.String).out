@@ -1,0 +1,4 @@
+private static String[] getComponents(String principalConfig){
+  if (principalConfig == null)   return null;
+  return principalConfig.split("[/@]");
+}

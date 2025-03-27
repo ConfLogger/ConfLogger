@@ -1,0 +1,235 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>if (clazz != null) {
+<Line#1>return ReflectionUtils.newInstance(clazz, conf);
+<Line#2>}
+<Line#3>try {
+<Line#4>return new ResourceCalculatorPlugin();
+<Line#5>} catch (UnsupportedOperationException ue) {
+<Line#6>;
+<Line#7>} catch (Throwable t) {
+<Line#8>;
+<Line#9>}
+<Line#10>return null;
+<Line#11>}
+
+Example 1:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    if (appId != null) {
+<Line#4>      return ApplicationId.fromString(appId.trim());
+<Line#5>    }
+<Line#6> else {
+<Line#7>      return null;
+<Line#8>    }
+<Line#9>  }
+<Line#10> catch (  IllegalFormatException e) {
+<Line#11>    LOG.error("Invalid application ID: " + appId);
+<Line#12>    return null;
+<Line#13>  }
+<Line#14>}
+Label: <Line#11> LOG.error("Invalid application ID: " + appId)
+
+Example 2:
+<Line#1>{
+<Line#2>  initForReadableEndpoints();
+<Line#3>  YarnScheduler scheduler=rm.getRMContext().getScheduler();
+<Line#4>  if (scheduler instanceof AbstractYarnScheduler) {
+<Line#5>    AbstractYarnScheduler abstractYarnScheduler=(AbstractYarnScheduler)scheduler;
+<Line#6>    ActivitiesManager activitiesManager=abstractYarnScheduler.getActivitiesManager();
+<Line#7>    if (null == activitiesManager) {
+<Line#8>      String errMessage="Not Capacity Scheduler";
+<Line#9>      return new AppActivitiesInfo(errMessage,appId);
+<Line#10>    }
+<Line#11>    if (appId == null) {
+<Line#12>      String errMessage="Must provide an application Id";
+<Line#13>      return new AppActivitiesInfo(errMessage,null);
+<Line#14>    }
+<Line#15>    RMWSConsts.ActivitiesGroupBy activitiesGroupBy;
+<Line#16>    try {
+<Line#17>      activitiesGroupBy=parseActivitiesGroupBy(groupBy);
+<Line#18>    }
+<Line#19> catch (    IllegalArgumentException e) {
+<Line#20>      return new AppActivitiesInfo(e.getMessage(),appId);
+<Line#21>    }
+<Line#22>    Set<RMWSConsts.AppActivitiesRequiredAction> requiredActions;
+<Line#23>    try {
+<Line#24>      requiredActions=parseAppActivitiesRequiredActions(getFlatSet(actions));
+<Line#25>    }
+<Line#26> catch (    IllegalArgumentException e) {
+<Line#27>      return new AppActivitiesInfo(e.getMessage(),appId);
+<Line#28>    }
+<Line#29>    Set<Integer> parsedRequestPriorities;
+<Line#30>    try {
+<Line#31>      parsedRequestPriorities=getFlatSet(requestPriorities).stream().map(e -> Integer.valueOf(e)).collect(Collectors.toSet());
+<Line#32>    }
+<Line#33> catch (    NumberFormatException e) {
+<Line#34>      return new AppActivitiesInfo("request priorities must be integers!",appId);
+<Line#35>    }
+<Line#36>    Set<Long> parsedAllocationRequestIds;
+<Line#37>    try {
+<Line#38>      parsedAllocationRequestIds=getFlatSet(allocationRequestIds).stream().map(e -> Long.valueOf(e)).collect(Collectors.toSet());
+<Line#39>    }
+<Line#40> catch (    NumberFormatException e) {
+<Line#41>      return new AppActivitiesInfo("allocation request Ids must be integers!",appId);
+<Line#42>    }
+<Line#43>    int limitNum=-1;
+<Line#44>    if (limit != null) {
+<Line#45>      try {
+<Line#46>        limitNum=Integer.parseInt(limit);
+<Line#47>        if (limitNum <= 0) {
+<Line#48>          return new AppActivitiesInfo("limit must be greater than 0!",appId);
+<Line#49>        }
+<Line#50>      }
+<Line#51> catch (      NumberFormatException e) {
+<Line#52>        return new AppActivitiesInfo("limit must be integer!",appId);
+<Line#53>      }
+<Line#54>    }
+<Line#55>    double maxTime=3.0;
+<Line#56>    if (time != null) {
+<Line#57>      if (time.contains(".")) {
+<Line#58>        maxTime=Double.parseDouble(time);
+<Line#59>      }
+<Line#60> else {
+<Line#61>        maxTime=Double.parseDouble(time + ".0");
+<Line#62>      }
+<Line#63>    }
+<Line#64>    ApplicationId applicationId;
+<Line#65>    try {
+<Line#66>      applicationId=ApplicationId.fromString(appId);
+<Line#67>      if (requiredActions.contains(RMWSConsts.AppActivitiesRequiredAction.REFRESH)) {
+<Line#68>        activitiesManager.turnOnAppActivitiesRecording(applicationId,maxTime);
+<Line#69>      }
+<Line#70>      if (requiredActions.contains(RMWSConsts.AppActivitiesRequiredAction.GET)) {
+<Line#71>        AppActivitiesInfo appActivitiesInfo=activitiesManager.getAppActivitiesInfo(applicationId,parsedRequestPriorities,parsedAllocationRequestIds,activitiesGroupBy,limitNum,summarize,maxTime);
+<Line#72>        return appActivitiesInfo;
+<Line#73>      }
+<Line#74>      return new AppActivitiesInfo("Successfully received " + (actions.size() == 1 ? "action: " : "actions: ") + StringUtils.join(',',actions),appId);
+<Line#75>    }
+<Line#76> catch (    Exception e) {
+<Line#77>      String errMessage="Cannot find application with given appId";
+<Line#78>      LOG.error(errMessage,e);
+<Line#79>      return new AppActivitiesInfo(errMessage,appId);
+<Line#80>    }
+<Line#81>  }
+<Line#82>  return null;
+<Line#83>}
+Label: <Line#78> LOG.error(errMessage,e)
+
+Example 3:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    return new JSONJAXBContext(JSONConfiguration.DEFAULT,WeightedPolicyInfo.class);
+<Line#4>  }
+<Line#5> catch (  JAXBException e) {
+<Line#6>    LOG.error("Error parsing the policy.",e);
+<Line#7>  }
+<Line#8>  return null;
+<Line#9>}
+Label: <Line#6> LOG.error("Error parsing the policy.",e)
+
+Example 4:
+<Line#1>{
+<Line#2>  UserGroupInformation callerUGI=null;
+<Line#3>  if (hsr != null) {
+<Line#4>    callerUGI=RMWebAppUtil.getCallerUserGroupInformation(hsr,true);
+<Line#5>  }
+<Line#6> else {
+<Line#7>    callerUGI=UserGroupInformation.createRemoteUser(user);
+<Line#8>  }
+<Line#9>  if (callerUGI == null) {
+<Line#10>    LOG.error("Unable to obtain user name, user not authenticated");
+<Line#11>    return null;
+<Line#12>  }
+<Line#13>  try {
+<Line#14>    return callerUGI.doAs(new PrivilegedExceptionAction<T>(){
+<Line#15>      @SuppressWarnings("unchecked") @Override public T run(){
+<Line#16>        Map<String,String[]> paramMap=null;
+<Line#17>        if (hsr != null) {
+<Line#18>          paramMap=hsr.getParameterMap();
+<Line#19>        }
+<Line#20> else         if (additionalParam != null) {
+<Line#21>          paramMap=additionalParam;
+<Line#22>        }
+<Line#23>        ClientResponse response=RouterWebServiceUtil.invokeRMWebService(webApp,targetPath,method,(hsr == null) ? null : hsr.getPathInfo(),paramMap,formParam,getMediaTypeFromHttpServletRequest(hsr,returnType),conf);
+<Line#24>        if (Response.class.equals(returnType)) {
+<Line#25>          return (T)RouterWebServiceUtil.clientResponseToResponse(response);
+<Line#26>        }
+<Line#27>        if (response.getStatus() == SC_OK) {
+<Line#28>          return response.getEntity(returnType);
+<Line#29>        }
+<Line#30>        if (response.getStatus() == SC_NO_CONTENT) {
+<Line#31>          try {
+<Line#32>            return returnType.getConstructor().newInstance();
+<Line#33>          }
+<Line#34> catch (          RuntimeException|ReflectiveOperationException e) {
+<Line#35>            LOG.error("Cannot create empty entity for {}",returnType,e);
+<Line#36>          }
+<Line#37>        }
+<Line#38>        RouterWebServiceUtil.retrieveException(response);
+<Line#39>        return null;
+<Line#40>      }
+<Line#41>    }
+<Line#42>);
+<Line#43>  }
+<Line#44> catch (  InterruptedException e) {
+<Line#45>    return null;
+<Line#46>  }
+<Line#47>catch (  IOException e) {
+<Line#48>    return null;
+<Line#49>  }
+<Line#50>}
+Label: <Line#10> LOG.error("Unable to obtain user name, user not authenticated")
+
+Example 5:
+<Line#1>{
+<Line#2>  AppsInfo apps=new AppsInfo();
+<Line#3>  long startTime=clock.getTime();
+<Line#4>  Map<SubClusterId,SubClusterInfo> subClustersActive=null;
+<Line#5>  try {
+<Line#6>    subClustersActive=federationFacade.getSubClusters(true);
+<Line#7>  }
+<Line#8> catch (  YarnException e) {
+<Line#9>    routerMetrics.incrMultipleAppsFailedRetrieved();
+<Line#10>    return null;
+<Line#11>  }
+<Line#12>  CompletionService<AppsInfo> compSvc=new ExecutorCompletionService<>(this.threadpool);
+<Line#13>  final HttpServletRequest hsrCopy=clone(hsr);
+<Line#14>  for (  final SubClusterInfo info : subClustersActive.values()) {
+<Line#15>    compSvc.submit(new Callable<AppsInfo>(){
+<Line#16>      @Override public AppsInfo call(){
+<Line#17>        DefaultRequestInterceptorREST interceptor=getOrCreateInterceptorForSubCluster(info.getSubClusterId(),info.getRMWebServiceAddress());
+<Line#18>        AppsInfo rmApps=interceptor.getApps(hsrCopy,stateQuery,statesQuery,finalStatusQuery,userQuery,queueQuery,count,startedBegin,startedEnd,finishBegin,finishEnd,applicationTypes,applicationTags,name,unselectedFields);
+<Line#19>        if (rmApps == null) {
+<Line#20>          routerMetrics.incrMultipleAppsFailedRetrieved();
+<Line#21>          LOG.error("Subcluster {} failed to return appReport.",info.getSubClusterId());
+<Line#22>          return null;
+<Line#23>        }
+<Line#24>        return rmApps;
+<Line#25>      }
+<Line#26>    }
+<Line#27>);
+<Line#28>  }
+<Line#29>  for (int i=0; i < subClustersActive.size(); i++) {
+<Line#30>    try {
+<Line#31>      Future<AppsInfo> future=compSvc.take();
+<Line#32>      AppsInfo appsResponse=future.get();
+<Line#33>      long stopTime=clock.getTime();
+<Line#34>      routerMetrics.succeededMultipleAppsRetrieved(stopTime - startTime);
+<Line#35>      if (appsResponse != null) {
+<Line#36>        apps.addAll(appsResponse.getApps());
+<Line#37>      }
+<Line#38>    }
+<Line#39> catch (    Throwable e) {
+<Line#40>      routerMetrics.incrMultipleAppsFailedRetrieved();
+<Line#41>      LOG.warn("Failed to get application report",e);
+<Line#42>    }
+<Line#43>  }
+<Line#44>  if (apps.getApps().isEmpty()) {
+<Line#45>    return null;
+<Line#46>  }
+<Line#47>  return RouterWebServiceUtil.mergeAppsInfo(apps.getApps(),returnPartialReport);
+<Line#48>}
+Label: <Line#41> LOG.warn("Failed to get application report",e)
+

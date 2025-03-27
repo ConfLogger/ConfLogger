@@ -1,0 +1,423 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	YarnConfiguration.java	methodSinagture:	org.apache.hadoop.yarn.conf.YarnConfiguration.useHttps(Lorg/apache/hadoop/conf/Configuration;)Z	methodLines:	4651:4652
+blockLines:	4652:-1
+paras:	null
+TaintedStat:	NORMAL useHttps:conditional branch(ne, to iindex=9) 3,9 Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, useHttps(Lorg/apache/hadoop/conf/Configuration;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, useHttps(Lorg/apache/hadoop/conf/Configuration;)Z > Context: Everywhere[4]7 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 1,4,5 @9 exception:6
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, useHttps(Lorg/apache/hadoop/conf/Configuration;)Z > Context: Everywhere[4]7 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 1,4,5 @9 exception:6
+NORMAL useHttps:9 = invokestatic < Application, Lorg/apache/hadoop/http/HttpConfig$Policy, fromString(Ljava/lang/String;)Lorg/apache/hadoop/http/HttpConfig$Policy; > 7 @12 exception:8 Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, useHttps(Lorg/apache/hadoop/conf/Configuration;)Z > Context: Everywhere
+METHOD_ENTRY:Node: < Extension, Lorg/apache/hadoop/http/HttpConfig$Policy, fromString(Ljava/lang/String;)Lorg/apache/hadoop/http/HttpConfig$Policy; > Context: Everywhere
+NORMAL fromString:conditional branch(ge, to iindex=27) 13,4 Node: < Extension, Lorg/apache/hadoop/http/HttpConfig$Policy, fromString(Ljava/lang/String;)Lorg/apache/hadoop/http/HttpConfig$Policy; > Context: Everywhere
+NORMAL fromString:return 14 Node: < Extension, Lorg/apache/hadoop/http/HttpConfig$Policy, fromString(Ljava/lang/String;)Lorg/apache/hadoop/http/HttpConfig$Policy; > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Extension, Lorg/apache/hadoop/http/HttpConfig$Policy, fromString(Ljava/lang/String;)Lorg/apache/hadoop/http/HttpConfig$Policy; > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, useHttps(Lorg/apache/hadoop/conf/Configuration;)Z > Context: Everywhere[5]9 = invokestatic < Application, Lorg/apache/hadoop/http/HttpConfig$Policy, fromString(Ljava/lang/String;)Lorg/apache/hadoop/http/HttpConfig$Policy; > 7 @12 exception:8
+NORMAL useHttps:conditional branch(ne, to iindex=9) 3,9 Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, useHttps(Lorg/apache/hadoop/conf/Configuration;)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  public static boolean useHttps(Configuration conf) {
+    return HttpConfig.Policy.HTTPS_ONLY == HttpConfig.Policy.fromString(conf
+        .get(YARN_HTTP_POLICY_KEY,
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/api/impl/TimelineClientImpl, renewDelegationToken(Lorg/apache/hadoop/security/token/Token;)J > Context: Everywhere, blocks=[BB[SSA:12..12]7 - org.apache.hadoop.yarn.client.api.impl.TimelineClientImpl.renewDelegationToken(Lorg/apache/hadoop/security/token/Token;)J, BB[SSA:10..11]6 - org.apache.hadoop.yarn.client.api.impl.TimelineClientImpl.renewDelegationToken(Lorg/apache/hadoop/security/token/Token;)J, BB[SSA:13..14]8 - org.apache.hadoop.yarn.client.api.impl.TimelineClientImpl.renewDelegationToken(Lorg/apache/hadoop/security/token/Token;)J, BB[SSA:-1..-2]21 - org.apache.hadoop.yarn.client.api.impl.TimelineClientImpl.renewDelegationToken(Lorg/apache/hadoop/security/token/Token;)J], numberOfBasicBlocks=4, firstLineNumber=223, lastLineNumber=224, firstMethodNumber=220, lastMethodNumber=251, isFirstLineValid=true, methodSrcCode=
+          throws IOException, YarnException {
+    final boolean isTokenServiceAddrEmpty =
+        timelineDT.getService().toString().isEmpty();
+    final String scheme = isTokenServiceAddrEmpty ? null
+        : (YarnConfiguration.useHttps(this.getConfig()) ? "https" : "http");
+    final InetSocketAddress address = isTokenServiceAddrEmpty ? null
+        : SecurityUtil.getTokenServiceAddr(timelineDT);
+    PrivilegedExceptionAction<Long> renewDTAction =
+        new PrivilegedExceptionAction<Long>() {
+
+          @Override
+          public Long run() throws Exception {
+            // If the timeline DT to renew is different than cached, replace it.
+            // Token to set every time for retry, because when exception
+            // happens, DelegationTokenAuthenticatedURL will reset it to null;
+            if (!timelineDT.equals(token.getDelegationToken())) {
+              token.setDelegationToken((Token) timelineDT);
+            }
+            DelegationTokenAuthenticatedURL authUrl =
+                connector.getDelegationTokenAuthenticatedURL();
+            // If the token service address is not available, fall back to use
+            // the configured service address.
+            final URI serviceURI = isTokenServiceAddrEmpty
+                ? TimelineConnector.constructResURI(getConfig(),
+                    getTimelineServiceAddress(), RESOURCE_URI_STR_V1)
+                : new URI(scheme, null, address.getHostName(),
+                    address.getPort(), RESOURCE_URI_STR_V1, null, null);
+            return authUrl
+                .renewDelegationToken(serviceURI.toURL(), token, doAsUser);
+          }
+        };
+    return (Long) connector.operateDelegationToken(renewDTAction);
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/webapp/util/WebAppUtils, getRouterWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:0..1]1 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getRouterWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]0 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getRouterWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:2..3]2 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getRouterWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]7 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getRouterWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=169, lastLineNumber=170, firstMethodNumber=169, lastMethodNumber=174, isFirstLineValid=false, methodSrcCode=
+  public static String getRouterWebAppURLWithoutScheme(Configuration conf) {
+    if (YarnConfiguration.useHttps(conf)) {
+      return conf.get(YarnConfiguration.ROUTER_WEBAPP_HTTPS_ADDRESS,
+          YarnConfiguration.DEFAULT_ROUTER_WEBAPP_HTTPS_ADDRESS);
+    } else {
+      return conf.get(YarnConfiguration.ROUTER_WEBAPP_ADDRESS,
+          YarnConfiguration.DEFAULT_ROUTER_WEBAPP_ADDRESS);
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/util/RMHAUtils, getRMHAWebappAddresses(Lorg/apache/hadoop/yarn/conf/YarnConfiguration;)Ljava/util/List; > Context: Everywhere, blocks=[BB[SSA:0..1]1 - org.apache.hadoop.yarn.util.RMHAUtils.getRMHAWebappAddresses(Lorg/apache/hadoop/yarn/conf/YarnConfiguration;)Ljava/util/List;, BB[SSA:-1..-2]0 - org.apache.hadoop.yarn.util.RMHAUtils.getRMHAWebappAddresses(Lorg/apache/hadoop/yarn/conf/YarnConfiguration;)Ljava/util/List;, BB[SSA:2..3]2 - org.apache.hadoop.yarn.util.RMHAUtils.getRMHAWebappAddresses(Lorg/apache/hadoop/yarn/conf/YarnConfiguration;)Ljava/util/List;, BB[SSA:-1..-2]31 - org.apache.hadoop.yarn.util.RMHAUtils.getRMHAWebappAddresses(Lorg/apache/hadoop/yarn/conf/YarnConfiguration;)Ljava/util/List;], numberOfBasicBlocks=4, firstLineNumber=77, lastLineNumber=78, firstMethodNumber=77, lastMethodNumber=101, isFirstLineValid=false, methodSrcCode=
+    String defaultPort;
+    if (YarnConfiguration.useHttps(conf)) {
+      prefix = YarnConfiguration.RM_WEBAPP_HTTPS_ADDRESS;
+      defaultPort = ":" + YarnConfiguration.DEFAULT_RM_WEBAPP_HTTPS_PORT;
+    } else {
+      prefix =YarnConfiguration.RM_WEBAPP_ADDRESS;
+      defaultPort = ":" + YarnConfiguration.DEFAULT_RM_WEBAPP_PORT;
+    }
+    Collection<String> rmIds =
+        conf.getStringCollection(YarnConfiguration.RM_HA_IDS);
+    List<String> addrs = new ArrayList<String>();
+    for (String id : rmIds) {
+      String addr = conf.get(HAUtil.addSuffix(prefix, id));
+      if (addr == null) {
+        String hostname =
+            conf.get(HAUtil.addSuffix(YarnConfiguration.RM_HOSTNAME, id));
+        if (hostname != null) {
+          addr = hostname + defaultPort;
+        }
+      }
+      if (addr != null) {
+        addrs.add(addr);
+      }
+    }
+    return addrs;
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/api/impl/TimelineConnector, serviceInit(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere, blocks=[BB[SSA:11..13]7 - org.apache.hadoop.yarn.client.api.impl.TimelineConnector.serviceInit(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:10..10]6 - org.apache.hadoop.yarn.client.api.impl.TimelineConnector.serviceInit(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:14..15]8 - org.apache.hadoop.yarn.client.api.impl.TimelineConnector.serviceInit(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:-1..-2]51 - org.apache.hadoop.yarn.client.api.impl.TimelineConnector.serviceInit(Lorg/apache/hadoop/conf/Configuration;)V], numberOfBasicBlocks=4, firstLineNumber=106, lastLineNumber=108, firstMethodNumber=103, lastMethodNumber=134, isFirstLineValid=true, methodSrcCode=
+  protected void serviceInit(Configuration conf) throws Exception {
+    super.serviceInit(conf);
+    ClientConfig cc = new DefaultClientConfig();
+    cc.getClasses().add(YarnJacksonJaxbJsonProvider.class);
+
+    if (YarnConfiguration.useHttps(conf)) {
+      // If https is chosen, configures SSL client.
+      sslFactory = getSSLFactory(conf);
+      connConfigurator = getConnConfigurator(sslFactory);
+    } else {
+      connConfigurator = DEFAULT_TIMEOUT_CONN_CONFIGURATOR;
+    }
+
+    if (UserGroupInformation.isSecurityEnabled()) {
+      authenticator = new KerberosDelegationTokenAuthenticator();
+    } else {
+      authenticator = new PseudoDelegationTokenAuthenticator();
+    }
+    authenticator.setConnectionConfigurator(connConfigurator);
+
+    connectionRetry = new TimelineClientConnectionRetry(conf);
+    client =
+        new Client(
+            new URLConnectionClientHandler(new TimelineURLConnectionFactory(
+                authUgi, authenticator, connConfigurator, token, doAsUser)),
+            cc);
+    if (requireConnectionRetry) {
+      TimelineJerseyRetryFilter retryFilter =
+          new TimelineJerseyRetryFilter(connectionRetry);
+      client.addFilter(retryFilter);
+    }
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/webapp/util/WebAppUtils, getNMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:0..1]1 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getNMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]0 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getNMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:2..3]2 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getNMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]7 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getNMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=339, lastLineNumber=340, firstMethodNumber=339, lastMethodNumber=344, isFirstLineValid=false, methodSrcCode=
+  public static String getNMWebAppURLWithoutScheme(Configuration conf) {
+    if (YarnConfiguration.useHttps(conf)) {
+      return conf.get(YarnConfiguration.NM_WEBAPP_HTTPS_ADDRESS,
+        YarnConfiguration.DEFAULT_NM_WEBAPP_HTTPS_ADDRESS);
+    } else {
+      return conf.get(YarnConfiguration.NM_WEBAPP_ADDRESS,
+        YarnConfiguration.DEFAULT_NM_WEBAPP_ADDRESS);
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/webapp/util/WebAppUtils, setRMWebAppHostnameAndPort(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;I)V > Context: Everywhere, blocks=[BB[SSA:10..12]7 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.setRMWebAppHostnameAndPort(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;I)V, BB[SSA:9..9]6 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.setRMWebAppHostnameAndPort(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;I)V, BB[SSA:13..14]8 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.setRMWebAppHostnameAndPort(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;I)V, BB[SSA:-1..-2]13 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.setRMWebAppHostnameAndPort(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;I)V], numberOfBasicBlocks=4, firstLineNumber=75, lastLineNumber=76, firstMethodNumber=74, lastMethodNumber=81, isFirstLineValid=true, methodSrcCode=
+      String hostname, int port) {
+    String resolvedAddress = hostname + ":" + port;
+    if (YarnConfiguration.useHttps(conf)) {
+      conf.set(YarnConfiguration.RM_WEBAPP_HTTPS_ADDRESS, resolvedAddress);
+    } else {
+      conf.set(YarnConfiguration.RM_WEBAPP_ADDRESS, resolvedAddress);
+    }
+  }
+  
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/api/impl/TimelineConnector, constructResURI(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;)Ljava/net/URI; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.hadoop.yarn.client.api.impl.TimelineConnector.constructResURI(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;)Ljava/net/URI;, BB[SSA:-1..-2]0 - org.apache.hadoop.yarn.client.api.impl.TimelineConnector.constructResURI(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;)Ljava/net/URI;, BB[SSA:3..4]2 - org.apache.hadoop.yarn.client.api.impl.TimelineConnector.constructResURI(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;)Ljava/net/URI;, BB[SSA:-1..-2]10 - org.apache.hadoop.yarn.client.api.impl.TimelineConnector.constructResURI(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;)Ljava/net/URI;], numberOfBasicBlocks=4, firstLineNumber=193, lastLineNumber=194, firstMethodNumber=193, lastMethodNumber=194, isFirstLineValid=false, methodSrcCode=
+      String uri) {
+    return URI.create(
+        JOINER.join(YarnConfiguration.useHttps(conf) ? "https://" : "http://",
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/util/timeline/TimelineUtils, getTimelineTokenServiceAddress(Lorg/apache/hadoop/conf/Configuration;)Ljava/net/InetSocketAddress; > Context: Everywhere, blocks=[BB[SSA:0..3]1 - org.apache.hadoop.yarn.util.timeline.TimelineUtils.getTimelineTokenServiceAddress(Lorg/apache/hadoop/conf/Configuration;)Ljava/net/InetSocketAddress;, BB[SSA:-1..-2]0 - org.apache.hadoop.yarn.util.timeline.TimelineUtils.getTimelineTokenServiceAddress(Lorg/apache/hadoop/conf/Configuration;)Ljava/net/InetSocketAddress;, BB[SSA:4..5]2 - org.apache.hadoop.yarn.util.timeline.TimelineUtils.getTimelineTokenServiceAddress(Lorg/apache/hadoop/conf/Configuration;)Ljava/net/InetSocketAddress;, BB[SSA:-1..-2]8 - org.apache.hadoop.yarn.util.timeline.TimelineUtils.getTimelineTokenServiceAddress(Lorg/apache/hadoop/conf/Configuration;)Ljava/net/InetSocketAddress;], numberOfBasicBlocks=4, firstLineNumber=146, lastLineNumber=148, firstMethodNumber=146, lastMethodNumber=159, isFirstLineValid=false, methodSrcCode=
+      Configuration conf) {
+    InetSocketAddress timelineServiceAddr = null;
+    if (YarnConfiguration.useHttps(conf)) {
+      timelineServiceAddr = conf.getSocketAddr(
+          YarnConfiguration.TIMELINE_SERVICE_WEBAPP_HTTPS_ADDRESS,
+          YarnConfiguration.DEFAULT_TIMELINE_SERVICE_WEBAPP_HTTPS_ADDRESS,
+          YarnConfiguration.DEFAULT_TIMELINE_SERVICE_WEBAPP_HTTPS_PORT);
+    } else {
+      timelineServiceAddr = conf.getSocketAddr(
+          YarnConfiguration.TIMELINE_SERVICE_WEBAPP_ADDRESS,
+          YarnConfiguration.DEFAULT_TIMELINE_SERVICE_WEBAPP_ADDRESS,
+          YarnConfiguration.DEFAULT_TIMELINE_SERVICE_WEBAPP_PORT);
+    }
+    return timelineServiceAddr;
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/webapp/util/WebAppUtils, getTimelineReaderWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:0..1]1 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getTimelineReaderWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]0 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getTimelineReaderWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:2..3]2 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getTimelineReaderWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]7 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getTimelineReaderWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=360, lastLineNumber=361, firstMethodNumber=360, lastMethodNumber=367, isFirstLineValid=false, methodSrcCode=
+      Configuration conf) {
+    if (YarnConfiguration.useHttps(conf)) {
+      return conf
+          .get(YarnConfiguration.TIMELINE_SERVICE_READER_WEBAPP_HTTPS_ADDRESS,
+              YarnConfiguration.
+                  DEFAULT_TIMELINE_SERVICE_READER_WEBAPP_HTTPS_ADDRESS);
+    } else {
+      return conf.get(YarnConfiguration.TIMELINE_SERVICE_READER_WEBAPP_ADDRESS,
+          YarnConfiguration.
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/webapp/util/WebAppUtils, getResolvedRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getResolvedRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]0 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getResolvedRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:3..4]2 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getResolvedRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]7 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getResolvedRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=234, lastLineNumber=235, firstMethodNumber=234, lastMethodNumber=235, isFirstLineValid=false, methodSrcCode=
+  public static String getResolvedRMWebAppURLWithoutScheme(Configuration conf) {
+    return getResolvedRMWebAppURLWithoutScheme(conf,
+        YarnConfiguration.useHttps(conf) ? Policy.HTTPS_ONLY : Policy.HTTP_ONLY);
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/api/impl/TimelineClientImpl, serviceInit(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere, blocks=[BB[SSA:44..45]22 - org.apache.hadoop.yarn.client.api.impl.TimelineClientImpl.serviceInit(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:43..43]21 - org.apache.hadoop.yarn.client.api.impl.TimelineClientImpl.serviceInit(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:46..47]23 - org.apache.hadoop.yarn.client.api.impl.TimelineClientImpl.serviceInit(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:-1..-2]38 - org.apache.hadoop.yarn.client.api.impl.TimelineClientImpl.serviceInit(Lorg/apache/hadoop/conf/Configuration;)V], numberOfBasicBlocks=4, firstLineNumber=119, lastLineNumber=121, firstMethodNumber=99, lastMethodNumber=132, isFirstLineValid=true, methodSrcCode=
+  protected void serviceInit(Configuration conf) throws Exception {
+    if (!YarnConfiguration.timelineServiceV1Enabled(conf)) {
+      throw new IOException("Timeline V1 client is not properly configured. "
+          + "Either timeline service is not enabled or version is not set to"
+          + " 1.x");
+    }
+
+    timelineServiceV15Enabled =
+        YarnConfiguration.timelineServiceV15Enabled(conf);
+
+    UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
+    UserGroupInformation realUgi = ugi.getRealUser();
+    if (realUgi != null) {
+      authUgi = realUgi;
+      doAsUser = ugi.getShortUserName();
+    } else {
+      authUgi = ugi;
+      doAsUser = null;
+    }
+    token = new DelegationTokenAuthenticatedURL.Token();
+    connector = createTimelineConnector();
+
+    if (YarnConfiguration.useHttps(conf)) {
+      timelineServiceAddress =
+          conf.get(YarnConfiguration.TIMELINE_SERVICE_WEBAPP_HTTPS_ADDRESS,
+              YarnConfiguration.DEFAULT_TIMELINE_SERVICE_WEBAPP_HTTPS_ADDRESS);
+    } else {
+      timelineServiceAddress =
+          conf.get(YarnConfiguration.TIMELINE_SERVICE_WEBAPP_ADDRESS,
+              YarnConfiguration.DEFAULT_TIMELINE_SERVICE_WEBAPP_ADDRESS);
+    }
+    LOG.info("Timeline service address: " + getTimelineServiceAddress());
+    super.serviceInit(conf);
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/cli/SchedConfCLI, initializeWebResource(Ljava/lang/String;)Lcom/sun/jersey/api/client/WebResource; > Context: Everywhere, blocks=[BB[SSA:2..4]2 - org.apache.hadoop.yarn.client.cli.SchedConfCLI.initializeWebResource(Ljava/lang/String;)Lcom/sun/jersey/api/client/WebResource;, BB[SSA:0..1]1 - org.apache.hadoop.yarn.client.cli.SchedConfCLI.initializeWebResource(Ljava/lang/String;)Lcom/sun/jersey/api/client/WebResource;, BB[SSA:5..6]3 - org.apache.hadoop.yarn.client.cli.SchedConfCLI.initializeWebResource(Ljava/lang/String;)Lcom/sun/jersey/api/client/WebResource;, BB[SSA:-1..-2]13 - org.apache.hadoop.yarn.client.cli.SchedConfCLI.initializeWebResource(Ljava/lang/String;)Lcom/sun/jersey/api/client/WebResource;], numberOfBasicBlocks=4, firstLineNumber=203, lastLineNumber=204, firstMethodNumber=202, lastMethodNumber=208, isFirstLineValid=true, methodSrcCode=
+  private WebResource initializeWebResource(String webAppAddress) {
+    Configuration conf = getConf();
+    if (YarnConfiguration.useHttps(conf)) {
+      sslFactory = new SSLFactory(SSLFactory.Mode.CLIENT, conf);
+    }
+    client = createWebServiceClient(sslFactory);
+    return client.resource(webAppAddress);
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/webapp/util/WebAppUtils, getAHSWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:0..1]1 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getAHSWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]0 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getAHSWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:2..3]2 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getAHSWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]7 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getAHSWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=349, lastLineNumber=350, firstMethodNumber=349, lastMethodNumber=354, isFirstLineValid=false, methodSrcCode=
+  public static String getAHSWebAppURLWithoutScheme(Configuration conf) {
+    if (YarnConfiguration.useHttps(conf)) {
+      return conf.get(YarnConfiguration.TIMELINE_SERVICE_WEBAPP_HTTPS_ADDRESS,
+          YarnConfiguration.DEFAULT_TIMELINE_SERVICE_WEBAPP_HTTPS_ADDRESS);
+    } else {
+      return conf.get(YarnConfiguration.TIMELINE_SERVICE_WEBAPP_ADDRESS,
+          YarnConfiguration.DEFAULT_TIMELINE_SERVICE_WEBAPP_ADDRESS);
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/api/impl/TimelineClientImpl, cancelDelegationToken(Lorg/apache/hadoop/security/token/Token;)V > Context: Everywhere, blocks=[BB[SSA:12..12]7 - org.apache.hadoop.yarn.client.api.impl.TimelineClientImpl.cancelDelegationToken(Lorg/apache/hadoop/security/token/Token;)V, BB[SSA:10..11]6 - org.apache.hadoop.yarn.client.api.impl.TimelineClientImpl.cancelDelegationToken(Lorg/apache/hadoop/security/token/Token;)V, BB[SSA:13..14]8 - org.apache.hadoop.yarn.client.api.impl.TimelineClientImpl.cancelDelegationToken(Lorg/apache/hadoop/security/token/Token;)V, BB[SSA:-1..-2]19 - org.apache.hadoop.yarn.client.api.impl.TimelineClientImpl.cancelDelegationToken(Lorg/apache/hadoop/security/token/Token;)V], numberOfBasicBlocks=4, firstLineNumber=261, lastLineNumber=262, firstMethodNumber=258, lastMethodNumber=291, isFirstLineValid=true, methodSrcCode=
+      throws IOException, YarnException {
+    final boolean isTokenServiceAddrEmpty =
+        timelineDT.getService().toString().isEmpty();
+    final String scheme = isTokenServiceAddrEmpty ? null
+        : (YarnConfiguration.useHttps(this.getConfig()) ? "https" : "http");
+    final InetSocketAddress address = isTokenServiceAddrEmpty ? null
+        : SecurityUtil.getTokenServiceAddr(timelineDT);
+    PrivilegedExceptionAction<Void> cancelDTAction =
+        new PrivilegedExceptionAction<Void>() {
+
+          @Override
+          public Void run() throws Exception {
+            // If the timeline DT to cancel is different than cached, replace
+            // it.
+            // Token to set every time for retry, because when exception
+            // happens, DelegationTokenAuthenticatedURL will reset it to null;
+            if (!timelineDT.equals(token.getDelegationToken())) {
+              token.setDelegationToken((Token) timelineDT);
+            }
+            DelegationTokenAuthenticatedURL authUrl =
+                connector.getDelegationTokenAuthenticatedURL();
+            // If the token service address is not available, fall back to use
+            // the configured service address.
+            final URI serviceURI = isTokenServiceAddrEmpty
+                ? TimelineConnector.constructResURI(getConfig(),
+                    getTimelineServiceAddress(), RESOURCE_URI_STR_V1)
+                : new URI(scheme, null, address.getHostName(),
+                    address.getPort(), RESOURCE_URI_STR_V1, null, null);
+            authUrl.cancelDelegationToken(serviceURI.toURL(), token, doAsUser);
+            return null;
+          }
+        };
+    connector.operateDelegationToken(cancelDTAction);
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/webapp/log/AggregatedLogsBlock, getApplicationLogURL(Lorg/apache/hadoop/yarn/api/records/ApplicationId;)Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:31..31]14 - org.apache.hadoop.yarn.webapp.log.AggregatedLogsBlock.getApplicationLogURL(Lorg/apache/hadoop/yarn/api/records/ApplicationId;)Ljava/lang/String;, BB[SSA:28..30]13 - org.apache.hadoop.yarn.webapp.log.AggregatedLogsBlock.getApplicationLogURL(Lorg/apache/hadoop/yarn/api/records/ApplicationId;)Ljava/lang/String;, BB[SSA:32..33]15 - org.apache.hadoop.yarn.webapp.log.AggregatedLogsBlock.getApplicationLogURL(Lorg/apache/hadoop/yarn/api/records/ApplicationId;)Ljava/lang/String;, BB[SSA:-1..-2]39 - org.apache.hadoop.yarn.webapp.log.AggregatedLogsBlock.getApplicationLogURL(Lorg/apache/hadoop/yarn/api/records/ApplicationId;)Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=131, lastLineNumber=132, firstMethodNumber=122, lastMethodNumber=143, isFirstLineValid=true, methodSrcCode=
+  private String getApplicationLogURL(ApplicationId applicationId) {
+    String appId = applicationId.toString();
+    if (appId == null || appId.isEmpty()) {
+      return null;
+    }
+    String nodeId = $(NM_NODENAME);
+    if(nodeId == null || nodeId.isEmpty()) {
+      return null;
+    }
+    StringBuilder sb = new StringBuilder();
+    String scheme = YarnConfiguration.useHttps(this.conf) ? "https://":
+        "http://";
+
+    String webAppURLWithoutScheme =
+        WebAppUtils.getNMWebAppURLWithoutScheme(conf);
+    if (webAppURLWithoutScheme.contains(":")) {
+      String httpPort = webAppURLWithoutScheme.split(":")[1];
+      nodeId = NodeId.fromString(nodeId).getHost() + ":" + httpPort;
+    }
+
+    sb.append(scheme).append(nodeId).append("/node/application/").append(appId);
+    return sb.toString();
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/webapp/util/WebAppUtils, getRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;ZI)Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:39..40]17 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;ZI)Ljava/lang/String;, BB[SSA:4..7]3 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;ZI)Ljava/lang/String;, BB[SSA:17..18]7 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;ZI)Ljava/lang/String;, BB[SSA:24..27]11 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;ZI)Ljava/lang/String;, BB[SSA:30..31]13 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;ZI)Ljava/lang/String;, BB[SSA:38..38]16 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;ZI)Ljava/lang/String;, BB[SSA:41..42]18 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;ZI)Ljava/lang/String;, BB[SSA:-1..-2]29 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;ZI)Ljava/lang/String;], numberOfBasicBlocks=8, firstLineNumber=122, lastLineNumber=133, firstMethodNumber=121, lastMethodNumber=145, isFirstLineValid=true, methodSrcCode=
+      boolean isHAEnabled, int haIdIndex)  {
+    YarnConfiguration yarnConfig = new YarnConfiguration(conf);
+    // set RM_ID if we have not configure it.
+    if (isHAEnabled) {
+      String rmId = yarnConfig.get(YarnConfiguration.RM_HA_ID);
+      if (rmId == null || rmId.isEmpty()) {
+        List<String> rmIds = new ArrayList<>(HAUtil.getRMHAIds(conf));
+        if (rmIds != null && !rmIds.isEmpty()) {
+          yarnConfig.set(YarnConfiguration.RM_HA_ID, rmIds.get(haIdIndex));
+        }
+      }
+    }
+    if (YarnConfiguration.useHttps(yarnConfig)) {
+      if (isHAEnabled) {
+        return HAUtil.getConfValueForRMInstance(
+            YarnConfiguration.RM_WEBAPP_HTTPS_ADDRESS, yarnConfig);
+      }
+      return yarnConfig.get(YarnConfiguration.RM_WEBAPP_HTTPS_ADDRESS,
+          YarnConfiguration.DEFAULT_RM_WEBAPP_HTTPS_ADDRESS);
+    }else {
+      if (isHAEnabled) {
+        return HAUtil.getConfValueForRMInstance(
+            YarnConfiguration.RM_WEBAPP_ADDRESS, yarnConfig);
+      }
+      return yarnConfig.get(YarnConfiguration.RM_WEBAPP_ADDRESS,
+          YarnConfiguration.DEFAULT_RM_WEBAPP_ADDRESS);
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/cli/TopCLI, connect(Ljava/net/URL;)Ljava/net/URLConnection; > Context: Everywhere, blocks=[BB[SSA:6..6]4 - org.apache.hadoop.yarn.client.cli.TopCLI.connect(Ljava/net/URL;)Ljava/net/URLConnection;, BB[SSA:3..5]3 - org.apache.hadoop.yarn.client.cli.TopCLI.connect(Ljava/net/URL;)Ljava/net/URLConnection;, BB[SSA:7..8]5 - org.apache.hadoop.yarn.client.cli.TopCLI.connect(Ljava/net/URL;)Ljava/net/URLConnection;, BB[SSA:-1..-2]27 - org.apache.hadoop.yarn.client.cli.TopCLI.connect(Ljava/net/URL;)Ljava/net/URLConnection;], numberOfBasicBlocks=4, firstLineNumber=834, lastLineNumber=839, firstMethodNumber=833, lastMethodNumber=854, isFirstLineValid=true, methodSrcCode=
+  private URLConnection connect(URL url) throws Exception {
+    AuthenticatedURL.Token token = new AuthenticatedURL.Token();
+    AuthenticatedURL authUrl;
+    SSLFactory clientSslFactory;
+    URLConnection connection;
+    // If https is chosen, configures SSL client.
+    if (YarnConfiguration.useHttps(getConf())) {
+      clientSslFactory = new SSLFactory(SSLFactory.Mode.CLIENT, getConf());
+      clientSslFactory.init();
+      SSLSocketFactory sslSocktFact = clientSslFactory.createSSLSocketFactory();
+
+      authUrl =
+          new AuthenticatedURL(new KerberosAuthenticator(), clientSslFactory);
+      connection = authUrl.openConnection(url, token);
+      HttpsURLConnection httpsConn = (HttpsURLConnection) connection;
+      httpsConn.setSSLSocketFactory(sslSocktFact);
+    } else {
+      authUrl = new AuthenticatedURL(new KerberosAuthenticator());
+      connection = authUrl.openConnection(url, token);
+    }
+    connection.connect();
+    return connection;
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/webapp/util/WebAppUtils, getTimelineCollectorWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:0..1]1 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getTimelineCollectorWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]0 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getTimelineCollectorWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:2..3]2 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getTimelineCollectorWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]7 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getTimelineCollectorWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=374, lastLineNumber=375, firstMethodNumber=374, lastMethodNumber=381, isFirstLineValid=false, methodSrcCode=
+      Configuration conf) {
+    if (YarnConfiguration.useHttps(conf)) {
+      return conf.get(
+          YarnConfiguration.TIMELINE_SERVICE_COLLECTOR_WEBAPP_HTTPS_ADDRESS,
+          YarnConfiguration.
+              DEFAULT_TIMELINE_SERVICE_COLLECTOR_WEBAPP_HTTPS_ADDRESS);
+    } else {
+      return conf
+          .get(YarnConfiguration.TIMELINE_SERVICE_COLLECTOR_WEBAPP_ADDRESS,
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/webapp/util/WebAppUtils, getResolvedRemoteRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getResolvedRemoteRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]0 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getResolvedRemoteRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:3..4]2 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getResolvedRemoteRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]7 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getResolvedRemoteRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=229, lastLineNumber=230, firstMethodNumber=229, lastMethodNumber=230, isFirstLineValid=false, methodSrcCode=
+      Configuration conf) {
+    return getResolvedRemoteRMWebAppURLWithoutScheme(conf,
+        YarnConfiguration.useHttps(conf) ? Policy.HTTPS_ONLY : Policy.HTTP_ONLY);
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/webapp/util/WebAppUtils, setNMWebAppHostNameAndPort(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;I)V > Context: Everywhere, blocks=[BB[SSA:0..1]1 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.setNMWebAppHostNameAndPort(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;I)V, BB[SSA:-1..-2]0 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.setNMWebAppHostNameAndPort(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;I)V, BB[SSA:2..3]2 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.setNMWebAppHostNameAndPort(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;I)V, BB[SSA:-1..-2]19 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.setNMWebAppHostNameAndPort(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;I)V], numberOfBasicBlocks=4, firstLineNumber=84, lastLineNumber=85, firstMethodNumber=84, lastMethodNumber=92, isFirstLineValid=false, methodSrcCode=
+      String hostName, int port) {
+    if (YarnConfiguration.useHttps(conf)) {
+      conf.set(YarnConfiguration.NM_WEBAPP_HTTPS_ADDRESS,
+          hostName + ":" + port);
+    } else {
+      conf.set(YarnConfiguration.NM_WEBAPP_ADDRESS,
+          hostName + ":" + port);
+    }
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, getServiceAddressConfKeys(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/List; > Context: Everywhere, blocks=[BB[SSA:0..1]1 - org.apache.hadoop.yarn.conf.YarnConfiguration.getServiceAddressConfKeys(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/List;, BB[SSA:-1..-2]0 - org.apache.hadoop.yarn.conf.YarnConfiguration.getServiceAddressConfKeys(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/List;, BB[SSA:2..3]2 - org.apache.hadoop.yarn.conf.YarnConfiguration.getServiceAddressConfKeys(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/List;, BB[SSA:-1..-2]6 - org.apache.hadoop.yarn.conf.YarnConfiguration.getServiceAddressConfKeys(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/List;], numberOfBasicBlocks=4, firstLineNumber=4590, lastLineNumber=4591, firstMethodNumber=4590, lastMethodNumber=4591, isFirstLineValid=false, methodSrcCode=
+  public static List<String> getServiceAddressConfKeys(Configuration conf) {
+    return useHttps(conf) ? RM_SERVICES_ADDRESS_CONF_KEYS_HTTPS
+        : RM_SERVICES_ADDRESS_CONF_KEYS_HTTP;
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/webapp/util/WebServiceClient, initialize(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere, blocks=[BB[SSA:10..11]5 - org.apache.hadoop.yarn.webapp.util.WebServiceClient.initialize(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:7..9]4 - org.apache.hadoop.yarn.webapp.util.WebServiceClient.initialize(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:12..15]6 - org.apache.hadoop.yarn.webapp.util.WebServiceClient.initialize(Lorg/apache/hadoop/conf/Configuration;)V], numberOfBasicBlocks=3, firstLineNumber=55, lastLineNumber=57, firstMethodNumber=52, lastMethodNumber=64, isFirstLineValid=true, methodSrcCode=
+  public static void initialize(Configuration conf) throws Exception {
+    if (instance == null) {
+      synchronized (WebServiceClient.class) {
+        if (instance == null) {
+          isHttps = YarnConfiguration.useHttps(conf);
+          if (isHttps) {
+            createSSLFactory(conf);
+          }
+          instance = new WebServiceClient();
+        }
+      }
+    }
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/cli/TopCLI, getHAClusterUrl(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;)Ljava/net/URL; > Context: Everywhere, blocks=[BB[SSA:8..10]6 - org.apache.hadoop.yarn.client.cli.TopCLI.getHAClusterUrl(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;)Ljava/net/URL;, BB[SSA:7..7]5 - org.apache.hadoop.yarn.client.cli.TopCLI.getHAClusterUrl(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;)Ljava/net/URL;, BB[SSA:11..12]7 - org.apache.hadoop.yarn.client.cli.TopCLI.getHAClusterUrl(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;)Ljava/net/URL;, BB[SSA:-1..-2]16 - org.apache.hadoop.yarn.client.cli.TopCLI.getHAClusterUrl(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;)Ljava/net/URL;], numberOfBasicBlocks=4, firstLineNumber=825, lastLineNumber=825, firstMethodNumber=824, lastMethodNumber=825, isFirstLineValid=true, methodSrcCode=
+      throws MalformedURLException {
+    return new URL(WebAppUtils.getHttpSchemePrefix(conf)
+        + WebAppUtils.getResolvedRemoteRMWebAppURLWithoutScheme(conf,
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/webapp/util/WebAppUtils, getHttpSchemePrefix(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:0..1]1 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getHttpSchemePrefix(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]0 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getHttpSchemePrefix(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:2..3]2 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getHttpSchemePrefix(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]6 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getHttpSchemePrefix(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=434, lastLineNumber=435, firstMethodNumber=434, lastMethodNumber=435, isFirstLineValid=false, methodSrcCode=
+  public static String getHttpSchemePrefix(Configuration conf) {
+    return YarnConfiguration.useHttps(conf) ? HTTPS_PREFIX : HTTP_PREFIX;
+  }
+}

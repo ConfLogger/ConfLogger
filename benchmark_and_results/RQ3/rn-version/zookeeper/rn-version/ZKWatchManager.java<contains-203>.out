@@ -1,0 +1,104 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ZKWatchManager.java	methodSinagture:	org.apache.zookeeper.ZKWatchManager.contains(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Ljava/util/Map;)Z	methodLines:	203:217
+blockLines:	209:-1
+paras:	null
+TaintedStat:	NORMAL contains:conditional branch(ne, to iindex=23) 13,7 Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, contains(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Ljava/util/Map;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, contains(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Ljava/util/Map;)Z > Context: Everywhere[14]12 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,2 @24 exception:11
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, contains(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Ljava/util/Map;)Z > Context: Everywhere[14]12 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,2 @24 exception:11
+NORMAL contains:13 = checkcast <Application,Ljava/util/Set>12 <Application,Ljava/util/Set> Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, contains(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Ljava/util/Map;)Z > Context: Everywhere
+NORMAL contains:conditional branch(ne, to iindex=23) 13,7 Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, contains(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Ljava/util/Map;)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private boolean contains(String path, Watcher watcherObj, Map<String, Set<Watcher>> pathVsWatchers) {
+        boolean watcherExists = true;
+        if (pathVsWatchers == null || pathVsWatchers.size() == 0) {
+            watcherExists = false;
+        } else {
+            Set<Watcher> watchers = pathVsWatchers.get(path);
+            if (watchers == null) {
+                watcherExists = false;
+            } else if (watcherObj == null) {
+                watcherExists = watchers.size() > 0;
+            } else {
+                watcherExists = watchers.contains(watcherObj);
+            }
+        }
+        return watcherExists;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/ZKWatchManager, containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V > Context: Everywhere, blocks=[BB[SSA:17..17]7 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:12..16]6 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:18..20]8 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:38..38]16 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:33..37]15 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:39..41]17 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:58..58]24 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:53..57]23 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:59..65]25 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:84..84]33 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:78..83]32 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:85..88]34 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:107..107]42 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:101..106]41 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:108..111]43 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:129..129]51 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:124..128]50 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:130..132]52 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:149..149]59 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:144..148]58 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:150..156]60 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:173..173]67 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:168..172]66 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:174..180]68 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:197..197]75 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:192..196]74 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:198..204]76 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:221..221]83 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:216..220]82 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V, BB[SSA:222..228]84 - org.apache.zookeeper.ZKWatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/Watcher$WatcherType;)V], numberOfBasicBlocks=30, firstLineNumber=287, lastLineNumber=290, firstMethodNumber=233, lastMethodNumber=297, isFirstLineValid=true, methodSrcCode=
+            KeeperException.NoWatcherException {
+        boolean containsWatcher = false;
+        switch (watcherType) {
+        case Children: {
+            synchronized (childWatches) {
+                containsWatcher = contains(path, watcher, childWatches);
+            }
+            break;
+        }
+        case Data: {
+            synchronized (dataWatches) {
+                containsWatcher = contains(path, watcher, dataWatches);
+            }
+
+            synchronized (existWatches) {
+                boolean contains_temp = contains(path, watcher, existWatches);
+                containsWatcher |= contains_temp;
+            }
+            break;
+        }
+        case Persistent: {
+            synchronized (persistentWatches) {
+                containsWatcher |= contains(path, watcher, persistentWatches);
+            }
+            break;
+        }
+        case PersistentRecursive: {
+            synchronized (persistentRecursiveWatches) {
+                containsWatcher |= contains(path, watcher, persistentRecursiveWatches);
+            }
+            break;
+        }
+        case Any: {
+            synchronized (childWatches) {
+                containsWatcher = contains(path, watcher, childWatches);
+            }
+
+            synchronized (dataWatches) {
+                boolean contains_temp = contains(path, watcher, dataWatches);
+                containsWatcher |= contains_temp;
+            }
+
+            synchronized (existWatches) {
+                boolean contains_temp = contains(path, watcher, existWatches);
+                containsWatcher |= contains_temp;
+            }
+
+            synchronized (persistentWatches) {
+                boolean contains_temp = contains(path, watcher,
+                        persistentWatches);
+                containsWatcher |= contains_temp;
+            }
+
+            synchronized (persistentRecursiveWatches) {
+                boolean contains_temp = contains(path, watcher,
+                        persistentRecursiveWatches);
+                containsWatcher |= contains_temp;
+            }
+        }
+        }
+        // Watcher function doesn't exists for the specified params
+        if (!containsWatcher) {
+            throw new KeeperException.NoWatcherException(path);
+        }
+    }
+
+}

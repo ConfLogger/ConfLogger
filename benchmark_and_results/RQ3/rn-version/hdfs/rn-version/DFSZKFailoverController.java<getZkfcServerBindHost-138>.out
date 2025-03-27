@@ -1,0 +1,37 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	DFSZKFailoverController.java	methodSinagture:	org.apache.hadoop.hdfs.tools.DFSZKFailoverController.getZkfcServerBindHost(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;	methodLines:	138:144
+blockLines:	141:-1
+paras:	null
+TaintedStat:	NORMAL getZkfcServerBindHost:conditional branch(eq, to iindex=11) 5,6 Node: < Application, Lorg/apache/hadoop/hdfs/tools/DFSZKFailoverController, getZkfcServerBindHost(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/hdfs/tools/DFSZKFailoverController, getZkfcServerBindHost(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere[2]5 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getTrimmed(Ljava/lang/String;)Ljava/lang/String; > 1,3 @3 exception:4
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/hdfs/tools/DFSZKFailoverController, getZkfcServerBindHost(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere[2]5 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getTrimmed(Ljava/lang/String;)Ljava/lang/String; > 1,3 @3 exception:4
+NORMAL getZkfcServerBindHost:conditional branch(eq, to iindex=11) 5,6 Node: < Application, Lorg/apache/hadoop/hdfs/tools/DFSZKFailoverController, getZkfcServerBindHost(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  private static String getZkfcServerBindHost(Configuration conf) {
+    String addr = conf.getTrimmed(
+        DFSConfigKeys.DFS_NAMENODE_SERVICE_RPC_BIND_HOST_KEY);
+    if (addr == null || addr.isEmpty()) {
+      addr = conf.getTrimmed(DFSConfigKeys.DFS_NAMENODE_RPC_BIND_HOST_KEY);
+    }
+    return addr;
+  }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/hdfs/tools/DFSZKFailoverController, getRpcAddressToBindTo()Ljava/net/InetSocketAddress; > Context: Everywhere, blocks=[BB[SSA:6..6]4 - org.apache.hadoop.hdfs.tools.DFSZKFailoverController.getRpcAddressToBindTo()Ljava/net/InetSocketAddress;, BB[SSA:3..5]3 - org.apache.hadoop.hdfs.tools.DFSZKFailoverController.getRpcAddressToBindTo()Ljava/net/InetSocketAddress;, BB[SSA:7..10]5 - org.apache.hadoop.hdfs.tools.DFSZKFailoverController.getRpcAddressToBindTo()Ljava/net/InetSocketAddress;, BB[SSA:-1..-2]16 - org.apache.hadoop.hdfs.tools.DFSZKFailoverController.getRpcAddressToBindTo()Ljava/net/InetSocketAddress;], numberOfBasicBlocks=4, firstLineNumber=113, lastLineNumber=115, firstMethodNumber=112, lastMethodNumber=118, isFirstLineValid=true, methodSrcCode=
+  protected InetSocketAddress getRpcAddressToBindTo() {
+    int zkfcPort = getZkfcPort(conf);
+    String zkfcBindAddr = getZkfcServerBindHost(conf);
+    if (zkfcBindAddr == null || zkfcBindAddr.isEmpty()) {
+      zkfcBindAddr = localTarget.getAddress().getAddress().getHostAddress();
+    }
+    return new InetSocketAddress(zkfcBindAddr, zkfcPort);
+  }
+}

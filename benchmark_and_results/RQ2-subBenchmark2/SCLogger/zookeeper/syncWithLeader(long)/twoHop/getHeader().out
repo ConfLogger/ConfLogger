@@ -1,0 +1,3 @@
+public TxnHeader getHeader(){
+  return header;
+}

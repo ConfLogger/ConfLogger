@@ -1,0 +1,221 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getBoolean(Ljava/lang/Object;Z)Z	methodLines:	136:143
+blockLines:	137:-1
+paras:	null
+TaintedStat:	NORMAL getBoolean:conditional branch(ne, to iindex=5) 4,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getBoolean(Ljava/lang/Object;Z)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere[114]88 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 47,86 @297 exception:87
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere[114]88 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 47,86 @297 exception:87
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere[116]90 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getBoolean(Ljava/lang/Object;Z)Z > 88,23 @303 exception:89 v88
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getBoolean(Ljava/lang/Object;Z)Z > Context: Everywhere v1
+NORMAL getBoolean:conditional branch(ne, to iindex=5) 4,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getBoolean(Ljava/lang/Object;Z)Z > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getBoolean(Ljava/lang/Object;Z)Z	methodLines:	136:143
+blockLines:	140:-1
+paras:	null
+TaintedStat:	NORMAL getBoolean:conditional branch(eq, to iindex=13) 5,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getBoolean(Ljava/lang/Object;Z)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/executor/ExecutorTransfer, <init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/Map;)V > Context: Everywhere[20]15 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,13 @37 exception:14
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/executor/ExecutorTransfer, <init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/Map;)V > Context: Everywhere[20]15 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,13 @37 exception:14
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/executor/ExecutorTransfer, <init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/Map;)V > Context: Everywhere[22]17 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getBoolean(Ljava/lang/Object;Z)Z > 15,6 @43 exception:16 v15
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getBoolean(Ljava/lang/Object;Z)Z > Context: Everywhere v1
+NORMAL getBoolean:conditional branch(ne, to iindex=5) 4,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getBoolean(Ljava/lang/Object;Z)Z > Context: Everywhere
+NORMAL getBoolean:conditional branch(eq, to iindex=13) 5,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getBoolean(Ljava/lang/Object;Z)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static boolean getBoolean(Object o, boolean defaultValue) {
+        if (null == o) {
+            return defaultValue;
+        }
+        if (o instanceof Boolean) {
+            return (Boolean) o;
+        } else {
+            throw new IllegalArgumentException("Don't know how to convert " + o + " to boolean");
+        }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/metrics2/reporters/ScheduledStormReporter, isReportDimensionsEnabled(Ljava/util/Map;)Z > Context: Everywhere, blocks=[BB[SSA:3..4]2 - org.apache.storm.metrics2.reporters.ScheduledStormReporter.isReportDimensionsEnabled(Ljava/util/Map;)Z, BB[SSA:0..2]1 - org.apache.storm.metrics2.reporters.ScheduledStormReporter.isReportDimensionsEnabled(Ljava/util/Map;)Z, BB[SSA:5..5]3 - org.apache.storm.metrics2.reporters.ScheduledStormReporter.isReportDimensionsEnabled(Ljava/util/Map;)Z, BB[SSA:-1..-2]4 - org.apache.storm.metrics2.reporters.ScheduledStormReporter.isReportDimensionsEnabled(Ljava/util/Map;)Z], numberOfBasicBlocks=4, firstLineNumber=41, lastLineNumber=41, firstMethodNumber=40, lastMethodNumber=41, isFirstLineValid=true, methodSrcCode=
+    public static boolean isReportDimensionsEnabled(Map<String, Object> reporterConf) {
+        return ObjectReader.getBoolean(reporterConf.get(REPORT_DIMENSIONS_ENABLED), false);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/supervisor/ClientSupervisorUtils, setupWorkerArtifactsDir(Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)V > Context: Everywhere, blocks=[BB[SSA:3..4]2 - org.apache.storm.daemon.supervisor.ClientSupervisorUtils.setupWorkerArtifactsDir(Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)V, BB[SSA:0..2]1 - org.apache.storm.daemon.supervisor.ClientSupervisorUtils.setupWorkerArtifactsDir(Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)V, BB[SSA:5..6]3 - org.apache.storm.daemon.supervisor.ClientSupervisorUtils.setupWorkerArtifactsDir(Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)V, BB[SSA:-1..-2]12 - org.apache.storm.daemon.supervisor.ClientSupervisorUtils.setupWorkerArtifactsDir(Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)V], numberOfBasicBlocks=4, firstLineNumber=180, lastLineNumber=180, firstMethodNumber=179, lastMethodNumber=187, isFirstLineValid=true, methodSrcCode=
+    public static void setupWorkerArtifactsDir(Map<String, Object> conf, String user, String dir) throws IOException {
+        if (ObjectReader.getBoolean(conf.get(Config.SUPERVISOR_RUN_WORKER_AS_USER), false)) {
+            String logPrefix = "Worker Artifacts Setup for " + dir;
+            List<String> commands = new ArrayList<>();
+            commands.add("artifacts-dir");
+            commands.add(dir);
+            processLauncherAndWait(conf, user, commands, null, logPrefix);
+        }
+    }
+}
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/supervisor/AdvancedFSOps, make(Ljava/util/Map;)Lorg/apache/storm/daemon/supervisor/AdvancedFSOps; > Context: Everywhere, blocks=[BB[SSA:11..12]7 - org.apache.storm.daemon.supervisor.AdvancedFSOps.make(Ljava/util/Map;)Lorg/apache/storm/daemon/supervisor/AdvancedFSOps;, BB[SSA:8..10]6 - org.apache.storm.daemon.supervisor.AdvancedFSOps.make(Ljava/util/Map;)Lorg/apache/storm/daemon/supervisor/AdvancedFSOps;, BB[SSA:13..14]8 - org.apache.storm.daemon.supervisor.AdvancedFSOps.make(Ljava/util/Map;)Lorg/apache/storm/daemon/supervisor/AdvancedFSOps;, BB[SSA:-1..-2]15 - org.apache.storm.daemon.supervisor.AdvancedFSOps.make(Ljava/util/Map;)Lorg/apache/storm/daemon/supervisor/AdvancedFSOps;], numberOfBasicBlocks=4, firstLineNumber=65, lastLineNumber=65, firstMethodNumber=61, lastMethodNumber=68, isFirstLineValid=true, methodSrcCode=
+    public static AdvancedFSOps make(Map<String, Object> conf) {
+        if (Utils.isOnWindows()) {
+            return new AdvancedWindowsFSOps(conf);
+        }
+        if (ObjectReader.getBoolean(conf.get(Config.SUPERVISOR_RUN_WORKER_AS_USER), false)) {
+            return new AdvancedRunAsUserFSOps(conf);
+        }
+        return new AdvancedFSOps(conf);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/executor/ExecutorTransfer, <init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/Map;)V > Context: Everywhere, blocks=[BB[SSA:21..22]9 - org.apache.storm.executor.ExecutorTransfer.<init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/Map;)V, BB[SSA:17..20]8 - org.apache.storm.executor.ExecutorTransfer.<init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/Map;)V, BB[SSA:23..23]10 - org.apache.storm.executor.ExecutorTransfer.<init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/Map;)V, BB[SSA:-1..-2]12 - org.apache.storm.executor.ExecutorTransfer.<init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/Map;)V], numberOfBasicBlocks=4, firstLineNumber=47, lastLineNumber=47, firstMethodNumber=42, lastMethodNumber=48, isFirstLineValid=true, methodSrcCode=
+
+    public ExecutorTransfer(WorkerState workerData, Map<String, Object> topoConf) {
+        this.workerData = workerData;
+        WorkerTopologyContext workerTopologyContext = workerData.getWorkerTopologyContext();
+        this.threadLocalSerializer = ThreadLocal.withInitial(() -> new KryoTupleSerializer(topoConf, workerTopologyContext));
+        this.isDebug = ObjectReader.getBoolean(topoConf.get(Config.TOPOLOGY_DEBUG), false);
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/messaging/DeserializingConnectionCallback, <init>(Ljava/util/Map;Lorg/apache/storm/task/GeneralTopologyContext;Lorg/apache/storm/daemon/worker/WorkerState$ILocalTransferCallback;)V > Context: Everywhere, blocks=[BB[SSA:26..27]12 - org.apache.storm.messaging.DeserializingConnectionCallback.<init>(Ljava/util/Map;Lorg/apache/storm/task/GeneralTopologyContext;Lorg/apache/storm/daemon/worker/WorkerState$ILocalTransferCallback;)V, BB[SSA:22..25]11 - org.apache.storm.messaging.DeserializingConnectionCallback.<init>(Ljava/util/Map;Lorg/apache/storm/task/GeneralTopologyContext;Lorg/apache/storm/daemon/worker/WorkerState$ILocalTransferCallback;)V, BB[SSA:28..28]13 - org.apache.storm.messaging.DeserializingConnectionCallback.<init>(Ljava/util/Map;Lorg/apache/storm/task/GeneralTopologyContext;Lorg/apache/storm/daemon/worker/WorkerState$ILocalTransferCallback;)V, BB[SSA:-1..-2]15 - org.apache.storm.messaging.DeserializingConnectionCallback.<init>(Ljava/util/Map;Lorg/apache/storm/task/GeneralTopologyContext;Lorg/apache/storm/daemon/worker/WorkerState$ILocalTransferCallback;)V], numberOfBasicBlocks=4, firstLineNumber=57, lastLineNumber=57, firstMethodNumber=52, lastMethodNumber=59, isFirstLineValid=true, methodSrcCode=
+    public DeserializingConnectionCallback(final Map<String, Object> conf, final GeneralTopologyContext context,
+                                           WorkerState.ILocalTransferCallback callback) {
+        this.conf = conf;
+        this.context = context;
+        cb = callback;
+        sizeMetricsEnabled = ObjectReader.getBoolean(conf.get(Config.TOPOLOGY_SERIALIZED_MESSAGE_SIZE_METRICS), false);
+
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/executor/Executor, <init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/List;Ljava/util/Map;Ljava/lang/String;)V > Context: Everywhere, blocks=[BB[SSA:196..197]107 - org.apache.storm.executor.Executor.<init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/List;Ljava/util/Map;Ljava/lang/String;)V, BB[SSA:194..195]106 - org.apache.storm.executor.Executor.<init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/List;Ljava/util/Map;Ljava/lang/String;)V, BB[SSA:198..198]108 - org.apache.storm.executor.Executor.<init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/List;Ljava/util/Map;Ljava/lang/String;)V, BB[SSA:-1..-2]147 - org.apache.storm.executor.Executor.<init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/List;Ljava/util/Map;Ljava/lang/String;)V, BB[SSA:252..253]139 - org.apache.storm.executor.Executor.<init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/List;Ljava/util/Map;Ljava/lang/String;)V, BB[SSA:250..251]138 - org.apache.storm.executor.Executor.<init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/List;Ljava/util/Map;Ljava/lang/String;)V, BB[SSA:254..254]140 - org.apache.storm.executor.Executor.<init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/List;Ljava/util/Map;Ljava/lang/String;)V, BB[SSA:-1..-2]147 - org.apache.storm.executor.Executor.<init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/List;Ljava/util/Map;Ljava/lang/String;)V], numberOfBasicBlocks=8, firstLineNumber=190, lastLineNumber=192, firstMethodNumber=134, lastMethodNumber=192, isFirstLineValid=true, methodSrcCode=
+
+    protected Executor(WorkerState workerData, List<Long> executorId, Map<String, String> credentials, String type) {
+        this.workerData = workerData;
+        this.executorId = executorId;
+        this.type = type;
+        this.workerTopologyContext = workerData.getWorkerTopologyContext();
+        this.taskIds = StormCommon.executorIdToTasks(executorId);
+        this.componentId = workerTopologyContext.getComponentId(taskIds.get(0));
+        this.openOrPrepareWasCalled = new AtomicBoolean(false);
+        this.topoConf = normalizedComponentConf(workerData.getTopologyConf(), workerTopologyContext, componentId);
+        this.receiveQueue = (workerData.getExecutorReceiveQueueMap().get(executorId));
+        this.stormId = workerData.getTopologyId();
+        this.conf = workerData.getConf();
+        this.sharedExecutorData = new HashMap();
+        this.workerReady = workerData.getIsWorkerActive();
+        this.stormActive = workerData.getIsTopologyActive();
+        this.stormComponentDebug = workerData.getStormComponentToDebug();
+
+        this.executorTransfer = new ExecutorTransfer(workerData, topoConf);
+
+        this.suicideFn = workerData.getSuicideCallback();
+        try {
+            this.stormClusterState = ClusterUtils.mkStormClusterState(workerData.getStateStorage(),
+                                                                      new ClusterStateContext(DaemonType.WORKER, topoConf));
+        } catch (Exception e) {
+            throw Utils.wrapInRuntime(e);
+        }
+
+        this.intervalToTaskToMetricToRegistry = new HashMap<>();
+        this.taskToComponent = workerData.getTaskToComponent();
+        this.streamToComponentToGrouper = outboundComponents(workerTopologyContext, componentId, topoConf);
+        if (this.streamToComponentToGrouper != null) {
+            this.groupers = streamToComponentToGrouper.values().stream()
+                                                      .filter(Objects::nonNull)
+                                                      .flatMap(m -> m.values().stream()).collect(Collectors.toList());
+        } else {
+            this.groupers = Collections.emptyList();
+        }
+        this.reportError = new ReportError(topoConf, stormClusterState, stormId, componentId, workerTopologyContext);
+        this.reportErrorDie = new ReportErrorAndDie(reportError, suicideFn);
+        this.sampler = ConfigUtils.mkStatsSampler(topoConf);
+        this.isDebug = ObjectReader.getBoolean(topoConf.get(Config.TOPOLOGY_DEBUG), false);
+        this.rand = new Random(Utils.secureRandomLong());
+        this.credentials = credentials;
+        this.hasEventLoggers = StormCommon.hasEventLoggers(topoConf);
+        this.ackingEnabled = StormCommon.hasAckers(topoConf);
+
+        try {
+            this.hostname = Utils.hostname();
+        } catch (UnknownHostException ignored) {
+            this.hostname = "";
+        }
+        flushTuple = AddressedTuple.createFlushTuple(workerTopologyContext);
+        this.reportedErrorCount = workerData.getMetricRegistry().rateCounter("__reported-error-count", componentId,
+                taskIds.get(0));
+
+        enableV2MetricsDataPoints = ObjectReader.getBoolean(topoConf.get(Config.TOPOLOGY_ENABLE_V2_METRICS_TICK), false);
+        v2MetricsTickInterval = ObjectReader.getInt(topoConf.get(Config.TOPOLOGY_V2_METRICS_TICK_INTERVAL_SECONDS), 60);
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere, blocks=[BB[SSA:115..116]51 - org.apache.storm.daemon.StormCommon.metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map;, BB[SSA:111..114]50 - org.apache.storm.daemon.StormCommon.metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map;, BB[SSA:117..117]52 - org.apache.storm.daemon.StormCommon.metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map;, BB[SSA:-1..-2]78 - org.apache.storm.daemon.StormCommon.metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map;], numberOfBasicBlocks=4, firstLineNumber=391, lastLineNumber=392, firstMethodNumber=364, lastMethodNumber=416, isFirstLineValid=true, methodSrcCode=
+    public static Map<String, Bolt> metricsConsumerBoltSpecs(Map<String, Object> conf, StormTopology topology) {
+        Map<String, Bolt> metricsConsumerBolts = new HashMap<>();
+
+        Set<String> componentIdsEmitMetrics = new HashSet<>();
+        componentIdsEmitMetrics.addAll(allComponents(topology).keySet());
+        componentIdsEmitMetrics.add(Constants.SYSTEM_COMPONENT_ID);
+
+        Map<GlobalStreamId, Grouping> inputs = new HashMap<>();
+        for (String componentId : componentIdsEmitMetrics) {
+            inputs.put(Utils.getGlobalStreamId(componentId, Constants.METRICS_STREAM_ID), Thrift.prepareShuffleGrouping());
+        }
+
+        List<Map<String, Object>> registerInfo = (List<Map<String, Object>>) conf.get(Config.TOPOLOGY_METRICS_CONSUMER_REGISTER);
+        if (registerInfo != null) {
+            Map<String, Integer> classOccurrencesMap = new HashMap<>();
+            for (Map<String, Object> info : registerInfo) {
+                String className = (String) info.get(TOPOLOGY_METRICS_CONSUMER_CLASS);
+                Object argument = info.get(TOPOLOGY_METRICS_CONSUMER_ARGUMENT);
+                Integer maxRetainMetricTuples = ObjectReader.getInt(info.get(
+                    TOPOLOGY_METRICS_CONSUMER_MAX_RETAIN_METRIC_TUPLES), 100);
+                Integer phintNum = ObjectReader.getInt(info.get(TOPOLOGY_METRICS_CONSUMER_PARALLELISM_HINT), 1);
+                Map<String, Object> metricsConsumerConf = new HashMap<>();
+                metricsConsumerConf.put(Config.TOPOLOGY_TASKS, phintNum);
+                List<String> whitelist = (List<String>) info.get(
+                    TOPOLOGY_METRICS_CONSUMER_WHITELIST);
+                List<String> blacklist = (List<String>) info.get(
+                    TOPOLOGY_METRICS_CONSUMER_BLACKLIST);
+                FilterByMetricName filterPredicate = new FilterByMetricName(whitelist, blacklist);
+                Boolean expandMapType = ObjectReader.getBoolean(info.get(
+                    TOPOLOGY_METRICS_CONSUMER_EXPAND_MAP_TYPE), false);
+                String metricNameSeparator = ObjectReader.getString(info.get(
+                    TOPOLOGY_METRICS_CONSUMER_METRIC_NAME_SEPARATOR), ".");
+                DataPointExpander expander = new DataPointExpander(expandMapType, metricNameSeparator);
+                MetricsConsumerBolt boltInstance = new MetricsConsumerBolt(className, argument,
+                                                                           maxRetainMetricTuples, filterPredicate, expander);
+                Bolt metricsConsumerBolt = Thrift.prepareSerializedBoltDetails(inputs,
+                                                                               boltInstance, null, phintNum, metricsConsumerConf);
+
+                String id;
+                if (classOccurrencesMap.containsKey(className)) {
+                    // e.g. [\"a\", \"b\", \"a\"]) => [\"a\", \"b\", \"a#2\"]"
+                    int occurrenceNum = classOccurrencesMap.get(className);
+                    occurrenceNum++;
+                    classOccurrencesMap.put(className, occurrenceNum);
+                    id = Constants.METRICS_COMPONENT_ID_PREFIX + className + "#" + occurrenceNum;
+                } else {
+                    id = Constants.METRICS_COMPONENT_ID_PREFIX + className;
+                    classOccurrencesMap.put(className, 1);
+                }
+                metricsConsumerBolts.put(id, metricsConsumerBolt);
+            }
+        }
+        return metricsConsumerBolts;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, willWorkerTokensBeStoredSecurely(Ljava/util/Map;)Z > Context: Everywhere, blocks=[BB[SSA:3..4]2 - org.apache.storm.security.auth.ClientAuthUtils.willWorkerTokensBeStoredSecurely(Ljava/util/Map;)Z, BB[SSA:0..2]1 - org.apache.storm.security.auth.ClientAuthUtils.willWorkerTokensBeStoredSecurely(Ljava/util/Map;)Z, BB[SSA:5..7]3 - org.apache.storm.security.auth.ClientAuthUtils.willWorkerTokensBeStoredSecurely(Ljava/util/Map;)Z, BB[SSA:-1..-2]10 - org.apache.storm.security.auth.ClientAuthUtils.willWorkerTokensBeStoredSecurely(Ljava/util/Map;)Z], numberOfBasicBlocks=4, firstLineNumber=348, lastLineNumber=349, firstMethodNumber=347, lastMethodNumber=355, isFirstLineValid=true, methodSrcCode=
+    private static boolean willWorkerTokensBeStoredSecurely(Map<String, Object> conf) {
+        boolean overrideZkAuth = ObjectReader.getBoolean(conf.get("TESTING.ONLY.ENABLE.INSECURE.WORKER.TOKENS"), false);
+        if (Utils.isZkAuthenticationConfiguredStormServer(conf)) {
+            return true;
+        } else if (overrideZkAuth) {
+            LOG.error("\n\n\t\tYOU HAVE ENABLED INSECURE WORKER TOKENS.  IF THIS IS NOT A UNIT TEST PLEASE STOP NOW!!!\n\n");
+            return true;
+        }
+        return false;
+    }
+}

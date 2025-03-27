@@ -1,0 +1,12 @@
+if (clazz != null) {
+return ReflectionUtils.newInstance(clazz, conf);
+}
+try {
+return new ResourceCalculatorPlugin();
+} catch (UnsupportedOperationException ue) {
+;
+} catch (Throwable t) {
+;
+}
+return null;
+}

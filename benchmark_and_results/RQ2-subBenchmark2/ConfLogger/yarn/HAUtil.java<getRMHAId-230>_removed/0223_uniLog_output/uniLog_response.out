@@ -1,0 +1,42 @@
+Based on the examples provided, it seems that log statements are added to capture significant events or potential issues in the code execution. Here's how you can insert log statements into the `getRMHAId` method:
+
+```java
+<Line#0>public static String getRMHAId(Configuration conf) {
+<Line#1>int found = 0;
+<Line#2>String currentRMId = conf.getTrimmed(YarnConfiguration.RM_HA_ID);
+<Line#3>if(currentRMId == null) {
+<Line#4>for(String rmId : getRMHAIds(conf)) {
+<Line#5>String key = addSuffix(YarnConfiguration.RM_ADDRESS, rmId);
+<Line#6>String addr = conf.get(key);
+<Line#7>if (addr == null) {
+<Line#8>continue;
+<Line#9>}
+<Line#10>InetSocketAddress s;
+<Line#11>try {
+<Line#12>s = NetUtils.createSocketAddr(addr);
+<Line#13>} catch (Exception e) {
+<Line#14>LOG.warn("Failed to create socket address for {}", addr, e);
+<Line#15>continue;
+<Line#16>}
+<Line#17>if (!s.isUnresolved() && NetUtils.isLocalAddress(s.getAddress())) {
+<Line#18>currentRMId = rmId.trim();
+<Line#19>found++;
+<Line#20>}
+<Line#21>}
+<Line#22>}
+<Line#23>if (found > 1) { // Only one address must match the local address
+<Line#24>String msg = "The HA Configuration has multiple addresses that match "
+<Line#25>+ "local node's address.";
+<Line#26>LOG.error(msg);
+<Line#27>throw new HadoopIllegalArgumentException(msg);
+<Line#28>}
+<Line#29>LOG.debug("Returning RM HA ID: {}", currentRMId);
+<Line#30>return currentRMId;
+<Line#31>}
+```
+
+### Explanation:
+
+- **Line#14**: A `LOG.warn` statement is added to log any exceptions that occur when creating a socket address, providing the address and the exception details.
+- **Line#26**: A `LOG.error` statement is added before throwing an exception to capture the error condition where multiple addresses match the local node's address.
+- **Line#29**: A `LOG.debug` statement is added before returning the `currentRMId` to log the RM HA ID that is being returned.

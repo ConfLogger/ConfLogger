@@ -1,0 +1,53 @@
+In the provided code, we need to insert log level and log verbosity messages. Based on the examples, it seems like we need to identify the appropriate places in the code where logging should be added. 
+
+For the given `HeartbeatManager` constructor, let's identify suitable lines to add logging:
+
+1. **Log the initialization of `HeartbeatManager`:** It's common to log when a major component is initialized. We can add a log statement right after the constructor begins.
+
+2. **Log the configuration values:** It's also useful to log configuration values as they are read, to ensure that the correct settings are being used.
+
+3. **Log the decision made in the conditional block:** Logging the chosen heartbeat recheck interval can be helpful for debugging.
+
+Let's add log statements accordingly:
+
+```java
+<Line#0>HeartbeatManager(final Namesystem namesystem,
+<Line#1>final BlockManager blockManager, final Configuration conf) {
+<Line#2>LOG.info("Initializing HeartbeatManager");
+<Line#3>this.namesystem = namesystem;
+<Line#4>this.blockManager = blockManager;
+<Line#5>boolean avoidStaleDataNodesForWrite = conf.getBoolean(
+<Line#6>DFSConfigKeys.DFS_NAMENODE_AVOID_STALE_DATANODE_FOR_WRITE_KEY,
+<Line#7>DFSConfigKeys.DFS_NAMENODE_AVOID_STALE_DATANODE_FOR_WRITE_DEFAULT);
+<Line#8>LOG.debug("avoidStaleDataNodesForWrite: " + avoidStaleDataNodesForWrite);
+<Line#9>long recheckInterval = conf.getInt(
+<Line#10>DFSConfigKeys.DFS_NAMENODE_HEARTBEAT_RECHECK_INTERVAL_KEY,
+<Line#11>DFSConfigKeys.DFS_NAMENODE_HEARTBEAT_RECHECK_INTERVAL_DEFAULT); // 5 min
+<Line#12>LOG.debug("recheckInterval: " + recheckInterval);
+<Line#13>long staleInterval = conf.getLong(
+<Line#14>DFSConfigKeys.DFS_NAMENODE_STALE_DATANODE_INTERVAL_KEY,
+<Line#15>DFSConfigKeys.DFS_NAMENODE_STALE_DATANODE_INTERVAL_DEFAULT);// 30s
+<Line#16>LOG.debug("staleInterval: " + staleInterval);
+<Line#17>enableLogStaleNodes = conf.getBoolean(
+<Line#18>DFSConfigKeys.DFS_NAMENODE_ENABLE_LOG_STALE_DATANODE_KEY,
+<Line#19>DFSConfigKeys.DFS_NAMENODE_ENABLE_LOG_STALE_DATANODE_DEFAULT);
+<Line#20>LOG.debug("enableLogStaleNodes: " + enableLogStaleNodes);
+<Line#21>
+<Line#22>if (avoidStaleDataNodesForWrite && staleInterval < recheckInterval) {
+<Line#23>this.heartbeatRecheckInterval = staleInterval;
+<Line#24>LOG.info("Using staleInterval as heartbeatRecheckInterval: " + staleInterval);
+<Line#25>} else {
+<Line#26>this.heartbeatRecheckInterval = recheckInterval;
+<Line#27>LOG.info("Using recheckInterval as heartbeatRecheckInterval: " + recheckInterval);
+<Line#28>}
+<Line#29>}
+```
+
+**Labels:**
+- `<Line#2> LOG.info("Initializing HeartbeatManager")`
+- `<Line#8> LOG.debug("avoidStaleDataNodesForWrite: " + avoidStaleDataNodesForWrite)`
+- `<Line#12> LOG.debug("recheckInterval: " + recheckInterval)`
+- `<Line#16> LOG.debug("staleInterval: " + staleInterval)`
+- `<Line#20> LOG.debug("enableLogStaleNodes: " + enableLogStaleNodes)`
+- `<Line#24> LOG.info("Using staleInterval as heartbeatRecheckInterval: " + staleInterval)`
+- `<Line#27> LOG.info("Using recheckInterval as heartbeatRecheckInterval: " + recheckInterval)`

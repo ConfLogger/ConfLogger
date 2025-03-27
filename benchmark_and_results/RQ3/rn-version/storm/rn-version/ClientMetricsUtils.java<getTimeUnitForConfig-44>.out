@@ -1,0 +1,48 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ClientMetricsUtils.java	methodSinagture:	org.apache.storm.daemon.metrics.ClientMetricsUtils.getTimeUnitForConfig(Ljava/util/Map;Ljava/lang/String;)Ljava/util/concurrent/TimeUnit;	methodLines:	44:49
+blockLines:	46:-1
+paras:	null
+TaintedStat:	NORMAL getTimeUnitForConfig:conditional branch(eq, to iindex=12) 8,6 Node: < Application, Lorg/apache/storm/daemon/metrics/ClientMetricsUtils, getTimeUnitForConfig(Ljava/util/Map;Ljava/lang/String;)Ljava/util/concurrent/TimeUnit; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/metrics/ClientMetricsUtils, getTimeUnitForConfig(Ljava/util/Map;Ljava/lang/String;)Ljava/util/concurrent/TimeUnit; > Context: Everywhere[2]5 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,2 @2 exception:4
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/metrics/ClientMetricsUtils, getTimeUnitForConfig(Ljava/util/Map;Ljava/lang/String;)Ljava/util/concurrent/TimeUnit; > Context: Everywhere[2]5 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,2 @2 exception:4
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/metrics/ClientMetricsUtils, getTimeUnitForConfig(Ljava/util/Map;Ljava/lang/String;)Ljava/util/concurrent/TimeUnit; > Context: Everywhere[4]8 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > 5,6 @8 exception:7 v5
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere v1
+NORMAL getString:conditional branch(ne, to iindex=5) 4,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL getString:return 2 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/metrics/ClientMetricsUtils, getTimeUnitForConfig(Ljava/util/Map;Ljava/lang/String;)Ljava/util/concurrent/TimeUnit; > Context: Everywhere[4]8 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > 5,6 @8 exception:7
+NORMAL getTimeUnitForConfig:conditional branch(eq, to iindex=12) 8,6 Node: < Application, Lorg/apache/storm/daemon/metrics/ClientMetricsUtils, getTimeUnitForConfig(Ljava/util/Map;Ljava/lang/String;)Ljava/util/concurrent/TimeUnit; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static TimeUnit getTimeUnitForConfig(Map<String, Object> reporterConf, String configName) {
+        String timeUnitString = ObjectReader.getString(reporterConf.get(configName), null);
+        if (timeUnitString != null) {
+            return TimeUnit.valueOf(timeUnitString);
+        }
+        return null;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/metrics2/reporters/ScheduledStormReporter, getReportPeriodUnit(Ljava/util/Map;)Ljava/util/concurrent/TimeUnit; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.storm.metrics2.reporters.ScheduledStormReporter.getReportPeriodUnit(Ljava/util/Map;)Ljava/util/concurrent/TimeUnit;, BB[SSA:-1..-2]0 - org.apache.storm.metrics2.reporters.ScheduledStormReporter.getReportPeriodUnit(Ljava/util/Map;)Ljava/util/concurrent/TimeUnit;, BB[SSA:3..6]2 - org.apache.storm.metrics2.reporters.ScheduledStormReporter.getReportPeriodUnit(Ljava/util/Map;)Ljava/util/concurrent/TimeUnit;, BB[SSA:-1..-2]6 - org.apache.storm.metrics2.reporters.ScheduledStormReporter.getReportPeriodUnit(Ljava/util/Map;)Ljava/util/concurrent/TimeUnit;], numberOfBasicBlocks=4, firstLineNumber=31, lastLineNumber=33, firstMethodNumber=31, lastMethodNumber=33, isFirstLineValid=false, methodSrcCode=
+    public static TimeUnit getReportPeriodUnit(Map<String, Object> reporterConf) {
+        TimeUnit unit = ClientMetricsUtils.getTimeUnitForConfig(reporterConf, REPORT_PERIOD_UNITS);
+        return unit == null ? TimeUnit.SECONDS : unit;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/metrics/ClientMetricsUtils, getMetricsRateUnit(Ljava/util/Map;)Ljava/util/concurrent/TimeUnit; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.storm.daemon.metrics.ClientMetricsUtils.getMetricsRateUnit(Ljava/util/Map;)Ljava/util/concurrent/TimeUnit;, BB[SSA:-1..-2]0 - org.apache.storm.daemon.metrics.ClientMetricsUtils.getMetricsRateUnit(Ljava/util/Map;)Ljava/util/concurrent/TimeUnit;, BB[SSA:3..3]2 - org.apache.storm.daemon.metrics.ClientMetricsUtils.getMetricsRateUnit(Ljava/util/Map;)Ljava/util/concurrent/TimeUnit;, BB[SSA:-1..-2]3 - org.apache.storm.daemon.metrics.ClientMetricsUtils.getMetricsRateUnit(Ljava/util/Map;)Ljava/util/concurrent/TimeUnit;], numberOfBasicBlocks=4, firstLineNumber=28, lastLineNumber=29, firstMethodNumber=28, lastMethodNumber=29, isFirstLineValid=false, methodSrcCode=
+    public static TimeUnit getMetricsRateUnit(Map<String, Object> reporterConf) {
+        return getTimeUnitForConfig(reporterConf, RATE_UNIT);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/metrics/ClientMetricsUtils, getMetricsDurationUnit(Ljava/util/Map;)Ljava/util/concurrent/TimeUnit; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.storm.daemon.metrics.ClientMetricsUtils.getMetricsDurationUnit(Ljava/util/Map;)Ljava/util/concurrent/TimeUnit;, BB[SSA:-1..-2]0 - org.apache.storm.daemon.metrics.ClientMetricsUtils.getMetricsDurationUnit(Ljava/util/Map;)Ljava/util/concurrent/TimeUnit;, BB[SSA:3..3]2 - org.apache.storm.daemon.metrics.ClientMetricsUtils.getMetricsDurationUnit(Ljava/util/Map;)Ljava/util/concurrent/TimeUnit;, BB[SSA:-1..-2]3 - org.apache.storm.daemon.metrics.ClientMetricsUtils.getMetricsDurationUnit(Ljava/util/Map;)Ljava/util/concurrent/TimeUnit;], numberOfBasicBlocks=4, firstLineNumber=32, lastLineNumber=33, firstMethodNumber=32, lastMethodNumber=33, isFirstLineValid=false, methodSrcCode=
+    public static TimeUnit getMetricsDurationUnit(Map<String, Object> reporterConf) {
+        return getTimeUnitForConfig(reporterConf, DURATION_UNIT);
+    }
+}

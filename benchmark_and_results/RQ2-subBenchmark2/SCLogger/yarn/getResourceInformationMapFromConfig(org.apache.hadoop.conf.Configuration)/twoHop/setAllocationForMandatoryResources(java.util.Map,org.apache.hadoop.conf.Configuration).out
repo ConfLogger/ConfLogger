@@ -1,0 +1,8 @@
+private static void setAllocationForMandatoryResources(Map<String,ResourceInformation> res,Configuration conf){
+  ResourceInformation mem=res.get(ResourceInformation.MEMORY_MB.getName());
+  mem.setMinimumAllocation(getAllocation(conf,YarnConfiguration.RESOURCE_TYPES + "." + mem.getName()+ MINIMUM_ALLOCATION,YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB,YarnConfiguration.DEFAULT_RM_SCHEDULER_MINIMUM_ALLOCATION_MB));
+  mem.setMaximumAllocation(getAllocation(conf,YarnConfiguration.RESOURCE_TYPES + "." + mem.getName()+ MAXIMUM_ALLOCATION,YarnConfiguration.RM_SCHEDULER_MAXIMUM_ALLOCATION_MB,YarnConfiguration.DEFAULT_RM_SCHEDULER_MAXIMUM_ALLOCATION_MB));
+  ResourceInformation cpu=res.get(ResourceInformation.VCORES.getName());
+  cpu.setMinimumAllocation(getAllocation(conf,YarnConfiguration.RESOURCE_TYPES + "." + cpu.getName()+ MINIMUM_ALLOCATION,YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_VCORES,YarnConfiguration.DEFAULT_RM_SCHEDULER_MINIMUM_ALLOCATION_VCORES));
+  cpu.setMaximumAllocation(getAllocation(conf,YarnConfiguration.RESOURCE_TYPES + "." + cpu.getName()+ MAXIMUM_ALLOCATION,YarnConfiguration.RM_SCHEDULER_MAXIMUM_ALLOCATION_VCORES,YarnConfiguration.DEFAULT_RM_SCHEDULER_MAXIMUM_ALLOCATION_VCORES));
+}

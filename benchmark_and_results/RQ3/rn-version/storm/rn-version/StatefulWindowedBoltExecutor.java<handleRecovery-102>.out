@@ -1,0 +1,58 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	StatefulWindowedBoltExecutor.java	methodSinagture:	org.apache.storm.topology.StatefulWindowedBoltExecutor.handleRecovery(Lorg/apache/storm/tuple/Tuple;)V	methodLines:	102:126
+blockLines:	107:-1
+paras:	null
+TaintedStat:	NORMAL handleRecovery:conditional branch(eq, to iindex=85) 11,16 Node: < Application, Lorg/apache/storm/topology/StatefulWindowedBoltExecutor, handleRecovery(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/topology/StatefulWindowedBoltExecutor, handleRecovery(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere[10]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,7 @18 exception:9
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/topology/StatefulWindowedBoltExecutor, handleRecovery(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere[10]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,7 @18 exception:9
+NORMAL handleRecovery:11 = checkcast <Application,Lorg/apache/storm/topology/StatefulWindowedBoltExecutor$WindowState>10 <Application,Lorg/apache/storm/topology/StatefulWindowedBoltExecutor$WindowState> Node: < Application, Lorg/apache/storm/topology/StatefulWindowedBoltExecutor, handleRecovery(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere
+NORMAL handleRecovery:conditional branch(eq, to iindex=85) 11,16 Node: < Application, Lorg/apache/storm/topology/StatefulWindowedBoltExecutor, handleRecovery(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private void handleRecovery(Tuple input) {
+        long msgId = getMsgId(input);
+        TaskStream taskStream = TaskStream.fromTuple(input);
+        WindowState state = recoveryStates.get(taskStream);
+        LOG.debug("handleRecovery, recoveryStates {}", recoveryStates);
+        if (state != null) {
+            LOG.debug("Tuple msgid {}, saved state {}", msgId, state);
+            if (msgId <= state.lastExpired) {
+                LOG.debug("Ignoring tuple since msg id {} <= lastExpired id {}", msgId, state.lastExpired);
+                outputCollector.ack(input);
+            } else if (msgId <= state.lastEvaluated) {
+                super.execute(input);
+            } else {
+                LOG.debug("Tuple msg id {} > lastEvaluated id {}, adding to pendingTuples and clearing recovery state "
+                                + "for taskStream {}",
+                        msgId,
+                        state.lastEvaluated,
+                        taskStream);
+                pendingTuples.add(input);
+                clearRecoveryState(taskStream);
+            }
+        } else {
+            pendingTuples.add(input);
+        }
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/topology/StatefulWindowedBoltExecutor, execute(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere, blocks=[BB[SSA:14..16]9 - org.apache.storm.topology.StatefulWindowedBoltExecutor.execute(Lorg/apache/storm/tuple/Tuple;)V, BB[SSA:12..13]8 - org.apache.storm.topology.StatefulWindowedBoltExecutor.execute(Lorg/apache/storm/tuple/Tuple;)V, BB[SSA:17..17]10 - org.apache.storm.topology.StatefulWindowedBoltExecutor.execute(Lorg/apache/storm/tuple/Tuple;)V, BB[SSA:-1..-2]13 - org.apache.storm.topology.StatefulWindowedBoltExecutor.execute(Lorg/apache/storm/tuple/Tuple;)V], numberOfBasicBlocks=4, firstLineNumber=86, lastLineNumber=87, firstMethodNumber=83, lastMethodNumber=91, isFirstLineValid=true, methodSrcCode=
+    public void execute(Tuple input) {
+        if (!isStateInitialized()) {
+            throw new IllegalStateException("execute invoked before initState with input tuple " + input);
+        } else if (isRecovering()) {
+            handleRecovery(input);
+        } else {
+            super.execute(input);
+        }
+    }
+
+}

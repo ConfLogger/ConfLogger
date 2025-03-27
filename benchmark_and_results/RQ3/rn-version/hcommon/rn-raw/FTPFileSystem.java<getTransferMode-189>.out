@@ -1,0 +1,69 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	FTPFileSystem.java	methodSinagture:	org.apache.hadoop.fs.ftp.FTPFileSystem.getTransferMode(Lorg/apache/hadoop/conf/Configuration;)I	methodLines:	189:208
+blockLines:	194:-1
+paras:	null
+TaintedStat:	NORMAL getTransferMode:conditional branch(ne, to iindex=11) 6,8 Node: < Application, Lorg/apache/hadoop/fs/ftp/FTPFileSystem, getTransferMode(Lorg/apache/hadoop/conf/Configuration;)I > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/fs/ftp/FTPFileSystem, getTransferMode(Lorg/apache/hadoop/conf/Configuration;)I > Context: Everywhere[2]6 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 2,4 @3 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/fs/ftp/FTPFileSystem, getTransferMode(Lorg/apache/hadoop/conf/Configuration;)I > Context: Everywhere[2]6 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 2,4 @3 exception:5
+NORMAL getTransferMode:conditional branch(ne, to iindex=11) 6,8 Node: < Application, Lorg/apache/hadoop/fs/ftp/FTPFileSystem, getTransferMode(Lorg/apache/hadoop/conf/Configuration;)I > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  int getTransferMode(Configuration conf) {
+    final String mode = conf.get(FS_FTP_TRANSFER_MODE);
+    // FTP default is STREAM_TRANSFER_MODE, but Hadoop FTPFS's default is
+    // FTP.BLOCK_TRANSFER_MODE historically.
+    int ret = FTP.BLOCK_TRANSFER_MODE;
+    if (mode == null) {
+      return ret;
+    }
+    final String upper = mode.toUpperCase();
+    if (upper.equals("STREAM_TRANSFER_MODE")) {
+      ret = FTP.STREAM_TRANSFER_MODE;
+    } else if (upper.equals("COMPRESSED_TRANSFER_MODE")) {
+      ret = FTP.COMPRESSED_TRANSFER_MODE;
+    } else {
+      if (!upper.equals("BLOCK_TRANSFER_MODE")) {
+        LOG.warn("Cannot parse the value for " + FS_FTP_TRANSFER_MODE + ": "
+            + mode + ". Using default.");
+      }
+    }
+    return ret;
+  }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/ftp/FTPFileSystem, connect()Lorg/apache/commons/net/ftp/FTPClient; > Context: Everywhere, blocks=[BB[SSA:74..77]33 - org.apache.hadoop.fs.ftp.FTPFileSystem.connect()Lorg/apache/commons/net/ftp/FTPClient;, BB[SSA:72..73]32 - org.apache.hadoop.fs.ftp.FTPFileSystem.connect()Lorg/apache/commons/net/ftp/FTPClient;, BB[SSA:78..78]34 - org.apache.hadoop.fs.ftp.FTPFileSystem.connect()Lorg/apache/commons/net/ftp/FTPClient;, BB[SSA:-1..-2]54 - org.apache.hadoop.fs.ftp.FTPFileSystem.connect()Lorg/apache/commons/net/ftp/FTPClient;], numberOfBasicBlocks=4, firstLineNumber=155, lastLineNumber=156, firstMethodNumber=141, lastMethodNumber=166, isFirstLineValid=true, methodSrcCode=
+  private FTPClient connect() throws IOException {
+    FTPClient client = null;
+    Configuration conf = getConf();
+    String host = conf.get(FS_FTP_HOST);
+    int port = conf.getInt(FS_FTP_HOST_PORT, FTP.DEFAULT_PORT);
+    String user = conf.get(FS_FTP_USER_PREFIX + host);
+    String password = conf.get(FS_FTP_PASSWORD_PREFIX + host);
+    client = new FTPClient();
+    client.connect(host, port);
+    int reply = client.getReplyCode();
+    if (!FTPReply.isPositiveCompletion(reply)) {
+      throw NetUtils.wrapException(host, port,
+                   NetUtils.UNKNOWN_HOST, 0,
+                   new ConnectException("Server response " + reply));
+    } else if (client.login(user, password)) {
+      client.setFileTransferMode(getTransferMode(conf));
+      client.setFileType(FTP.BINARY_FILE_TYPE);
+      client.setBufferSize(DEFAULT_BUFFER_SIZE);
+      setTimeout(client, conf);
+      setDataConnectionMode(client, conf);
+    } else {
+      throw new IOException("Login failed on server - " + host + ", port - "
+          + port + " as user '" + user + "'");
+    }
+
+    return client;
+  }
+}

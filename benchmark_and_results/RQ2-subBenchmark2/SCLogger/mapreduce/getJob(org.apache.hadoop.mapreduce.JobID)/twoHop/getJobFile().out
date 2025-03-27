@@ -1,0 +1,6 @@
+/** 
+ * Get the configuration file for the job.
+ */
+public String getJobFile(){
+  return jobFile;
+}

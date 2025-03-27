@@ -1,0 +1,18 @@
+public void serialize(OutputArchive a_,String tag) throws java.io.IOException {
+  a_.startRecord(this,tag);
+  a_.writeString(path,"path");
+  a_.writeBuffer(data,"data");
+{
+    a_.startVector(acl,"acl");
+    if (acl != null) {
+      int len1=acl.size();
+      for (int vidx1=0; vidx1 < len1; vidx1++) {
+        org.apache.zookeeper.data.ACL e1=(org.apache.zookeeper.data.ACL)acl.get(vidx1);
+        a_.writeRecord(e1,"e1");
+      }
+    }
+    a_.endVector(acl,"acl");
+  }
+  a_.writeBool(ephemeral,"ephemeral");
+  a_.endRecord(this,tag);
+}

@@ -1,0 +1,70 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Utils.java	methodSinagture:	org.apache.storm.utils.Utils.normalizeConfValue(Ljava/lang/Object;)Ljava/lang/Object;	methodLines:	1127:1142
+blockLines:	1128:-1
+paras:	null
+TaintedStat:	NORMAL normalizeConfValue:conditional branch(eq, to iindex=8) 3,4 Node: < Application, Lorg/apache/storm/utils/Utils, normalizeConfValue(Ljava/lang/Object;)Ljava/lang/Object; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/Utils, normalizeConf(Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere[29]20 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 15 @63 exception:19
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/Utils, normalizeConf(Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere[29]20 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 15 @63 exception:19
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/utils/Utils, normalizeConf(Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere[30]22 = invokestatic < Application, Lorg/apache/storm/utils/Utils, normalizeConfValue(Ljava/lang/Object;)Ljava/lang/Object; > 20 @68 exception:21 v20
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/Utils, normalizeConfValue(Ljava/lang/Object;)Ljava/lang/Object; > Context: Everywhere v1
+NORMAL normalizeConfValue:3 = instanceof 1 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/utils/Utils, normalizeConfValue(Ljava/lang/Object;)Ljava/lang/Object; > Context: Everywhere
+NORMAL normalizeConfValue:conditional branch(eq, to iindex=8) 3,4 Node: < Application, Lorg/apache/storm/utils/Utils, normalizeConfValue(Ljava/lang/Object;)Ljava/lang/Object; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private static Object normalizeConfValue(Object obj) {
+        if (obj instanceof Map) {
+            return normalizeConf((Map<String, Object>) obj);
+        } else if (obj instanceof Collection) {
+            List<Object> confList = new ArrayList<>((Collection<Object>) obj);
+            for (int i = 0; i < confList.size(); i++) {
+                Object val = confList.get(i);
+                confList.set(i, normalizeConfValue(val));
+            }
+            return confList;
+        } else if (obj instanceof Integer) {
+            return ((Number) obj).longValue();
+        } else if (obj instanceof Float) {
+            return ((Float) obj).doubleValue();
+        } else {
+            return obj;
+        }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/utils/Utils, normalizeConfValue(Ljava/lang/Object;)Ljava/lang/Object; > Context: Everywhere, blocks=[BB[SSA:27..31]13 - org.apache.storm.utils.Utils.normalizeConfValue(Ljava/lang/Object;)Ljava/lang/Object;, BB[SSA:24..26]12 - org.apache.storm.utils.Utils.normalizeConfValue(Ljava/lang/Object;)Ljava/lang/Object;, BB[SSA:32..32]14 - org.apache.storm.utils.Utils.normalizeConfValue(Ljava/lang/Object;)Ljava/lang/Object;, BB[SSA:-1..-2]28 - org.apache.storm.utils.Utils.normalizeConfValue(Ljava/lang/Object;)Ljava/lang/Object;], numberOfBasicBlocks=4, firstLineNumber=1133, lastLineNumber=1134, firstMethodNumber=1127, lastMethodNumber=1142, isFirstLineValid=true, methodSrcCode=
+    private static Object normalizeConfValue(Object obj) {
+        if (obj instanceof Map) {
+            return normalizeConf((Map<String, Object>) obj);
+        } else if (obj instanceof Collection) {
+            List<Object> confList = new ArrayList<>((Collection<Object>) obj);
+            for (int i = 0; i < confList.size(); i++) {
+                Object val = confList.get(i);
+                confList.set(i, normalizeConfValue(val));
+            }
+            return confList;
+        } else if (obj instanceof Integer) {
+            return ((Number) obj).longValue();
+        } else if (obj instanceof Float) {
+            return ((Float) obj).doubleValue();
+        } else {
+            return obj;
+        }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/utils/Utils, normalizeConf(Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere, blocks=[BB[SSA:30..30]17 - org.apache.storm.utils.Utils.normalizeConf(Ljava/util/Map;)Ljava/util/Map;, BB[SSA:28..29]16 - org.apache.storm.utils.Utils.normalizeConf(Ljava/util/Map;)Ljava/util/Map;, BB[SSA:31..31]18 - org.apache.storm.utils.Utils.normalizeConf(Ljava/util/Map;)Ljava/util/Map;, BB[SSA:-1..-2]21 - org.apache.storm.utils.Utils.normalizeConf(Ljava/util/Map;)Ljava/util/Map;], numberOfBasicBlocks=4, firstLineNumber=1152, lastLineNumber=1152, firstMethodNumber=1146, lastMethodNumber=1154, isFirstLineValid=true, methodSrcCode=
+    private static Map<String, Object> normalizeConf(Map<String, Object> conf) {
+        if (conf == null) {
+            return new HashMap<>();
+        }
+        Map<String, Object> ret = new HashMap<>(conf);
+        for (Map.Entry<String, Object> entry : ret.entrySet()) {
+            ret.put(entry.getKey(), normalizeConfValue(entry.getValue()));
+        }
+        return ret;
+    }
+}

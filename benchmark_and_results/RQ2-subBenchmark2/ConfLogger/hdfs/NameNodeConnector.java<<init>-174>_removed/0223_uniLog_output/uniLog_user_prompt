@@ -1,0 +1,343 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>int maxNotChangedIterations)
+<Line#1>throws IOException {
+<Line#2>this.nameNodeUri = nameNodeUri;
+<Line#3>this.idPath = idPath;
+<Line#4>this.targetPaths = targetPaths == null || targetPaths.isEmpty() ? Arrays
+<Line#5>.asList(new Path("/")) : targetPaths;
+<Line#6>this.maxNotChangedIterations = maxNotChangedIterations;
+<Line#7>int getBlocksMaxQps = conf.getInt(
+<Line#8>DFSConfigKeys.DFS_NAMENODE_GETBLOCKS_MAX_QPS_KEY,
+<Line#9>DFSConfigKeys.DFS_NAMENODE_GETBLOCKS_MAX_QPS_DEFAULT);
+<Line#10>if (getBlocksMaxQps > 0) {
+<Line#11>this.getBlocksRateLimiter = RateLimiter.create(getBlocksMaxQps);
+<Line#12>} else {
+<Line#13>this.getBlocksRateLimiter = null;
+<Line#14>}
+<Line#15>
+<Line#16>this.namenode = NameNodeProxies.createProxy(conf, nameNodeUri,
+<Line#17>BalancerProtocols.class, fallbackToSimpleAuth).getProxy();
+<Line#18>this.requestToStandby = conf.getBoolean(
+<Line#19>DFSConfigKeys.DFS_HA_ALLOW_STALE_READ_KEY,
+<Line#20>DFSConfigKeys.DFS_HA_ALLOW_STALE_READ_DEFAULT);
+<Line#21>this.config = conf;
+<Line#22>
+<Line#23>this.fs = (DistributedFileSystem)FileSystem.get(nameNodeUri, conf);
+<Line#24>
+<Line#25>final NamespaceInfo namespaceinfo = namenode.versionRequest();
+<Line#26>this.blockpoolID = namespaceinfo.getBlockPoolID();
+<Line#27>
+<Line#28>final FsServerDefaults defaults = fs.getServerDefaults(new Path("/"));
+<Line#29>this.keyManager = new KeyManager(blockpoolID, namenode,
+<Line#30>defaults.getEncryptDataTransfer(), conf);
+<Line#31>// if it is for test, we do not create the id file
+<Line#32>if (checkOtherInstanceRunning) {
+<Line#33>out = checkAndMarkRunning();
+<Line#34>if (out == null) {
+<Line#35>// Exit if there is another one running.
+<Line#36>throw new IOException("Another " + name + " is running.");
+<Line#37>}
+<Line#38>}
+<Line#39>}
+
+Example 1:
+<Line#1>{
+<Line#2>  this.nameNodeUri=nameNodeUri;
+<Line#3>  this.idPath=idPath;
+<Line#4>  this.targetPaths=targetPaths == null || targetPaths.isEmpty() ? Arrays.asList(new Path("/")) : targetPaths;
+<Line#5>  this.maxNotChangedIterations=maxNotChangedIterations;
+<Line#6>  int getBlocksMaxQps=conf.getInt(DFSConfigKeys.DFS_NAMENODE_GETBLOCKS_MAX_QPS_KEY,DFSConfigKeys.DFS_NAMENODE_GETBLOCKS_MAX_QPS_DEFAULT);
+<Line#7>  if (getBlocksMaxQps > 0) {
+<Line#8>    LOG.info("getBlocks calls for {} will be rate-limited to {} per second",nameNodeUri,getBlocksMaxQps);
+<Line#9>    this.getBlocksRateLimiter=RateLimiter.create(getBlocksMaxQps);
+<Line#10>  }
+<Line#11> else {
+<Line#12>    this.getBlocksRateLimiter=null;
+<Line#13>  }
+<Line#14>  this.namenode=NameNodeProxies.createProxy(conf,nameNodeUri,BalancerProtocols.class,fallbackToSimpleAuth).getProxy();
+<Line#15>  this.requestToStandby=conf.getBoolean(DFSConfigKeys.DFS_HA_ALLOW_STALE_READ_KEY,DFSConfigKeys.DFS_HA_ALLOW_STALE_READ_DEFAULT);
+<Line#16>  this.config=conf;
+<Line#17>  this.fs=(DistributedFileSystem)FileSystem.get(nameNodeUri,conf);
+<Line#18>  final NamespaceInfo namespaceinfo=namenode.versionRequest();
+<Line#19>  this.blockpoolID=namespaceinfo.getBlockPoolID();
+<Line#20>  final FsServerDefaults defaults=fs.getServerDefaults(new Path("/"));
+<Line#21>  this.keyManager=new KeyManager(blockpoolID,namenode,defaults.getEncryptDataTransfer(),conf);
+<Line#22>  if (checkOtherInstanceRunning) {
+<Line#23>    out=checkAndMarkRunning();
+<Line#24>    if (out == null) {
+<Line#25>      throw new IOException("Another " + name + " is running.");
+<Line#26>    }
+<Line#27>  }
+<Line#28>}
+Label: <Line#8> LOG.info("getBlocks calls for {} will be rate-limited to {} per second",nameNodeUri,getBlocksMaxQps)
+
+Example 2:
+<Line#1>{
+<Line#2>  this.conf=configuration;
+<Line#3>  updateRouterState(RouterServiceState.INITIALIZING);
+<Line#4>  UserGroupInformation.setConfiguration(conf);
+<Line#5>  SecurityUtil.login(conf,DFS_ROUTER_KEYTAB_FILE_KEY,DFS_ROUTER_KERBEROS_PRINCIPAL_KEY,getHostName(conf));
+<Line#6>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_STORE_ENABLE,RBFConfigKeys.DFS_ROUTER_STORE_ENABLE_DEFAULT)) {
+<Line#7>    this.stateStore=new StateStoreService();
+<Line#8>    addService(this.stateStore);
+<Line#9>  }
+<Line#10>  this.namenodeResolver=newActiveNamenodeResolver(this.conf,this.stateStore);
+<Line#11>  if (this.namenodeResolver == null) {
+<Line#12>    throw new IOException("Cannot find namenode resolver.");
+<Line#13>  }
+<Line#14>  this.subclusterResolver=newFileSubclusterResolver(this.conf,this);
+<Line#15>  if (this.subclusterResolver == null) {
+<Line#16>    throw new IOException("Cannot find subcluster resolver");
+<Line#17>  }
+<Line#18>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_RPC_ENABLE,RBFConfigKeys.DFS_ROUTER_RPC_ENABLE_DEFAULT)) {
+<Line#19>    this.rpcServer=createRpcServer();
+<Line#20>    addService(this.rpcServer);
+<Line#21>    this.setRpcServerAddress(rpcServer.getRpcAddress());
+<Line#22>  }
+<Line#23>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_ADMIN_ENABLE,RBFConfigKeys.DFS_ROUTER_ADMIN_ENABLE_DEFAULT)) {
+<Line#24>    this.adminServer=createAdminServer();
+<Line#25>    addService(this.adminServer);
+<Line#26>  }
+<Line#27>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_HTTP_ENABLE,RBFConfigKeys.DFS_ROUTER_HTTP_ENABLE_DEFAULT)) {
+<Line#28>    this.httpServer=createHttpServer();
+<Line#29>    addService(this.httpServer);
+<Line#30>  }
+<Line#31>  boolean isRouterHeartbeatEnabled=conf.getBoolean(RBFConfigKeys.DFS_ROUTER_HEARTBEAT_ENABLE,RBFConfigKeys.DFS_ROUTER_HEARTBEAT_ENABLE_DEFAULT);
+<Line#32>  boolean isNamenodeHeartbeatEnable=conf.getBoolean(RBFConfigKeys.DFS_ROUTER_NAMENODE_HEARTBEAT_ENABLE,isRouterHeartbeatEnabled);
+<Line#33>  if (isNamenodeHeartbeatEnable) {
+<Line#34>    this.namenodeHeartbeatServices=createNamenodeHeartbeatServices();
+<Line#35>    for (    NamenodeHeartbeatService heartbeatService : this.namenodeHeartbeatServices) {
+<Line#36>      addService(heartbeatService);
+<Line#37>    }
+<Line#38>    if (this.namenodeHeartbeatServices.isEmpty()) {
+<Line#39>      LOG.error("Heartbeat is enabled but there are no namenodes to monitor");
+<Line#40>    }
+<Line#41>  }
+<Line#42>  if (isRouterHeartbeatEnabled) {
+<Line#43>    this.routerHeartbeatService=new RouterHeartbeatService(this);
+<Line#44>    addService(this.routerHeartbeatService);
+<Line#45>  }
+<Line#46>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_METRICS_ENABLE,RBFConfigKeys.DFS_ROUTER_METRICS_ENABLE_DEFAULT)) {
+<Line#47>    DefaultMetricsSystem.initialize("Router");
+<Line#48>    this.metrics=new RouterMetricsService(this);
+<Line#49>    addService(this.metrics);
+<Line#50>    this.pauseMonitor=new JvmPauseMonitor();
+<Line#51>    this.pauseMonitor.init(conf);
+<Line#52>  }
+<Line#53>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_QUOTA_ENABLE,RBFConfigKeys.DFS_ROUTER_QUOTA_ENABLED_DEFAULT)) {
+<Line#54>    this.quotaManager=new RouterQuotaManager();
+<Line#55>    this.quotaUpdateService=new RouterQuotaUpdateService(this);
+<Line#56>    addService(this.quotaUpdateService);
+<Line#57>  }
+<Line#58>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_SAFEMODE_ENABLE,RBFConfigKeys.DFS_ROUTER_SAFEMODE_ENABLE_DEFAULT)) {
+<Line#59>    this.safemodeService=new RouterSafemodeService(this);
+<Line#60>    addService(this.safemodeService);
+<Line#61>  }
+<Line#62>  if (conf.getBoolean(RBFConfigKeys.MOUNT_TABLE_CACHE_UPDATE,RBFConfigKeys.MOUNT_TABLE_CACHE_UPDATE_DEFAULT)) {
+<Line#63>    String disabledDependentServices=getDisabledDependentServices();
+<Line#64>    if (disabledDependentServices == null) {
+<Line#65>      MountTableRefresherService refreshService=new MountTableRefresherService(this);
+<Line#66>      addService(refreshService);
+<Line#67>      LOG.info("Service {} is enabled.",MountTableRefresherService.class.getSimpleName());
+<Line#68>    }
+<Line#69> else {
+<Line#70>      LOG.warn("Service {} not enabled: dependent service(s) {} not enabled.",MountTableRefresherService.class.getSimpleName(),disabledDependentServices);
+<Line#71>    }
+<Line#72>  }
+<Line#73>  super.serviceInit(conf);
+<Line#74>  if (stateStore != null) {
+<Line#75>    MountTableStore mountstore=this.stateStore.getRegisteredRecordStore(MountTableStore.class);
+<Line#76>    mountstore.setQuotaManager(this.quotaManager);
+<Line#77>  }
+<Line#78>}
+Label: <Line#39> LOG.error("Heartbeat is enabled but there are no namenodes to monitor")
+
+Example 3:
+<Line#1>{
+<Line#2>  this.conf=configuration;
+<Line#3>  updateRouterState(RouterServiceState.INITIALIZING);
+<Line#4>  UserGroupInformation.setConfiguration(conf);
+<Line#5>  SecurityUtil.login(conf,DFS_ROUTER_KEYTAB_FILE_KEY,DFS_ROUTER_KERBEROS_PRINCIPAL_KEY,getHostName(conf));
+<Line#6>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_STORE_ENABLE,RBFConfigKeys.DFS_ROUTER_STORE_ENABLE_DEFAULT)) {
+<Line#7>    this.stateStore=new StateStoreService();
+<Line#8>    addService(this.stateStore);
+<Line#9>  }
+<Line#10>  this.namenodeResolver=newActiveNamenodeResolver(this.conf,this.stateStore);
+<Line#11>  if (this.namenodeResolver == null) {
+<Line#12>    throw new IOException("Cannot find namenode resolver.");
+<Line#13>  }
+<Line#14>  this.subclusterResolver=newFileSubclusterResolver(this.conf,this);
+<Line#15>  if (this.subclusterResolver == null) {
+<Line#16>    throw new IOException("Cannot find subcluster resolver");
+<Line#17>  }
+<Line#18>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_RPC_ENABLE,RBFConfigKeys.DFS_ROUTER_RPC_ENABLE_DEFAULT)) {
+<Line#19>    this.rpcServer=createRpcServer();
+<Line#20>    addService(this.rpcServer);
+<Line#21>    this.setRpcServerAddress(rpcServer.getRpcAddress());
+<Line#22>  }
+<Line#23>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_ADMIN_ENABLE,RBFConfigKeys.DFS_ROUTER_ADMIN_ENABLE_DEFAULT)) {
+<Line#24>    this.adminServer=createAdminServer();
+<Line#25>    addService(this.adminServer);
+<Line#26>  }
+<Line#27>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_HTTP_ENABLE,RBFConfigKeys.DFS_ROUTER_HTTP_ENABLE_DEFAULT)) {
+<Line#28>    this.httpServer=createHttpServer();
+<Line#29>    addService(this.httpServer);
+<Line#30>  }
+<Line#31>  boolean isRouterHeartbeatEnabled=conf.getBoolean(RBFConfigKeys.DFS_ROUTER_HEARTBEAT_ENABLE,RBFConfigKeys.DFS_ROUTER_HEARTBEAT_ENABLE_DEFAULT);
+<Line#32>  boolean isNamenodeHeartbeatEnable=conf.getBoolean(RBFConfigKeys.DFS_ROUTER_NAMENODE_HEARTBEAT_ENABLE,isRouterHeartbeatEnabled);
+<Line#33>  if (isNamenodeHeartbeatEnable) {
+<Line#34>    this.namenodeHeartbeatServices=createNamenodeHeartbeatServices();
+<Line#35>    for (    NamenodeHeartbeatService heartbeatService : this.namenodeHeartbeatServices) {
+<Line#36>      addService(heartbeatService);
+<Line#37>    }
+<Line#38>    if (this.namenodeHeartbeatServices.isEmpty()) {
+<Line#39>      LOG.error("Heartbeat is enabled but there are no namenodes to monitor");
+<Line#40>    }
+<Line#41>  }
+<Line#42>  if (isRouterHeartbeatEnabled) {
+<Line#43>    this.routerHeartbeatService=new RouterHeartbeatService(this);
+<Line#44>    addService(this.routerHeartbeatService);
+<Line#45>  }
+<Line#46>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_METRICS_ENABLE,RBFConfigKeys.DFS_ROUTER_METRICS_ENABLE_DEFAULT)) {
+<Line#47>    DefaultMetricsSystem.initialize("Router");
+<Line#48>    this.metrics=new RouterMetricsService(this);
+<Line#49>    addService(this.metrics);
+<Line#50>    this.pauseMonitor=new JvmPauseMonitor();
+<Line#51>    this.pauseMonitor.init(conf);
+<Line#52>  }
+<Line#53>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_QUOTA_ENABLE,RBFConfigKeys.DFS_ROUTER_QUOTA_ENABLED_DEFAULT)) {
+<Line#54>    this.quotaManager=new RouterQuotaManager();
+<Line#55>    this.quotaUpdateService=new RouterQuotaUpdateService(this);
+<Line#56>    addService(this.quotaUpdateService);
+<Line#57>  }
+<Line#58>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_SAFEMODE_ENABLE,RBFConfigKeys.DFS_ROUTER_SAFEMODE_ENABLE_DEFAULT)) {
+<Line#59>    this.safemodeService=new RouterSafemodeService(this);
+<Line#60>    addService(this.safemodeService);
+<Line#61>  }
+<Line#62>  if (conf.getBoolean(RBFConfigKeys.MOUNT_TABLE_CACHE_UPDATE,RBFConfigKeys.MOUNT_TABLE_CACHE_UPDATE_DEFAULT)) {
+<Line#63>    String disabledDependentServices=getDisabledDependentServices();
+<Line#64>    if (disabledDependentServices == null) {
+<Line#65>      MountTableRefresherService refreshService=new MountTableRefresherService(this);
+<Line#66>      addService(refreshService);
+<Line#67>      LOG.info("Service {} is enabled.",MountTableRefresherService.class.getSimpleName());
+<Line#68>    }
+<Line#69> else {
+<Line#70>      LOG.warn("Service {} not enabled: dependent service(s) {} not enabled.",MountTableRefresherService.class.getSimpleName(),disabledDependentServices);
+<Line#71>    }
+<Line#72>  }
+<Line#73>  super.serviceInit(conf);
+<Line#74>  if (stateStore != null) {
+<Line#75>    MountTableStore mountstore=this.stateStore.getRegisteredRecordStore(MountTableStore.class);
+<Line#76>    mountstore.setQuotaManager(this.quotaManager);
+<Line#77>  }
+<Line#78>}
+Label: <Line#67> LOG.info("Service {} is enabled.",MountTableRefresherService.class.getSimpleName())
+
+Example 4:
+<Line#1>{
+<Line#2>  this.conf=configuration;
+<Line#3>  updateRouterState(RouterServiceState.INITIALIZING);
+<Line#4>  UserGroupInformation.setConfiguration(conf);
+<Line#5>  SecurityUtil.login(conf,DFS_ROUTER_KEYTAB_FILE_KEY,DFS_ROUTER_KERBEROS_PRINCIPAL_KEY,getHostName(conf));
+<Line#6>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_STORE_ENABLE,RBFConfigKeys.DFS_ROUTER_STORE_ENABLE_DEFAULT)) {
+<Line#7>    this.stateStore=new StateStoreService();
+<Line#8>    addService(this.stateStore);
+<Line#9>  }
+<Line#10>  this.namenodeResolver=newActiveNamenodeResolver(this.conf,this.stateStore);
+<Line#11>  if (this.namenodeResolver == null) {
+<Line#12>    throw new IOException("Cannot find namenode resolver.");
+<Line#13>  }
+<Line#14>  this.subclusterResolver=newFileSubclusterResolver(this.conf,this);
+<Line#15>  if (this.subclusterResolver == null) {
+<Line#16>    throw new IOException("Cannot find subcluster resolver");
+<Line#17>  }
+<Line#18>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_RPC_ENABLE,RBFConfigKeys.DFS_ROUTER_RPC_ENABLE_DEFAULT)) {
+<Line#19>    this.rpcServer=createRpcServer();
+<Line#20>    addService(this.rpcServer);
+<Line#21>    this.setRpcServerAddress(rpcServer.getRpcAddress());
+<Line#22>  }
+<Line#23>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_ADMIN_ENABLE,RBFConfigKeys.DFS_ROUTER_ADMIN_ENABLE_DEFAULT)) {
+<Line#24>    this.adminServer=createAdminServer();
+<Line#25>    addService(this.adminServer);
+<Line#26>  }
+<Line#27>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_HTTP_ENABLE,RBFConfigKeys.DFS_ROUTER_HTTP_ENABLE_DEFAULT)) {
+<Line#28>    this.httpServer=createHttpServer();
+<Line#29>    addService(this.httpServer);
+<Line#30>  }
+<Line#31>  boolean isRouterHeartbeatEnabled=conf.getBoolean(RBFConfigKeys.DFS_ROUTER_HEARTBEAT_ENABLE,RBFConfigKeys.DFS_ROUTER_HEARTBEAT_ENABLE_DEFAULT);
+<Line#32>  boolean isNamenodeHeartbeatEnable=conf.getBoolean(RBFConfigKeys.DFS_ROUTER_NAMENODE_HEARTBEAT_ENABLE,isRouterHeartbeatEnabled);
+<Line#33>  if (isNamenodeHeartbeatEnable) {
+<Line#34>    this.namenodeHeartbeatServices=createNamenodeHeartbeatServices();
+<Line#35>    for (    NamenodeHeartbeatService heartbeatService : this.namenodeHeartbeatServices) {
+<Line#36>      addService(heartbeatService);
+<Line#37>    }
+<Line#38>    if (this.namenodeHeartbeatServices.isEmpty()) {
+<Line#39>      LOG.error("Heartbeat is enabled but there are no namenodes to monitor");
+<Line#40>    }
+<Line#41>  }
+<Line#42>  if (isRouterHeartbeatEnabled) {
+<Line#43>    this.routerHeartbeatService=new RouterHeartbeatService(this);
+<Line#44>    addService(this.routerHeartbeatService);
+<Line#45>  }
+<Line#46>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_METRICS_ENABLE,RBFConfigKeys.DFS_ROUTER_METRICS_ENABLE_DEFAULT)) {
+<Line#47>    DefaultMetricsSystem.initialize("Router");
+<Line#48>    this.metrics=new RouterMetricsService(this);
+<Line#49>    addService(this.metrics);
+<Line#50>    this.pauseMonitor=new JvmPauseMonitor();
+<Line#51>    this.pauseMonitor.init(conf);
+<Line#52>  }
+<Line#53>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_QUOTA_ENABLE,RBFConfigKeys.DFS_ROUTER_QUOTA_ENABLED_DEFAULT)) {
+<Line#54>    this.quotaManager=new RouterQuotaManager();
+<Line#55>    this.quotaUpdateService=new RouterQuotaUpdateService(this);
+<Line#56>    addService(this.quotaUpdateService);
+<Line#57>  }
+<Line#58>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_SAFEMODE_ENABLE,RBFConfigKeys.DFS_ROUTER_SAFEMODE_ENABLE_DEFAULT)) {
+<Line#59>    this.safemodeService=new RouterSafemodeService(this);
+<Line#60>    addService(this.safemodeService);
+<Line#61>  }
+<Line#62>  if (conf.getBoolean(RBFConfigKeys.MOUNT_TABLE_CACHE_UPDATE,RBFConfigKeys.MOUNT_TABLE_CACHE_UPDATE_DEFAULT)) {
+<Line#63>    String disabledDependentServices=getDisabledDependentServices();
+<Line#64>    if (disabledDependentServices == null) {
+<Line#65>      MountTableRefresherService refreshService=new MountTableRefresherService(this);
+<Line#66>      addService(refreshService);
+<Line#67>      LOG.info("Service {} is enabled.",MountTableRefresherService.class.getSimpleName());
+<Line#68>    }
+<Line#69> else {
+<Line#70>      LOG.warn("Service {} not enabled: dependent service(s) {} not enabled.",MountTableRefresherService.class.getSimpleName(),disabledDependentServices);
+<Line#71>    }
+<Line#72>  }
+<Line#73>  super.serviceInit(conf);
+<Line#74>  if (stateStore != null) {
+<Line#75>    MountTableStore mountstore=this.stateStore.getRegisteredRecordStore(MountTableStore.class);
+<Line#76>    mountstore.setQuotaManager(this.quotaManager);
+<Line#77>  }
+<Line#78>}
+Label: <Line#70> LOG.warn("Service {} not enabled: dependent service(s) {} not enabled.",MountTableRefresherService.class.getSimpleName(),disabledDependentServices)
+
+Example 5:
+<Line#1>{
+<Line#2>  Preconditions.checkArgument(maxTotalSize >= 0);
+<Line#3>  this.maxTotalSize=maxTotalSize;
+<Line#4>  Preconditions.checkArgument(maxNonMmappedEvictableLifespanMs >= 0);
+<Line#5>  this.maxNonMmappedEvictableLifespanMs=maxNonMmappedEvictableLifespanMs;
+<Line#6>  Preconditions.checkArgument(maxEvictableMmapedSize >= 0);
+<Line#7>  this.maxEvictableMmapedSize=maxEvictableMmapedSize;
+<Line#8>  Preconditions.checkArgument(maxEvictableMmapedLifespanMs >= 0);
+<Line#9>  this.maxEvictableMmapedLifespanMs=maxEvictableMmapedLifespanMs;
+<Line#10>  this.mmapRetryTimeoutMs=mmapRetryTimeoutMs;
+<Line#11>  this.staleThresholdMs=staleThresholdMs;
+<Line#12>  DfsClientShmManager shmManager=null;
+<Line#13>  if ((shmInterruptCheckMs > 0) && (DomainSocketWatcher.getLoadingFailureReason() == null)) {
+<Line#14>    try {
+<Line#15>      shmManager=new DfsClientShmManager(shmInterruptCheckMs);
+<Line#16>    }
+<Line#17> catch (    IOException e) {
+<Line#18>      LOG.error("failed to create ShortCircuitShmManager",e);
+<Line#19>    }
+<Line#20>  }
+<Line#21>  this.shmManager=shmManager;
+<Line#22>}
+Label: <Line#18> LOG.error("failed to create ShortCircuitShmManager",e)
+

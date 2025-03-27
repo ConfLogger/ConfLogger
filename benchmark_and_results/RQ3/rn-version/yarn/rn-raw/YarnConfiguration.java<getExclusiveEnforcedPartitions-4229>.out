@@ -1,0 +1,30 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	YarnConfiguration.java	methodSinagture:	org.apache.hadoop.yarn.conf.YarnConfiguration.getExclusiveEnforcedPartitions(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/Set;	methodLines:	4229:4238
+blockLines:	4233:-1
+paras:	null
+TaintedStat:	NORMAL getExclusiveEnforcedPartitions:conditional branch(eq, to iindex=34) 7,8 Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, getExclusiveEnforcedPartitions(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/Set; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, getExclusiveEnforcedPartitions(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/Set; > Context: Everywhere[6]7 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getStrings(Ljava/lang/String;)[Ljava/lang/String; > 1,5 @11 exception:6
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, getExclusiveEnforcedPartitions(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/Set; > Context: Everywhere[6]7 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getStrings(Ljava/lang/String;)[Ljava/lang/String; > 1,5 @11 exception:6
+NORMAL getExclusiveEnforcedPartitions:conditional branch(eq, to iindex=34) 7,8 Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, getExclusiveEnforcedPartitions(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/Set; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+      Configuration conf) {
+    Set<String> exclusiveEnforcedPartitions = new HashSet<>();
+    String[] configuredPartitions = conf.getStrings(
+        EXCLUSIVE_ENFORCED_PARTITIONS);
+    if (configuredPartitions != null) {
+      for (String partition : configuredPartitions) {
+        exclusiveEnforcedPartitions.add(partition);
+      }
+    }
+    return exclusiveEnforcedPartitions;
+  }
+
+
+====================ctx:=======================

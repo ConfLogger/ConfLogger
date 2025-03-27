@@ -1,0 +1,3 @@
+public ServerState getState(){
+  return state;
+}

@@ -1,0 +1,33 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	QuorumPeer.java	methodSinagture:	org.apache.zookeeper.server.quorum.QuorumPeer.getSyncEnabled()Z	methodLines:	2053:2058
+blockLines:	2054:-1
+paras:	null
+TaintedStat:	NORMAL getSyncEnabled:conditional branch(eq, to iindex=14) 5,6 Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, getSyncEnabled()Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, getSyncEnabled()Z > Context: Everywhere[1]5 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 3 @3 exception:4
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, getSyncEnabled()Z > Context: Everywhere[1]5 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 3 @3 exception:4
+NORMAL getSyncEnabled:conditional branch(eq, to iindex=14) 5,6 Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, getSyncEnabled()Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public boolean getSyncEnabled() {
+        if (System.getProperty(SYNC_ENABLED) != null) {
+            LOG.info("{}={}", SYNC_ENABLED, Boolean.getBoolean(SYNC_ENABLED));
+            return Boolean.getBoolean(SYNC_ENABLED);
+        } else {
+            return syncEnabled;
+        }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/ObserverZooKeeperServer, <init>(Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog;Lorg/apache/zookeeper/server/quorum/QuorumPeer;Lorg/apache/zookeeper/server/ZKDatabase;)V > Context: Everywhere, blocks=[BB[SSA:16..16]7 - org.apache.zookeeper.server.quorum.ObserverZooKeeperServer.<init>(Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog;Lorg/apache/zookeeper/server/quorum/QuorumPeer;Lorg/apache/zookeeper/server/ZKDatabase;)V, BB[SSA:13..15]6 - org.apache.zookeeper.server.quorum.ObserverZooKeeperServer.<init>(Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog;Lorg/apache/zookeeper/server/quorum/QuorumPeer;Lorg/apache/zookeeper/server/ZKDatabase;)V, BB[SSA:17..17]8 - org.apache.zookeeper.server.quorum.ObserverZooKeeperServer.<init>(Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog;Lorg/apache/zookeeper/server/quorum/QuorumPeer;Lorg/apache/zookeeper/server/ZKDatabase;)V, BB[SSA:-1..-2]16 - org.apache.zookeeper.server.quorum.ObserverZooKeeperServer.<init>(Lorg/apache/zookeeper/server/persistence/FileTxnSnapLog;Lorg/apache/zookeeper/server/quorum/QuorumPeer;Lorg/apache/zookeeper/server/ZKDatabase;)V], numberOfBasicBlocks=4, firstLineNumber=53, lastLineNumber=47, firstMethodNumber=53, lastMethodNumber=56, isFirstLineValid=false, methodSrcCode=
+    ObserverZooKeeperServer(FileTxnSnapLog logFactory, QuorumPeer self, ZKDatabase zkDb) throws IOException {
+        super(logFactory, self.tickTime, self.minSessionTimeout, self.maxSessionTimeout, self.clientPortListenBacklog, zkDb, self);
+        LOG.info("syncEnabled ={}", syncRequestProcessorEnabled);
+    }
+
+}

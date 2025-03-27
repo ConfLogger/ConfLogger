@@ -1,0 +1,5 @@
+/** 
+ * Grab a handle to a job that is already known to the JobTracker.
+ * @return Status of the job, or null if not found.
+ */
+public JobStatus getJobStatus(JobID jobid) throws IOException, InterruptedException ;

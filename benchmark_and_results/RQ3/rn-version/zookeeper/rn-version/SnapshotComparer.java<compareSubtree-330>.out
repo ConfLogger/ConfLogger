@@ -1,0 +1,97 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	SnapshotComparer.java	methodSinagture:	org.apache.zookeeper.server.SnapshotComparer.compareSubtree(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Ljava/lang/String;IIZZ)V	methodLines:	330:342
+blockLines:	335:-1
+paras:	null
+TaintedStat:	NORMAL compareSubtree:conditional branch(ne, to iindex=29) 16,17 Node: < Application, Lorg/apache/zookeeper/server/SnapshotComparer, compareSubtree(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Ljava/lang/String;IIZZ)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/SnapshotComparer, compareSubtree(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Ljava/lang/String;IIZZ)V > Context: Everywhere[9]15 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 13,3 @20 exception:14
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/SnapshotComparer, compareSubtree(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Ljava/lang/String;IIZZ)V > Context: Everywhere[9]15 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 13,3 @20 exception:14
+NORMAL compareSubtree:16 = checkcast <Application,Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo$TreeNode>15 <Application,Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo$TreeNode> Node: < Application, Lorg/apache/zookeeper/server/SnapshotComparer, compareSubtree(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Ljava/lang/String;IIZZ)V > Context: Everywhere
+NORMAL compareSubtree:conditional branch(ne, to iindex=29) 16,17 Node: < Application, Lorg/apache/zookeeper/server/SnapshotComparer, compareSubtree(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Ljava/lang/String;IIZZ)V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	SnapshotComparer.java	methodSinagture:	org.apache.zookeeper.server.SnapshotComparer.compareSubtree(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Ljava/lang/String;IIZZ)V	methodLines:	330:342
+blockLines:	334:-1
+paras:	null
+TaintedStat:	NORMAL compareSubtree:conditional branch(ne, to iindex=19) 12,17 Node: < Application, Lorg/apache/zookeeper/server/SnapshotComparer, compareSubtree(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Ljava/lang/String;IIZZ)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/SnapshotComparer, compareSubtree(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Ljava/lang/String;IIZZ)V > Context: Everywhere[3]11 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 9,3 @5 exception:10
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/SnapshotComparer, compareSubtree(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Ljava/lang/String;IIZZ)V > Context: Everywhere[3]11 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 9,3 @5 exception:10
+NORMAL compareSubtree:12 = checkcast <Application,Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo$TreeNode>11 <Application,Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo$TreeNode> Node: < Application, Lorg/apache/zookeeper/server/SnapshotComparer, compareSubtree(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Ljava/lang/String;IIZZ)V > Context: Everywhere
+NORMAL compareSubtree:conditional branch(ne, to iindex=19) 12,17 Node: < Application, Lorg/apache/zookeeper/server/SnapshotComparer, compareSubtree(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Ljava/lang/String;IIZZ)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  private static void compareSubtree(TreeInfo left, TreeInfo right, String path, int byteThreshold, int nodeThreshold, boolean debug, boolean interactive) {
+    TreeInfo.TreeNode leftRoot = left.nodesByName.get(path);
+    TreeInfo.TreeNode rightRoot = right.nodesByName.get(path);
+
+    List<TreeInfo.TreeNode> leftList = leftRoot == null ? new ArrayList<TreeInfo.TreeNode>() : leftRoot.children;
+    List<TreeInfo.TreeNode> rightList = rightRoot == null ? new ArrayList<TreeInfo.TreeNode>() : rightRoot.children;
+
+    if (leftRoot == null && rightRoot == null) {
+      System.out.println(String.format("Path %s is neither found in left tree nor right tree.", path));
+    } else {
+      compareNodes(leftList, rightList, byteThreshold, nodeThreshold, debug, interactive);
+    }
+  }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/SnapshotComparer, compareTrees(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;IIZZ)V > Context: Everywhere, blocks=[BB[SSA:117..124]45 - org.apache.zookeeper.server.SnapshotComparer.compareTrees(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;IIZZ)V, BB[SSA:116..116]44 - org.apache.zookeeper.server.SnapshotComparer.compareTrees(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;IIZZ)V, BB[SSA:125..125]46 - org.apache.zookeeper.server.SnapshotComparer.compareTrees(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;IIZZ)V, BB[SSA:-1..-2]77 - org.apache.zookeeper.server.SnapshotComparer.compareTrees(Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;Lorg/apache/zookeeper/server/SnapshotComparer$TreeInfo;IIZZ)V], numberOfBasicBlocks=4, firstLineNumber=305, lastLineNumber=306, firstMethodNumber=279, lastMethodNumber=328, isFirstLineValid=true, methodSrcCode=
+  private static void compareTrees(TreeInfo left, TreeInfo right, int byteThreshold, int nodeThreshold, boolean debug, boolean interactive) {
+    int maxDepth = Math.max(left.nodesAtDepths.size(), right.nodesAtDepths.size());
+
+    if (!interactive) {
+      printThresholdInfo(byteThreshold, nodeThreshold);
+      for (int i = 0; i < maxDepth; i++) {
+        System.out.println(String.format("Analysis for depth %d", i));
+        compareLine(left, right, i, byteThreshold, nodeThreshold, debug, interactive);
+      }
+    } else {
+      // interactive mode
+      Scanner scanner = new Scanner(System.in);
+      int currentDepth = 0;
+      while (currentDepth < maxDepth) {
+        System.out.println(String.format("Current depth is %d", currentDepth));
+        System.out.println("- Press enter to move to print current depth layer;\n- Type a number to jump to and print all nodes at a given depth;\n- Enter an ABSOLUTE path to print the immediate subtree of a node. Path must start with '/'.");
+        String input = scanner.nextLine();
+        printThresholdInfo(byteThreshold, nodeThreshold);
+        if (input.isEmpty()) {
+          // input is Enter
+          System.out.println(String.format("Analysis for depth %d", currentDepth));
+          compareLine(left, right, currentDepth, byteThreshold, nodeThreshold, debug, interactive);
+          currentDepth++;
+        } else {
+          // input is a path
+          if (input.startsWith("/")){
+            System.out.println(String.format("Analysis for node %s", input));
+            compareSubtree(left, right, input, byteThreshold, nodeThreshold, debug, interactive);
+          } else {
+            // input is a number
+            try {
+              int depth = Integer.parseInt(input);
+              if (depth < 0 || depth >= maxDepth) {
+                System.out.println(String.format("Depth must be in range [%d, %d]", 0, maxDepth - 1));
+                continue;
+              }
+              currentDepth = depth;
+              System.out.println(String.format("Analysis for depth %d", currentDepth));
+              compareLine(left, right, currentDepth, byteThreshold, nodeThreshold, debug, interactive);
+            } catch (NumberFormatException ex) {
+              // input is invalid
+              System.out.println(String.format("Input %s is not valid. Depth must be in range [%d, %d]. Path must be an absolute path which starts with '/'.", input, 0, maxDepth - 1));
+            }
+          }
+        }
+        System.out.println("");
+      }
+    }
+    System.out.println("All layers compared.");
+  }
+
+}

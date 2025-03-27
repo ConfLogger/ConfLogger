@@ -1,0 +1,60 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Worker.java	methodSinagture:	org.apache.storm.daemon.worker.Worker.getCurrentBlobVersions()Ljava/util/Map;	methodLines:	426:446
+blockLines:	430:-1
+paras:	null
+TaintedStat:	NORMAL getCurrentBlobVersions:conditional branch(eq, to iindex=80) 11,12 Node: < Application, Lorg/apache/storm/daemon/worker/Worker, getCurrentBlobVersions()Ljava/util/Map; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/worker/Worker, getCurrentBlobVersions()Ljava/util/Map; > Context: Everywhere[8]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,8 @18 exception:9
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/worker/Worker, getCurrentBlobVersions()Ljava/util/Map; > Context: Everywhere[8]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,8 @18 exception:9
+NORMAL getCurrentBlobVersions:11 = checkcast <Application,Ljava/util/Map>10 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/daemon/worker/Worker, getCurrentBlobVersions()Ljava/util/Map; > Context: Everywhere
+NORMAL getCurrentBlobVersions:conditional branch(eq, to iindex=80) 11,12 Node: < Application, Lorg/apache/storm/daemon/worker/Worker, getCurrentBlobVersions()Ljava/util/Map; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	Worker.java	methodSinagture:	org.apache.storm.daemon.worker.Worker.getCurrentBlobVersions()Ljava/util/Map;	methodLines:	426:446
+blockLines:	435:-1
+paras:	null
+TaintedStat:	NORMAL getCurrentBlobVersions:conditional branch(eq, to iindex=55) 36,12 Node: < Application, Lorg/apache/storm/daemon/worker/Worker, getCurrentBlobVersions()Ljava/util/Map; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/worker/Worker, getCurrentBlobVersions()Ljava/util/Map; > Context: Everywhere[39]35 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 30 @98 exception:34
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/worker/Worker, getCurrentBlobVersions()Ljava/util/Map; > Context: Everywhere[39]35 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 30 @98 exception:34
+NORMAL getCurrentBlobVersions:[null]: 36 = checkcast <Application,Ljava/util/Map>35 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/daemon/worker/Worker, getCurrentBlobVersions()Ljava/util/Map; > Context: Everywhere
+NORMAL getCurrentBlobVersions:conditional branch(eq, to iindex=55) 36,12 Node: < Application, Lorg/apache/storm/daemon/worker/Worker, getCurrentBlobVersions()Ljava/util/Map; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public Map<String, Long> getCurrentBlobVersions() throws IOException {
+        Map<String, Long> results = new HashMap<>();
+        Map<String, Map<String, Object>> blobstoreMap =
+            (Map<String, Map<String, Object>>) workerState.getTopologyConf().get(Config.TOPOLOGY_BLOBSTORE_MAP);
+        if (blobstoreMap != null) {
+            String stormRoot = ConfigUtils.supervisorStormDistRoot(workerState.getTopologyConf(), workerState.getTopologyId());
+            for (Map.Entry<String, Map<String, Object>> entry : blobstoreMap.entrySet()) {
+                String localFileName = entry.getKey();
+                Map<String, Object> blobInfo = entry.getValue();
+                if (blobInfo != null && blobInfo.containsKey("localname")) {
+                    localFileName = (String) blobInfo.get("localname");
+                }
+
+                String blobWithVersion = new File(stormRoot, localFileName).getCanonicalFile().getName();
+                Matcher m = BLOB_VERSION_EXTRACTION.matcher(blobWithVersion);
+                if (m.matches()) {
+                    results.put(localFileName, Long.valueOf(m.group(1)));
+                }
+            }
+        }
+        return results;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/worker/Worker, updateBlobUpdates()V > Context: Everywhere, blocks=[BB[SSA:0..1]1 - org.apache.storm.daemon.worker.Worker.updateBlobUpdates()V, BB[SSA:-1..-2]0 - org.apache.storm.daemon.worker.Worker.updateBlobUpdates()V, BB[SSA:2..4]2 - org.apache.storm.daemon.worker.Worker.updateBlobUpdates()V, BB[SSA:-1..-2]7 - org.apache.storm.daemon.worker.Worker.updateBlobUpdates()V], numberOfBasicBlocks=4, firstLineNumber=449, lastLineNumber=451, firstMethodNumber=449, lastMethodNumber=453, isFirstLineValid=false, methodSrcCode=
+    public void updateBlobUpdates() throws IOException {
+        Map<String, Long> latestBlobVersions = getCurrentBlobVersions();
+        workerState.blobToLastKnownVersion.putAll(latestBlobVersions);
+        LOG.debug("Latest versions for blobs {}", latestBlobVersions);
+    }
+
+}

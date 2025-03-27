@@ -1,0 +1,7 @@
+/** 
+ * Set the value for the resource.
+ * @param rValue the resource value
+ */
+public void setValue(long rValue){
+  this.value=rValue;
+}

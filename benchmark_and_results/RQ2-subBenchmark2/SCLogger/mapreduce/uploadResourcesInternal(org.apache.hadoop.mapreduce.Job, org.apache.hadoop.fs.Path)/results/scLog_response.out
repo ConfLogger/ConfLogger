@@ -1,0 +1,15 @@
+<Line#5>:# LOG.debug("Configuration replication: " + replication);:#
+<Line#7>:# LOG.debug("Using generic parser: " + conf.getBoolean(Job.USED_GENERIC_PARSER, false));:#
+<Line#18>:# LOG.debug("Checking if job directory exists: " + jtFs.exists(submitJobDir));:#
+<Line#24>:# LOG.debug("Qualified submission job directory: " + submitJobDir);:#
+<Line#31>:# LOG.debug("Erasure coding enabled for staging directory: " + conf.getBoolean(MRJobConfig.MR_AM_STAGING_DIR_ERASURECODING_ENABLED, MRJobConfig.DEFAULT_MR_AM_STAGING_ERASURECODING_ENABLED));:#
+<Line#40>:# LOG.debug("Job jar: " + jobJar);:#
+<Line#52>:# LOG.debug("Checking localization limits");:#
+<Line#60>:# LOG.debug("Uploading files");:#
+<Line#62>:# LOG.debug("Uploading libjars");:#
+<Line#64>:# LOG.debug("Uploading archives");:#
+<Line#66>:# LOG.debug("Adding log4j to distributed cache");:#
+<Line#71>:# LOG.debug("Setting file shared cache upload policies");:#
+<Line#72>:# LOG.debug("Setting archive shared cache upload policies");:#
+<Line#77>:# LOG.debug("Determining timestamps and cache visibilities");:#
+<Line#80>:# LOG.debug("Getting delegation tokens");:#

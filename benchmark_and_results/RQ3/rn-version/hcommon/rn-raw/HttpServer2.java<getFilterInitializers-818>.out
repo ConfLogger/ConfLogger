@@ -1,0 +1,90 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	HttpServer2.java	methodSinagture:	org.apache.hadoop.http.HttpServer2.getFilterInitializers(Lorg/apache/hadoop/conf/Configuration;)[Lorg/apache/hadoop/http/FilterInitializer;	methodLines:	818:839
+blockLines:	824:-1
+paras:	null
+TaintedStat:	NORMAL getFilterInitializers:conditional branch(ne, to iindex=16) 8,3 Node: < Application, Lorg/apache/hadoop/http/HttpServer2, getFilterInitializers(Lorg/apache/hadoop/conf/Configuration;)[Lorg/apache/hadoop/http/FilterInitializer; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/http/HttpServer2, getFilterInitializers(Lorg/apache/hadoop/conf/Configuration;)[Lorg/apache/hadoop/http/FilterInitializer; > Context: Everywhere[9]8 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getClasses(Ljava/lang/String;[Ljava/lang/Class;)[Ljava/lang/Class; > 1,4,6 @13 exception:7
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/http/HttpServer2, getFilterInitializers(Lorg/apache/hadoop/conf/Configuration;)[Lorg/apache/hadoop/http/FilterInitializer; > Context: Everywhere[9]8 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getClasses(Ljava/lang/String;[Ljava/lang/Class;)[Ljava/lang/Class; > 1,4,6 @13 exception:7
+NORMAL getFilterInitializers:conditional branch(ne, to iindex=16) 8,3 Node: < Application, Lorg/apache/hadoop/http/HttpServer2, getFilterInitializers(Lorg/apache/hadoop/conf/Configuration;)[Lorg/apache/hadoop/http/FilterInitializer; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  private static FilterInitializer[] getFilterInitializers(Configuration conf) {
+    if (conf == null) {
+      return null;
+    }
+
+    Class<?>[] classes = conf.getClasses(FILTER_INITIALIZER_PROPERTY);
+    if (classes == null) {
+      return null;
+    }
+
+    List<Class<?>> classList = new ArrayList<>(Arrays.asList(classes));
+    if (classList.contains(AuthenticationFilterInitializer.class) &&
+        classList.contains(ProxyUserAuthenticationFilterInitializer.class)) {
+      classList.remove(AuthenticationFilterInitializer.class);
+    }
+
+    FilterInitializer[] initializers = new FilterInitializer[classList.size()];
+    for(int i = 0; i < classList.size(); i++) {
+      initializers[i] = (FilterInitializer)ReflectionUtils.newInstance(
+          classList.get(i), conf);
+    }
+    return initializers;
+  }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/http/HttpServer2, initializeWebServer(Ljava/lang/String;Ljava/lang/String;Lorg/apache/hadoop/conf/Configuration;[Ljava/lang/String;)V > Context: Everywhere, blocks=[BB[SSA:88..89]38 - org.apache.hadoop.http.HttpServer2.initializeWebServer(Ljava/lang/String;Ljava/lang/String;Lorg/apache/hadoop/conf/Configuration;[Ljava/lang/String;)V, BB[SSA:86..87]37 - org.apache.hadoop.http.HttpServer2.initializeWebServer(Ljava/lang/String;Ljava/lang/String;Lorg/apache/hadoop/conf/Configuration;[Ljava/lang/String;)V, BB[SSA:90..93]39 - org.apache.hadoop.http.HttpServer2.initializeWebServer(Ljava/lang/String;Ljava/lang/String;Lorg/apache/hadoop/conf/Configuration;[Ljava/lang/String;)V, BB[SSA:-1..-2]52 - org.apache.hadoop.http.HttpServer2.initializeWebServer(Ljava/lang/String;Ljava/lang/String;Lorg/apache/hadoop/conf/Configuration;[Ljava/lang/String;)V], numberOfBasicBlocks=4, firstLineNumber=735, lastLineNumber=737, firstMethodNumber=703, lastMethodNumber=747, isFirstLineValid=true, methodSrcCode=
+
+    Preconditions.checkNotNull(webAppContext);
+
+    int maxThreads = conf.getInt(HTTP_MAX_THREADS_KEY, -1);
+    // If HTTP_MAX_THREADS is not configured, QueueThreadPool() will use the
+    // default value (currently 250).
+
+    QueuedThreadPool threadPool = (QueuedThreadPool) webServer.getThreadPool();
+    threadPool.setDaemon(true);
+    if (maxThreads != -1) {
+      threadPool.setMaxThreads(maxThreads);
+    }
+
+    SessionHandler handler = webAppContext.getSessionHandler();
+    handler.setHttpOnly(true);
+    handler.getSessionCookieConfig().setSecure(true);
+
+    ContextHandlerCollection contexts = new ContextHandlerCollection();
+    RequestLog requestLog = HttpRequestLog.getRequestLog(name);
+
+    handlers.addHandler(contexts);
+    if (requestLog != null) {
+      RequestLogHandler requestLogHandler = new RequestLogHandler();
+      requestLogHandler.setRequestLog(requestLog);
+      handlers.addHandler(requestLogHandler);
+    }
+    handlers.addHandler(webAppContext);
+    final String appDir = getWebAppsPath(name);
+    addDefaultApps(contexts, appDir, conf);
+    webServer.setHandler(handlers);
+
+    Map<String, String> xFrameParams = setHeaders(conf);
+    addGlobalFilter("safety", QuotingInputFilter.class.getName(), xFrameParams);
+    final FilterInitializer[] initializers = getFilterInitializers(conf);
+    if (initializers != null) {
+      conf = new Configuration(conf);
+      conf.set(BIND_ADDRESS, hostName);
+      for (FilterInitializer c : initializers) {
+        c.initFilter(this, conf);
+      }
+    }
+
+    addDefaultServlets();
+    addPrometheusServlet(conf);
+  }
+
+}

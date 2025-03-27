@@ -1,0 +1,59 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Task.java	methodSinagture:	org.apache.storm.daemon.Task.getGroupersPerStream(Ljava/util/Map;)Ljava/util/HashMap;	methodLines:	96:110
+blockLines:	103:-1
+paras:	null
+TaintedStat:	NORMAL getGroupersPerStream:conditional branch(eq, to iindex=50) 22,25 Node: < Application, Lorg/apache/storm/daemon/Task, getGroupersPerStream(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/Task, getGroupersPerStream(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere[23]21 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 16 @57 exception:20
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/Task, getGroupersPerStream(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere[23]21 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 16 @57 exception:20
+NORMAL getGroupersPerStream:[null]: 22 = checkcast <Application,Ljava/util/Map>21 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/daemon/Task, getGroupersPerStream(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere
+NORMAL getGroupersPerStream:conditional branch(eq, to iindex=50) 22,25 Node: < Application, Lorg/apache/storm/daemon/Task, getGroupersPerStream(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+        Map<String, Map<String, LoadAwareCustomStreamGrouping>> streamComponentToGrouper) {
+        HashMap<String, ArrayList<LoadAwareCustomStreamGrouping>> result = new HashMap<>(streamComponentToGrouper.size());
+
+        for (Entry<String, Map<String, LoadAwareCustomStreamGrouping>> entry : streamComponentToGrouper.entrySet()) {
+            String stream = entry.getKey();
+            Map<String, LoadAwareCustomStreamGrouping> groupers = entry.getValue();
+            ArrayList<LoadAwareCustomStreamGrouping> perStreamGroupers = new ArrayList<>();
+            if (groupers != null) { // null for __system bolt
+                for (LoadAwareCustomStreamGrouping grouper : groupers.values()) {
+                    perStreamGroupers.add(grouper);
+                }
+            }
+            result.put(stream, perStreamGroupers);
+        }
+        return result;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/Task, <init>(Lorg/apache/storm/executor/Executor;Ljava/lang/Integer;)V > Context: Everywhere, blocks=[BB[SSA:27..27]13 - org.apache.storm.daemon.Task.<init>(Lorg/apache/storm/executor/Executor;Ljava/lang/Integer;)V, BB[SSA:24..26]12 - org.apache.storm.daemon.Task.<init>(Lorg/apache/storm/executor/Executor;Ljava/lang/Integer;)V, BB[SSA:28..28]14 - org.apache.storm.daemon.Task.<init>(Lorg/apache/storm/executor/Executor;Ljava/lang/Integer;)V, BB[SSA:-1..-2]54 - org.apache.storm.daemon.Task.<init>(Lorg/apache/storm/executor/Executor;Ljava/lang/Integer;)V], numberOfBasicBlocks=4, firstLineNumber=82, lastLineNumber=82, firstMethodNumber=74, lastMethodNumber=93, isFirstLineValid=true, methodSrcCode=
+
+    public Task(Executor executor, Integer taskId) throws IOException {
+        this.taskId = taskId;
+        this.executor = executor;
+        this.workerData = executor.getWorkerData();
+        this.topoConf = executor.getTopoConf();
+        this.componentId = executor.getComponentId();
+        this.streamComponentToGrouper = executor.getStreamToComponentToGrouper();
+        this.streamToGroupers = getGroupersPerStream(streamComponentToGrouper);
+        this.executorStats = executor.getStats();
+        this.workerTopologyContext = executor.getWorkerTopologyContext();
+        this.emitSampler = ConfigUtils.mkStatsSampler(topoConf);
+        this.systemTopologyContext = mkTopologyContext(workerData.getSystemTopology());
+        this.userTopologyContext = mkTopologyContext(workerData.getTopology());
+        this.taskObject = mkTaskObject();
+        this.debug = topoConf.containsKey(Config.TOPOLOGY_DEBUG) && (Boolean) topoConf.get(Config.TOPOLOGY_DEBUG);
+        this.addTaskHooks();
+        this.taskMetrics = new TaskMetrics(this.workerTopologyContext, this.componentId, this.taskId,
+                workerData.getMetricRegistry(), topoConf);
+    }
+
+}

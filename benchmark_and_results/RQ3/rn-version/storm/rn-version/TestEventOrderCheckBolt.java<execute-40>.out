@@ -1,0 +1,36 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	TestEventOrderCheckBolt.java	methodSinagture:	org.apache.storm.testing.TestEventOrderCheckBolt.execute(Lorg/apache/storm/tuple/Tuple;)V	methodLines:	40:54
+blockLines:	45:-1
+paras:	null
+TaintedStat:	NORMAL execute:conditional branch(eq, to iindex=43) 14,13 Node: < Application, Lorg/apache/storm/testing/TestEventOrderCheckBolt, execute(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/testing/TestEventOrderCheckBolt, execute(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere[11]12 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 10,6 @21 exception:11
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/testing/TestEventOrderCheckBolt, execute(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere[11]12 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 10,6 @21 exception:11
+NORMAL execute:13 = checkcast <Application,Ljava/lang/Long>12 <Application,Ljava/lang/Long> Node: < Application, Lorg/apache/storm/testing/TestEventOrderCheckBolt, execute(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere
+NORMAL execute:conditional branch(eq, to iindex=43) 14,13 Node: < Application, Lorg/apache/storm/testing/TestEventOrderCheckBolt, execute(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public void execute(Tuple input) {
+        Integer sourceId = input.getInteger(0);
+        Long eventId = input.getLong(1);
+        Long recentEvent = recentEventId.get(sourceId);
+
+        if (null != recentEvent && eventId <= recentEvent) {
+            String error = "Error: event id is not in strict order! event source Id: "
+                           + sourceId + ", last event Id: " + recentEvent + ", current event Id: " + eventId;
+
+            collector.emit(input, new Values(error));
+        }
+        recentEventId.put(sourceId, eventId);
+
+        collector.ack(input);
+    }
+
+
+
+====================ctx:=======================

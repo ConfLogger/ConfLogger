@@ -1,0 +1,55 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ClientStatsUtil.java	methodSinagture:	org.apache.storm.stats.ClientStatsUtil.getByKeyOr0(Ljava/util/Map;Ljava/lang/String;)Ljava/lang/Number;	methodLines:	93:102
+blockLines:	99:-1
+paras:	null
+TaintedStat:	NORMAL getByKeyOr0:conditional branch(ne, to iindex=17) 7,4 Node: < Application, Lorg/apache/storm/stats/ClientStatsUtil, getByKeyOr0(Ljava/util/Map;Ljava/lang/String;)Ljava/lang/Number; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/stats/ClientStatsUtil, getByKeyOr0(Ljava/util/Map;Ljava/lang/String;)Ljava/lang/Number; > Context: Everywhere[8]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,2 @11 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/stats/ClientStatsUtil, getByKeyOr0(Ljava/util/Map;Ljava/lang/String;)Ljava/lang/Number; > Context: Everywhere[8]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,2 @11 exception:5
+NORMAL getByKeyOr0:7 = checkcast <Application,Ljava/lang/Number>6 <Application,Ljava/lang/Number> Node: < Application, Lorg/apache/storm/stats/ClientStatsUtil, getByKeyOr0(Ljava/util/Map;Ljava/lang/String;)Ljava/lang/Number; > Context: Everywhere
+NORMAL getByKeyOr0:conditional branch(ne, to iindex=17) 7,4 Node: < Application, Lorg/apache/storm/stats/ClientStatsUtil, getByKeyOr0(Ljava/util/Map;Ljava/lang/String;)Ljava/lang/Number; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private static Number getByKeyOr0(Map<String, Object> m, String k) {
+        if (m == null) {
+            return 0;
+        }
+
+        Number n = (Number) m.get(k);
+        if (n == null) {
+            return 0;
+        }
+        return n;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/stats/ClientStatsUtil, thriftifyZkWorkerHb(Ljava/util/Map;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat; > Context: Everywhere, blocks=[BB[SSA:3..7]3 - org.apache.storm.stats.ClientStatsUtil.thriftifyZkWorkerHb(Ljava/util/Map;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat;, BB[SSA:1..2]2 - org.apache.storm.stats.ClientStatsUtil.thriftifyZkWorkerHb(Ljava/util/Map;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat;, BB[SSA:8..8]4 - org.apache.storm.stats.ClientStatsUtil.thriftifyZkWorkerHb(Ljava/util/Map;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat;, BB[SSA:-1..-2]41 - org.apache.storm.stats.ClientStatsUtil.thriftifyZkWorkerHb(Ljava/util/Map;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat;, BB[SSA:16..19]9 - org.apache.storm.stats.ClientStatsUtil.thriftifyZkWorkerHb(Ljava/util/Map;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat;, BB[SSA:15..15]8 - org.apache.storm.stats.ClientStatsUtil.thriftifyZkWorkerHb(Ljava/util/Map;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat;, BB[SSA:20..20]10 - org.apache.storm.stats.ClientStatsUtil.thriftifyZkWorkerHb(Ljava/util/Map;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat;, BB[SSA:-1..-2]41 - org.apache.storm.stats.ClientStatsUtil.thriftifyZkWorkerHb(Ljava/util/Map;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat;], numberOfBasicBlocks=8, firstLineNumber=121, lastLineNumber=122, firstMethodNumber=118, lastMethodNumber=138, isFirstLineValid=true, methodSrcCode=
+    public static ClusterWorkerHeartbeat thriftifyZkWorkerHb(Map<String, Object> heartbeat) {
+        ClusterWorkerHeartbeat ret = new ClusterWorkerHeartbeat();
+        ret.set_uptime_secs(getByKeyOr0(heartbeat, UPTIME).intValue());
+        ret.set_storm_id((String) heartbeat.get("storm-id"));
+        ret.set_time_secs(getByKeyOr0(heartbeat, TIME_SECS).intValue());
+
+        Map<ExecutorInfo, ExecutorStats> convertedStats = new HashMap<>();
+
+        Map<List<Integer>, ExecutorStats> executorStats = getMapByKey(heartbeat, EXECUTOR_STATS);
+        if (executorStats != null) {
+            for (Map.Entry<List<Integer>, ExecutorStats> entry : executorStats.entrySet()) {
+                List<Integer> executor = entry.getKey();
+                ExecutorStats stats = entry.getValue();
+                if (null != stats) {
+                    convertedStats.put(new ExecutorInfo(executor.get(0), executor.get(1)), stats);
+                }
+            }
+        }
+        ret.set_executor_stats(convertedStats);
+
+        return ret;
+    }
+}

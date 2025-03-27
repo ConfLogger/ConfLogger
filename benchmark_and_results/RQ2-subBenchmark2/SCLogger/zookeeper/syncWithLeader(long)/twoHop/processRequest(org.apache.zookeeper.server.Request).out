@@ -1,0 +1,6 @@
+public void processRequest(final Request request){
+  Objects.requireNonNull(request,"Request cannot be null");
+  request.syncQueueStartTime=Time.currentElapsedTime();
+  queuedRequests.add(request);
+  ServerMetrics.getMetrics().SYNC_PROCESSOR_QUEUED.add(1);
+}

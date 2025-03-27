@@ -1,0 +1,207 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>/* make sure we clean the staging files */
+<Line#1>String jobTempDir = getConfig().get(MRJobConfig.MAPREDUCE_JOB_DIR);
+<Line#2>FileSystem fs = getFileSystem(getConfig());
+<Line#3>try {
+<Line#4>if (!keepJobFiles(new JobConf(getConfig()), jobTempDir)) {
+<Line#5>if (jobTempDir == null) {
+<Line#6>return;
+<Line#7>}
+<Line#8>Path jobTempDirPath = new Path(jobTempDir);
+<Line#9>fs.delete(jobTempDirPath, true);
+<Line#10>}
+<Line#11>} catch(IOException io) {
+<Line#12>;
+<Line#13>}
+<Line#14>}
+
+Example 1:
+<Line#1>{
+<Line#2>  if (hasOutputPath()) {
+<Line#3>    Path pendingJobAttemptsPath=getPendingJobAttemptsPath();
+<Line#4>    FileSystem fs=pendingJobAttemptsPath.getFileSystem(context.getConfiguration());
+<Line#5>    try {
+<Line#6>      fs.delete(pendingJobAttemptsPath,true);
+<Line#7>    }
+<Line#8> catch (    FileNotFoundException e) {
+<Line#9>      if (!isCommitJobRepeatable(context)) {
+<Line#10>        throw e;
+<Line#11>      }
+<Line#12>    }
+<Line#13>  }
+<Line#14> else {
+<Line#15>    LOG.warn("Output Path is null in cleanupJob()");
+<Line#16>  }
+<Line#17>}
+Label: <Line#15> LOG.warn("Output Path is null in cleanupJob()")
+
+Example 2:
+<Line#1>{
+<Line#2>  JobEndNotifier notifier=null;
+<Line#3>  if (getConfig().get(MRJobConfig.MR_JOB_END_NOTIFICATION_URL) != null) {
+<Line#4>    notifier=new JobEndNotifier();
+<Line#5>    notifier.setConf(getConfig());
+<Line#6>  }
+<Line#7>  try {
+<Line#8>    if (!isLastAMRetry) {
+<Line#9>      if (((JobImpl)job).getInternalState() != JobStateInternal.REBOOT) {
+<Line#10>        LOG.info("Job finished cleanly, recording last MRAppMaster retry");
+<Line#11>        isLastAMRetry=true;
+<Line#12>      }
+<Line#13>    }
+<Line#14>    notifyIsLastAMRetry(isLastAMRetry);
+<Line#15>    LOG.info("Calling stop for all the services");
+<Line#16>    MRAppMaster.this.stop();
+<Line#17>    if (isLastAMRetry && notifier != null) {
+<Line#18>      sendJobEndNotify(notifier);
+<Line#19>      notifier=null;
+<Line#20>    }
+<Line#21>    try {
+<Line#22>      Thread.sleep(5000);
+<Line#23>    }
+<Line#24> catch (    InterruptedException e) {
+<Line#25>      e.printStackTrace();
+<Line#26>    }
+<Line#27>    clientService.stop();
+<Line#28>  }
+<Line#29> catch (  Throwable t) {
+<Line#30>    LOG.warn("Graceful stop failed. Exiting.. ",t);
+<Line#31>    exitMRAppMaster(1,t);
+<Line#32>  }
+<Line#33> finally {
+<Line#34>    if (isLastAMRetry && notifier != null) {
+<Line#35>      sendJobEndNotify(notifier);
+<Line#36>    }
+<Line#37>  }
+<Line#38>  exitMRAppMaster(0,null);
+<Line#39>}
+Label: <Line#10> LOG.info("Job finished cleanly, recording last MRAppMaster retry")
+
+Example 3:
+<Line#1>{
+<Line#2>  JobEndNotifier notifier=null;
+<Line#3>  if (getConfig().get(MRJobConfig.MR_JOB_END_NOTIFICATION_URL) != null) {
+<Line#4>    notifier=new JobEndNotifier();
+<Line#5>    notifier.setConf(getConfig());
+<Line#6>  }
+<Line#7>  try {
+<Line#8>    if (!isLastAMRetry) {
+<Line#9>      if (((JobImpl)job).getInternalState() != JobStateInternal.REBOOT) {
+<Line#10>        LOG.info("Job finished cleanly, recording last MRAppMaster retry");
+<Line#11>        isLastAMRetry=true;
+<Line#12>      }
+<Line#13>    }
+<Line#14>    notifyIsLastAMRetry(isLastAMRetry);
+<Line#15>    LOG.info("Calling stop for all the services");
+<Line#16>    MRAppMaster.this.stop();
+<Line#17>    if (isLastAMRetry && notifier != null) {
+<Line#18>      sendJobEndNotify(notifier);
+<Line#19>      notifier=null;
+<Line#20>    }
+<Line#21>    try {
+<Line#22>      Thread.sleep(5000);
+<Line#23>    }
+<Line#24> catch (    InterruptedException e) {
+<Line#25>      e.printStackTrace();
+<Line#26>    }
+<Line#27>    clientService.stop();
+<Line#28>  }
+<Line#29> catch (  Throwable t) {
+<Line#30>    LOG.warn("Graceful stop failed. Exiting.. ",t);
+<Line#31>    exitMRAppMaster(1,t);
+<Line#32>  }
+<Line#33> finally {
+<Line#34>    if (isLastAMRetry && notifier != null) {
+<Line#35>      sendJobEndNotify(notifier);
+<Line#36>    }
+<Line#37>  }
+<Line#38>  exitMRAppMaster(0,null);
+<Line#39>}
+Label: <Line#15> LOG.info("Calling stop for all the services")
+
+Example 4:
+<Line#1>{
+<Line#2>  JobEndNotifier notifier=null;
+<Line#3>  if (getConfig().get(MRJobConfig.MR_JOB_END_NOTIFICATION_URL) != null) {
+<Line#4>    notifier=new JobEndNotifier();
+<Line#5>    notifier.setConf(getConfig());
+<Line#6>  }
+<Line#7>  try {
+<Line#8>    if (!isLastAMRetry) {
+<Line#9>      if (((JobImpl)job).getInternalState() != JobStateInternal.REBOOT) {
+<Line#10>        LOG.info("Job finished cleanly, recording last MRAppMaster retry");
+<Line#11>        isLastAMRetry=true;
+<Line#12>      }
+<Line#13>    }
+<Line#14>    notifyIsLastAMRetry(isLastAMRetry);
+<Line#15>    LOG.info("Calling stop for all the services");
+<Line#16>    MRAppMaster.this.stop();
+<Line#17>    if (isLastAMRetry && notifier != null) {
+<Line#18>      sendJobEndNotify(notifier);
+<Line#19>      notifier=null;
+<Line#20>    }
+<Line#21>    try {
+<Line#22>      Thread.sleep(5000);
+<Line#23>    }
+<Line#24> catch (    InterruptedException e) {
+<Line#25>      e.printStackTrace();
+<Line#26>    }
+<Line#27>    clientService.stop();
+<Line#28>  }
+<Line#29> catch (  Throwable t) {
+<Line#30>    LOG.warn("Graceful stop failed. Exiting.. ",t);
+<Line#31>    exitMRAppMaster(1,t);
+<Line#32>  }
+<Line#33> finally {
+<Line#34>    if (isLastAMRetry && notifier != null) {
+<Line#35>      sendJobEndNotify(notifier);
+<Line#36>    }
+<Line#37>  }
+<Line#38>  exitMRAppMaster(0,null);
+<Line#39>}
+Label: <Line#30> LOG.warn("Graceful stop failed. Exiting.. ",t)
+
+Example 5:
+<Line#1>{
+<Line#2>  if (hasOutputPath()) {
+<Line#3>    Path finalOutput=getOutputPath();
+<Line#4>    FileSystem fs=finalOutput.getFileSystem(context.getConfiguration());
+<Line#5>    if (algorithmVersion == 1) {
+<Line#6>      for (      FileStatus stat : getAllCommittedTaskPaths(context)) {
+<Line#7>        mergePaths(fs,stat,finalOutput,context);
+<Line#8>      }
+<Line#9>    }
+<Line#10>    if (skipCleanup) {
+<Line#11>      LOG.info("Skip cleanup the _temporary folders under job's output " + "directory in commitJob.");
+<Line#12>    }
+<Line#13> else {
+<Line#14>      try {
+<Line#15>        cleanupJob(context);
+<Line#16>      }
+<Line#17> catch (      IOException e) {
+<Line#18>        if (ignoreCleanupFailures) {
+<Line#19>          LOG.error("Error in cleanup job, manually cleanup is needed.",e);
+<Line#20>        }
+<Line#21> else {
+<Line#22>          throw e;
+<Line#23>        }
+<Line#24>      }
+<Line#25>    }
+<Line#26>    if (context.getConfiguration().getBoolean(SUCCESSFUL_JOB_OUTPUT_DIR_MARKER,true)) {
+<Line#27>      Path markerPath=new Path(outputPath,SUCCEEDED_FILE_NAME);
+<Line#28>      if (isCommitJobRepeatable(context)) {
+<Line#29>        fs.create(markerPath,true).close();
+<Line#30>      }
+<Line#31> else {
+<Line#32>        fs.create(markerPath).close();
+<Line#33>      }
+<Line#34>    }
+<Line#35>  }
+<Line#36> else {
+<Line#37>    LOG.warn("Output Path is null in commitJob()");
+<Line#38>  }
+<Line#39>}
+Label: <Line#11> LOG.info("Skip cleanup the _temporary folders under job's output " + "directory in commitJob.")
+

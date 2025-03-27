@@ -1,0 +1,58 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	CombinedIPWhiteList.java	methodSinagture:	org.apache.hadoop.util.CombinedIPWhiteList.<init>(Ljava/lang/String;Ljava/lang/String;J)V	methodLines:	31:43
+blockLines:	35:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(eq, to iindex=32) 3,9 Node: < Application, Lorg/apache/hadoop/util/CombinedIPWhiteList, <init>(Ljava/lang/String;Ljava/lang/String;J)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/WhitelistBasedResolver, setConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[15]14 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getBoolean(Ljava/lang/String;Z)Z > 2,11,12 @23 exception:13
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/WhitelistBasedResolver, setConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[15]14 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getBoolean(Ljava/lang/String;Z)Z > 2,11,12 @23 exception:13
+NORMAL setConf:conditional branch(eq, to iindex=30) 14,12 Node: < Application, Lorg/apache/hadoop/security/WhitelistBasedResolver, setConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+PHI Node: < Application, Lorg/apache/hadoop/security/WhitelistBasedResolver, setConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere:25 = phi  9,18
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/security/WhitelistBasedResolver, setConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[36]invokespecial < Application, Lorg/apache/hadoop/util/CombinedIPWhiteList, <init>(Ljava/lang/String;Ljava/lang/String;J)V > 27,8,25,26 @62 exception:28 v25
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/util/CombinedIPWhiteList, <init>(Ljava/lang/String;Ljava/lang/String;J)V > Context: Everywhere v3
+NORMAL <init>:conditional branch(eq, to iindex=32) 3,9 Node: < Application, Lorg/apache/hadoop/util/CombinedIPWhiteList, <init>(Ljava/lang/String;Ljava/lang/String;J)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  public CombinedIPWhiteList(String fixedWhiteListFile,
+      String variableWhiteListFile, long cacheExpiryInSeconds) {
+
+    IPList fixedNetworkList = new FileBasedIPList(fixedWhiteListFile);
+    if (variableWhiteListFile != null){
+      IPList variableNetworkList = new CacheableIPList(
+          new FileBasedIPList(variableWhiteListFile),cacheExpiryInSeconds);
+      networkLists = new IPList[] {fixedNetworkList, variableNetworkList};
+    }
+    else {
+      networkLists = new IPList[] {fixedNetworkList};
+    }
+  }
+  @Override
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/security/WhitelistBasedResolver, setConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere, blocks=[BB[SSA:32..36]9 - org.apache.hadoop.security.WhitelistBasedResolver.setConf(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:30..31]8 - org.apache.hadoop.security.WhitelistBasedResolver.setConf(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:37..37]10 - org.apache.hadoop.security.WhitelistBasedResolver.setConf(Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:-1..-2]14 - org.apache.hadoop.security.WhitelistBasedResolver.setConf(Lorg/apache/hadoop/conf/Configuration;)V], numberOfBasicBlocks=4, firstLineNumber=106, lastLineNumber=106, firstMethodNumber=92, lastMethodNumber=109, isFirstLineValid=true, methodSrcCode=
+  public void setConf(Configuration conf) {
+    super.setConf(conf);
+    String fixedFile = conf.get(HADOOP_SECURITY_SASL_FIXEDWHITELIST_FILE,
+        FIXEDWHITELIST_DEFAULT_LOCATION);
+    String variableFile = null;
+    long expiryTime = 0;
+
+    if (conf.getBoolean(HADOOP_SECURITY_SASL_VARIABLEWHITELIST_ENABLE, false)) {
+      variableFile = conf.get(HADOOP_SECURITY_SASL_VARIABLEWHITELIST_FILE,
+          VARIABLEWHITELIST_DEFAULT_LOCATION);
+      expiryTime =
+        conf.getLong(HADOOP_SECURITY_SASL_VARIABLEWHITELIST_CACHE_SECS,3600) * 1000;
+    }
+
+    whiteList = new CombinedIPWhiteList(fixedFile,variableFile,expiryTime);
+
+    this.saslProps = getSaslProperties(conf);
+  }
+
+}

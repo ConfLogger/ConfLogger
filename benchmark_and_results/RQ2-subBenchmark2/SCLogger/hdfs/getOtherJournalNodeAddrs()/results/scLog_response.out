@@ -1,0 +1,2 @@
+<Line#36>:# LOG.error("URISyntaxException encountered in getOtherJournalNodeAddrs", e);:#
+<Line#37>:# LOG.error("IOException encountered in getOtherJournalNodeAddrs", e);:#

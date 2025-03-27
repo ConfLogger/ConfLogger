@@ -1,0 +1,397 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> // Checking the existence of the TLD
+<Line#1> FileSystem remoteFS = null;
+<Line#2> try {
+<Line#3> remoteFS = getFileSystem(conf);
+<Line#4> } catch (IOException e) {
+<Line#5> throw new YarnRuntimeException(
+<Line#6> "Unable to get Remote FileSystem instance", e);
+<Line#7> }
+<Line#8> boolean remoteExists = true;
+<Line#9> Path remoteRootLogDir = getRemoteRootLogDir();
+<Line#10> try {
+<Line#11> FsPermission perms =
+<Line#12> remoteFS.getFileStatus(remoteRootLogDir).getPermission();
+<Line#13> if (!perms.equals(TLDIR_PERMISSIONS)) {
+<Line#14> ;}
+<Line#15> } catch (FileNotFoundException e) {
+<Line#16> remoteExists = false;
+<Line#17> } catch (IOException e) {
+<Line#18> throw new YarnRuntimeException(
+<Line#19> "Failed to check permissions for dir ["
+<Line#20> + remoteRootLogDir + "]", e);
+<Line#21> }
+<Line#22> 
+<Line#23> Path qualified =
+<Line#24> remoteRootLogDir.makeQualified(remoteFS.getUri(),
+<Line#25> remoteFS.getWorkingDirectory());
+<Line#26> if (!remoteExists) {
+<Line#27> LOG.warn("Remote Root Log Dir [" + remoteRootLogDir
+<Line#28> + "] does not exist. Attempting to create it.");
+<Line#29> try {
+<Line#30> remoteFS.mkdirs(qualified, new FsPermission(TLDIR_PERMISSIONS));
+<Line#31> 
+<Line#32> // Not possible to query FileSystem API to check if it supports
+<Line#33> // chmod, chown etc. Hence resorting to catching exceptions here.
+<Line#34> // Remove when FS APi is ready
+<Line#35> try {
+<Line#36> remoteFS.setPermission(qualified, new FsPermission(TLDIR_PERMISSIONS));
+<Line#37> } catch ( UnsupportedOperationException use) {
+<Line#38> LOG.info("Unable to set permissions for configured filesystem since"
+<Line#39> + " it does not support this", remoteFS.getScheme());
+<Line#40> fsSupportsChmod = false;
+<Line#41> }
+<Line#42> 
+<Line#43> UserGroupInformation loginUser = UserGroupInformation.getLoginUser();
+<Line#44> String primaryGroupName = conf.get(
+<Line#45> YarnConfiguration.NM_REMOTE_APP_LOG_DIR_GROUPNAME);
+<Line#46> if (primaryGroupName == null || primaryGroupName.isEmpty()) {
+<Line#47> try {
+<Line#48> primaryGroupName = loginUser.getPrimaryGroupName();
+<Line#49> } catch (IOException e) {
+<Line#50> LOG.warn("No primary group found. The remote root log directory" +
+<Line#51> " will be created with the HDFS superuser being its " +
+<Line#52> "group owner. JobHistoryServer may be unable to read " +
+<Line#53> "the directory.");
+<Line#54> }
+<Line#55> } else {
+<Line#56> if (LOG.isDebugEnabled()) {
+<Line#57> LOG.debug("The group of remote root log directory has been " +
+<Line#58> "determined by the configuration and set to " +
+<Line#59> primaryGroupName);
+<Line#60> }
+<Line#61> }
+<Line#62> // set owner on the remote directory only if the primary group exists
+<Line#63> if (primaryGroupName != null) {
+<Line#64> try {
+<Line#65> remoteFS.setOwner(qualified, loginUser.getShortUserName(),
+<Line#66> primaryGroupName);
+<Line#67> } catch (UnsupportedOperationException use) {
+<Line#68> LOG.info(
+<Line#69> "File System does not support setting user/group" + remoteFS
+<Line#70> .getScheme(), use);
+<Line#71> }
+<Line#72> }
+<Line#73> } catch (IOException e) {
+<Line#74> throw new YarnRuntimeException("Failed to create remoteLogDir ["
+<Line#75> + remoteRootLogDir + "]", e);
+<Line#76> }
+<Line#77> } else {
+<Line#78> //Check if FS has capability to set/modify permissions
+<Line#79> Path permissionCheckFile = new Path(qualified, String.format("%s.permission_check",
+<Line#80> RandomStringUtils.randomAlphanumeric(8)));
+<Line#81> try {
+<Line#82> remoteFS.createNewFile(permissionCheckFile);
+<Line#83> remoteFS.setPermission(permissionCheckFile, new FsPermission(TLDIR_PERMISSIONS));
+<Line#84> } catch (UnsupportedOperationException use) {
+<Line#85> LOG.info("Unable to set permissions for configured filesystem since"
+<Line#86> + " it does not support this", remoteFS.getScheme());
+<Line#87> fsSupportsChmod = false;
+<Line#88> } catch (IOException e) {
+<Line#89> LOG.warn("Failed to check if FileSystem suppports permissions on "
+<Line#90> + "remoteLogDir [" + remoteRootLogDir + "]", e);
+<Line#91> } finally {
+<Line#92> try {
+<Line#93> remoteFS.delete(permissionCheckFile, false);
+<Line#94> } catch (IOException ignored) {
+<Line#95> }
+<Line#96> }
+<Line#97> }
+<Line#98> }
+
+Related Context:
+Method A:
+<Line#0> @VisibleForTesting protected FileSystem getFileSystem(Configuration conf) throws IOException {
+<Line#1>   return getRemoteRootLogDir().getFileSystem(conf);
+<Line#2> }
+<Line#3> 
+Method B:
+<Line#0> /** 
+<Line#1>  * Get the remote root log directory.
+<Line#2>  * @return the remote root log directory path
+<Line#3>  */
+<Line#4> public Path getRemoteRootLogDir(){
+<Line#5>   return this.remoteRootLogDir;
+<Line#6> }
+<Line#7> 
+
+Relevant Logging Patterns:
+Example 1:
+File: yarn__doParse-178__.json
+Code:
+<Line#1>{
+<Line#2>  long count=0;
+<Line#3>  TimelineEntities entities=new TimelineEntities();
+<Line#4>  ArrayList<TimelineEntity> entityList=new ArrayList<TimelineEntity>(1);
+<Line#5>  long bytesParsed;
+<Line#6>  long bytesParsedLastBatch=0;
+<Line#7>  boolean postError=false;
+<Line#8>  try {
+<Line#9>    MappingIterator<TimelineEntity> iter=objMapper.readValues(parser,TimelineEntity.class);
+<Line#10>    while (iter.hasNext()) {
+<Line#11>      TimelineEntity entity=iter.next();
+<Line#12>      String etype=entity.getEntityType();
+<Line#13>      String eid=entity.getEntityId();
+<Line#14>      LOG.trace("Read entity {}",etype);
+<Line#15>      ++count;
+<Line#16>      bytesParsed=parser.getCurrentLocation().getCharOffset() + 1;
+<Line#17>      LOG.trace("Parser now at offset {}",bytesParsed);
+<Line#18>      try {
+<Line#19>        LOG.debug("Adding {}({}) to store",eid,etype);
+<Line#20>        entityList.add(entity);
+<Line#21>        entities.setEntities(entityList);
+<Line#22>        TimelinePutResponse response=tdm.postEntities(entities,ugi);
+<Line#23>        for (        TimelinePutResponse.TimelinePutError e : response.getErrors()) {
+<Line#24>          LOG.warn("Error putting entity: {} ({}): {}",e.getEntityId(),e.getEntityType(),e.getErrorCode());
+<Line#25>        }
+<Line#26>        setOffset(getOffset() + bytesParsed - bytesParsedLastBatch);
+<Line#27>        bytesParsedLastBatch=bytesParsed;
+<Line#28>        entityList.clear();
+<Line#29>      }
+<Line#30> catch (      YarnException e) {
+<Line#31>        postError=true;
+<Line#32>        throw new IOException("Error posting entities",e);
+<Line#33>      }
+<Line#34>catch (      IOException e) {
+<Line#35>        postError=true;
+<Line#36>        throw new IOException("Error posting entities",e);
+<Line#37>      }
+<Line#38>    }
+<Line#39>  }
+<Line#40> catch (  IOException e) {
+<Line#41>    if (appCompleted || postError) {
+<Line#42>      throw e;
+<Line#43>    }
+<Line#44>  }
+<Line#45>catch (  RuntimeException e) {
+<Line#46>    if (appCompleted || !(e.getCause() instanceof JsonParseException)) {
+<Line#47>      throw e;
+<Line#48>    }
+<Line#49>  }
+<Line#50>  return count;
+<Line#51>}
+Log: <Line#14>:# LOG.trace("Read entity {}",etype):#
+
+Example 2:
+File: yarn__doParse-178__.json
+Code:
+<Line#1>{
+<Line#2>  long count=0;
+<Line#3>  TimelineEntities entities=new TimelineEntities();
+<Line#4>  ArrayList<TimelineEntity> entityList=new ArrayList<TimelineEntity>(1);
+<Line#5>  long bytesParsed;
+<Line#6>  long bytesParsedLastBatch=0;
+<Line#7>  boolean postError=false;
+<Line#8>  try {
+<Line#9>    MappingIterator<TimelineEntity> iter=objMapper.readValues(parser,TimelineEntity.class);
+<Line#10>    while (iter.hasNext()) {
+<Line#11>      TimelineEntity entity=iter.next();
+<Line#12>      String etype=entity.getEntityType();
+<Line#13>      String eid=entity.getEntityId();
+<Line#14>      LOG.trace("Read entity {}",etype);
+<Line#15>      ++count;
+<Line#16>      bytesParsed=parser.getCurrentLocation().getCharOffset() + 1;
+<Line#17>      LOG.trace("Parser now at offset {}",bytesParsed);
+<Line#18>      try {
+<Line#19>        LOG.debug("Adding {}({}) to store",eid,etype);
+<Line#20>        entityList.add(entity);
+<Line#21>        entities.setEntities(entityList);
+<Line#22>        TimelinePutResponse response=tdm.postEntities(entities,ugi);
+<Line#23>        for (        TimelinePutResponse.TimelinePutError e : response.getErrors()) {
+<Line#24>          LOG.warn("Error putting entity: {} ({}): {}",e.getEntityId(),e.getEntityType(),e.getErrorCode());
+<Line#25>        }
+<Line#26>        setOffset(getOffset() + bytesParsed - bytesParsedLastBatch);
+<Line#27>        bytesParsedLastBatch=bytesParsed;
+<Line#28>        entityList.clear();
+<Line#29>      }
+<Line#30> catch (      YarnException e) {
+<Line#31>        postError=true;
+<Line#32>        throw new IOException("Error posting entities",e);
+<Line#33>      }
+<Line#34>catch (      IOException e) {
+<Line#35>        postError=true;
+<Line#36>        throw new IOException("Error posting entities",e);
+<Line#37>      }
+<Line#38>    }
+<Line#39>  }
+<Line#40> catch (  IOException e) {
+<Line#41>    if (appCompleted || postError) {
+<Line#42>      throw e;
+<Line#43>    }
+<Line#44>  }
+<Line#45>catch (  RuntimeException e) {
+<Line#46>    if (appCompleted || !(e.getCause() instanceof JsonParseException)) {
+<Line#47>      throw e;
+<Line#48>    }
+<Line#49>  }
+<Line#50>  return count;
+<Line#51>}
+Log: <Line#17>:# LOG.trace("Parser now at offset {}",bytesParsed):#
+
+Example 3:
+File: yarn__doParse-178__.json
+Code:
+<Line#1>{
+<Line#2>  long count=0;
+<Line#3>  TimelineEntities entities=new TimelineEntities();
+<Line#4>  ArrayList<TimelineEntity> entityList=new ArrayList<TimelineEntity>(1);
+<Line#5>  long bytesParsed;
+<Line#6>  long bytesParsedLastBatch=0;
+<Line#7>  boolean postError=false;
+<Line#8>  try {
+<Line#9>    MappingIterator<TimelineEntity> iter=objMapper.readValues(parser,TimelineEntity.class);
+<Line#10>    while (iter.hasNext()) {
+<Line#11>      TimelineEntity entity=iter.next();
+<Line#12>      String etype=entity.getEntityType();
+<Line#13>      String eid=entity.getEntityId();
+<Line#14>      LOG.trace("Read entity {}",etype);
+<Line#15>      ++count;
+<Line#16>      bytesParsed=parser.getCurrentLocation().getCharOffset() + 1;
+<Line#17>      LOG.trace("Parser now at offset {}",bytesParsed);
+<Line#18>      try {
+<Line#19>        LOG.debug("Adding {}({}) to store",eid,etype);
+<Line#20>        entityList.add(entity);
+<Line#21>        entities.setEntities(entityList);
+<Line#22>        TimelinePutResponse response=tdm.postEntities(entities,ugi);
+<Line#23>        for (        TimelinePutResponse.TimelinePutError e : response.getErrors()) {
+<Line#24>          LOG.warn("Error putting entity: {} ({}): {}",e.getEntityId(),e.getEntityType(),e.getErrorCode());
+<Line#25>        }
+<Line#26>        setOffset(getOffset() + bytesParsed - bytesParsedLastBatch);
+<Line#27>        bytesParsedLastBatch=bytesParsed;
+<Line#28>        entityList.clear();
+<Line#29>      }
+<Line#30> catch (      YarnException e) {
+<Line#31>        postError=true;
+<Line#32>        throw new IOException("Error posting entities",e);
+<Line#33>      }
+<Line#34>catch (      IOException e) {
+<Line#35>        postError=true;
+<Line#36>        throw new IOException("Error posting entities",e);
+<Line#37>      }
+<Line#38>    }
+<Line#39>  }
+<Line#40> catch (  IOException e) {
+<Line#41>    if (appCompleted || postError) {
+<Line#42>      throw e;
+<Line#43>    }
+<Line#44>  }
+<Line#45>catch (  RuntimeException e) {
+<Line#46>    if (appCompleted || !(e.getCause() instanceof JsonParseException)) {
+<Line#47>      throw e;
+<Line#48>    }
+<Line#49>  }
+<Line#50>  return count;
+<Line#51>}
+Log: <Line#19>:# LOG.debug("Adding {}({}) to store",eid,etype):#
+
+Example 4:
+File: yarn__doParse-178__.json
+Code:
+<Line#1>{
+<Line#2>  long count=0;
+<Line#3>  TimelineEntities entities=new TimelineEntities();
+<Line#4>  ArrayList<TimelineEntity> entityList=new ArrayList<TimelineEntity>(1);
+<Line#5>  long bytesParsed;
+<Line#6>  long bytesParsedLastBatch=0;
+<Line#7>  boolean postError=false;
+<Line#8>  try {
+<Line#9>    MappingIterator<TimelineEntity> iter=objMapper.readValues(parser,TimelineEntity.class);
+<Line#10>    while (iter.hasNext()) {
+<Line#11>      TimelineEntity entity=iter.next();
+<Line#12>      String etype=entity.getEntityType();
+<Line#13>      String eid=entity.getEntityId();
+<Line#14>      LOG.trace("Read entity {}",etype);
+<Line#15>      ++count;
+<Line#16>      bytesParsed=parser.getCurrentLocation().getCharOffset() + 1;
+<Line#17>      LOG.trace("Parser now at offset {}",bytesParsed);
+<Line#18>      try {
+<Line#19>        LOG.debug("Adding {}({}) to store",eid,etype);
+<Line#20>        entityList.add(entity);
+<Line#21>        entities.setEntities(entityList);
+<Line#22>        TimelinePutResponse response=tdm.postEntities(entities,ugi);
+<Line#23>        for (        TimelinePutResponse.TimelinePutError e : response.getErrors()) {
+<Line#24>          LOG.warn("Error putting entity: {} ({}): {}",e.getEntityId(),e.getEntityType(),e.getErrorCode());
+<Line#25>        }
+<Line#26>        setOffset(getOffset() + bytesParsed - bytesParsedLastBatch);
+<Line#27>        bytesParsedLastBatch=bytesParsed;
+<Line#28>        entityList.clear();
+<Line#29>      }
+<Line#30> catch (      YarnException e) {
+<Line#31>        postError=true;
+<Line#32>        throw new IOException("Error posting entities",e);
+<Line#33>      }
+<Line#34>catch (      IOException e) {
+<Line#35>        postError=true;
+<Line#36>        throw new IOException("Error posting entities",e);
+<Line#37>      }
+<Line#38>    }
+<Line#39>  }
+<Line#40> catch (  IOException e) {
+<Line#41>    if (appCompleted || postError) {
+<Line#42>      throw e;
+<Line#43>    }
+<Line#44>  }
+<Line#45>catch (  RuntimeException e) {
+<Line#46>    if (appCompleted || !(e.getCause() instanceof JsonParseException)) {
+<Line#47>      throw e;
+<Line#48>    }
+<Line#49>  }
+<Line#50>  return count;
+<Line#51>}
+Log: <Line#24>:# LOG.warn("Error putting entity: {} ({}): {}",e.getEntityId(),e.getEntityType(),e.getErrorCode()):#
+
+Example 5:
+File: yarn__write-236__.json
+Code:
+<Line#1>{
+<Line#2>  List<File> fileList=new ArrayList<File>(pendingUploadFiles);
+<Line#3>  Collections.sort(fileList);
+<Line#4>  for (  File logFile : fileList) {
+<Line#5>    if (logFile.isDirectory()) {
+<Line#6>      LOG.warn(logFile.getAbsolutePath() + " is a directory. Ignore it.");
+<Line#7>      continue;
+<Line#8>    }
+<Line#9>    FileInputStream in=null;
+<Line#10>    try {
+<Line#11>      in=secureOpenFile(logFile);
+<Line#12>    }
+<Line#13> catch (    IOException e) {
+<Line#14>      logErrorMessage(logFile,e);
+<Line#15>      IOUtils.cleanupWithLogger(LOG,in);
+<Line#16>      continue;
+<Line#17>    }
+<Line#18>    final long fileLength=logFile.length();
+<Line#19>    out.writeUTF(logFile.getName());
+<Line#20>    out.writeUTF(String.valueOf(fileLength));
+<Line#21>    try {
+<Line#22>      byte[] buf=new byte[65535];
+<Line#23>      int len=0;
+<Line#24>      long bytesLeft=fileLength;
+<Line#25>      while ((len=in.read(buf)) != -1) {
+<Line#26>        if (len < bytesLeft) {
+<Line#27>          out.write(buf,0,len);
+<Line#28>          bytesLeft-=len;
+<Line#29>        }
+<Line#30> else {
+<Line#31>          out.write(buf,0,(int)bytesLeft);
+<Line#32>          break;
+<Line#33>        }
+<Line#34>      }
+<Line#35>      long newLength=logFile.length();
+<Line#36>      if (fileLength < newLength) {
+<Line#37>        LOG.warn("Aggregated logs truncated by approximately " + (newLength - fileLength) + " bytes.");
+<Line#38>      }
+<Line#39>      this.uploadedFiles.add(logFile);
+<Line#40>    }
+<Line#41> catch (    IOException e) {
+<Line#42>      String message=logErrorMessage(logFile,e);
+<Line#43>      out.write(message.getBytes(Charset.forName("UTF-8")));
+<Line#44>    }
+<Line#45> finally {
+<Line#46>      IOUtils.cleanupWithLogger(LOG,in);
+<Line#47>    }
+<Line#48>  }
+<Line#49>}
+Log: <Line#6>:# LOG.warn(logFile.getAbsolutePath() + " is a directory. Ignore it."):#

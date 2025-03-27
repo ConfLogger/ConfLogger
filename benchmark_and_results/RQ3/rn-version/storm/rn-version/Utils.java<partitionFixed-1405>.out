@@ -1,0 +1,59 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Utils.java	methodSinagture:	org.apache.storm.utils.Utils.partitionFixed(ILjava/util/Collection;)Ljava/util/List;	methodLines:	1405:1440
+blockLines:	1408:-1
+paras:	null
+TaintedStat:	NORMAL partitionFixed:conditional branch(ne, to iindex=12) 2,7 Node: < Application, Lorg/apache/storm/utils/Utils, partitionFixed(ILjava/util/Collection;)Ljava/util/List; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, computeExecutors(Lorg/apache/storm/generated/StormBase;Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/List; > Context: Everywhere[42]29 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 24 @99 exception:28
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, computeExecutors(Lorg/apache/storm/generated/StormBase;Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/List; > Context: Everywhere[42]29 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 24 @99 exception:28
+NORMAL computeExecutors:[null]: 30 = checkcast <Application,Ljava/util/List>29 <Application,Ljava/util/List> Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, computeExecutors(Lorg/apache/storm/generated/StormBase;Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/List; > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, computeExecutors(Lorg/apache/storm/generated/StormBase;Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/List; > Context: Everywhere[59]38 = invokestatic < Application, Lorg/apache/storm/utils/Utils, partitionFixed(ILjava/util/Collection;)Ljava/util/List; > 36,30 @143 exception:37 v30
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/Utils, partitionFixed(ILjava/util/Collection;)Ljava/util/List; > Context: Everywhere v2
+NORMAL partitionFixed:conditional branch(ne, to iindex=12) 2,7 Node: < Application, Lorg/apache/storm/utils/Utils, partitionFixed(ILjava/util/Collection;)Ljava/util/List; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static <T> List<List<T>> partitionFixed(int maxNumChunks, Collection<T> coll) {
+        List<List<T>> ret = new ArrayList<>();
+
+        if (maxNumChunks == 0 || coll == null) {
+            return ret;
+        }
+
+        Map<Integer, Integer> parts = integerDivided(coll.size(), maxNumChunks);
+
+        // Keys sorted in descending order
+        List<Integer> sortedKeys = new ArrayList<Integer>(parts.keySet());
+        Collections.sort(sortedKeys, Collections.reverseOrder());
+
+
+        Iterator<T> it = coll.iterator();
+        for (Integer chunkSize : sortedKeys) {
+            if (!it.hasNext()) {
+                break;
+            }
+            Integer times = parts.get(chunkSize);
+            for (int i = 0; i < times; i++) {
+                if (!it.hasNext()) {
+                    break;
+                }
+                List<T> chunkList = new ArrayList<>();
+                for (int j = 0; j < chunkSize; j++) {
+                    if (!it.hasNext()) {
+                        break;
+                    }
+                    chunkList.add(it.next());
+                }
+                ret.add(chunkList);
+            }
+        }
+
+        return ret;
+    }
+
+
+====================ctx:=======================

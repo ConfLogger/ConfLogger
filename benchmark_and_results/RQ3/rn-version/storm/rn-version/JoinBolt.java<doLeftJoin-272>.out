@@ -1,0 +1,56 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	JoinBolt.java	methodSinagture:	org.apache.storm.bolt.JoinBolt.doLeftJoin(Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator;Ljava/util/Map;Lorg/apache/storm/bolt/JoinBolt$JoinInfo;Z)Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator;	methodLines:	272:292
+blockLines:	280:-1
+paras:	null
+TaintedStat:	NORMAL doLeftJoin:conditional branch(eq, to iindex=71) 31,28 Node: < Application, Lorg/apache/storm/bolt/JoinBolt, doLeftJoin(Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator;Ljava/util/Map;Lorg/apache/storm/bolt/JoinBolt$JoinInfo;Z)Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/bolt/JoinBolt, doLeftJoin(Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator;Ljava/util/Map;Lorg/apache/storm/bolt/JoinBolt$JoinInfo;Z)Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator; > Context: Everywhere[37]30 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,27 @84 exception:29
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/bolt/JoinBolt, doLeftJoin(Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator;Ljava/util/Map;Lorg/apache/storm/bolt/JoinBolt$JoinInfo;Z)Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator; > Context: Everywhere[37]30 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,27 @84 exception:29
+NORMAL doLeftJoin:31 = checkcast <Application,Ljava/util/ArrayList>30 <Application,Ljava/util/ArrayList> Node: < Application, Lorg/apache/storm/bolt/JoinBolt, doLeftJoin(Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator;Ljava/util/Map;Lorg/apache/storm/bolt/JoinBolt$JoinInfo;Z)Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator; > Context: Everywhere
+NORMAL doLeftJoin:conditional branch(eq, to iindex=71) 31,28 Node: < Application, Lorg/apache/storm/bolt/JoinBolt, doLeftJoin(Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator;Ljava/util/Map;Lorg/apache/storm/bolt/JoinBolt$JoinInfo;Z)Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+                                         boolean finalJoin) {
+        String[] probeKeyName = joinInfo.getOtherField();
+        JoinAccumulator result = new JoinAccumulator();
+        FieldSelector fieldSelector = new FieldSelector(joinInfo.other.getStreamName(), probeKeyName);
+        for (ResultRecord rec : probe.getRecords()) {
+            Object probeKey = rec.getField(fieldSelector);
+            if (probeKey != null) {
+                ArrayList<Tuple> matchingBuildRecs = buildInput.get(probeKey); // ok if its return null
+                if (matchingBuildRecs != null && !matchingBuildRecs.isEmpty()) {
+                    for (Tuple matchingRec : matchingBuildRecs) {
+                        ResultRecord mergedRecord = new ResultRecord(rec, matchingRec, finalJoin);
+                        result.insert(mergedRecord);
+                    }
+                } else {
+                    ResultRecord mergedRecord = new ResultRecord(rec, null, finalJoin);
+                    result.insert(mergedRecord);
+                }
+
+            }
+        }
+        return result;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/bolt/JoinBolt, doJoin(Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator;Ljava/util/HashMap;Lorg/apache/storm/bolt/JoinBolt$JoinInfo;Z)Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator; > Context: Everywhere, blocks=[BB[SSA:15..20]7 - org.apache.storm.bolt.JoinBolt.doJoin(Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator;Ljava/util/HashMap;Lorg/apache/storm/bolt/JoinBolt$JoinInfo;Z)Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator;, BB[SSA:7..7]4 - org.apache.storm.bolt.JoinBolt.doJoin(Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator;Ljava/util/HashMap;Lorg/apache/storm/bolt/JoinBolt$JoinInfo;Z)Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator;, BB[SSA:21..21]8 - org.apache.storm.bolt.JoinBolt.doJoin(Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator;Ljava/util/HashMap;Lorg/apache/storm/bolt/JoinBolt$JoinInfo;Z)Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator;, BB[SSA:-1..-2]14 - org.apache.storm.bolt.JoinBolt.doJoin(Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator;Ljava/util/HashMap;Lorg/apache/storm/bolt/JoinBolt$JoinInfo;Z)Lorg/apache/storm/bolt/JoinBolt$JoinAccumulator;], numberOfBasicBlocks=4, firstLineNumber=237, lastLineNumber=241, firstMethodNumber=235, lastMethodNumber=245, isFirstLineValid=true, methodSrcCode=
+                                     boolean finalJoin) {
+        final JoinType joinType = joinInfo.getJoinType();
+        switch (joinType) {
+            case INNER:
+                return doInnerJoin(probe, buildInput, joinInfo, finalJoin);
+            case LEFT:
+                return doLeftJoin(probe, buildInput, joinInfo, finalJoin);
+            case RIGHT:
+            case OUTER:
+            default:
+                throw new RuntimeException("Unsupported join type : " + joinType.name());
+        }
+}

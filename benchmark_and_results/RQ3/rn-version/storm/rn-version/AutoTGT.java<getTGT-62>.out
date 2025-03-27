@@ -1,0 +1,50 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	AutoTGT.java	methodSinagture:	org.apache.storm.security.auth.kerberos.AutoTGT.getTGT(Ljava/util/Map;)Ljavax/security/auth/kerberos/KerberosTicket;	methodLines:	62:67
+blockLines:	64:-1
+paras:	null
+TaintedStat:	NORMAL getTGT:conditional branch(eq, to iindex=22) 9,3 Node: < Application, Lorg/apache/storm/security/auth/kerberos/AutoTGT, getTGT(Ljava/util/Map;)Ljavax/security/auth/kerberos/KerberosTicket; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/kerberos/AutoTGT, getTGT(Ljava/util/Map;)Ljavax/security/auth/kerberos/KerberosTicket; > Context: Everywhere[12]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,4 @20 exception:8
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/kerberos/AutoTGT, getTGT(Ljava/util/Map;)Ljavax/security/auth/kerberos/KerberosTicket; > Context: Everywhere[12]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,4 @20 exception:8
+NORMAL getTGT:conditional branch(eq, to iindex=22) 9,3 Node: < Application, Lorg/apache/storm/security/auth/kerberos/AutoTGT, getTGT(Ljava/util/Map;)Ljavax/security/auth/kerberos/KerberosTicket; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static KerberosTicket getTGT(Map<String, String> credentials) {
+        KerberosTicket ret = null;
+        if (credentials != null && credentials.containsKey("TGT") && credentials.get("TGT") != null) {
+            ret = ClientAuthUtils.deserializeKerberosTicket(DatatypeConverter.parseBase64Binary(credentials.get("TGT")));
+        }
+        return ret;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/security/auth/kerberos/AutoTGT, populateSubjectWithTGT(Ljavax/security/auth/Subject;Ljava/util/Map;)V > Context: Everywhere, blocks=[BB[SSA:3..4]2 - org.apache.storm.security.auth.kerberos.AutoTGT.populateSubjectWithTGT(Ljavax/security/auth/Subject;Ljava/util/Map;)V, BB[SSA:0..2]1 - org.apache.storm.security.auth.kerberos.AutoTGT.populateSubjectWithTGT(Ljavax/security/auth/Subject;Ljava/util/Map;)V, BB[SSA:5..8]3 - org.apache.storm.security.auth.kerberos.AutoTGT.populateSubjectWithTGT(Ljavax/security/auth/Subject;Ljava/util/Map;)V, BB[SSA:-1..-2]12 - org.apache.storm.security.auth.kerberos.AutoTGT.populateSubjectWithTGT(Ljavax/security/auth/Subject;Ljava/util/Map;)V], numberOfBasicBlocks=4, firstLineNumber=177, lastLineNumber=179, firstMethodNumber=176, lastMethodNumber=186, isFirstLineValid=true, methodSrcCode=
+    private void populateSubjectWithTGT(Subject subject, Map<String, String> credentials) {
+        LOG.info("Populating TGT from credentials");
+        KerberosTicket tgt = getTGT(credentials);
+        if (tgt != null) {
+            clearCredentials(subject, tgt);
+            subject.getPrincipals().add(tgt.getClient());
+            kerbTicket.set(tgt);
+        } else {
+            LOG.info("No TGT found in credentials");
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/security/auth/kerberos/AutoTGT, getMsecsUntilExpiration()Ljava/lang/Long; > Context: Everywhere, blocks=[BB[SSA:2..2]2 - org.apache.storm.security.auth.kerberos.AutoTGT.getMsecsUntilExpiration()Ljava/lang/Long;, BB[SSA:0..1]1 - org.apache.storm.security.auth.kerberos.AutoTGT.getMsecsUntilExpiration()Ljava/lang/Long;, BB[SSA:3..6]3 - org.apache.storm.security.auth.kerberos.AutoTGT.getMsecsUntilExpiration()Ljava/lang/Long;, BB[SSA:-1..-2]10 - org.apache.storm.security.auth.kerberos.AutoTGT.getMsecsUntilExpiration()Ljava/lang/Long;], numberOfBasicBlocks=4, firstLineNumber=253, lastLineNumber=254, firstMethodNumber=252, lastMethodNumber=258, isFirstLineValid=true, methodSrcCode=
+    private Long getMsecsUntilExpiration() {
+        KerberosTicket tgt = getTGT(this.credentials);
+        if (tgt == null) {
+            return null;
+        }
+        long end = tgt.getEndTime().getTime();
+        return end - System.currentTimeMillis();
+    }
+}

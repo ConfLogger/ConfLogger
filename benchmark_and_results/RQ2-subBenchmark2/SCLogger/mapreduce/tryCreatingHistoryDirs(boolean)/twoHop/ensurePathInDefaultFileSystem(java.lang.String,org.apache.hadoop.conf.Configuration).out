@@ -1,0 +1,14 @@
+/** 
+ * Ensure that path belongs to cluster's default file system unless 1. it is already fully qualified. 2. current job configuration uses default file system 3. running from a test case without core-site.xml
+ * @param sourcePath source path
+ * @param conf the job configuration
+ * @return full qualified path (if necessary) in default file system
+ */
+private static String ensurePathInDefaultFileSystem(String sourcePath,Configuration conf){
+  Path path=new Path(sourcePath);
+  FileContext fc=getDefaultFileContext();
+  if (fc == null || fc.getDefaultFileSystem().getUri().toString().equals(conf.get(CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY,"")) || path.toUri().getAuthority() != null || path.toUri().getScheme() != null) {
+    return sourcePath;
+  }
+  return fc.makeQualified(path).toString();
+}

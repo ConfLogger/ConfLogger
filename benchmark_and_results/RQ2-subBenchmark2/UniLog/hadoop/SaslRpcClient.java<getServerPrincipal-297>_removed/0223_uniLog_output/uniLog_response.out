@@ -1,0 +1,62 @@
+To insert a log level and verbosity message into the provided code block, we need to identify where the logging statement is located and then add the appropriate log level and verbosity message. In the target method code provided, there is one logging statement:
+
+```java
+<Line#2>LOG.debug("Get kerberos info proto:" + protocol + " info:" + krbInfo);
+```
+
+Based on the examples given, the log level is `DEBUG`, and the verbosity message should describe what the log statement is doing. Here's how you can modify the code to include the log level and verbosity message:
+
+```java
+<Line#0>String getServerPrincipal(SaslAuth authType) throws IOException {
+<Line#1>KerberosInfo krbInfo = SecurityUtil.getKerberosInfo(protocol, conf);
+<Line#2>LOG.debug("Get kerberos info proto:" + protocol + " info:" + krbInfo); // Label: <Line#2> LOG.debug("Get kerberos info proto:" + protocol + " info:" + krbInfo)
+<Line#3>if (krbInfo == null) { // protocol has no support for kerberos
+<Line#4>return null;
+<Line#5>}
+<Line#6>String serverKey = krbInfo.serverPrincipal();
+<Line#7>if (serverKey == null) {
+<Line#8>throw new IllegalArgumentException(
+<Line#9>"Can't obtain server Kerberos config key from protocol="
+<Line#10>+ protocol.getCanonicalName());
+<Line#11>}
+<Line#12>// construct server advertised principal for comparision
+<Line#13>String serverPrincipal = new KerberosPrincipal(
+<Line#14>authType.getProtocol() + "/" + authType.getServerId(),
+<Line#15>KerberosPrincipal.KRB_NT_SRV_HST).getName();
+<Line#16>
+<Line#17>// use the pattern if defined
+<Line#18>String serverKeyPattern = conf.get(serverKey + ".pattern");
+<Line#19>if (serverKeyPattern != null && !serverKeyPattern.isEmpty()) {
+<Line#20>Pattern pattern = GlobPattern.compile(serverKeyPattern);
+<Line#21>if (!pattern.matcher(serverPrincipal).matches()) {
+<Line#22>throw new IllegalArgumentException(String.format(
+<Line#23>"Server has invalid Kerberos principal: %s,"
+<Line#24>+ " doesn't match the pattern: %s",
+<Line#25>serverPrincipal, serverKeyPattern));
+<Line#26>}
+<Line#27>} else {
+<Line#28>// check that the server advertised principal matches our conf
+<Line#29>String confPrincipal = SecurityUtil.getServerPrincipal(
+<Line#30>conf.get(serverKey), serverAddr.getAddress());
+<Line#31>}
+<Line#32>if (confPrincipal == null || confPrincipal.isEmpty()) {
+<Line#33>throw new IllegalArgumentException(
+<Line#34>"Failed to specify server's Kerberos principal name");
+<Line#35>}
+<Line#36>KerberosName name = new KerberosName(confPrincipal);
+<Line#37>if (name.getHostName() == null) {
+<Line#38>throw new IllegalArgumentException(
+<Line#39>"Kerberos principal name does NOT have the expected hostname part: "
+<Line#40>+ confPrincipal);
+<Line#41>}
+<Line#42>if (!serverPrincipal.equals(confPrincipal)) {
+<Line#43>throw new IllegalArgumentException(String.format(
+<Line#44>"Server has invalid Kerberos principal: %s, expecting: %s",
+<Line#45>serverPrincipal, confPrincipal));
+<Line#46>}
+<Line#47>}
+<Line#48>return serverPrincipal;
+<Line#49>}
+```
+
+In this modification, a label is added to the logging statement at Line#2. This label follows the format shown in the examples, indicating the log level (`DEBUG`) and describing the message being logged.

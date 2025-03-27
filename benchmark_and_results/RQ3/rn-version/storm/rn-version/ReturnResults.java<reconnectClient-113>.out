@@ -1,0 +1,98 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ReturnResults.java	methodSinagture:	org.apache.storm.drpc.ReturnResults.reconnectClient(Lorg/apache/storm/drpc/DRPCInvocationsClient;)V	methodLines:	113:122
+blockLines:	114:-1
+paras:	null
+TaintedStat:	NORMAL reconnectClient:conditional branch(eq, to iindex=15) 4,5 Node: < Application, Lorg/apache/storm/drpc/ReturnResults, reconnectClient(Lorg/apache/storm/drpc/DRPCInvocationsClient;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/drpc/ReturnResults, execute(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere[88]54 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 52,38 @202 exception:53
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/drpc/ReturnResults, execute(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere[88]54 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 52,38 @202 exception:53
+NORMAL execute:55 = checkcast <Application,Lorg/apache/storm/generated/DistributedRPCInvocations$Iface>54 <Application,Lorg/apache/storm/generated/DistributedRPCInvocations$Iface> Node: < Application, Lorg/apache/storm/drpc/ReturnResults, execute(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere
+PHI Node: < Application, Lorg/apache/storm/drpc/ReturnResults, execute(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere:59 = phi  58,55
+NORMAL execute:71 = checkcast <Application,Lorg/apache/storm/drpc/DRPCInvocationsClient>59 <Application,Lorg/apache/storm/drpc/DRPCInvocationsClient> Node: < Application, Lorg/apache/storm/drpc/ReturnResults, execute(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/drpc/ReturnResults, execute(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere[140]invokevirtual < Application, Lorg/apache/storm/drpc/ReturnResults, reconnectClient(Lorg/apache/storm/drpc/DRPCInvocationsClient;)V > 1,71 @316 exception:72 v71
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/drpc/ReturnResults, reconnectClient(Lorg/apache/storm/drpc/DRPCInvocationsClient;)V > Context: Everywhere v2
+NORMAL reconnectClient:4 = instanceof 2 <Application,Lorg/apache/storm/drpc/DRPCInvocationsClient> Node: < Application, Lorg/apache/storm/drpc/ReturnResults, reconnectClient(Lorg/apache/storm/drpc/DRPCInvocationsClient;)V > Context: Everywhere
+NORMAL reconnectClient:conditional branch(eq, to iindex=15) 4,5 Node: < Application, Lorg/apache/storm/drpc/ReturnResults, reconnectClient(Lorg/apache/storm/drpc/DRPCInvocationsClient;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private void reconnectClient(DRPCInvocationsClient client) {
+        if (client instanceof DRPCInvocationsClient) {
+            try {
+                LOG.info("reconnecting... ");
+                client.reconnectClient(); //Blocking call
+            } catch (TException e2) {
+                LOG.error("Failed to connect to DRPC server", e2);
+            }
+        }
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/drpc/ReturnResults, execute(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere, blocks=[BB[SSA:140..140]60 - org.apache.storm.drpc.ReturnResults.execute(Lorg/apache/storm/tuple/Tuple;)V, BB[SSA:137..139]59 - org.apache.storm.drpc.ReturnResults.execute(Lorg/apache/storm/tuple/Tuple;)V, BB[SSA:141..141]61 - org.apache.storm.drpc.ReturnResults.execute(Lorg/apache/storm/tuple/Tuple;)V, BB[SSA:-1..-2]63 - org.apache.storm.drpc.ReturnResults.execute(Lorg/apache/storm/tuple/Tuple;)V], numberOfBasicBlocks=4, firstLineNumber=107, lastLineNumber=111, firstMethodNumber=53, lastMethodNumber=111, isFirstLineValid=true, methodSrcCode=
+    public void execute(Tuple input) {
+        String result = (String) input.getValue(0);
+        String returnInfo = (String) input.getValue(1);
+        if (returnInfo != null) {
+            Map<String, Object> retMap;
+            try {
+                retMap = (Map<String, Object>) JSONValue.parseWithException(returnInfo);
+            } catch (ParseException e) {
+                LOG.error("Parseing returnInfo failed", e);
+                collector.fail(input);
+                return;
+            }
+            final String host = (String) retMap.get("host");
+            final int port = ObjectReader.getInt(retMap.get("port"));
+            String id = (String) retMap.get("id");
+            DistributedRPCInvocations.Iface client;
+            if (local) {
+                client = (DistributedRPCInvocations.Iface) ServiceRegistry.getService(host);
+            } else {
+                List server = new ArrayList() {
+                    {
+                        add(host);
+                        add(port);
+                    }
+                };
+
+                if (!clients.containsKey(server)) {
+                    try {
+                        clients.put(server, new DRPCInvocationsClient(conf, host, port));
+                    } catch (TTransportException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                client = clients.get(server);
+            }
+
+
+            int retryCnt = 0;
+            int maxRetries = 3;
+            while (retryCnt < maxRetries) {
+                retryCnt++;
+                try {
+                    client.result(id, result);
+                    collector.ack(input);
+                    break;
+                } catch (AuthorizationException aze) {
+                    LOG.error("Not authorized to return results to DRPC server", aze);
+                    collector.fail(input);
+                    throw new RuntimeException(aze);
+                } catch (TException tex) {
+                    if (retryCnt >= maxRetries) {
+                        LOG.error("Failed to return results to DRPC server", tex);
+                        collector.fail(input);
+                    }
+                    reconnectClient((DRPCInvocationsClient) client);
+                }
+            }
+        }
+    }
+
+}

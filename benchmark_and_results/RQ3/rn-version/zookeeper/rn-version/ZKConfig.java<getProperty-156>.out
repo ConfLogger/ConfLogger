@@ -1,0 +1,426 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ZKConfig.java	methodSinagture:	org.apache.zookeeper.common.ZKConfig.getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;	methodLines:	156:158
+blockLines:	158:-1
+paras:	null
+TaintedStat:	NORMAL getProperty:conditional branch(ne, to iindex=11) 8,9 Node: < Application, Lorg/apache/zookeeper/common/ZKConfig, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/common/ZKConfig, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere[3]7 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,2 @5 exception:6
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/common/ZKConfig, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere[3]7 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,2 @5 exception:6
+NORMAL getProperty:8 = checkcast <Application,Ljava/lang/String>7 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/zookeeper/common/ZKConfig, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL getProperty:conditional branch(ne, to iindex=11) 8,9 Node: < Application, Lorg/apache/zookeeper/common/ZKConfig, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public String getProperty(String key, String defaultValue) {
+        String value = properties.get(key);
+        return (value == null) ? defaultValue : value;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/client/ZooKeeperSaslClient, <init>(Ljava/lang/String;Lorg/apache/zookeeper/client/ZKClientConfig;Ljava/util/concurrent/atomic/AtomicReference;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=114, lastMethodNumber=195, isFirstLineValid=true, methodSrcCode=
+
+    public ZooKeeperSaslClient(final String serverPrincipal, ZKClientConfig clientConfig, AtomicReference<Login> loginRef) throws LoginException {
+        /**
+         * ZOOKEEPER-1373: allow system property to specify the JAAS
+         * configuration section that the zookeeper client should use.
+         * Default to "Client".
+         */
+        String clientSection = clientConfig.getProperty(ZKClientConfig.LOGIN_CONTEXT_NAME_KEY, ZKClientConfig.LOGIN_CONTEXT_NAME_KEY_DEFAULT);
+        this.clientConfig = clientConfig;
+        // Note that 'Configuration' here refers to javax.security.auth.login.Configuration.
+        AppConfigurationEntry[] entries = null;
+        RuntimeException runtimeException = null;
+        try {
+            entries = Configuration.getConfiguration().getAppConfigurationEntry(clientSection);
+        } catch (SecurityException e) {
+            // handle below: might be harmless if the user doesn't intend to use JAAS authentication.
+            runtimeException = e;
+        } catch (IllegalArgumentException e) {
+            // third party customized getAppConfigurationEntry could throw IllegalArgumentException when JAAS
+            // configuration isn't set. We can reevaluate whether to catch RuntimeException instead when more
+            // different types of RuntimeException found
+            runtimeException = e;
+        }
+        if (entries != null) {
+            this.configStatus = "Will attempt to SASL-authenticate using Login Context section '" + clientSection + "'";
+            this.saslClient = createSaslClient(serverPrincipal, clientSection, loginRef);
+            this.login = loginRef.get();
+        } else {
+            // Handle situation of clientSection's being null: it might simply because the client does not intend to
+            // use SASL, so not necessarily an error.
+            saslState = SaslState.FAILED;
+            String explicitClientSection = clientConfig.getProperty(ZKClientConfig.LOGIN_CONTEXT_NAME_KEY);
+            if (explicitClientSection != null) {
+                // If the user explicitly overrides the default Login Context, they probably expected SASL to
+                // succeed. But if we got here, SASL failed.
+                if (runtimeException != null) {
+                    throw new LoginException("Zookeeper client cannot authenticate using the "
+                                             + explicitClientSection
+                                             + " section of the supplied JAAS configuration: '"
+                                             + clientConfig.getJaasConfKey()
+                                             + "' because of a "
+                                             + "RuntimeException: "
+                                             + runtimeException);
+                } else {
+                    throw new LoginException("Client cannot SASL-authenticate because the specified JAAS configuration "
+                                             + "section '"
+                                             + explicitClientSection
+                                             + "' could not be found.");
+                }
+            } else {
+                // The user did not override the default context. It might be that they just don't intend to use SASL,
+                // so log at INFO, not WARN, since they don't expect any SASL-related information.
+                String msg = "Will not attempt to authenticate using SASL ";
+                if (runtimeException != null) {
+                    msg += "(" + runtimeException + ")";
+                } else {
+                    msg += "(unknown error)";
+                }
+                this.configStatus = msg;
+                this.isSASLConfigured = false;
+            }
+            if (clientConfig.getJaasConfKey() != null) {
+                // Again, the user explicitly set something SASL-related, so
+                // they probably expected SASL to succeed.
+                if (runtimeException != null) {
+                    throw new LoginException("Zookeeper client cannot authenticate using the '"
+                                             + clientConfig.getProperty(ZKClientConfig.LOGIN_CONTEXT_NAME_KEY, ZKClientConfig.LOGIN_CONTEXT_NAME_KEY_DEFAULT)
+                                             + "' section of the supplied JAAS configuration: '"
+                                             + clientConfig.getJaasConfKey()
+                                             + "' because of a "
+                                             + "RuntimeException: "
+                                             + runtimeException);
+                } else {
+                    throw new LoginException("No JAAS configuration section named '"
+                                             + clientConfig.getProperty(ZKClientConfig.LOGIN_CONTEXT_NAME_KEY, ZKClientConfig.LOGIN_CONTEXT_NAME_KEY_DEFAULT)
+                                             + "' was found in specified JAAS configuration file: '"
+                                             + clientConfig.getJaasConfKey()
+                                             + "'.");
+                }
+            }
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/common/X509Util, getPasswordFromConfigPropertyOrFile(Lorg/apache/zookeeper/common/ZKConfig;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:0..3]1 - org.apache.zookeeper.common.X509Util.getPasswordFromConfigPropertyOrFile(Lorg/apache/zookeeper/common/ZKConfig;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;, BB[SSA:-1..-2]0 - org.apache.zookeeper.common.X509Util.getPasswordFromConfigPropertyOrFile(Lorg/apache/zookeeper/common/ZKConfig;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;, BB[SSA:4..8]2 - org.apache.zookeeper.common.X509Util.getPasswordFromConfigPropertyOrFile(Lorg/apache/zookeeper/common/ZKConfig;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;, BB[SSA:-1..-2]9 - org.apache.zookeeper.common.X509Util.getPasswordFromConfigPropertyOrFile(Lorg/apache/zookeeper/common/ZKConfig;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;, BB[SSA:4..8]2 - org.apache.zookeeper.common.X509Util.getPasswordFromConfigPropertyOrFile(Lorg/apache/zookeeper/common/ZKConfig;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;, BB[SSA:0..3]1 - org.apache.zookeeper.common.X509Util.getPasswordFromConfigPropertyOrFile(Lorg/apache/zookeeper/common/ZKConfig;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;, BB[SSA:9..11]3 - org.apache.zookeeper.common.X509Util.getPasswordFromConfigPropertyOrFile(Lorg/apache/zookeeper/common/ZKConfig;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;, BB[SSA:-1..-2]9 - org.apache.zookeeper.common.X509Util.getPasswordFromConfigPropertyOrFile(Lorg/apache/zookeeper/common/ZKConfig;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;], numberOfBasicBlocks=8, firstLineNumber=496, lastLineNumber=498, firstMethodNumber=495, lastMethodNumber=501, isFirstLineValid=false, methodSrcCode=
+                                                      final String pathPropertyName) {
+        String value = config.getProperty(propertyName, "");
+        final String pathProperty = config.getProperty(pathPropertyName, "");
+        if (!pathProperty.isEmpty()) {
+            value = String.valueOf(SecretUtils.readSecret(pathProperty));
+        }
+        return value;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/client/ZooKeeperSaslClient, clientTunneledAuthenticationInProgress()Z > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=412, lastMethodNumber=451, isFirstLineValid=true, methodSrcCode=
+    public boolean clientTunneledAuthenticationInProgress() {
+        if (!isSASLConfigured) {
+            return false;
+        }
+        // TODO: Rather than checking a disjunction here, should be a single member
+        // variable or method in this class to determine whether the client is
+        // configured to use SASL. (see also ZOOKEEPER-1455).
+        try {
+            if ((clientConfig.getJaasConfKey() != null)
+                || ((Configuration.getConfiguration() != null)
+                    && (Configuration.getConfiguration().getAppConfigurationEntry(
+                clientConfig.getProperty(
+                    ZKClientConfig.LOGIN_CONTEXT_NAME_KEY,
+                    ZKClientConfig.LOGIN_CONTEXT_NAME_KEY_DEFAULT)) != null))) {
+                // Client is configured to use a valid login Configuration, so
+                // authentication is either in progress, successful, or failed.
+
+                // 1. Authentication hasn't finished yet: we must wait for it to do so.
+                if (!isComplete() && !isFailed()) {
+                    return true;
+                }
+
+                // 2. SASL authentication has succeeded or failed..
+                //noinspection RedundantIfStatement
+                if (!gotLastPacket) {
+                    // ..but still in progress, because there is a final SASL
+                    // message from server which must be received.
+                    return true;
+                }
+            }
+            // Either client is not configured to use a tunnelled authentication
+            // scheme, or tunnelled authentication has completed (successfully or
+            // not), and all server SASL messages have been received.
+            return false;
+        } catch (SecurityException e) {
+            // Thrown if the caller does not have permission to retrieve the Configuration.
+            // In this case, simply returning false is correct.
+            LOG.debug("Could not retrieve login configuration", e);
+
+            return false;
+        }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/Login, getLoginContextMessage()Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:12..14]7 - org.apache.zookeeper.Login.getLoginContextMessage()Ljava/lang/String;, BB[SSA:10..11]6 - org.apache.zookeeper.Login.getLoginContextMessage()Ljava/lang/String;, BB[SSA:15..15]8 - org.apache.zookeeper.Login.getLoginContextMessage()Ljava/lang/String;, BB[SSA:-1..-2]20 - org.apache.zookeeper.Login.getLoginContextMessage()Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=326, lastLineNumber=328, firstMethodNumber=324, lastMethodNumber=331, isFirstLineValid=true, methodSrcCode=
+    private String getLoginContextMessage() {
+        if (zkConfig instanceof ZKClientConfig) {
+            return ZKClientConfig.LOGIN_CONTEXT_NAME_KEY
+                   + "(="
+                   + zkConfig.getProperty(ZKClientConfig.LOGIN_CONTEXT_NAME_KEY, ZKClientConfig.LOGIN_CONTEXT_NAME_KEY_DEFAULT)
+                   + ")";
+        } else {
+            return ZooKeeperSaslServer.LOGIN_CONTEXT_NAME_KEY
+                   + "(="
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/common/ClientX509Util, createNettySslContextForClient(Lorg/apache/zookeeper/common/ZKConfig;)Lio/netty/handler/ssl/SslContext; > Context: Everywhere, blocks=[BB[SSA:3..4]2 - org.apache.zookeeper.common.ClientX509Util.createNettySslContextForClient(Lorg/apache/zookeeper/common/ZKConfig;)Lio/netty/handler/ssl/SslContext;, BB[SSA:0..2]1 - org.apache.zookeeper.common.ClientX509Util.createNettySslContextForClient(Lorg/apache/zookeeper/common/ZKConfig;)Lio/netty/handler/ssl/SslContext;, BB[SSA:5..9]3 - org.apache.zookeeper.common.ClientX509Util.createNettySslContextForClient(Lorg/apache/zookeeper/common/ZKConfig;)Lio/netty/handler/ssl/SslContext;, BB[SSA:-1..-2]40 - org.apache.zookeeper.common.ClientX509Util.createNettySslContextForClient(Lorg/apache/zookeeper/common/ZKConfig;)Lio/netty/handler/ssl/SslContext;], numberOfBasicBlocks=4, firstLineNumber=64, lastLineNumber=65, firstMethodNumber=63, lastMethodNumber=95, isFirstLineValid=true, methodSrcCode=
+        throws X509Exception.KeyManagerException, X509Exception.TrustManagerException, SSLException {
+        String keyStoreLocation = config.getProperty(getSslKeystoreLocationProperty(), "");
+        String keyStorePassword = getPasswordFromConfigPropertyOrFile(config, getSslKeystorePasswdProperty(),
+            getSslKeystorePasswdPathProperty());
+        String keyStoreType = config.getProperty(getSslKeystoreTypeProperty());
+
+        SslContextBuilder sslContextBuilder = SslContextBuilder.forClient();
+
+        if (keyStoreLocation.isEmpty()) {
+            LOG.warn("{} not specified", getSslKeystoreLocationProperty());
+        } else {
+            sslContextBuilder.keyManager(createKeyManager(keyStoreLocation, keyStorePassword, keyStoreType));
+        }
+
+        TrustManager tm = getTrustManager(config);
+        if (tm != null) {
+            sslContextBuilder.trustManager(tm);
+        }
+
+        sslContextBuilder.enableOcsp(config.getBoolean(getSslOcspEnabledProperty()));
+        sslContextBuilder.protocols(getEnabledProtocols(config));
+        Iterable<String> enabledCiphers = getCipherSuites(config);
+        if (enabledCiphers != null) {
+            sslContextBuilder.ciphers(enabledCiphers);
+        }
+        sslContextBuilder.sslProvider(getSslProvider(config));
+
+        SslContext sslContext1 = sslContextBuilder.build();
+
+        if (getFipsMode(config) && isServerHostnameVerificationEnabled(config)) {
+            return addHostnameVerification(sslContext1, "Server");
+        } else {
+            return sslContext1;
+        }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/common/X509Util, createSSLContextAndOptionsFromConfig(Lorg/apache/zookeeper/common/ZKConfig;)Lorg/apache/zookeeper/common/SSLContextAndOptions; > Context: Everywhere, blocks=[BB[SSA:7..8]2 - org.apache.zookeeper.common.X509Util.createSSLContextAndOptionsFromConfig(Lorg/apache/zookeeper/common/ZKConfig;)Lorg/apache/zookeeper/common/SSLContextAndOptions;, BB[SSA:0..6]1 - org.apache.zookeeper.common.X509Util.createSSLContextAndOptionsFromConfig(Lorg/apache/zookeeper/common/ZKConfig;)Lorg/apache/zookeeper/common/SSLContextAndOptions;, BB[SSA:9..13]3 - org.apache.zookeeper.common.X509Util.createSSLContextAndOptionsFromConfig(Lorg/apache/zookeeper/common/ZKConfig;)Lorg/apache/zookeeper/common/SSLContextAndOptions;, BB[SSA:-1..-2]78 - org.apache.zookeeper.common.X509Util.createSSLContextAndOptionsFromConfig(Lorg/apache/zookeeper/common/ZKConfig;)Lorg/apache/zookeeper/common/SSLContextAndOptions;, BB[SSA:73..74]32 - org.apache.zookeeper.common.X509Util.createSSLContextAndOptionsFromConfig(Lorg/apache/zookeeper/common/ZKConfig;)Lorg/apache/zookeeper/common/SSLContextAndOptions;, BB[SSA:70..72]31 - org.apache.zookeeper.common.X509Util.createSSLContextAndOptionsFromConfig(Lorg/apache/zookeeper/common/ZKConfig;)Lorg/apache/zookeeper/common/SSLContextAndOptions;, BB[SSA:75..79]33 - org.apache.zookeeper.common.X509Util.createSSLContextAndOptionsFromConfig(Lorg/apache/zookeeper/common/ZKConfig;)Lorg/apache/zookeeper/common/SSLContextAndOptions;, BB[SSA:-1..-2]78 - org.apache.zookeeper.common.X509Util.createSSLContextAndOptionsFromConfig(Lorg/apache/zookeeper/common/ZKConfig;)Lorg/apache/zookeeper/common/SSLContextAndOptions;, BB[SSA:166..167]69 - org.apache.zookeeper.common.X509Util.createSSLContextAndOptionsFromConfig(Lorg/apache/zookeeper/common/ZKConfig;)Lorg/apache/zookeeper/common/SSLContextAndOptions;, BB[SSA:163..165]68 - org.apache.zookeeper.common.X509Util.createSSLContextAndOptionsFromConfig(Lorg/apache/zookeeper/common/ZKConfig;)Lorg/apache/zookeeper/common/SSLContextAndOptions;, BB[SSA:168..170]70 - org.apache.zookeeper.common.X509Util.createSSLContextAndOptionsFromConfig(Lorg/apache/zookeeper/common/ZKConfig;)Lorg/apache/zookeeper/common/SSLContextAndOptions;, BB[SSA:-1..-2]78 - org.apache.zookeeper.common.X509Util.createSSLContextAndOptionsFromConfig(Lorg/apache/zookeeper/common/ZKConfig;)Lorg/apache/zookeeper/common/SSLContextAndOptions;], numberOfBasicBlocks=12, firstLineNumber=448, lastLineNumber=450, firstMethodNumber=396, lastMethodNumber=454, isFirstLineValid=true, methodSrcCode=
+    public SSLContextAndOptions createSSLContextAndOptionsFromConfig(ZKConfig config) throws SSLContextException {
+        KeyManager[] keyManagers = null;
+        TrustManager[] trustManagers = null;
+
+        String keyStoreLocationProp = config.getProperty(sslKeystoreLocationProperty, "");
+        String keyStorePasswordProp = getPasswordFromConfigPropertyOrFile(config, sslKeystorePasswdProperty, sslKeystorePasswdPathProperty);
+        String keyStoreTypeProp = config.getProperty(sslKeystoreTypeProperty);
+
+        // There are legal states in some use cases for null KeyManager or TrustManager.
+        // But if a user wanna specify one, location is required. Password defaults to empty string if it is not
+        // specified by the user.
+
+        if (keyStoreLocationProp.isEmpty()) {
+            LOG.warn("{} not specified", getSslKeystoreLocationProperty());
+        } else {
+            try {
+                keyManagers = new KeyManager[]{createKeyManager(keyStoreLocationProp, keyStorePasswordProp, keyStoreTypeProp)};
+            } catch (KeyManagerException keyManagerException) {
+                throw new SSLContextException("Failed to create KeyManager", keyManagerException);
+            } catch (IllegalArgumentException e) {
+                throw new SSLContextException("Bad value for " + sslKeystoreTypeProperty + ": " + keyStoreTypeProp, e);
+            }
+        }
+
+        String trustStoreLocationProp = config.getProperty(sslTruststoreLocationProperty, "");
+        String trustStorePasswordProp = getPasswordFromConfigPropertyOrFile(config, sslTruststorePasswdProperty, sslTruststorePasswdPathProperty);
+        String trustStoreTypeProp = config.getProperty(sslTruststoreTypeProperty);
+
+        boolean sslCrlEnabled = config.getBoolean(this.sslCrlEnabledProperty);
+        boolean sslOcspEnabled = config.getBoolean(this.sslOcspEnabledProperty);
+        boolean sslServerHostnameVerificationEnabled = isServerHostnameVerificationEnabled(config);
+        boolean sslClientHostnameVerificationEnabled = isClientHostnameVerificationEnabled(config);
+        boolean fipsMode = getFipsMode(config);
+
+        if (trustStoreLocationProp.isEmpty()) {
+            LOG.warn("{} not specified", getSslTruststoreLocationProperty());
+        } else {
+            try {
+                trustManagers = new TrustManager[]{
+                    createTrustManager(trustStoreLocationProp, trustStorePasswordProp, trustStoreTypeProp, sslCrlEnabled,
+                        sslOcspEnabled, sslServerHostnameVerificationEnabled, sslClientHostnameVerificationEnabled,
+                        fipsMode)};
+            } catch (TrustManagerException trustManagerException) {
+                throw new SSLContextException("Failed to create TrustManager", trustManagerException);
+            } catch (IllegalArgumentException e) {
+                throw new SSLContextException("Bad value for "
+                                              + sslTruststoreTypeProperty
+                                              + ": "
+                                              + trustStoreTypeProp, e);
+            }
+        }
+
+        String protocol = config.getProperty(sslProtocolProperty, DEFAULT_PROTOCOL);
+        try {
+            SSLContext sslContext = SSLContext.getInstance(protocol);
+            sslContext.init(keyManagers, trustManagers, null);
+            return new SSLContextAndOptions(this, config, sslContext);
+        } catch (NoSuchAlgorithmException | KeyManagementException sslContextInitException) {
+            throw new SSLContextException(sslContextInitException);
+        }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/common/ClientX509Util, getTrustManager(Lorg/apache/zookeeper/common/ZKConfig;)Ljavax/net/ssl/TrustManager; > Context: Everywhere, blocks=[BB[SSA:3..4]2 - org.apache.zookeeper.common.ClientX509Util.getTrustManager(Lorg/apache/zookeeper/common/ZKConfig;)Ljavax/net/ssl/TrustManager;, BB[SSA:0..2]1 - org.apache.zookeeper.common.ClientX509Util.getTrustManager(Lorg/apache/zookeeper/common/ZKConfig;)Ljavax/net/ssl/TrustManager;, BB[SSA:5..9]3 - org.apache.zookeeper.common.ClientX509Util.getTrustManager(Lorg/apache/zookeeper/common/ZKConfig;)Ljavax/net/ssl/TrustManager;, BB[SSA:-1..-2]22 - org.apache.zookeeper.common.ClientX509Util.getTrustManager(Lorg/apache/zookeeper/common/ZKConfig;)Ljavax/net/ssl/TrustManager;], numberOfBasicBlocks=4, firstLineNumber=184, lastLineNumber=185, firstMethodNumber=183, lastMethodNumber=198, isFirstLineValid=true, methodSrcCode=
+    private TrustManager getTrustManager(ZKConfig config) throws X509Exception.TrustManagerException {
+        String trustStoreLocation = config.getProperty(getSslTruststoreLocationProperty(), "");
+        String trustStorePassword = getPasswordFromConfigPropertyOrFile(config, getSslTruststorePasswdProperty(),
+            getSslTruststorePasswdPathProperty());
+        String trustStoreType = config.getProperty(getSslTruststoreTypeProperty());
+
+        boolean sslCrlEnabled = config.getBoolean(getSslCrlEnabledProperty());
+        boolean sslOcspEnabled = config.getBoolean(getSslOcspEnabledProperty());
+        boolean sslServerHostnameVerificationEnabled = isServerHostnameVerificationEnabled(config);
+        boolean sslClientHostnameVerificationEnabled = isClientHostnameVerificationEnabled(config);
+
+        if (trustStoreLocation.isEmpty()) {
+            LOG.warn("{} not specified", getSslTruststoreLocationProperty());
+            return null;
+        } else {
+            return createTrustManager(trustStoreLocation, trustStorePassword, trustStoreType,
+                sslCrlEnabled, sslOcspEnabled, sslServerHostnameVerificationEnabled,
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/common/ClientX509Util, getEnabledProtocols(Lorg/apache/zookeeper/common/ZKConfig;)[Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:15..16]6 - org.apache.zookeeper.common.ClientX509Util.getEnabledProtocols(Lorg/apache/zookeeper/common/ZKConfig;)[Ljava/lang/String;, BB[SSA:10..14]5 - org.apache.zookeeper.common.ClientX509Util.getEnabledProtocols(Lorg/apache/zookeeper/common/ZKConfig;)[Ljava/lang/String;, BB[SSA:17..17]7 - org.apache.zookeeper.common.ClientX509Util.getEnabledProtocols(Lorg/apache/zookeeper/common/ZKConfig;)[Ljava/lang/String;, BB[SSA:-1..-2]11 - org.apache.zookeeper.common.ClientX509Util.getEnabledProtocols(Lorg/apache/zookeeper/common/ZKConfig;)[Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=158, lastLineNumber=158, firstMethodNumber=155, lastMethodNumber=160, isFirstLineValid=true, methodSrcCode=
+    private String[] getEnabledProtocols(final ZKConfig config) {
+        String enabledProtocolsInput = config.getProperty(getSslEnabledProtocolsProperty());
+        if (enabledProtocolsInput == null) {
+            return new String[]{ config.getProperty(getSslProtocolProperty(), DEFAULT_PROTOCOL) };
+        }
+        return enabledProtocolsInput.split(",");
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/client/ZKClientConfig, isSaslClientEnabled()Z > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=119, lastMethodNumber=120, isFirstLineValid=true, methodSrcCode=
+    public boolean isSaslClientEnabled() {
+        return Boolean.valueOf(getProperty(ENABLE_CLIENT_SASL_KEY, ENABLE_CLIENT_SASL_DEFAULT));
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/common/ClientX509Util, getSslProvider(Lorg/apache/zookeeper/common/ZKConfig;)Lio/netty/handler/ssl/SslProvider; > Context: Everywhere, blocks=[BB[SSA:3..4]2 - org.apache.zookeeper.common.ClientX509Util.getSslProvider(Lorg/apache/zookeeper/common/ZKConfig;)Lio/netty/handler/ssl/SslProvider;, BB[SSA:0..2]1 - org.apache.zookeeper.common.ClientX509Util.getSslProvider(Lorg/apache/zookeeper/common/ZKConfig;)Lio/netty/handler/ssl/SslProvider;, BB[SSA:5..5]3 - org.apache.zookeeper.common.ClientX509Util.getSslProvider(Lorg/apache/zookeeper/common/ZKConfig;)Lio/netty/handler/ssl/SslProvider;, BB[SSA:-1..-2]5 - org.apache.zookeeper.common.ClientX509Util.getSslProvider(Lorg/apache/zookeeper/common/ZKConfig;)Lio/netty/handler/ssl/SslProvider;], numberOfBasicBlocks=4, firstLineNumber=180, lastLineNumber=180, firstMethodNumber=179, lastMethodNumber=180, isFirstLineValid=true, methodSrcCode=
+    public SslProvider getSslProvider(ZKConfig config) {
+        return SslProvider.valueOf(config.getProperty(getSslProviderProperty(), "JDK"));
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/auth/X509AuthenticationProvider, <init>()V > Context: Everywhere, blocks=[BB[SSA:13..14]7 - org.apache.zookeeper.server.auth.X509AuthenticationProvider.<init>()V, BB[SSA:9..12]6 - org.apache.zookeeper.server.auth.X509AuthenticationProvider.<init>()V, BB[SSA:15..19]8 - org.apache.zookeeper.server.auth.X509AuthenticationProvider.<init>()V, BB[SSA:73..74]30 - org.apache.zookeeper.server.auth.X509AuthenticationProvider.<init>()V, BB[SSA:70..72]29 - org.apache.zookeeper.server.auth.X509AuthenticationProvider.<init>()V, BB[SSA:75..79]31 - org.apache.zookeeper.server.auth.X509AuthenticationProvider.<init>()V], numberOfBasicBlocks=6, firstLineNumber=104, lastLineNumber=106, firstMethodNumber=78, lastMethodNumber=131, isFirstLineValid=true, methodSrcCode=
+     */
+    public X509AuthenticationProvider() throws X509Exception {
+        ZKConfig config = new ZKConfig();
+        try (X509Util x509Util = new ClientX509Util()) {
+            String keyStoreLocation = config.getProperty(x509Util.getSslKeystoreLocationProperty(), "");
+            String keyStorePassword = x509Util.getPasswordFromConfigPropertyOrFile(config,
+                    x509Util.getSslKeystorePasswdProperty(),
+                    x509Util.getSslKeystorePasswdPathProperty());
+            String keyStoreTypeProp = config.getProperty(x509Util.getSslKeystoreTypeProperty());
+
+            boolean crlEnabled = Boolean.parseBoolean(config.getProperty(x509Util.getSslCrlEnabledProperty()));
+            boolean ocspEnabled = Boolean.parseBoolean(config.getProperty(x509Util.getSslOcspEnabledProperty()));
+            boolean hostnameVerificationEnabled = Boolean.parseBoolean(config.getProperty(x509Util.getSslHostnameVerificationEnabledProperty()));
+
+            X509KeyManager km = null;
+            X509TrustManager tm = null;
+            if (keyStoreLocation.isEmpty()) {
+                LOG.warn("keystore not specified for client connection");
+            } else {
+                try {
+                    km = X509Util.createKeyManager(keyStoreLocation, keyStorePassword, keyStoreTypeProp);
+                } catch (KeyManagerException e) {
+                    LOG.error("Failed to create key manager", e);
+                }
+            }
+
+            String trustStoreLocation = config.getProperty(x509Util.getSslTruststoreLocationProperty(), "");
+            String trustStorePassword = x509Util.getPasswordFromConfigPropertyOrFile(config,
+                    x509Util.getSslTruststorePasswdProperty(),
+                    x509Util.getSslTruststorePasswdPathProperty());
+            String trustStoreTypeProp = config.getProperty(x509Util.getSslTruststoreTypeProperty());
+            boolean fipsMode = x509Util.getFipsMode(config);
+
+            if (trustStoreLocation.isEmpty()) {
+                LOG.warn("Truststore not specified for client connection");
+            } else {
+                try {
+                    tm = X509Util.createTrustManager(
+                        trustStoreLocation,
+                        trustStorePassword,
+                        trustStoreTypeProp,
+                        crlEnabled,
+                        ocspEnabled,
+                        hostnameVerificationEnabled,
+                        false,
+                        fipsMode);
+                } catch (TrustManagerException e) {
+                    LOG.error("Failed to create trust manager", e);
+                }
+            }
+            this.keyManager = km;
+            this.trustManager = tm;
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/common/ClientX509Util, createNettySslContextForServer(Lorg/apache/zookeeper/common/ZKConfig;)Lio/netty/handler/ssl/SslContext; > Context: Everywhere, blocks=[BB[SSA:3..4]2 - org.apache.zookeeper.common.ClientX509Util.createNettySslContextForServer(Lorg/apache/zookeeper/common/ZKConfig;)Lio/netty/handler/ssl/SslContext;, BB[SSA:0..2]1 - org.apache.zookeeper.common.ClientX509Util.createNettySslContextForServer(Lorg/apache/zookeeper/common/ZKConfig;)Lio/netty/handler/ssl/SslContext;, BB[SSA:5..9]3 - org.apache.zookeeper.common.ClientX509Util.createNettySslContextForServer(Lorg/apache/zookeeper/common/ZKConfig;)Lio/netty/handler/ssl/SslContext;, BB[SSA:-1..-2]23 - org.apache.zookeeper.common.ClientX509Util.createNettySslContextForServer(Lorg/apache/zookeeper/common/ZKConfig;)Lio/netty/handler/ssl/SslContext;], numberOfBasicBlocks=4, firstLineNumber=101, lastLineNumber=102, firstMethodNumber=100, lastMethodNumber=113, isFirstLineValid=true, methodSrcCode=
+        throws X509Exception.SSLContextException, X509Exception.KeyManagerException, X509Exception.TrustManagerException, SSLException {
+        String keyStoreLocation = config.getProperty(getSslKeystoreLocationProperty(), "");
+        String keyStorePassword = getPasswordFromConfigPropertyOrFile(config, getSslKeystorePasswdProperty(),
+            getSslKeystorePasswdPathProperty());
+        String keyStoreType = config.getProperty(getSslKeystoreTypeProperty());
+
+        if (keyStoreLocation.isEmpty()) {
+            throw new X509Exception.SSLContextException(
+                "Keystore is required for SSL server: " + getSslKeystoreLocationProperty());
+        }
+
+        KeyManager km = createKeyManager(keyStoreLocation, keyStorePassword, keyStoreType);
+
+        return createNettySslContextForServer(config, km, getTrustManager(config));
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/SaslServerPrincipal, getServerPrincipal(Lorg/apache/zookeeper/SaslServerPrincipal$WrapperInetSocketAddress;Lorg/apache/zookeeper/client/ZKClientConfig;)Ljava/lang/String; > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=50, lastMethodNumber=89, isFirstLineValid=true, methodSrcCode=
+    static String getServerPrincipal(WrapperInetSocketAddress addr, ZKClientConfig clientConfig) {
+        String configuredServerPrincipal = clientConfig.getProperty(ZKClientConfig.ZOOKEEPER_SERVER_PRINCIPAL);
+        if (configuredServerPrincipal != null) {
+            // If server principal is already configured then return it
+            return configuredServerPrincipal;
+        }
+        String principalUserName = clientConfig.getProperty(
+            ZKClientConfig.ZK_SASL_CLIENT_USERNAME,
+            ZKClientConfig.ZK_SASL_CLIENT_USERNAME_DEFAULT);
+        String hostName = addr.getHostName();
+
+        boolean canonicalize = true;
+        String canonicalizeText = clientConfig.getProperty(
+            ZKClientConfig.ZK_SASL_CLIENT_CANONICALIZE_HOSTNAME,
+            ZKClientConfig.ZK_SASL_CLIENT_CANONICALIZE_HOSTNAME_DEFAULT);
+        try {
+            canonicalize = Boolean.parseBoolean(canonicalizeText);
+        } catch (IllegalArgumentException ea) {
+            LOG.warn(
+                "Could not parse config {} \"{}\" into a boolean using default {}",
+                ZKClientConfig.ZK_SASL_CLIENT_CANONICALIZE_HOSTNAME,
+                canonicalizeText,
+                canonicalize);
+        }
+
+        if (canonicalize) {
+            WrapperInetAddress ia = addr.getAddress();
+            if (ia == null) {
+                throw new IllegalArgumentException("Unable to canonicalize address " + addr + " because it's not resolvable");
+            }
+
+            String canonicalHostName = ia.getCanonicalHostName();
+            //avoid using literal IP address when security check fails
+            if (!canonicalHostName.equals(ia.getHostAddress())) {
+                hostName = canonicalHostName;
+            }
+            LOG.debug("Canonicalized address to {}", hostName);
+        }
+        String serverPrincipal = principalUserName + "/" + hostName;
+        return serverPrincipal;
+    }
+}

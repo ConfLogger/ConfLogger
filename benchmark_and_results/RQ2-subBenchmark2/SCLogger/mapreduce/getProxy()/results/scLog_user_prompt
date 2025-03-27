@@ -1,0 +1,337 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> private MRClientProtocol getProxy() throws IOException {
+<Line#1> if (realProxy != null) {
+<Line#2> return realProxy;
+<Line#3> }
+<Line#4> 
+<Line#5> // Possibly allow nulls through the PB tunnel, otherwise deal with an exception
+<Line#6> // and redirect to the history server.
+<Line#7> ApplicationReport application = null;
+<Line#8> try {
+<Line#9> application = rm.getApplicationReport(appId);
+<Line#10> } catch (ApplicationNotFoundException e) {
+<Line#11> application = null;
+<Line#12> } catch (YarnException e2) {
+<Line#13> throw new IOException(e2);
+<Line#14> }
+<Line#15> if (application != null) {
+<Line#16> trackingUrl = application.getTrackingUrl();
+<Line#17> }
+<Line#18> InetSocketAddress serviceAddr = null;
+<Line#19> while (application == null
+<Line#20> || YarnApplicationState.RUNNING == application
+<Line#21> .getYarnApplicationState()) {
+<Line#22> if (application == null) {
+<Line#23> LOG.info("Could not get Job info from RM for job " + jobId
+<Line#24> + ". Redirecting to job history server.");
+<Line#25> return checkAndGetHSProxy(null, JobState.NEW);
+<Line#26> }
+<Line#27> try {
+<Line#28> if (application.getHost() == null || "".equals(application.getHost())) {
+<Line#29> LOG.debug("AM not assigned to Job. Waiting to get the AM ...");
+<Line#30> Thread.sleep(2000);
+<Line#31> 
+<Line#32> LOG.debug("Application state is " + application.getYarnApplicationState());
+<Line#33> application = rm.getApplicationReport(appId);
+<Line#34> continue;
+<Line#35> } else if (UNAVAILABLE.equals(application.getHost())) {
+<Line#36> if (!amAclDisabledStatusLogged) {
+<Line#37> LOG.info("Job " + jobId + " is running, but the host is unknown."
+<Line#38> + " Verify user has VIEW_JOB access.");
+<Line#39> amAclDisabledStatusLogged = true;
+<Line#40> }
+<Line#41> return getNotRunningJob(application, JobState.RUNNING);
+<Line#42> }
+<Line#43> if(!conf.getBoolean(MRJobConfig.JOB_AM_ACCESS_DISABLED, false)) {
+<Line#44> UserGroupInformation newUgi = UserGroupInformation.createRemoteUser(
+<Line#45> UserGroupInformation.getCurrentUser().getUserName());
+<Line#46> serviceAddr = NetUtils.createSocketAddrForHost(
+<Line#47> application.getHost(), application.getRpcPort());
+<Line#48> if (UserGroupInformation.isSecurityEnabled()) {
+<Line#49> org.apache.hadoop.yarn.api.records.Token clientToAMToken =
+<Line#50> application.getClientToAMToken();
+<Line#51> Token<ClientToAMTokenIdentifier> token =
+<Line#52> ConverterUtils.convertFromYarn(clientToAMToken, serviceAddr);
+<Line#53> newUgi.addToken(token);
+<Line#54> }
+<Line#55> LOG.debug("Connecting to " + serviceAddr);
+<Line#56> final InetSocketAddress finalServiceAddr = serviceAddr;
+<Line#57> realProxy = newUgi.doAs(new PrivilegedExceptionAction<MRClientProtocol>() {
+<Line#58> @Override
+<Line#59> public MRClientProtocol run() throws IOException {
+<Line#60> return instantiateAMProxy(finalServiceAddr);
+<Line#61> }
+<Line#62> });
+<Line#63> } else {
+<Line#64> if (!amAclDisabledStatusLogged) {
+<Line#65> amAclDisabledStatusLogged = true;
+<Line#66> }
+<Line#67> return getNotRunningJob(null, JobState.RUNNING);
+<Line#68> }
+<Line#69> return realProxy;
+<Line#70> } catch (IOException e) {
+<Line#71> //possibly the AM has crashed
+<Line#72> //there may be some time before AM is restarted
+<Line#73> //keep retrying by getting the address from RM
+<Line#74> LOG.info("Could not connect to " + serviceAddr +
+<Line#75> ". Waiting for getting the latest AM address...");
+<Line#76> try {
+<Line#77> Thread.sleep(2000);
+<Line#78> } catch (InterruptedException e1) {
+<Line#79> LOG.warn("getProxy() call interruped", e1);
+<Line#80> throw new YarnRuntimeException(e1);
+<Line#81> }
+<Line#82> try {
+<Line#83> application = rm.getApplicationReport(appId);
+<Line#84> } catch (YarnException e1) {
+<Line#85> throw new IOException(e1);
+<Line#86> }
+<Line#87> if (application == null) {
+<Line#88> LOG.info("Could not get Job info from RM for job " + jobId
+<Line#89> + ". Redirecting to job history server.");
+<Line#90> return checkAndGetHSProxy(null, JobState.RUNNING);
+<Line#91> }
+<Line#92> } catch (InterruptedException e) {
+<Line#93> LOG.warn("getProxy() call interruped", e);
+<Line#94> throw new YarnRuntimeException(e);
+<Line#95> } catch (YarnException e) {
+<Line#96> throw new IOException(e);
+<Line#97> }
+<Line#98> }
+<Line#99> 
+<Line#100> /** we just want to return if its allocating, so that we don't
+<Line#101> * block on it. This is to be able to return job status
+<Line#102> * on an allocating Application.
+<Line#103> */
+<Line#104> String user = application.getUser();
+<Line#105> if (user == null) {
+<Line#106> throw new IOException("User is not set in the application report");
+<Line#107> }
+<Line#108> if (application.getYarnApplicationState() == YarnApplicationState.NEW
+<Line#109> || application.getYarnApplicationState() ==
+<Line#110> YarnApplicationState.NEW_SAVING
+<Line#111> || application.getYarnApplicationState() == YarnApplicationState.SUBMITTED
+<Line#112> || application.getYarnApplicationState() == YarnApplicationState.ACCEPTED) {
+<Line#113> realProxy = null;
+<Line#114> return getNotRunningJob(application, JobState.NEW);
+<Line#115> }
+<Line#116> 
+<Line#117> if (application.getYarnApplicationState() == YarnApplicationState.FAILED) {
+<Line#118> realProxy = null;
+<Line#119> return getNotRunningJob(application, JobState.FAILED);
+<Line#120> }
+<Line#121> 
+<Line#122> if (application.getYarnApplicationState() == YarnApplicationState.KILLED) {
+<Line#123> realProxy = null;
+<Line#124> return getNotRunningJob(application, JobState.KILLED);
+<Line#125> }
+<Line#126> 
+<Line#127> //History server can serve a job only if application
+<Line#128> //succeeded.
+<Line#129> if (application.getYarnApplicationState() == YarnApplicationState.FINISHED) {
+<Line#130> LOG.info("Application state is completed. FinalApplicationStatus="
+<Line#131> + application.getFinalApplicationStatus().toString()
+<Line#132> + ". Redirecting to job history server");
+<Line#133> realProxy = checkAndGetHSProxy(application, JobState.SUCCEEDED);
+<Line#134> }
+<Line#135> return realProxy;
+<Line#136> }
+
+Related Context:
+Method A:
+<Line#0> private NotRunningJob getNotRunningJob(ApplicationReport applicationReport,JobState state){
+<Line#1> synchronized (notRunningJobs) {
+<Line#2>     HashMap<String,NotRunningJob> map=notRunningJobs.get(state);
+<Line#3>     if (map == null) {
+<Line#4>       map=new HashMap<String,NotRunningJob>();
+<Line#5>       notRunningJobs.put(state,map);
+<Line#6>     }
+<Line#7>     String user=(applicationReport == null) ? UNKNOWN_USER : applicationReport.getUser();
+<Line#8>     NotRunningJob notRunningJob=map.get(user);
+<Line#9>     if (notRunningJob == null) {
+<Line#10>       notRunningJob=new NotRunningJob(applicationReport,state);
+<Line#11>       map.put(user,notRunningJob);
+<Line#12>     }
+<Line#13>     return notRunningJob;
+<Line#14>   }
+<Line#15> }
+<Line#16> 
+Method B:
+<Line#0> private MRClientProtocol checkAndGetHSProxy(ApplicationReport applicationReport,JobState state){
+<Line#1>   if (null == historyServerProxy) {
+<Line#2>     LOG.warn("Job History Server is not configured.");
+<Line#3>     return getNotRunningJob(applicationReport,state);
+<Line#4>   }
+<Line#5>   return historyServerProxy;
+<Line#6> }
+<Line#7> 
+
+Relevant Logging Patterns:
+Example 1:
+File: mapreduce__createNativeObject-81__.json
+Code:
+<Line#1>{
+<Line#2>  assertNativeLibraryLoaded();
+<Line#3>  final long ret=JNICreateNativeObject(clazz.getBytes(Charsets.UTF_8));
+<Line#4>  if (ret == 0) {
+<Line#5>    LOG.warn("Can't create NativeObject for class " + clazz + ", probably not exist.");
+<Line#6>  }
+<Line#7>  return ret;
+<Line#8>}
+Log: <Line#5>:# LOG.warn("Can't create NativeObject for class " + clazz + ", probably not exist."):#
+
+Example 2:
+File: mapreduce__createControlFile-122__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("creating control file: " + fileSize + " mega bytes, "+ nrFiles+ " files");
+<Line#3>  fs.delete(CONTROL_DIR,true);
+<Line#4>  for (int i=0; i < nrFiles; i++) {
+<Line#5>    String name=getFileName(i);
+<Line#6>    Path controlFile=new Path(CONTROL_DIR,"in_file_" + name);
+<Line#7>    SequenceFile.Writer writer=null;
+<Line#8>    try {
+<Line#9>      writer=SequenceFile.createWriter(fs,fsConfig,controlFile,Text.class,LongWritable.class,CompressionType.NONE);
+<Line#10>      writer.append(new Text(name),new LongWritable(fileSize));
+<Line#11>    }
+<Line#12> catch (    Exception e) {
+<Line#13>      throw new IOException(e.getLocalizedMessage());
+<Line#14>    }
+<Line#15> finally {
+<Line#16>      if (writer != null)       writer.close();
+<Line#17>      writer=null;
+<Line#18>    }
+<Line#19>  }
+<Line#20>  LOG.info("created control files for: " + nrFiles + " files");
+<Line#21>}
+Log: <Line#2>:# LOG.info("creating control file: " + fileSize + " mega bytes, "+ nrFiles+ " files"):#
+
+Example 3:
+File: mapreduce__createControlFile-122__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("creating control file: " + fileSize + " mega bytes, "+ nrFiles+ " files");
+<Line#3>  fs.delete(CONTROL_DIR,true);
+<Line#4>  for (int i=0; i < nrFiles; i++) {
+<Line#5>    String name=getFileName(i);
+<Line#6>    Path controlFile=new Path(CONTROL_DIR,"in_file_" + name);
+<Line#7>    SequenceFile.Writer writer=null;
+<Line#8>    try {
+<Line#9>      writer=SequenceFile.createWriter(fs,fsConfig,controlFile,Text.class,LongWritable.class,CompressionType.NONE);
+<Line#10>      writer.append(new Text(name),new LongWritable(fileSize));
+<Line#11>    }
+<Line#12> catch (    Exception e) {
+<Line#13>      throw new IOException(e.getLocalizedMessage());
+<Line#14>    }
+<Line#15> finally {
+<Line#16>      if (writer != null)       writer.close();
+<Line#17>      writer=null;
+<Line#18>    }
+<Line#19>  }
+<Line#20>  LOG.info("created control files for: " + nrFiles + " files");
+<Line#21>}
+Log: <Line#20>:# LOG.info("created control files for: " + nrFiles + " files"):#
+
+Example 4:
+File: mapreduce__addMap-1106__.json
+Code:
+<Line#1>{
+<Line#2>  ContainerRequest request=null;
+<Line#3>  if (event.getEarlierAttemptFailed()) {
+<Line#4>    earlierFailedMaps.add(event.getAttemptID());
+<Line#5>    request=new ContainerRequest(event,PRIORITY_FAST_FAIL_MAP,mapNodeLabelExpression);
+<Line#6>    LOG.info("Added " + event.getAttemptID() + " to list of failed maps");
+<Line#7>    maps.put(event.getAttemptID(),request);
+<Line#8>    addContainerReq(request);
+<Line#9>  }
+<Line#10> else {
+<Line#11>    if (mapsMod100 < numOpportunisticMapsPercent) {
+<Line#12>      request=new ContainerRequest(event,PRIORITY_OPPORTUNISTIC_MAP,mapNodeLabelExpression);
+<Line#13>      maps.put(event.getAttemptID(),request);
+<Line#14>      addOpportunisticResourceRequest(request.priority,request.capability);
+<Line#15>    }
+<Line#16> else {
+<Line#17>      request=new ContainerRequest(event,PRIORITY_MAP,mapNodeLabelExpression);
+<Line#18>      for (      String host : event.getHosts()) {
+<Line#19>        LinkedList<TaskAttemptId> list=mapsHostMapping.get(host);
+<Line#20>        if (list == null) {
+<Line#21>          list=new LinkedList<TaskAttemptId>();
+<Line#22>          mapsHostMapping.put(host,list);
+<Line#23>        }
+<Line#24>        list.add(event.getAttemptID());
+<Line#25>        if (LOG.isDebugEnabled()) {
+<Line#26>          LOG.debug("Added attempt req to host " + host);
+<Line#27>        }
+<Line#28>      }
+<Line#29>      for (      String rack : event.getRacks()) {
+<Line#30>        LinkedList<TaskAttemptId> list=mapsRackMapping.get(rack);
+<Line#31>        if (list == null) {
+<Line#32>          list=new LinkedList<TaskAttemptId>();
+<Line#33>          mapsRackMapping.put(rack,list);
+<Line#34>        }
+<Line#35>        list.add(event.getAttemptID());
+<Line#36>        if (LOG.isDebugEnabled()) {
+<Line#37>          LOG.debug("Added attempt req to rack " + rack);
+<Line#38>        }
+<Line#39>      }
+<Line#40>      maps.put(event.getAttemptID(),request);
+<Line#41>      addContainerReq(request);
+<Line#42>    }
+<Line#43>    mapsMod100++;
+<Line#44>    mapsMod100%=100;
+<Line#45>  }
+<Line#46>}
+Log: <Line#6>:# LOG.info("Added " + event.getAttemptID() + " to list of failed maps"):#
+
+Example 5:
+File: mapreduce__addMap-1106__.json
+Code:
+<Line#1>{
+<Line#2>  ContainerRequest request=null;
+<Line#3>  if (event.getEarlierAttemptFailed()) {
+<Line#4>    earlierFailedMaps.add(event.getAttemptID());
+<Line#5>    request=new ContainerRequest(event,PRIORITY_FAST_FAIL_MAP,mapNodeLabelExpression);
+<Line#6>    LOG.info("Added " + event.getAttemptID() + " to list of failed maps");
+<Line#7>    maps.put(event.getAttemptID(),request);
+<Line#8>    addContainerReq(request);
+<Line#9>  }
+<Line#10> else {
+<Line#11>    if (mapsMod100 < numOpportunisticMapsPercent) {
+<Line#12>      request=new ContainerRequest(event,PRIORITY_OPPORTUNISTIC_MAP,mapNodeLabelExpression);
+<Line#13>      maps.put(event.getAttemptID(),request);
+<Line#14>      addOpportunisticResourceRequest(request.priority,request.capability);
+<Line#15>    }
+<Line#16> else {
+<Line#17>      request=new ContainerRequest(event,PRIORITY_MAP,mapNodeLabelExpression);
+<Line#18>      for (      String host : event.getHosts()) {
+<Line#19>        LinkedList<TaskAttemptId> list=mapsHostMapping.get(host);
+<Line#20>        if (list == null) {
+<Line#21>          list=new LinkedList<TaskAttemptId>();
+<Line#22>          mapsHostMapping.put(host,list);
+<Line#23>        }
+<Line#24>        list.add(event.getAttemptID());
+<Line#25>        if (LOG.isDebugEnabled()) {
+<Line#26>          LOG.debug("Added attempt req to host " + host);
+<Line#27>        }
+<Line#28>      }
+<Line#29>      for (      String rack : event.getRacks()) {
+<Line#30>        LinkedList<TaskAttemptId> list=mapsRackMapping.get(rack);
+<Line#31>        if (list == null) {
+<Line#32>          list=new LinkedList<TaskAttemptId>();
+<Line#33>          mapsRackMapping.put(rack,list);
+<Line#34>        }
+<Line#35>        list.add(event.getAttemptID());
+<Line#36>        if (LOG.isDebugEnabled()) {
+<Line#37>          LOG.debug("Added attempt req to rack " + rack);
+<Line#38>        }
+<Line#39>      }
+<Line#40>      maps.put(event.getAttemptID(),request);
+<Line#41>      addContainerReq(request);
+<Line#42>    }
+<Line#43>    mapsMod100++;
+<Line#44>    mapsMod100%=100;
+<Line#45>  }
+<Line#46>}
+Log: <Line#26>:# LOG.debug("Added attempt req to host " + host):#

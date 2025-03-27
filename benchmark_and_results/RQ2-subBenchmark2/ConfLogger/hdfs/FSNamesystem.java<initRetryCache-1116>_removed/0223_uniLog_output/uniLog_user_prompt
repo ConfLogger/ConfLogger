@@ -1,0 +1,288 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>static RetryCache initRetryCache(Configuration conf) {
+<Line#1>boolean enable = conf.getBoolean(DFS_NAMENODE_ENABLE_RETRY_CACHE_KEY,
+<Line#2>DFS_NAMENODE_ENABLE_RETRY_CACHE_DEFAULT);
+<Line#3>if (enable) {
+<Line#4>float heapPercent = conf.getFloat(
+<Line#5>DFS_NAMENODE_RETRY_CACHE_HEAP_PERCENT_KEY,
+<Line#6>DFS_NAMENODE_RETRY_CACHE_HEAP_PERCENT_DEFAULT);
+<Line#7>long entryExpiryMillis = conf.getLong(
+<Line#8>DFS_NAMENODE_RETRY_CACHE_EXPIRYTIME_MILLIS_KEY,
+<Line#9>DFS_NAMENODE_RETRY_CACHE_EXPIRYTIME_MILLIS_DEFAULT);
+<Line#10>long entryExpiryNanos = entryExpiryMillis * 1000 * 1000;
+<Line#11>return new RetryCache("NameNodeRetryCache", heapPercent,
+<Line#12>entryExpiryNanos);
+<Line#13>}
+<Line#14>return null;
+<Line#15>}
+
+Example 1:
+<Line#1>{
+<Line#2>  boolean success=false;
+<Line#3>  try {
+<Line#4>    ExitUtil.disableSystemExit();
+<Line#5>    FileSystem.enableSymlinks();
+<Line#6>synchronized (MiniDFSCluster.class) {
+<Line#7>      instanceId=instanceCount++;
+<Line#8>    }
+<Line#9>    this.conf=conf;
+<Line#10>    base_dir=new File(determineDfsBaseDir());
+<Line#11>    data_dir=new File(base_dir,"data");
+<Line#12>    this.waitSafeMode=waitSafeMode;
+<Line#13>    this.checkExitOnShutdown=checkExitOnShutdown;
+<Line#14>    int replication=conf.getInt(DFS_REPLICATION_KEY,3);
+<Line#15>    conf.setInt(DFS_REPLICATION_KEY,Math.min(replication,numDataNodes));
+<Line#16>    int maintenanceMinReplication=conf.getInt(DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY,DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_DEFAULT);
+<Line#17>    if (maintenanceMinReplication == DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_DEFAULT) {
+<Line#18>      conf.setInt(DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY,Math.min(maintenanceMinReplication,numDataNodes));
+<Line#19>    }
+<Line#20>    int safemodeExtension=conf.getInt(DFS_NAMENODE_SAFEMODE_EXTENSION_TESTING_KEY,0);
+<Line#21>    conf.setInt(DFS_NAMENODE_SAFEMODE_EXTENSION_KEY,safemodeExtension);
+<Line#22>    long decommissionInterval=conf.getTimeDuration(DFS_NAMENODE_DECOMMISSION_INTERVAL_TESTING_KEY,3,TimeUnit.SECONDS);
+<Line#23>    conf.setTimeDuration(DFS_NAMENODE_DECOMMISSION_INTERVAL_KEY,decommissionInterval,TimeUnit.SECONDS);
+<Line#24>    if (!useConfiguredTopologyMappingClass) {
+<Line#25>      conf.setClass(NET_TOPOLOGY_NODE_SWITCH_MAPPING_IMPL_KEY,StaticMapping.class,DNSToSwitchMapping.class);
+<Line#26>    }
+<Line#27>    if (!nnTopology.allHttpPortsSpecified() && nnTopology.isHA()) {
+<Line#28>      LOG.info("MiniDFSCluster disabling checkpointing in the Standby node " + "since no HTTP ports have been specified.");
+<Line#29>      conf.setBoolean(DFS_HA_STANDBY_CHECKPOINTS_KEY,false);
+<Line#30>    }
+<Line#31>    if (!nnTopology.allIpcPortsSpecified() && nnTopology.isHA()) {
+<Line#32>      LOG.info("MiniDFSCluster disabling log-roll triggering in the " + "Standby node since no IPC ports have been specified.");
+<Line#33>      conf.setInt(DFS_HA_LOGROLL_PERIOD_KEY,-1);
+<Line#34>    }
+<Line#35>    EditLogFileOutputStream.setShouldSkipFsyncForTesting(skipFsyncForTesting);
+<Line#36>    federation=nnTopology.isFederated();
+<Line#37>    try {
+<Line#38>      createNameNodesAndSetConf(nnTopology,manageNameDfsDirs,manageNameDfsSharedDirs,enableManagedDfsDirsRedundancy,format,startOpt,clusterId);
+<Line#39>    }
+<Line#40> catch (    IOException ioe) {
+<Line#41>      LOG.error("IOE creating namenodes. Permissions dump:\n" + createPermissionsDiagnosisString(data_dir),ioe);
+<Line#42>      throw ioe;
+<Line#43>    }
+<Line#44>    if (format) {
+<Line#45>      if (data_dir.exists() && !FileUtil.fullyDelete(data_dir)) {
+<Line#46>        throw new IOException("Cannot remove data directory: " + data_dir + createPermissionsDiagnosisString(data_dir));
+<Line#47>      }
+<Line#48>    }
+<Line#49>    if (startOpt == StartupOption.RECOVER) {
+<Line#50>      return;
+<Line#51>    }
+<Line#52>    startDataNodes(conf,numDataNodes,storageTypes,manageDataDfsDirs,dnStartOpt != null ? dnStartOpt : startOpt,racks,hosts,storageCapacities,simulatedCapacities,setupHostsFile,checkDataNodeAddrConfig,checkDataNodeHostConfig,dnConfOverlays,dnHttpPorts,dnIpcPorts);
+<Line#53>    waitClusterUp();
+<Line#54>    ProxyUsers.refreshSuperUserGroupsConfiguration(conf);
+<Line#55>    success=true;
+<Line#56>  }
+<Line#57>  finally {
+<Line#58>    if (!success) {
+<Line#59>      shutdown();
+<Line#60>    }
+<Line#61>  }
+<Line#62>}
+Label: <Line#28> LOG.info("MiniDFSCluster disabling checkpointing in the Standby node " + "since no HTTP ports have been specified.")
+
+Example 2:
+<Line#1>{
+<Line#2>  boolean success=false;
+<Line#3>  try {
+<Line#4>    ExitUtil.disableSystemExit();
+<Line#5>    FileSystem.enableSymlinks();
+<Line#6>synchronized (MiniDFSCluster.class) {
+<Line#7>      instanceId=instanceCount++;
+<Line#8>    }
+<Line#9>    this.conf=conf;
+<Line#10>    base_dir=new File(determineDfsBaseDir());
+<Line#11>    data_dir=new File(base_dir,"data");
+<Line#12>    this.waitSafeMode=waitSafeMode;
+<Line#13>    this.checkExitOnShutdown=checkExitOnShutdown;
+<Line#14>    int replication=conf.getInt(DFS_REPLICATION_KEY,3);
+<Line#15>    conf.setInt(DFS_REPLICATION_KEY,Math.min(replication,numDataNodes));
+<Line#16>    int maintenanceMinReplication=conf.getInt(DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY,DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_DEFAULT);
+<Line#17>    if (maintenanceMinReplication == DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_DEFAULT) {
+<Line#18>      conf.setInt(DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY,Math.min(maintenanceMinReplication,numDataNodes));
+<Line#19>    }
+<Line#20>    int safemodeExtension=conf.getInt(DFS_NAMENODE_SAFEMODE_EXTENSION_TESTING_KEY,0);
+<Line#21>    conf.setInt(DFS_NAMENODE_SAFEMODE_EXTENSION_KEY,safemodeExtension);
+<Line#22>    long decommissionInterval=conf.getTimeDuration(DFS_NAMENODE_DECOMMISSION_INTERVAL_TESTING_KEY,3,TimeUnit.SECONDS);
+<Line#23>    conf.setTimeDuration(DFS_NAMENODE_DECOMMISSION_INTERVAL_KEY,decommissionInterval,TimeUnit.SECONDS);
+<Line#24>    if (!useConfiguredTopologyMappingClass) {
+<Line#25>      conf.setClass(NET_TOPOLOGY_NODE_SWITCH_MAPPING_IMPL_KEY,StaticMapping.class,DNSToSwitchMapping.class);
+<Line#26>    }
+<Line#27>    if (!nnTopology.allHttpPortsSpecified() && nnTopology.isHA()) {
+<Line#28>      LOG.info("MiniDFSCluster disabling checkpointing in the Standby node " + "since no HTTP ports have been specified.");
+<Line#29>      conf.setBoolean(DFS_HA_STANDBY_CHECKPOINTS_KEY,false);
+<Line#30>    }
+<Line#31>    if (!nnTopology.allIpcPortsSpecified() && nnTopology.isHA()) {
+<Line#32>      LOG.info("MiniDFSCluster disabling log-roll triggering in the " + "Standby node since no IPC ports have been specified.");
+<Line#33>      conf.setInt(DFS_HA_LOGROLL_PERIOD_KEY,-1);
+<Line#34>    }
+<Line#35>    EditLogFileOutputStream.setShouldSkipFsyncForTesting(skipFsyncForTesting);
+<Line#36>    federation=nnTopology.isFederated();
+<Line#37>    try {
+<Line#38>      createNameNodesAndSetConf(nnTopology,manageNameDfsDirs,manageNameDfsSharedDirs,enableManagedDfsDirsRedundancy,format,startOpt,clusterId);
+<Line#39>    }
+<Line#40> catch (    IOException ioe) {
+<Line#41>      LOG.error("IOE creating namenodes. Permissions dump:\n" + createPermissionsDiagnosisString(data_dir),ioe);
+<Line#42>      throw ioe;
+<Line#43>    }
+<Line#44>    if (format) {
+<Line#45>      if (data_dir.exists() && !FileUtil.fullyDelete(data_dir)) {
+<Line#46>        throw new IOException("Cannot remove data directory: " + data_dir + createPermissionsDiagnosisString(data_dir));
+<Line#47>      }
+<Line#48>    }
+<Line#49>    if (startOpt == StartupOption.RECOVER) {
+<Line#50>      return;
+<Line#51>    }
+<Line#52>    startDataNodes(conf,numDataNodes,storageTypes,manageDataDfsDirs,dnStartOpt != null ? dnStartOpt : startOpt,racks,hosts,storageCapacities,simulatedCapacities,setupHostsFile,checkDataNodeAddrConfig,checkDataNodeHostConfig,dnConfOverlays,dnHttpPorts,dnIpcPorts);
+<Line#53>    waitClusterUp();
+<Line#54>    ProxyUsers.refreshSuperUserGroupsConfiguration(conf);
+<Line#55>    success=true;
+<Line#56>  }
+<Line#57>  finally {
+<Line#58>    if (!success) {
+<Line#59>      shutdown();
+<Line#60>    }
+<Line#61>  }
+<Line#62>}
+Label: <Line#32> LOG.info("MiniDFSCluster disabling log-roll triggering in the " + "Standby node since no IPC ports have been specified.")
+
+Example 3:
+<Line#1>{
+<Line#2>  boolean success=false;
+<Line#3>  try {
+<Line#4>    ExitUtil.disableSystemExit();
+<Line#5>    FileSystem.enableSymlinks();
+<Line#6>synchronized (MiniDFSCluster.class) {
+<Line#7>      instanceId=instanceCount++;
+<Line#8>    }
+<Line#9>    this.conf=conf;
+<Line#10>    base_dir=new File(determineDfsBaseDir());
+<Line#11>    data_dir=new File(base_dir,"data");
+<Line#12>    this.waitSafeMode=waitSafeMode;
+<Line#13>    this.checkExitOnShutdown=checkExitOnShutdown;
+<Line#14>    int replication=conf.getInt(DFS_REPLICATION_KEY,3);
+<Line#15>    conf.setInt(DFS_REPLICATION_KEY,Math.min(replication,numDataNodes));
+<Line#16>    int maintenanceMinReplication=conf.getInt(DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY,DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_DEFAULT);
+<Line#17>    if (maintenanceMinReplication == DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_DEFAULT) {
+<Line#18>      conf.setInt(DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY,Math.min(maintenanceMinReplication,numDataNodes));
+<Line#19>    }
+<Line#20>    int safemodeExtension=conf.getInt(DFS_NAMENODE_SAFEMODE_EXTENSION_TESTING_KEY,0);
+<Line#21>    conf.setInt(DFS_NAMENODE_SAFEMODE_EXTENSION_KEY,safemodeExtension);
+<Line#22>    long decommissionInterval=conf.getTimeDuration(DFS_NAMENODE_DECOMMISSION_INTERVAL_TESTING_KEY,3,TimeUnit.SECONDS);
+<Line#23>    conf.setTimeDuration(DFS_NAMENODE_DECOMMISSION_INTERVAL_KEY,decommissionInterval,TimeUnit.SECONDS);
+<Line#24>    if (!useConfiguredTopologyMappingClass) {
+<Line#25>      conf.setClass(NET_TOPOLOGY_NODE_SWITCH_MAPPING_IMPL_KEY,StaticMapping.class,DNSToSwitchMapping.class);
+<Line#26>    }
+<Line#27>    if (!nnTopology.allHttpPortsSpecified() && nnTopology.isHA()) {
+<Line#28>      LOG.info("MiniDFSCluster disabling checkpointing in the Standby node " + "since no HTTP ports have been specified.");
+<Line#29>      conf.setBoolean(DFS_HA_STANDBY_CHECKPOINTS_KEY,false);
+<Line#30>    }
+<Line#31>    if (!nnTopology.allIpcPortsSpecified() && nnTopology.isHA()) {
+<Line#32>      LOG.info("MiniDFSCluster disabling log-roll triggering in the " + "Standby node since no IPC ports have been specified.");
+<Line#33>      conf.setInt(DFS_HA_LOGROLL_PERIOD_KEY,-1);
+<Line#34>    }
+<Line#35>    EditLogFileOutputStream.setShouldSkipFsyncForTesting(skipFsyncForTesting);
+<Line#36>    federation=nnTopology.isFederated();
+<Line#37>    try {
+<Line#38>      createNameNodesAndSetConf(nnTopology,manageNameDfsDirs,manageNameDfsSharedDirs,enableManagedDfsDirsRedundancy,format,startOpt,clusterId);
+<Line#39>    }
+<Line#40> catch (    IOException ioe) {
+<Line#41>      LOG.error("IOE creating namenodes. Permissions dump:\n" + createPermissionsDiagnosisString(data_dir),ioe);
+<Line#42>      throw ioe;
+<Line#43>    }
+<Line#44>    if (format) {
+<Line#45>      if (data_dir.exists() && !FileUtil.fullyDelete(data_dir)) {
+<Line#46>        throw new IOException("Cannot remove data directory: " + data_dir + createPermissionsDiagnosisString(data_dir));
+<Line#47>      }
+<Line#48>    }
+<Line#49>    if (startOpt == StartupOption.RECOVER) {
+<Line#50>      return;
+<Line#51>    }
+<Line#52>    startDataNodes(conf,numDataNodes,storageTypes,manageDataDfsDirs,dnStartOpt != null ? dnStartOpt : startOpt,racks,hosts,storageCapacities,simulatedCapacities,setupHostsFile,checkDataNodeAddrConfig,checkDataNodeHostConfig,dnConfOverlays,dnHttpPorts,dnIpcPorts);
+<Line#53>    waitClusterUp();
+<Line#54>    ProxyUsers.refreshSuperUserGroupsConfiguration(conf);
+<Line#55>    success=true;
+<Line#56>  }
+<Line#57>  finally {
+<Line#58>    if (!success) {
+<Line#59>      shutdown();
+<Line#60>    }
+<Line#61>  }
+<Line#62>}
+Label: <Line#41> LOG.error("IOE creating namenodes. Permissions dump:\n" + createPermissionsDiagnosisString(data_dir),ioe)
+
+Example 4:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    if (contextClass == null) {
+<Line#4>      if (conf == null) {
+<Line#5>        Constructor<T> constructor=clazz.getConstructor();
+<Line#6>        return constructor.newInstance();
+<Line#7>      }
+<Line#8> else {
+<Line#9>        Constructor<T> constructor=clazz.getConstructor(Configuration.class);
+<Line#10>        return constructor.newInstance(conf);
+<Line#11>      }
+<Line#12>    }
+<Line#13> else {
+<Line#14>      Constructor<T> constructor=clazz.getConstructor(Configuration.class,contextClass);
+<Line#15>      return constructor.newInstance(conf,context);
+<Line#16>    }
+<Line#17>  }
+<Line#18> catch (  ReflectiveOperationException e) {
+<Line#19>    LOG.error("Could not instantiate: {}",clazz.getSimpleName(),e);
+<Line#20>    return null;
+<Line#21>  }
+<Line#22>}
+Label: <Line#19> LOG.error("Could not instantiate: {}",clazz.getSimpleName(),e)
+
+Example 5:
+<Line#1>{
+<Line#2>  initCacheManipulator();
+<Line#3>  Configuration conf=new Configuration();
+<Line#4>  conf.setLong(DFS_BLOCK_SIZE_KEY,BLOCK_SIZE);
+<Line#5>  if (disableScrubber) {
+<Line#6>    conf.setInt(DFS_NAMENODE_LAZY_PERSIST_FILE_SCRUB_INTERVAL_SEC,0);
+<Line#7>  }
+<Line#8> else {
+<Line#9>    conf.setInt(DFS_NAMENODE_LAZY_PERSIST_FILE_SCRUB_INTERVAL_SEC,LAZY_WRITE_FILE_SCRUBBER_INTERVAL_SEC);
+<Line#10>  }
+<Line#11>  conf.setLong(DFS_HEARTBEAT_INTERVAL_KEY,HEARTBEAT_INTERVAL_SEC);
+<Line#12>  conf.setInt(DFS_NAMENODE_HEARTBEAT_RECHECK_INTERVAL_KEY,HEARTBEAT_RECHECK_INTERVAL_MS);
+<Line#13>  conf.setInt(DFS_DATANODE_LAZY_WRITER_INTERVAL_SEC,LAZY_WRITER_INTERVAL_SEC);
+<Line#14>  conf.setInt(DFSConfigKeys.DFS_NAMENODE_SAFEMODE_MIN_DATANODES_KEY,1);
+<Line#15>  conf.setLong(DFS_DATANODE_MAX_LOCKED_MEMORY_KEY,maxLockedMemory);
+<Line#16>  if (useSCR) {
+<Line#17>    conf.setBoolean(HdfsClientConfigKeys.Read.ShortCircuit.KEY,true);
+<Line#18>    conf.set(HdfsClientConfigKeys.DFS_CLIENT_CONTEXT,UUID.randomUUID().toString());
+<Line#19>    conf.set(DFS_BLOCK_LOCAL_PATH_ACCESS_USER_KEY,UserGroupInformation.getCurrentUser().getShortUserName());
+<Line#20>    if (useLegacyBlockReaderLocal) {
+<Line#21>      conf.setBoolean(HdfsClientConfigKeys.DFS_CLIENT_USE_LEGACY_BLOCKREADERLOCAL,true);
+<Line#22>    }
+<Line#23> else {
+<Line#24>      sockDir=new TemporarySocketDirectory();
+<Line#25>      conf.set(DFS_DOMAIN_SOCKET_PATH_KEY,new File(sockDir.getDir(),this.getClass().getSimpleName() + "._PORT.sock").getAbsolutePath());
+<Line#26>    }
+<Line#27>  }
+<Line#28>  Preconditions.checkState(ramDiskReplicaCapacity < 0 || ramDiskStorageLimit < 0,"Cannot specify non-default values for both ramDiskReplicaCapacity " + "and ramDiskStorageLimit");
+<Line#29>  long[] capacities;
+<Line#30>  if (hasTransientStorage && ramDiskReplicaCapacity >= 0) {
+<Line#31>    ramDiskStorageLimit=((long)ramDiskReplicaCapacity * BLOCK_SIZE) + (BLOCK_SIZE - 1);
+<Line#32>  }
+<Line#33>  capacities=new long[]{ramDiskStorageLimit,-1};
+<Line#34>  cluster=new MiniDFSCluster.Builder(conf).numDataNodes(numDatanodes).storageCapacities(capacities).storageTypes(storageTypes != null ? storageTypes : (hasTransientStorage ? new StorageType[]{RAM_DISK,DEFAULT} : null)).build();
+<Line#35>  cluster.waitActive();
+<Line#36>  fs=cluster.getFileSystem();
+<Line#37>  client=fs.getClient();
+<Line#38>  try {
+<Line#39>    jmx=initJMX();
+<Line#40>  }
+<Line#41> catch (  Exception e) {
+<Line#42>    fail("Failed initialize JMX for testing: " + e);
+<Line#43>  }
+<Line#44>  LOG.info("Cluster startup complete");
+<Line#45>}
+Label: <Line#44> LOG.info("Cluster startup complete")
+

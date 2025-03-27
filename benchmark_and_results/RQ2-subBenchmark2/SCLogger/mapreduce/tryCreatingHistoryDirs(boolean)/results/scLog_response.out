@@ -1,0 +1,9 @@
+<Line#4>:# LOG.info("Attempting to create history directories");:#
+<Line#14>:# LOG.error("Connection exception occurred while creating history directories", ex);:#
+<Line#17>:# LOG.warn("NameNode is not started yet. Retrying...");:#
+<Line#25>:# LOG.error("Error creating done directory: [" + doneDirPrefixPath + "]", e);:#
+<Line#32>:# LOG.info("Attempting to create intermediate history directories");:#
+<Line#40>:# LOG.error("Connection exception occurred while creating intermediate history directories", ex);:#
+<Line#47>:# LOG.warn("NameNode is not started yet. Retrying...");:#
+<Line#55>:# LOG.error("Error creating intermediate done directory: [" + intermediateDoneDirPath + "]", e);:#
+<Line#61>:# LOG.info("History directories creation " + (succeeded ? "succeeded" : "failed"));:#

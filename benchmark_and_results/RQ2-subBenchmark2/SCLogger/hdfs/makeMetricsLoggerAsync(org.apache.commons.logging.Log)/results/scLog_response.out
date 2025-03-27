@@ -1,0 +1,3 @@
+<Line#6>:# logger.info("Setting additivity to false for metrics logger");:#
+<Line#10>:# logger.info("Checking if appenders are not empty and not instance of AsyncAppender");:#
+<Line#18>:# logger.info("Adding AsyncAppender to logger");:#

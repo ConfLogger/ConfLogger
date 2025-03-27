@@ -1,0 +1,7 @@
+private static long getAllocation(Configuration conf,String resourceTypesKey,String schedulerKey,long schedulerDefault){
+  long value=conf.getLong(resourceTypesKey,-1L);
+  if (value == -1) {
+    value=conf.getLong(schedulerKey,schedulerDefault);
+  }
+  return value;
+}

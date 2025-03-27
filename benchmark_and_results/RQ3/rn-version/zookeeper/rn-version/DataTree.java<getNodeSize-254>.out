@@ -1,0 +1,261 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	DataTree.java	methodSinagture:	org.apache.zookeeper.server.DataTree.getNodeSize(Ljava/lang/String;[B)J	methodLines:	254:255
+blockLines:	255:-1
+paras:	null
+TaintedStat:	NORMAL getNodeSize:conditional branch(ne, to iindex=5) 1,4 Node: < Application, Lorg/apache/zookeeper/server/DataTree, getNodeSize(Ljava/lang/String;[B)J > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/DataTree, approximateDataSize()J > Context: Everywhere[25]19 = invokeinterface < Application, Ljava/util/Map$Entry, getKey()Ljava/lang/Object; > 14 @58 exception:18
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/DataTree, approximateDataSize()J > Context: Everywhere[25]19 = invokeinterface < Application, Ljava/util/Map$Entry, getKey()Ljava/lang/Object; > 14 @58 exception:18
+NORMAL approximateDataSize:20 = checkcast <Application,Ljava/lang/String>19 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/zookeeper/server/DataTree, approximateDataSize()J > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/server/DataTree, approximateDataSize()J > Context: Everywhere[29]23 = invokestatic < Application, Lorg/apache/zookeeper/server/DataTree, getNodeSize(Ljava/lang/String;[B)J > 20,21 @71 exception:22 v20
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/server/DataTree, getNodeSize(Ljava/lang/String;[B)J > Context: Everywhere v1
+NORMAL getNodeSize:conditional branch(ne, to iindex=5) 1,4 Node: < Application, Lorg/apache/zookeeper/server/DataTree, getNodeSize(Ljava/lang/String;[B)J > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private static long getNodeSize(String path, byte[] data) {
+        return (path == null ? 0 : path.length()) + (data == null ? 0 : data.length);
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/DataTree, setData(Ljava/lang/String;[BIJJ)Lorg/apache/zookeeper/data/Stat; > Context: Everywhere, blocks=[BB[SSA:103..105]42 - org.apache.zookeeper.server.DataTree.setData(Ljava/lang/String;[BIJJ)Lorg/apache/zookeeper/data/Stat;, BB[SSA:101..102]41 - org.apache.zookeeper.server.DataTree.setData(Ljava/lang/String;[BIJJ)Lorg/apache/zookeeper/data/Stat;, BB[SSA:106..108]43 - org.apache.zookeeper.server.DataTree.setData(Ljava/lang/String;[BIJJ)Lorg/apache/zookeeper/data/Stat;, BB[SSA:-1..-2]49 - org.apache.zookeeper.server.DataTree.setData(Ljava/lang/String;[BIJJ)Lorg/apache/zookeeper/data/Stat;, BB[SSA:106..108]43 - org.apache.zookeeper.server.DataTree.setData(Ljava/lang/String;[BIJJ)Lorg/apache/zookeeper/data/Stat;, BB[SSA:103..105]42 - org.apache.zookeeper.server.DataTree.setData(Ljava/lang/String;[BIJJ)Lorg/apache/zookeeper/data/Stat;, BB[SSA:109..110]44 - org.apache.zookeeper.server.DataTree.setData(Ljava/lang/String;[BIJJ)Lorg/apache/zookeeper/data/Stat;, BB[SSA:-1..-2]49 - org.apache.zookeeper.server.DataTree.setData(Ljava/lang/String;[BIJJ)Lorg/apache/zookeeper/data/Stat;], numberOfBasicBlocks=8, firstLineNumber=660, lastLineNumber=660, firstMethodNumber=632, lastMethodNumber=664, isFirstLineValid=true, methodSrcCode=
+    public Stat setData(String path, byte[] data, int version, long zxid, long time) throws NoNodeException {
+        Stat s = new Stat();
+        DataNode n = nodes.get(path);
+        if (n == null) {
+            throw new NoNodeException();
+        }
+        List<ACL> acl;
+        byte[] lastData;
+        synchronized (n) {
+            acl = getACL(n);
+            lastData = n.data;
+            nodes.preChange(path, n);
+            n.data = data;
+            n.stat.setMtime(time);
+            n.stat.setMzxid(zxid);
+            n.stat.setVersion(version);
+            n.copyStat(s);
+            nodes.postChange(path, n);
+        }
+
+        // first do a quota check if the path is in a quota subtree.
+        String lastPrefix = getMaxPrefixWithQuota(path);
+        long bytesDiff = (data == null ? 0 : data.length) - (lastData == null ? 0 : lastData.length);
+        // now update if the path is in a quota subtree.
+        long dataBytes = data == null ? 0 : data.length;
+        if (lastPrefix != null) {
+            updateQuotaStat(lastPrefix, bytesDiff, 0);
+        }
+        nodeDataSize.addAndGet(getNodeSize(path, data) - getNodeSize(path, lastData));
+
+        updateWriteStat(path, dataBytes);
+        dataWatches.triggerWatch(path, EventType.NodeDataChanged, zxid, acl);
+        return s;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/DataTree, approximateDataSize()J > Context: Everywhere, blocks=[BB[SSA:29..29]15 - org.apache.zookeeper.server.DataTree.approximateDataSize()J, BB[SSA:27..28]14 - org.apache.zookeeper.server.DataTree.approximateDataSize()J, BB[SSA:30..33]16 - org.apache.zookeeper.server.DataTree.approximateDataSize()J], numberOfBasicBlocks=3, firstLineNumber=245, lastLineNumber=246, firstMethodNumber=240, lastMethodNumber=248, isFirstLineValid=true, methodSrcCode=
+    public long approximateDataSize() {
+        long result = 0;
+        for (Map.Entry<String, DataNode> entry : nodes.entrySet()) {
+            DataNode value = entry.getValue();
+            synchronized (value) {
+                result += getNodeSize(entry.getKey(), value.data);
+            }
+        }
+        return result;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/DataTree, deleteNode(Ljava/lang/String;J)V > Context: Everywhere, blocks=[BB[SSA:99..99]40 - org.apache.zookeeper.server.DataTree.deleteNode(Ljava/lang/String;J)V, BB[SSA:96..98]39 - org.apache.zookeeper.server.DataTree.deleteNode(Ljava/lang/String;J)V, BB[SSA:100..101]41 - org.apache.zookeeper.server.DataTree.deleteNode(Ljava/lang/String;J)V], numberOfBasicBlocks=3, firstLineNumber=571, lastLineNumber=571, firstMethodNumber=538, lastMethodNumber=630, isFirstLineValid=true, methodSrcCode=
+    public void deleteNode(String path, long zxid) throws NoNodeException {
+        int lastSlash = path.lastIndexOf('/');
+        String parentName = path.substring(0, lastSlash);
+        String childName = path.substring(lastSlash + 1);
+
+        // The child might already be deleted during taking fuzzy snapshot,
+        // but we still need to update the pzxid here before throw exception
+        // for no such child
+        DataNode parent = nodes.get(parentName);
+        if (parent == null) {
+            throw new NoNodeException();
+        }
+        synchronized (parent) {
+            nodes.preChange(parentName, parent);
+            parent.removeChild(childName);
+            // Only update pzxid when the zxid is larger than the current pzxid,
+            // otherwise we might override some higher pzxid set by a CreateTxn,
+            // which could cause the cversion and pzxid inconsistent
+            if (zxid > parent.stat.getPzxid()) {
+                parent.stat.setPzxid(zxid);
+            }
+            nodes.postChange(parentName, parent);
+        }
+
+        DataNode node = nodes.get(path);
+        if (node == null) {
+            throw new NoNodeException();
+        }
+        List<ACL> acl;
+        nodes.remove(path);
+        synchronized (node) {
+            acl = getACL(node);
+            aclCache.removeUsage(node.acl);
+            nodeDataSize.addAndGet(-getNodeSize(path, node.data));
+        }
+
+        // Synchronized to sync the containers and ttls change, probably
+        // only need to sync on containers and ttls, will update it in a
+        // separate patch.
+        List<ACL> parentAcl;
+        synchronized (parent) {
+            parentAcl = getACL(parent);
+            long owner = node.stat.getEphemeralOwner();
+            EphemeralType ephemeralType = EphemeralType.get(owner);
+            if (ephemeralType == EphemeralType.CONTAINER) {
+                containers.remove(path);
+            } else if (ephemeralType == EphemeralType.TTL) {
+                ttls.remove(path);
+            } else if (owner != 0) {
+                Set<String> nodes = ephemerals.get(owner);
+                if (nodes != null) {
+                    synchronized (nodes) {
+                        nodes.remove(path);
+                    }
+                }
+            }
+        }
+
+        if (parentName.startsWith(procZookeeper) && Quotas.limitNode.equals(childName)) {
+            // delete the node in the trie.
+            // we need to update the trie as well
+            pTrie.deletePath(Quotas.trimQuotaPath(parentName));
+        }
+
+        // also check to update the quotas for this node
+        String lastPrefix = getMaxPrefixWithQuota(path);
+        if (lastPrefix != null) {
+            // ok we have some match and need to update
+            long bytes;
+            synchronized (node) {
+                bytes = (node.data == null ? 0 : -(node.data.length));
+            }
+            updateQuotaStat(lastPrefix, bytes, -1);
+        }
+
+        updateWriteStat(path, 0L);
+
+        if (LOG.isTraceEnabled()) {
+            ZooTrace.logTraceMessage(
+                LOG,
+                ZooTrace.EVENT_DELIVERY_TRACE_MASK,
+                "dataWatches.triggerWatch " + path);
+            ZooTrace.logTraceMessage(
+                LOG,
+                ZooTrace.EVENT_DELIVERY_TRACE_MASK,
+                "childWatches.triggerWatch " + parentName);
+        }
+
+        WatcherOrBitSet processed = dataWatches.triggerWatch(path, EventType.NodeDeleted, zxid, acl);
+        childWatches.triggerWatch(path, EventType.NodeDeleted, zxid, acl, processed);
+        childWatches.triggerWatch("".equals(parentName) ? "/" : parentName,
+            EventType.NodeChildrenChanged, zxid, parentAcl);
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/DataTree, createNode(Ljava/lang/String;[BLjava/util/List;JIJJLorg/apache/zookeeper/data/Stat;)V > Context: Everywhere, blocks=[BB[SSA:107..107]41 - org.apache.zookeeper.server.DataTree.createNode(Ljava/lang/String;[BLjava/util/List;JIJJLorg/apache/zookeeper/data/Stat;)V, BB[SSA:104..106]40 - org.apache.zookeeper.server.DataTree.createNode(Ljava/lang/String;[BLjava/util/List;JIJJLorg/apache/zookeeper/data/Stat;)V, BB[SSA:108..108]42 - org.apache.zookeeper.server.DataTree.createNode(Ljava/lang/String;[BLjava/util/List;JIJJLorg/apache/zookeeper/data/Stat;)V], numberOfBasicBlocks=3, firstLineNumber=487, lastLineNumber=487, firstMethodNumber=439, lastMethodNumber=527, isFirstLineValid=true, methodSrcCode=
+    public void createNode(final String path, byte[] data, List<ACL> acl, long ephemeralOwner, int parentCVersion, long zxid, long time, Stat outputStat) throws NoNodeException, NodeExistsException {
+        int lastSlash = path.lastIndexOf('/');
+        String parentName = path.substring(0, lastSlash);
+        String childName = path.substring(lastSlash + 1);
+        StatPersisted stat = createStat(zxid, time, ephemeralOwner);
+        DataNode parent = nodes.get(parentName);
+        if (parent == null) {
+            throw new NoNodeException();
+        }
+        List<ACL> parentAcl;
+        synchronized (parent) {
+            parentAcl = getACL(parent);
+
+            // Add the ACL to ACL cache first, to avoid the ACL not being
+            // created race condition during fuzzy snapshot sync.
+            //
+            // This is the simplest fix, which may add ACL reference count
+            // again if it's already counted in the ACL map of fuzzy
+            // snapshot, which might also happen for deleteNode txn, but
+            // at least it won't cause the ACL not exist issue.
+            //
+            // Later we can audit and delete all non-referenced ACLs from
+            // ACL map when loading the snapshot/txns from disk, like what
+            // we did for the global sessions.
+            Long acls = aclCache.convertAcls(acl);
+
+            Set<String> children = parent.getChildren();
+            if (children.contains(childName)) {
+                throw new NodeExistsException();
+            }
+
+            nodes.preChange(parentName, parent);
+            if (parentCVersion == -1) {
+                parentCVersion = parent.stat.getCversion();
+                parentCVersion++;
+            }
+            // There is possibility that we'll replay txns for a node which
+            // was created and then deleted in the fuzzy range, and it's not
+            // exist in the snapshot, so replay the creation might revert the
+            // cversion and pzxid, need to check and only update when it's
+            // larger.
+            if (parentCVersion > parent.stat.getCversion()) {
+                parent.stat.setCversion(parentCVersion);
+                parent.stat.setPzxid(zxid);
+            }
+            DataNode child = new DataNode(data, acls, stat);
+            parent.addChild(childName);
+            nodes.postChange(parentName, parent);
+            nodeDataSize.addAndGet(getNodeSize(path, child.data));
+            nodes.put(path, child);
+            EphemeralType ephemeralType = EphemeralType.get(ephemeralOwner);
+            if (ephemeralType == EphemeralType.CONTAINER) {
+                containers.add(path);
+            } else if (ephemeralType == EphemeralType.TTL) {
+                ttls.add(path);
+            } else if (ephemeralOwner != 0) {
+                HashSet<String> list = ephemerals.computeIfAbsent(ephemeralOwner, k -> new HashSet<>());
+                synchronized (list) {
+                    list.add(path);
+                }
+            }
+            if (outputStat != null) {
+                child.copyStat(outputStat);
+            }
+        }
+        // now check if its one of the zookeeper node child
+        if (parentName.startsWith(quotaZookeeper)) {
+            // now check if it's the limit node
+            if (Quotas.limitNode.equals(childName)) {
+                // this is the limit node
+                // get the parent and add it to the trie
+                pTrie.addPath(Quotas.trimQuotaPath(parentName));
+            }
+            if (Quotas.statNode.equals(childName)) {
+                updateQuotaForPath(Quotas.trimQuotaPath(parentName));
+            }
+        }
+
+        String lastPrefix = getMaxPrefixWithQuota(path);
+        long bytes = data == null ? 0 : data.length;
+        // also check to update the quotas for this node
+        if (lastPrefix != null) {    // ok we have some match and need to update
+            updateQuotaStat(lastPrefix, bytes, 1);
+        }
+        updateWriteStat(path, bytes);
+        dataWatches.triggerWatch(path, Event.EventType.NodeCreated, zxid, acl);
+        childWatches.triggerWatch(parentName.equals("") ? "/" : parentName,
+            Event.EventType.NodeChildrenChanged, zxid, parentAcl);
+    }
+
+}

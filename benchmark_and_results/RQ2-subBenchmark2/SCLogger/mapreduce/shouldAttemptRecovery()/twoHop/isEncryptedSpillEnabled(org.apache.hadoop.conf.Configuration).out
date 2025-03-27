@@ -1,0 +1,3 @@
+public static boolean isEncryptedSpillEnabled(Configuration conf){
+  return conf.getBoolean(MRJobConfig.MR_ENCRYPTED_INTERMEDIATE_DATA,MRJobConfig.DEFAULT_MR_ENCRYPTED_INTERMEDIATE_DATA);
+}

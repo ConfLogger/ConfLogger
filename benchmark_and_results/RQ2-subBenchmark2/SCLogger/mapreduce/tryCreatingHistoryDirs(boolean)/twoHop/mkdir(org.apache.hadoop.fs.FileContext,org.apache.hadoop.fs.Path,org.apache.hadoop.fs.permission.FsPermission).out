@@ -1,0 +1,16 @@
+private void mkdir(FileContext fc,Path path,FsPermission fsp) throws IOException {
+  if (!fc.util().exists(path)) {
+    try {
+      fc.mkdir(path,fsp,true);
+      FileStatus fsStatus=fc.getFileStatus(path);
+      LOG.info("Perms after creating " + fsStatus.getPermission().toShort() + ", Expected: "+ fsp.toShort());
+      if (fsStatus.getPermission().toShort() != fsp.toShort()) {
+        LOG.info("Explicitly setting permissions to : " + fsp.toShort() + ", "+ fsp);
+        fc.setPermission(path,fsp);
+      }
+    }
+ catch (    FileAlreadyExistsException e) {
+      LOG.info("Directory: [" + path + "] already exists.");
+    }
+  }
+}

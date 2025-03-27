@@ -1,0 +1,24 @@
+<Line#47>:# LOG.info("Starting block allocation persistence in HA mode."):#
+<Line#52>:# LOG.debug("Performing sanity check for HA-related configuration."):#
+<Line#63>:# LOG.info("Initializing block manager with HA enabled status: " + haEnabled):#
+<Line#67>:# LOG.debug("Retrieving checksum type from configuration."):#
+<Line#78>:# LOG.debug("Attempting to get MD5 MessageDigest instance."):#
+<Line#84>:# LOG.info("Setting server defaults based on configuration."):#
+<Line#98>:# LOG.info("Maximum filesystem objects set to: " + maxFsObjects):#
+<Line#101>:# LOG.debug("Configuring minimum block size to: " + minBlockSize):#
+<Line#109>:# LOG.debug("Validating batched listing limit: " + batchedListingLimit):#
+<Line#117>:# LOG.info("Maximum corrupt file blocks returned set to: " + maxCorruptFileBlocksReturn):#
+<Line#123>:# LOG.info("Standby checkpointing enabled: " + standbyShouldCheckpoint):#
+<Line#137>:# LOG.debug("Lazy persist file scrub interval set to: " + lazyPersistFileScrubIntervalSec + " seconds."):#
+<Line#147>:# LOG.debug("EDEK cache loader initial delay set to: " + edekCacheLoaderDelay + " ms."):#
+<Line#154>:# LOG.debug("Lease recheck interval set to: " + leaseRecheckIntervalMs + " ms."):#
+<Line#161>:# LOG.debug("Maximum lock hold duration to release lease set to: " + maxLockHoldToReleaseLeaseMs + " ms."):#
+<Line#167>:# LOG.info("Delegation tokens usage for tests is always enabled: " + alwaysUseDelegationTokensForTests):#
+<Line#171>:# LOG.info("Delegation token secret manager created."):#
+<Line#176>:# LOG.info("Erasure coding policy manager initialized."):#
+<Line#178>:# LOG.info("Audit loggers initialized. Default logger status: " + isDefaultAuditLogger):#
+<Line#181>:# LOG.debug("Retry cache initialized with status: " + (retryCache != null)):#
+<Line#185>:# LOG.info("INode attributes provider class set to: " + klass):#
+<Line#188>:# LOG.debug("Maximum list open files responses set to: " + maxListOpenFilesResponses):#
+<Line#196>:# LOG.info("Owner set quota permission enabled: " + allowOwnerSetQuota):#
+<Line#199>:# LOG.info("Block deletion increment set to: " + blockDeletionIncrement):#

@@ -1,0 +1,57 @@
+To add log level and verbosity messages to the given code, we can identify the points in the code where logging is appropriate and insert log statements. Here is how you can update the `shouldAttemptRecovery` method with log levels and verbosity messages:
+
+```java
+<Line#0>private boolean shouldAttemptRecovery() throws IOException {
+<Line#1>LOG.debug("Entering shouldAttemptRecovery method.");  // Debug level for method entry
+<Line#2>if (isFirstAttempt()) {
+<Line#3>LOG.info("First attempt detected, no recovery needed.");  // Info level for condition explanation
+<Line#4>return false;  // no need to recover on the first attempt
+<Line#5>}
+<Line#6>
+<Line#7>boolean recoveryEnabled = getConfig().getBoolean(
+<Line#8>MRJobConfig.MR_AM_JOB_RECOVERY_ENABLE,
+<Line#9>MRJobConfig.MR_AM_JOB_RECOVERY_ENABLE_DEFAULT);
+<Line#10>if (!recoveryEnabled) {
+<Line#11>LOG.info("Not attempting to recover. Recovery disabled. To enable " +
+<Line#12>"recovery, set " + MRJobConfig.MR_AM_JOB_RECOVERY_ENABLE);
+<Line#13>return false;
+<Line#14>}
+<Line#15>
+<Line#16>boolean recoverySupportedByCommitter = isRecoverySupported();
+<Line#17>if (!recoverySupportedByCommitter) {
+<Line#18>LOG.info("Not attempting to recover. Recovery is not supported by " +
+<Line#19>committer.getClass() + ". Use an OutputCommitter that supports" +
+<Line#20>" recovery.");
+<Line#21>return false;
+<Line#22>}
+<Line#23>
+<Line#24>int reducerCount = getConfig().getInt(MRJobConfig.NUM_REDUCES, 0);
+<Line#25>LOG.debug("Reducer count: " + reducerCount);  // Debug level for variable state
+<Line#26>
+<Line#27>// If a shuffle secret was not provided by the job client, one will be
+<Line#28>// generated in this job attempt. However, that disables recovery if
+<Line#29>// there are reducers as the shuffle secret would be job attempt specific.
+<Line#30>boolean shuffleKeyValidForRecovery =
+<Line#31>TokenCache.getShuffleSecretKey(jobCredentials) != null;
+<Line#32>if (reducerCount > 0 && !shuffleKeyValidForRecovery) {
+<Line#33>LOG.info("Not attempting to recover. The shuffle key is invalid for " +
+<Line#34>"recovery.");
+<Line#35>return false;
+<Line#36>}
+<Line#37>
+<Line#38>// If the intermediate data is encrypted, recovering the job requires the
+<Line#39>// access to the key. Until the encryption key is persisted, we should
+<Line#40>// avoid attempts to recover.
+<Line#41>boolean spillEncrypted = CryptoUtils.isEncryptedSpillEnabled(getConfig());
+<Line#42>if (reducerCount > 0 && spillEncrypted) {
+<Line#43>LOG.info("Not attempting to recover. Intermediate spill encryption" +
+<Line#44>" is enabled.");
+<Line#45>return false;
+<Line#46>}
+<Line#47>
+<Line#48>LOG.info("Recovery can be attempted.");  // Info level for successful condition
+<Line#49>return true;
+<Line#50>}
+```
+
+In this updated code, I've added logging statements at key decision points and method entry to provide insights into the flow and state of the method. The log levels used are `INFO` for general information and conditions, and `DEBUG` for more detailed internal state information.

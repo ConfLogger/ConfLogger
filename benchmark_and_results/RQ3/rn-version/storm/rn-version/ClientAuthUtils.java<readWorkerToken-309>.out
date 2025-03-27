@@ -1,0 +1,58 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ClientAuthUtils.java	methodSinagture:	org.apache.storm.security.auth.ClientAuthUtils.readWorkerToken(Ljava/util/Map;Lorg/apache/storm/generated/WorkerTokenServiceType;)Lorg/apache/storm/generated/WorkerToken;	methodLines:	309:316
+blockLines:	313:-1
+paras:	null
+TaintedStat:	NORMAL readWorkerToken:conditional branch(eq, to iindex=18) 9,4 Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, readWorkerToken(Ljava/util/Map;Lorg/apache/storm/generated/WorkerTokenServiceType;)Lorg/apache/storm/generated/WorkerToken; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, readWorkerToken(Ljava/util/Map;Lorg/apache/storm/generated/WorkerTokenServiceType;)Lorg/apache/storm/generated/WorkerToken; > Context: Everywhere[7]8 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,6 @9 exception:7
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, readWorkerToken(Ljava/util/Map;Lorg/apache/storm/generated/WorkerTokenServiceType;)Lorg/apache/storm/generated/WorkerToken; > Context: Everywhere[7]8 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,6 @9 exception:7
+NORMAL readWorkerToken:9 = checkcast <Application,Ljava/lang/String>8 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, readWorkerToken(Ljava/util/Map;Lorg/apache/storm/generated/WorkerTokenServiceType;)Lorg/apache/storm/generated/WorkerToken; > Context: Everywhere
+NORMAL readWorkerToken:conditional branch(eq, to iindex=18) 9,4 Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, readWorkerToken(Ljava/util/Map;Lorg/apache/storm/generated/WorkerTokenServiceType;)Lorg/apache/storm/generated/WorkerToken; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static WorkerToken readWorkerToken(Map<String, String> credentials, WorkerTokenServiceType type) {
+        WorkerToken ret = null;
+        String key = workerTokenCredentialsKey(type);
+        String tokenStr = credentials.get(key);
+        if (tokenStr != null) {
+            ret = Utils.deserializeFromString(tokenStr, WorkerToken.class);
+        }
+        return ret;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, insertWorkerTokens(Ljavax/security/auth/Subject;Ljava/util/Map;)Ljavax/security/auth/Subject; > Context: Everywhere, blocks=[BB[SSA:18..21]8 - org.apache.storm.security.auth.ClientAuthUtils.insertWorkerTokens(Ljavax/security/auth/Subject;Ljava/util/Map;)Ljavax/security/auth/Subject;, BB[SSA:15..17]7 - org.apache.storm.security.auth.ClientAuthUtils.insertWorkerTokens(Ljavax/security/auth/Subject;Ljava/util/Map;)Ljavax/security/auth/Subject;, BB[SSA:22..25]9 - org.apache.storm.security.auth.ClientAuthUtils.insertWorkerTokens(Ljavax/security/auth/Subject;Ljava/util/Map;)Ljavax/security/auth/Subject;, BB[SSA:-1..-2]28 - org.apache.storm.security.auth.ClientAuthUtils.insertWorkerTokens(Ljavax/security/auth/Subject;Ljava/util/Map;)Ljavax/security/auth/Subject;], numberOfBasicBlocks=4, firstLineNumber=406, lastLineNumber=408, firstMethodNumber=402, lastMethodNumber=427, isFirstLineValid=true, methodSrcCode=
+    private static Subject insertWorkerTokens(Subject subject, Map<String, String> credentials) {
+        if (credentials == null) {
+            return subject;
+        }
+        for (WorkerTokenServiceType type : WorkerTokenServiceType.values()) {
+            WorkerToken token = readWorkerToken(credentials, type);
+            if (token != null) {
+                Set<Object> creds = subject.getPrivateCredentials();
+                synchronized (creds) {
+                    WorkerToken previous = findWorkerToken(subject, type);
+                    boolean notAlreadyContained = creds.add(token);
+                    if (notAlreadyContained) {
+                        if (previous != null) {
+                            //this means token is not equal to previous so we should remove previous
+                            creds.remove(previous);
+                            LOG.info("Replaced WorkerToken for service type {}", type);
+                        } else {
+                            LOG.info("Added new WorkerToken for service type {}", type);
+                        }
+                    } else {
+                        LOG.info("The new WorkerToken for service type {} is the same as the previous token", type);
+                    }
+                }
+            }
+        }
+        return subject;
+    }
+}

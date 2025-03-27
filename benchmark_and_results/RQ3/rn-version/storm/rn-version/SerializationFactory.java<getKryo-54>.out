@@ -1,0 +1,105 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	SerializationFactory.java	methodSinagture:	org.apache.storm.serialization.SerializationFactory.getKryo(Ljava/util/Map;)Lcom/esotericsoftware/kryo/Kryo;	methodLines:	54:121
+blockLines:	99:-1
+paras:	null
+TaintedStat:	NORMAL getKryo:conditional branch(eq, to iindex=210) 96,97 Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, getKryo(Ljava/util/Map;)Lcom/esotericsoftware/kryo/Kryo; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, getKryo(Ljava/util/Map;)Lcom/esotericsoftware/kryo/Kryo; > Context: Everywhere[154]96 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,94 @318 exception:95
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, getKryo(Ljava/util/Map;)Lcom/esotericsoftware/kryo/Kryo; > Context: Everywhere[154]96 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,94 @318 exception:95
+NORMAL getKryo:conditional branch(eq, to iindex=210) 96,97 Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, getKryo(Ljava/util/Map;)Lcom/esotericsoftware/kryo/Kryo; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static Kryo getKryo(Map<String, Object> conf) {
+        IKryoFactory kryoFactory = (IKryoFactory) ReflectionUtils.newInstance((String) conf.get(Config.TOPOLOGY_KRYO_FACTORY));
+        Kryo k = kryoFactory.getKryo(conf);
+        k.register(byte[].class);
+
+        /* tuple payload serializer is specified via configuration */
+        String payloadSerializerName = (String) conf.get(Config.TOPOLOGY_TUPLE_SERIALIZER);
+        try {
+            Class serializerClass = Class.forName(payloadSerializerName);
+            Serializer serializer = resolveSerializerInstance(k, ListDelegate.class, serializerClass, conf);
+            k.register(ListDelegate.class, serializer);
+        } catch (ClassNotFoundException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        k.register(ArrayList.class, new ArrayListSerializer());
+        k.register(HashMap.class, new HashMapSerializer());
+        k.register(HashSet.class, new HashSetSerializer());
+        k.register(BigInteger.class, new BigIntegerSerializer());
+        k.register(TransactionAttempt.class);
+        k.register(Values.class);
+        k.register(org.apache.storm.metric.api.IMetricsConsumer.DataPoint.class);
+        k.register(org.apache.storm.metric.api.IMetricsConsumer.TaskInfo.class);
+        k.register(ConsList.class);
+        k.register(BackPressureStatus.class);
+        k.register(NodeInfo.class);
+
+        synchronized (loader) {
+            for (SerializationRegister sr : loader) {
+                try {
+                    sr.register(k);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        kryoFactory.preRegister(k, conf);
+
+        boolean skipMissing = (Boolean) conf.get(Config.TOPOLOGY_SKIP_MISSING_KRYO_REGISTRATIONS);
+
+        register(k, conf.get(Config.TOPOLOGY_KRYO_REGISTER), conf, skipMissing);
+
+        kryoFactory.postRegister(k, conf);
+
+        if (conf.get(Config.TOPOLOGY_KRYO_DECORATORS) != null) {
+            for (String klassName : (List<String>) conf.get(Config.TOPOLOGY_KRYO_DECORATORS)) {
+                try {
+                    Class klass = Class.forName(klassName);
+                    IKryoDecorator decorator = (IKryoDecorator) klass.newInstance();
+                    decorator.decorate(k);
+                } catch (ClassNotFoundException e) {
+                    if (skipMissing) {
+                        LOG.info("Could not find kryo decorator named " + klassName + ". Skipping registration...");
+                    } else {
+                        throw new RuntimeException(e);
+                    }
+                } catch (InstantiationException e) {
+                    throw new RuntimeException(e);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        kryoFactory.postDecorate(k, conf);
+
+        return k;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/serialization/KryoValuesSerializer, <init>(Ljava/util/Map;)V > Context: Everywhere, blocks=[BB[SSA:2..4]2 - org.apache.storm.serialization.KryoValuesSerializer.<init>(Ljava/util/Map;)V, BB[SSA:0..1]1 - org.apache.storm.serialization.KryoValuesSerializer.<init>(Ljava/util/Map;)V, BB[SSA:5..5]3 - org.apache.storm.serialization.KryoValuesSerializer.<init>(Ljava/util/Map;)V, BB[SSA:-1..-2]11 - org.apache.storm.serialization.KryoValuesSerializer.<init>(Ljava/util/Map;)V], numberOfBasicBlocks=4, firstLineNumber=26, lastLineNumber=27, firstMethodNumber=25, lastMethodNumber=30, isFirstLineValid=true, methodSrcCode=
+
+    public KryoValuesSerializer(Map<String, Object> conf) {
+        kryo = SerializationFactory.getKryo(conf);
+        delegate = new ListDelegate();
+        kryoOut = new Output(2000, 2000000000);
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/serialization/KryoValuesDeserializer, <init>(Ljava/util/Map;)V > Context: Everywhere, blocks=[BB[SSA:2..4]2 - org.apache.storm.serialization.KryoValuesDeserializer.<init>(Ljava/util/Map;)V, BB[SSA:0..1]1 - org.apache.storm.serialization.KryoValuesDeserializer.<init>(Ljava/util/Map;)V, BB[SSA:5..5]3 - org.apache.storm.serialization.KryoValuesDeserializer.<init>(Ljava/util/Map;)V, BB[SSA:-1..-2]8 - org.apache.storm.serialization.KryoValuesDeserializer.<init>(Ljava/util/Map;)V], numberOfBasicBlocks=4, firstLineNumber=25, lastLineNumber=26, firstMethodNumber=24, lastMethodNumber=28, isFirstLineValid=true, methodSrcCode=
+
+    public KryoValuesDeserializer(Map<String, Object> conf) {
+        kryo = SerializationFactory.getKryo(conf);
+        kryoInput = new Input(1);
+    }
+
+}

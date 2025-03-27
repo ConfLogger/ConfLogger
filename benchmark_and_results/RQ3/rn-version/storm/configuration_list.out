@@ -1,0 +1,2 @@
+Lorg/apache/storm/Config	 type:Both
+Lorg/apache/storm/security/auth/authorizer/SimpleWhitelistAuthorizer	 type:Key-Holder

@@ -1,0 +1,236 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ServerCnxnFactory.java	methodSinagture:	org.apache.zookeeper.server.ServerCnxnFactory.createFactory()Lorg/apache/zookeeper/server/ServerCnxnFactory;	methodLines:	160:173
+blockLines:	162:-1
+paras:	null
+TaintedStat:	NORMAL createFactory:conditional branch(ne, to iindex=9) 4,5 Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, createFactory()Lorg/apache/zookeeper/server/ServerCnxnFactory; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, createFactory()Lorg/apache/zookeeper/server/ServerCnxnFactory; > Context: Everywhere[1]4 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 2 @2 exception:3
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, createFactory()Lorg/apache/zookeeper/server/ServerCnxnFactory; > Context: Everywhere[1]4 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 2 @2 exception:3
+NORMAL createFactory:conditional branch(ne, to iindex=9) 4,5 Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, createFactory()Lorg/apache/zookeeper/server/ServerCnxnFactory; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static ServerCnxnFactory createFactory() throws IOException {
+        String serverCnxnFactoryName = System.getProperty(ZOOKEEPER_SERVER_CNXN_FACTORY);
+        if (serverCnxnFactoryName == null) {
+            serverCnxnFactoryName = NIOServerCnxnFactory.class.getName();
+        }
+        try {
+            ServerCnxnFactory serverCnxnFactory = (ServerCnxnFactory) Class.forName(serverCnxnFactoryName)
+                                                                           .getDeclaredConstructor()
+                                                                           .newInstance();
+            LOG.info("Using {} as server connection factory", serverCnxnFactoryName);
+            return serverCnxnFactory;
+        } catch (Exception e) {
+            IOException ioe = new IOException("Couldn't instantiate " + serverCnxnFactoryName, e);
+            throw ioe;
+        }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/ZooKeeperServerMain, runFromConfig(Lorg/apache/zookeeper/server/ServerConfig;)V > Context: Everywhere, blocks=[BB[SSA:99..100]50 - org.apache.zookeeper.server.ZooKeeperServerMain.runFromConfig(Lorg/apache/zookeeper/server/ServerConfig;)V, BB[SSA:97..98]49 - org.apache.zookeeper.server.ZooKeeperServerMain.runFromConfig(Lorg/apache/zookeeper/server/ServerConfig;)V, BB[SSA:101..101]51 - org.apache.zookeeper.server.ZooKeeperServerMain.runFromConfig(Lorg/apache/zookeeper/server/ServerConfig;)V, BB[SSA:122..123]62 - org.apache.zookeeper.server.ZooKeeperServerMain.runFromConfig(Lorg/apache/zookeeper/server/ServerConfig;)V, BB[SSA:120..121]61 - org.apache.zookeeper.server.ZooKeeperServerMain.runFromConfig(Lorg/apache/zookeeper/server/ServerConfig;)V, BB[SSA:124..124]63 - org.apache.zookeeper.server.ZooKeeperServerMain.runFromConfig(Lorg/apache/zookeeper/server/ServerConfig;)V], numberOfBasicBlocks=6, firstLineNumber=165, lastLineNumber=166, firstMethodNumber=122, lastMethodNumber=213, isFirstLineValid=true, methodSrcCode=
+    public void runFromConfig(ServerConfig config) throws IOException, AdminServerException {
+        LOG.info("Starting server");
+        FileTxnSnapLog txnLog = null;
+        try {
+            try {
+                metricsProvider = MetricsProviderBootstrap.startMetricsProvider(
+                    config.getMetricsProviderClassName(),
+                    config.getMetricsProviderConfiguration());
+            } catch (MetricsProviderLifeCycleException error) {
+                throw new IOException("Cannot boot MetricsProvider " + config.getMetricsProviderClassName(), error);
+            }
+            ServerMetrics.metricsProviderInitialized(metricsProvider);
+            ProviderRegistry.initialize();
+            // Note that this thread isn't going to be doing anything else,
+            // so rather than spawning another thread, we will just call
+            // run() in this thread.
+            // create a file logger url from the command line args
+            txnLog = new FileTxnSnapLog(config.dataLogDir, config.dataDir);
+            JvmPauseMonitor jvmPauseMonitor = null;
+            if (config.jvmPauseMonitorToRun) {
+                jvmPauseMonitor = new JvmPauseMonitor(config);
+            }
+            final ZooKeeperServer zkServer = new ZooKeeperServer(jvmPauseMonitor, txnLog, config.tickTime, config.minSessionTimeout, config.maxSessionTimeout, config.listenBacklog, null, config.initialConfig);
+            txnLog.setServerStats(zkServer.serverStats());
+
+            // Registers shutdown handler which will be used to know the
+            // server error or shutdown state changes.
+            final CountDownLatch shutdownLatch = new CountDownLatch(1);
+            zkServer.registerServerShutdownHandler(new ZooKeeperServerShutdownHandler(shutdownLatch));
+
+            // Start Admin server
+            adminServer = AdminServerFactory.createAdminServer();
+            adminServer.setZooKeeperServer(zkServer);
+            adminServer.start();
+
+            boolean needStartZKServer = true;
+            if (config.getClientPortAddress() != null) {
+                cnxnFactory = ServerCnxnFactory.createFactory();
+                cnxnFactory.configure(config.getClientPortAddress(), config.getMaxClientCnxns(), config.getClientPortListenBacklog(), false);
+                cnxnFactory.startup(zkServer);
+                // zkServer has been started. So we don't need to start it again in secureCnxnFactory.
+                needStartZKServer = false;
+            }
+            if (config.getSecureClientPortAddress() != null) {
+                secureCnxnFactory = ServerCnxnFactory.createFactory();
+                secureCnxnFactory.configure(config.getSecureClientPortAddress(), config.getMaxClientCnxns(), config.getClientPortListenBacklog(), true);
+                secureCnxnFactory.startup(zkServer, needStartZKServer);
+            }
+
+            containerManager = new ContainerManager(
+                zkServer.getZKDatabase(),
+                zkServer.firstProcessor,
+                Integer.getInteger("znode.container.checkIntervalMs", (int) TimeUnit.MINUTES.toMillis(1)),
+                Integer.getInteger("znode.container.maxPerMinute", 10000),
+                Long.getLong("znode.container.maxNeverUsedIntervalMs", 0)
+            );
+            containerManager.start();
+            ZKAuditProvider.addZKStartStopAuditLog();
+
+            serverStarted();
+
+            // Watch status of ZooKeeper server. It will do a graceful shutdown
+            // if the server is not running or hits an internal error.
+            shutdownLatch.await();
+
+            shutdown();
+
+            if (cnxnFactory != null) {
+                cnxnFactory.join();
+            }
+            if (secureCnxnFactory != null) {
+                secureCnxnFactory.join();
+            }
+            if (zkServer.canShutdown()) {
+                zkServer.shutdown(true);
+            }
+        } catch (InterruptedException e) {
+            // warn, but generally this is ok
+            LOG.warn("Server interrupted", e);
+        } finally {
+            if (txnLog != null) {
+                txnLog.close();
+            }
+            if (metricsProvider != null) {
+                try {
+                    metricsProvider.stop();
+                } catch (Throwable error) {
+                    LOG.warn("Error while stopping metrics", error);
+                }
+            }
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeerMain, runFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)V > Context: Everywhere, blocks=[BB[SSA:51..51]28 - org.apache.zookeeper.server.quorum.QuorumPeerMain.runFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)V, BB[SSA:49..50]27 - org.apache.zookeeper.server.quorum.QuorumPeerMain.runFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)V, BB[SSA:52..55]29 - org.apache.zookeeper.server.quorum.QuorumPeerMain.runFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)V, BB[SSA:66..66]35 - org.apache.zookeeper.server.quorum.QuorumPeerMain.runFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)V, BB[SSA:64..65]34 - org.apache.zookeeper.server.quorum.QuorumPeerMain.runFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)V, BB[SSA:67..70]36 - org.apache.zookeeper.server.quorum.QuorumPeerMain.runFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)V], numberOfBasicBlocks=6, firstLineNumber=172, lastLineNumber=174, firstMethodNumber=146, lastMethodNumber=242, isFirstLineValid=true, methodSrcCode=
+        try {
+            ManagedUtil.registerLog4jMBeans();
+        } catch (JMException e) {
+            LOG.warn("Unable to register log4j JMX control", e);
+        }
+
+        LOG.info("Starting quorum peer, myid=" + config.getServerId());
+        final MetricsProvider metricsProvider;
+        try {
+            metricsProvider = MetricsProviderBootstrap.startMetricsProvider(
+                config.getMetricsProviderClassName(),
+                config.getMetricsProviderConfiguration());
+        } catch (MetricsProviderLifeCycleException error) {
+            throw new IOException("Cannot boot MetricsProvider " + config.getMetricsProviderClassName(), error);
+        }
+        try {
+            ServerMetrics.metricsProviderInitialized(metricsProvider);
+            ProviderRegistry.initialize();
+            ServerCnxnFactory cnxnFactory = null;
+            ServerCnxnFactory secureCnxnFactory = null;
+
+            if (config.getClientPortAddress() != null) {
+                cnxnFactory = ServerCnxnFactory.createFactory();
+                cnxnFactory.configure(config.getClientPortAddress(), config.getMaxClientCnxns(), config.getClientPortListenBacklog(), false);
+            }
+
+            if (config.getSecureClientPortAddress() != null) {
+                secureCnxnFactory = ServerCnxnFactory.createFactory();
+                secureCnxnFactory.configure(config.getSecureClientPortAddress(), config.getMaxClientCnxns(), config.getClientPortListenBacklog(), true);
+            }
+
+            quorumPeer = getQuorumPeer();
+            quorumPeer.setTxnFactory(new FileTxnSnapLog(config.getDataLogDir(), config.getDataDir()));
+            quorumPeer.enableLocalSessions(config.areLocalSessionsEnabled());
+            quorumPeer.enableLocalSessionsUpgrading(config.isLocalSessionsUpgradingEnabled());
+            //quorumPeer.setQuorumPeers(config.getAllMembers());
+            quorumPeer.setElectionType(config.getElectionAlg());
+            quorumPeer.setMyid(config.getServerId());
+            quorumPeer.setTickTime(config.getTickTime());
+            quorumPeer.setMinSessionTimeout(config.getMinSessionTimeout());
+            quorumPeer.setMaxSessionTimeout(config.getMaxSessionTimeout());
+            quorumPeer.setInitLimit(config.getInitLimit());
+            quorumPeer.setSyncLimit(config.getSyncLimit());
+            quorumPeer.setConnectToLearnerMasterLimit(config.getConnectToLearnerMasterLimit());
+            quorumPeer.setObserverMasterPort(config.getObserverMasterPort());
+            quorumPeer.setConfigFileName(config.getConfigFilename());
+            quorumPeer.setClientPortListenBacklog(config.getClientPortListenBacklog());
+            quorumPeer.setZKDatabase(new ZKDatabase(quorumPeer.getTxnFactory()));
+            quorumPeer.setQuorumVerifier(config.getQuorumVerifier(), false);
+            if (config.getLastSeenQuorumVerifier() != null) {
+                quorumPeer.setLastSeenQuorumVerifier(config.getLastSeenQuorumVerifier(), false);
+            }
+            quorumPeer.initConfigInZKDatabase();
+            quorumPeer.setCnxnFactory(cnxnFactory);
+            quorumPeer.setSecureCnxnFactory(secureCnxnFactory);
+            quorumPeer.setSslQuorum(config.isSslQuorum());
+            quorumPeer.setUsePortUnification(config.shouldUsePortUnification());
+            quorumPeer.setLearnerType(config.getPeerType());
+            quorumPeer.setSyncEnabled(config.getSyncEnabled());
+            quorumPeer.setQuorumListenOnAllIPs(config.getQuorumListenOnAllIPs());
+            if (config.sslQuorumReloadCertFiles) {
+                quorumPeer.getX509Util().enableCertFileReloading();
+            }
+            quorumPeer.setMultiAddressEnabled(config.isMultiAddressEnabled());
+            quorumPeer.setMultiAddressReachabilityCheckEnabled(config.isMultiAddressReachabilityCheckEnabled());
+            quorumPeer.setMultiAddressReachabilityCheckTimeoutMs(config.getMultiAddressReachabilityCheckTimeoutMs());
+
+            // sets quorum sasl authentication configurations
+            quorumPeer.setQuorumSaslEnabled(config.quorumEnableSasl);
+            if (quorumPeer.isQuorumSaslAuthEnabled()) {
+                quorumPeer.setQuorumServerSaslRequired(config.quorumServerRequireSasl);
+                quorumPeer.setQuorumLearnerSaslRequired(config.quorumLearnerRequireSasl);
+                quorumPeer.setQuorumServicePrincipal(config.quorumServicePrincipal);
+                quorumPeer.setQuorumServerLoginContext(config.quorumServerLoginContext);
+                quorumPeer.setQuorumLearnerLoginContext(config.quorumLearnerLoginContext);
+            }
+            quorumPeer.setQuorumCnxnThreadsSize(config.quorumCnxnThreadsSize);
+            quorumPeer.initialize();
+
+            if (config.jvmPauseMonitorToRun) {
+                quorumPeer.setJvmPauseMonitor(new JvmPauseMonitor(config));
+            }
+
+            quorumPeer.start();
+            ZKAuditProvider.addZKStartStopAuditLog();
+            quorumPeer.join();
+        } catch (InterruptedException e) {
+            // warn, but generally this is ok
+            LOG.warn("Quorum Peer interrupted", e);
+        } finally {
+            try {
+                metricsProvider.stop();
+            } catch (Throwable error) {
+                LOG.warn("Error while stopping metrics", error);
+            }
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, createFactory(Ljava/net/InetSocketAddress;II)Lorg/apache/zookeeper/server/ServerCnxnFactory; > Context: Everywhere, blocks=[BB[SSA:0..0]1 - org.apache.zookeeper.server.ServerCnxnFactory.createFactory(Ljava/net/InetSocketAddress;II)Lorg/apache/zookeeper/server/ServerCnxnFactory;, BB[SSA:-1..-2]0 - org.apache.zookeeper.server.ServerCnxnFactory.createFactory(Ljava/net/InetSocketAddress;II)Lorg/apache/zookeeper/server/ServerCnxnFactory;, BB[SSA:1..6]2 - org.apache.zookeeper.server.ServerCnxnFactory.createFactory(Ljava/net/InetSocketAddress;II)Lorg/apache/zookeeper/server/ServerCnxnFactory;, BB[SSA:-1..-2]4 - org.apache.zookeeper.server.ServerCnxnFactory.createFactory(Ljava/net/InetSocketAddress;II)Lorg/apache/zookeeper/server/ServerCnxnFactory;], numberOfBasicBlocks=4, firstLineNumber=189, lastLineNumber=191, firstMethodNumber=189, lastMethodNumber=192, isFirstLineValid=false, methodSrcCode=
+    public static ServerCnxnFactory createFactory(InetSocketAddress addr, int maxClientCnxns, int backlog) throws IOException {
+        ServerCnxnFactory factory = createFactory();
+        factory.configure(addr, maxClientCnxns, backlog);
+        return factory;
+    }
+}

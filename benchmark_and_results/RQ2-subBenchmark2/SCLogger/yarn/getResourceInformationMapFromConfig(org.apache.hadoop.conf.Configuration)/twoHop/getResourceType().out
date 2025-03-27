@@ -1,0 +1,7 @@
+/** 
+ * Get the resource type.
+ * @return the resource type
+ */
+public ResourceTypes getResourceType(){
+  return resourceType;
+}

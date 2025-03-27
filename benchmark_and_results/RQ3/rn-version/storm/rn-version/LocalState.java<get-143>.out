@@ -1,0 +1,100 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	LocalState.java	methodSinagture:	org.apache.storm.utils.LocalState.get(Ljava/lang/String;)Lorg/apache/storm/thrift/TBase;	methodLines:	143:153
+blockLines:	148:-1
+paras:	null
+TaintedStat:	NORMAL get:conditional branch(eq, to iindex=23) 10,11 Node: < Application, Lorg/apache/storm/utils/LocalState, get(Ljava/lang/String;)Lorg/apache/storm/thrift/TBase; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/LocalState, get(Ljava/lang/String;)Lorg/apache/storm/thrift/TBase; > Context: Everywhere[10]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,2 @16 exception:8
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/LocalState, get(Ljava/lang/String;)Lorg/apache/storm/thrift/TBase; > Context: Everywhere[10]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,2 @16 exception:8
+NORMAL get:10 = checkcast <Application,Lorg/apache/storm/generated/ThriftSerializedObject>9 <Application,Lorg/apache/storm/generated/ThriftSerializedObject> Node: < Application, Lorg/apache/storm/utils/LocalState, get(Ljava/lang/String;)Lorg/apache/storm/thrift/TBase; > Context: Everywhere
+NORMAL get:conditional branch(eq, to iindex=23) 10,11 Node: < Application, Lorg/apache/storm/utils/LocalState, get(Ljava/lang/String;)Lorg/apache/storm/thrift/TBase; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+        try {
+            TDeserializer td = new TDeserializer();
+            Map<String, ThriftSerializedObject> partial = partialSnapshot(td);
+            ThriftSerializedObject tso = partial.get(key);
+            TBase ret = null;
+            if (tso != null) {
+                ret = deserialize(tso, td);
+            }
+            return ret;
+        } catch (TTransportException e) {
+            throw new RuntimeException(e);
+        }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/utils/LocalState, filterOldTopologies(J)V > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.storm.utils.LocalState.filterOldTopologies(J)V, BB[SSA:-1..-2]0 - org.apache.storm.utils.LocalState.filterOldTopologies(J)V, BB[SSA:3..3]2 - org.apache.storm.utils.LocalState.filterOldTopologies(J)V, BB[SSA:-1..-2]22 - org.apache.storm.utils.LocalState.filterOldTopologies(J)V], numberOfBasicBlocks=4, firstLineNumber=197, lastLineNumber=198, firstMethodNumber=197, lastMethodNumber=208, isFirstLineValid=false, methodSrcCode=
+    public void filterOldTopologies(long cutOffAge) {
+        LSTopoHistoryList lsTopoHistoryListWrapper = (LSTopoHistoryList) get(LS_TOPO_HISTORY);
+        List<LSTopoHistory> filteredTopoHistoryList = new ArrayList<>();
+        if (null != lsTopoHistoryListWrapper) {
+            for (LSTopoHistory topoHistory : lsTopoHistoryListWrapper.get_topo_history()) {
+                if (topoHistory.get_time_stamp() > cutOffAge) {
+                    filteredTopoHistoryList.add(topoHistory);
+                }
+            }
+        }
+        put(LS_TOPO_HISTORY, new LSTopoHistoryList(filteredTopoHistoryList));
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/utils/LocalState, getApprovedWorkers()Ljava/util/Map; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.storm.utils.LocalState.getApprovedWorkers()Ljava/util/Map;, BB[SSA:-1..-2]0 - org.apache.storm.utils.LocalState.getApprovedWorkers()Ljava/util/Map;, BB[SSA:3..3]2 - org.apache.storm.utils.LocalState.getApprovedWorkers()Ljava/util/Map;, BB[SSA:-1..-2]7 - org.apache.storm.utils.LocalState.getApprovedWorkers()Ljava/util/Map;], numberOfBasicBlocks=4, firstLineNumber=232, lastLineNumber=233, firstMethodNumber=232, lastMethodNumber=237, isFirstLineValid=false, methodSrcCode=
+    public Map<String, Integer> getApprovedWorkers() {
+        LSApprovedWorkers lsApprovedWorkers = (LSApprovedWorkers) get(LS_APPROVED_WORKERS);
+        if (null != lsApprovedWorkers) {
+            return lsApprovedWorkers.get_approved_workers();
+        }
+        return null;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/utils/LocalState, getTopoHistoryList()Ljava/util/List; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.storm.utils.LocalState.getTopoHistoryList()Ljava/util/List;, BB[SSA:-1..-2]0 - org.apache.storm.utils.LocalState.getTopoHistoryList()Ljava/util/List;, BB[SSA:3..3]2 - org.apache.storm.utils.LocalState.getTopoHistoryList()Ljava/util/List;, BB[SSA:-1..-2]7 - org.apache.storm.utils.LocalState.getTopoHistoryList()Ljava/util/List;], numberOfBasicBlocks=4, firstLineNumber=186, lastLineNumber=187, firstMethodNumber=186, lastMethodNumber=191, isFirstLineValid=false, methodSrcCode=
+    public List<LSTopoHistory> getTopoHistoryList() {
+        LSTopoHistoryList lsTopoHistoryListWrapper = (LSTopoHistoryList) get(LS_TOPO_HISTORY);
+        if (null != lsTopoHistoryListWrapper) {
+            return lsTopoHistoryListWrapper.get_topo_history();
+        }
+        return null;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/utils/LocalState, addTopologyHistory(Lorg/apache/storm/generated/LSTopoHistory;)V > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.storm.utils.LocalState.addTopologyHistory(Lorg/apache/storm/generated/LSTopoHistory;)V, BB[SSA:-1..-2]0 - org.apache.storm.utils.LocalState.addTopologyHistory(Lorg/apache/storm/generated/LSTopoHistory;)V, BB[SSA:3..3]2 - org.apache.storm.utils.LocalState.addTopologyHistory(Lorg/apache/storm/generated/LSTopoHistory;)V, BB[SSA:-1..-2]14 - org.apache.storm.utils.LocalState.addTopologyHistory(Lorg/apache/storm/generated/LSTopoHistory;)V], numberOfBasicBlocks=4, firstLineNumber=210, lastLineNumber=211, firstMethodNumber=210, lastMethodNumber=218, isFirstLineValid=false, methodSrcCode=
+    public void addTopologyHistory(LSTopoHistory lsTopoHistory) {
+        LSTopoHistoryList lsTopoHistoryListWrapper = (LSTopoHistoryList) get(LS_TOPO_HISTORY);
+        List<LSTopoHistory> currentTopoHistoryList = new ArrayList<>();
+        if (null != lsTopoHistoryListWrapper) {
+            currentTopoHistoryList.addAll(lsTopoHistoryListWrapper.get_topo_history());
+        }
+        currentTopoHistoryList.add(lsTopoHistory);
+        put(LS_TOPO_HISTORY, new LSTopoHistoryList(currentTopoHistoryList));
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/utils/LocalState, getSupervisorId()Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.storm.utils.LocalState.getSupervisorId()Ljava/lang/String;, BB[SSA:-1..-2]0 - org.apache.storm.utils.LocalState.getSupervisorId()Ljava/lang/String;, BB[SSA:3..3]2 - org.apache.storm.utils.LocalState.getSupervisorId()Ljava/lang/String;, BB[SSA:-1..-2]7 - org.apache.storm.utils.LocalState.getSupervisorId()Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=220, lastLineNumber=221, firstMethodNumber=220, lastMethodNumber=225, isFirstLineValid=false, methodSrcCode=
+    public String getSupervisorId() {
+        LSSupervisorId lsSupervisorId = (LSSupervisorId) get(LS_ID);
+        if (null != lsSupervisorId) {
+            return lsSupervisorId.get_supervisor_id();
+        }
+        return null;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/utils/LocalState, getLocalAssignmentsMap()Ljava/util/Map; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.storm.utils.LocalState.getLocalAssignmentsMap()Ljava/util/Map;, BB[SSA:-1..-2]0 - org.apache.storm.utils.LocalState.getLocalAssignmentsMap()Ljava/util/Map;, BB[SSA:3..3]2 - org.apache.storm.utils.LocalState.getLocalAssignmentsMap()Ljava/util/Map;, BB[SSA:-1..-2]7 - org.apache.storm.utils.LocalState.getLocalAssignmentsMap()Ljava/util/Map;], numberOfBasicBlocks=4, firstLineNumber=252, lastLineNumber=253, firstMethodNumber=252, lastMethodNumber=257, isFirstLineValid=false, methodSrcCode=
+    public Map<Integer, LocalAssignment> getLocalAssignmentsMap() {
+        LSSupervisorAssignments assignments = (LSSupervisorAssignments) get(LS_LOCAL_ASSIGNMENTS);
+        if (null != assignments) {
+            return assignments.get_assignments();
+        }
+        return null;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/utils/LocalState, getWorkerHeartBeat()Lorg/apache/storm/generated/LSWorkerHeartbeat; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.storm.utils.LocalState.getWorkerHeartBeat()Lorg/apache/storm/generated/LSWorkerHeartbeat;, BB[SSA:-1..-2]0 - org.apache.storm.utils.LocalState.getWorkerHeartBeat()Lorg/apache/storm/generated/LSWorkerHeartbeat;, BB[SSA:3..3]2 - org.apache.storm.utils.LocalState.getWorkerHeartBeat()Lorg/apache/storm/generated/LSWorkerHeartbeat;, BB[SSA:-1..-2]4 - org.apache.storm.utils.LocalState.getWorkerHeartBeat()Lorg/apache/storm/generated/LSWorkerHeartbeat;], numberOfBasicBlocks=4, firstLineNumber=244, lastLineNumber=245, firstMethodNumber=244, lastMethodNumber=245, isFirstLineValid=false, methodSrcCode=
+    public LSWorkerHeartbeat getWorkerHeartBeat() {
+        return (LSWorkerHeartbeat) get(LS_WORKER_HEARTBEAT);
+    }
+}

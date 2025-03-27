@@ -1,0 +1,123 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ClientMetricsUtils.java	methodSinagture:	org.apache.storm.daemon.metrics.ClientMetricsUtils.getMetricsReporterLocale(Ljava/util/Map;)Ljava/util/Locale;	methodLines:	36:41
+blockLines:	38:-1
+paras:	null
+TaintedStat:	NORMAL getMetricsReporterLocale:conditional branch(eq, to iindex=12) 8,6 Node: < Application, Lorg/apache/storm/daemon/metrics/ClientMetricsUtils, getMetricsReporterLocale(Ljava/util/Map;)Ljava/util/Locale; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/metrics/ClientMetricsUtils, getMetricsReporterLocale(Ljava/util/Map;)Ljava/util/Locale; > Context: Everywhere[2]5 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,3 @3 exception:4
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/metrics/ClientMetricsUtils, getMetricsReporterLocale(Ljava/util/Map;)Ljava/util/Locale; > Context: Everywhere[2]5 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,3 @3 exception:4
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/metrics/ClientMetricsUtils, getMetricsReporterLocale(Ljava/util/Map;)Ljava/util/Locale; > Context: Everywhere[4]8 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > 5,6 @9 exception:7 v5
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere v1
+NORMAL getString:conditional branch(ne, to iindex=5) 4,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL getString:return 2 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/metrics/ClientMetricsUtils, getMetricsReporterLocale(Ljava/util/Map;)Ljava/util/Locale; > Context: Everywhere[4]8 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String; > 5,6 @9 exception:7
+NORMAL getMetricsReporterLocale:conditional branch(eq, to iindex=12) 8,6 Node: < Application, Lorg/apache/storm/daemon/metrics/ClientMetricsUtils, getMetricsReporterLocale(Ljava/util/Map;)Ljava/util/Locale; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static Locale getMetricsReporterLocale(Map<String, Object> reporterConf) {
+        String languageTag = ObjectReader.getString(reporterConf.get(LOCALE), null);
+        if (languageTag != null) {
+            return Locale.forLanguageTag(languageTag);
+        }
+        return null;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/metrics2/reporters/ConsoleStormReporter, init(Lcom/codahale/metrics/MetricRegistry;Lorg/apache/storm/metrics2/MetricRegistryProvider;Ljava/util/Map;)V > Context: Everywhere, blocks=[BB[SSA:9..11]4 - org.apache.storm.metrics2.reporters.ConsoleStormReporter.init(Lcom/codahale/metrics/MetricRegistry;Lorg/apache/storm/metrics2/MetricRegistryProvider;Ljava/util/Map;)V, BB[SSA:5..8]3 - org.apache.storm.metrics2.reporters.ConsoleStormReporter.init(Lcom/codahale/metrics/MetricRegistry;Lorg/apache/storm/metrics2/MetricRegistryProvider;Ljava/util/Map;)V, BB[SSA:12..15]5 - org.apache.storm.metrics2.reporters.ConsoleStormReporter.init(Lcom/codahale/metrics/MetricRegistry;Lorg/apache/storm/metrics2/MetricRegistryProvider;Ljava/util/Map;)V, BB[SSA:-1..-2]41 - org.apache.storm.metrics2.reporters.ConsoleStormReporter.init(Lcom/codahale/metrics/MetricRegistry;Lorg/apache/storm/metrics2/MetricRegistryProvider;Ljava/util/Map;)V], numberOfBasicBlocks=4, firstLineNumber=47, lastLineNumber=51, firstMethodNumber=45, lastMethodNumber=96, isFirstLineValid=true, methodSrcCode=
+    private void init(MetricRegistry registry, MetricRegistryProvider metricRegistryProvider, Map<String, Object> reporterConf) {
+        LOG.debug("Preparing ConsoleReporter");
+        ConsoleReporter.Builder builder = ConsoleReporter.forRegistry(registry);
+
+        builder.outputTo(System.out);
+        Locale locale = ClientMetricsUtils.getMetricsReporterLocale(reporterConf);
+        if (locale != null) {
+            builder.formattedFor(locale);
+        }
+
+        TimeUnit rateUnit = ClientMetricsUtils.getMetricsRateUnit(reporterConf);
+        if (rateUnit != null) {
+            builder.convertRatesTo(rateUnit);
+        }
+
+        TimeUnit durationUnit = ClientMetricsUtils.getMetricsDurationUnit(reporterConf);
+        if (durationUnit != null) {
+            builder.convertDurationsTo(durationUnit);
+        }
+
+        StormMetricsFilter filter = getMetricsFilter(reporterConf);
+        if (filter != null) {
+            builder.filter(filter);
+        }
+
+        //defaults to 10
+        reportingPeriod = getReportPeriod(reporterConf);
+
+        //defaults to seconds
+        reportingPeriodUnit = getReportPeriodUnit(reporterConf);
+
+        ScheduledReporter consoleReporter = builder.build();
+
+        boolean reportDimensions = isReportDimensionsEnabled(reporterConf);
+        if (reportDimensions) {
+            if (metricRegistryProvider == null) {
+                throw new RuntimeException("MetricRegistryProvider is required to enable reporting dimensions");
+            }
+            if (rateUnit == null) {
+                rateUnit = TimeUnit.SECONDS;
+            }
+            if (durationUnit == null) {
+                durationUnit = TimeUnit.MILLISECONDS;
+            }
+            DimensionalReporter dimensionalReporter = new DimensionalReporter(metricRegistryProvider, consoleReporter, this,
+                    "ConsoleDimensionalReporter",
+                    filter, rateUnit, durationUnit, null, true);
+            reporter = dimensionalReporter;
+        } else {
+            reporter = consoleReporter;
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/metrics2/reporters/CsvStormReporter, prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V > Context: Everywhere, blocks=[BB[SSA:5..7]3 - org.apache.storm.metrics2.reporters.CsvStormReporter.prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V, BB[SSA:3..4]2 - org.apache.storm.metrics2.reporters.CsvStormReporter.prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V, BB[SSA:8..11]4 - org.apache.storm.metrics2.reporters.CsvStormReporter.prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V, BB[SSA:-1..-2]27 - org.apache.storm.metrics2.reporters.CsvStormReporter.prepare(Lcom/codahale/metrics/MetricRegistry;Ljava/util/Map;Ljava/util/Map;)V], numberOfBasicBlocks=4, firstLineNumber=58, lastLineNumber=61, firstMethodNumber=56, lastMethodNumber=88, isFirstLineValid=true, methodSrcCode=
+    public void prepare(MetricRegistry metricsRegistry, Map<String, Object> topoConf, Map<String, Object> reporterConf) {
+        LOG.debug("Preparing...");
+        CsvReporter.Builder builder = CsvReporter.forRegistry(metricsRegistry);
+
+        Locale locale = ClientMetricsUtils.getMetricsReporterLocale(reporterConf);
+        if (locale != null) {
+            builder.formatFor(locale);
+        }
+
+        TimeUnit rateUnit = ClientMetricsUtils.getMetricsRateUnit(reporterConf);
+        if (rateUnit != null) {
+            builder.convertRatesTo(rateUnit);
+        }
+
+        TimeUnit durationUnit = ClientMetricsUtils.getMetricsDurationUnit(reporterConf);
+        if (durationUnit != null) {
+            builder.convertDurationsTo(durationUnit);
+        }
+
+        StormMetricsFilter filter = getMetricsFilter(reporterConf);
+        if (filter != null) {
+            builder.filter(filter);
+        }
+
+        //defaults to 10
+        reportingPeriod = getReportPeriod(reporterConf);
+
+        //defaults to seconds
+        reportingPeriodUnit = getReportPeriodUnit(reporterConf);
+
+        File csvMetricsDir = getCsvLogDir(topoConf, reporterConf);
+        reporter = builder.build(csvMetricsDir);
+    }
+}
+}

@@ -1,0 +1,335 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>org.apache.storm.generated.Supervisor.Iface localSupervisor) throws IOException {
+<Line#1>if (ConfigUtils.isLocalMode(conf)) {
+<Line#2>return new LocalContainerLauncher(conf, supervisorId, supervisorPort, sharedContext, metricsRegistry, containerMemoryTracker,
+<Line#3>localSupervisor);
+<Line#4>}
+<Line#5>
+<Line#6>ResourceIsolationInterface resourceIsolationManager;
+<Line#7>if (ObjectReader.getBoolean(conf.get(DaemonConfig.STORM_RESOURCE_ISOLATION_PLUGIN_ENABLE), false)) {
+<Line#8>resourceIsolationManager = ReflectionUtils.newInstance((String) conf.get(DaemonConfig.STORM_RESOURCE_ISOLATION_PLUGIN));
+<Line#9>
+<Line#10>} else {
+<Line#11>resourceIsolationManager = new DefaultResourceIsolationManager();
+<Line#12>
+<Line#13>}
+<Line#14>
+<Line#15>resourceIsolationManager.prepare(conf);
+<Line#16>
+<Line#17>return new BasicContainerLauncher(conf, supervisorId, supervisorPort, resourceIsolationManager, metricsRegistry,
+<Line#18>containerMemoryTracker);
+
+Example 1:
+<Line#1>{
+<Line#2>  LOG.info("Killing {}:{}",supervisorId,workerId);
+<Line#3>  if (shutdownTimer == null) {
+<Line#4>    shutdownTimer=shutdownDuration.time();
+<Line#5>  }
+<Line#6>  try {
+<Line#7>    if (resourceIsolationManager != null) {
+<Line#8>      resourceIsolationManager.kill(getWorkerUser(),workerId);
+<Line#9>    }
+<Line#10>  }
+<Line#11> catch (  IOException e) {
+<Line#12>    numKillExceptions.mark();
+<Line#13>    throw e;
+<Line#14>  }
+<Line#15>}
+Label: <Line#2> LOG.info("Killing {}:{}",supervisorId,workerId)
+
+Example 2:
+<Line#1>{
+<Line#2>  super.prepare(conf);
+<Line#3>  imageTagToManifestPlugin=chooseImageTagToManifestPlugin();
+<Line#4>  imageTagToManifestPlugin.init(conf);
+<Line#5>  manifestToResourcesPlugin=chooseManifestToResourcesPlugin();
+<Line#6>  manifestToResourcesPlugin.init(conf);
+<Line#7>  ociResourcesLocalizer=chooseOciResourcesLocalizer();
+<Line#8>  ociResourcesLocalizer.init(conf);
+<Line#9>  layersToKeep=ObjectReader.getInt(conf.get(DaemonConfig.STORM_OCI_LAYER_MOUNTS_TO_KEEP),100);
+<Line#10>  mapper=new ObjectMapper();
+<Line#11>  if (seccompJsonFile != null) {
+<Line#12>    seccomp=new String(Files.readAllBytes(Paths.get(seccompJsonFile)));
+<Line#13>  }
+<Line#14>  if (checkContainerAliveTimer == null) {
+<Line#15>    checkContainerAliveTimer=new StormTimer("CheckRuncContainerAlive",Utils.createDefaultUncaughtExceptionHandler());
+<Line#16>    checkContainerAliveTimer.scheduleRecurring(0,(Integer)conf.get(DaemonConfig.SUPERVISOR_MONITOR_FREQUENCY_SECS),() -> {
+<Line#17>      try {
+<Line#18>        checkContainersAlive();
+<Line#19>      }
+<Line#20> catch (      Exception e) {
+<Line#21>        LOG.warn("The CheckRuncContainerAlive thread has exception. Ignored",e);
+<Line#22>      }
+<Line#23>    }
+<Line#24>);
+<Line#25>  }
+<Line#26>}
+Label: <Line#21> LOG.warn("The CheckRuncContainerAlive thread has exception. Ignored",e)
+
+Example 3:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    long ret=0;
+<Line#4>    if (resourceIsolationManager.isResourceManaged()) {
+<Line#5>      long usageBytes=resourceIsolationManager.getMemoryUsage(getWorkerUser(),workerId,port);
+<Line#6>      if (usageBytes >= 0) {
+<Line#7>        ret=usageBytes / 1024 / 1024;
+<Line#8>      }
+<Line#9>    }
+<Line#10>    return ret;
+<Line#11>  }
+<Line#12> catch (  IOException e) {
+<Line#13>    LOG.warn("Error trying to calculate worker memory usage {}",e);
+<Line#14>    return 0;
+<Line#15>  }
+<Line#16>}
+Label: <Line#13> LOG.warn("Error trying to calculate worker memory usage {}",e)
+
+Example 4:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    IStormClusterState state=stormClusterState;
+<Line#4>    NimbusInfo hpi=nimbusHostPortInfo;
+<Line#5>    LOG.info("Starting Nimbus with conf {}",ConfigUtils.maskPasswords(conf));
+<Line#6>    validator.prepare(conf);
+<Line#7>    state.addNimbusHost(hpi.getHost(),new NimbusSummary(hpi.getHost(),hpi.getPort(),Time.currentTimeSecs(),false,STORM_VERSION));
+<Line#8>    leaderElector.addToLeaderLockQueue();
+<Line#9>    this.blobStore.startSyncBlobs();
+<Line#10>    for (    ClusterMetricsConsumerExecutor exec : clusterConsumerExceutors) {
+<Line#11>      exec.prepare();
+<Line#12>    }
+<Line#13>    timer.scheduleRecurring(3,5,() -> {
+<Line#14>      try {
+<Line#15>        boolean isLeader=isLeader();
+<Line#16>        if (isLeader && !wasLeader) {
+<Line#17>          for (          String topoId : state.activeStorms()) {
+<Line#18>            transition(topoId,TopologyActions.GAIN_LEADERSHIP,null);
+<Line#19>          }
+<Line#20>          clusterMetricSet.setActive(true);
+<Line#21>        }
+<Line#22>        wasLeader=isLeader;
+<Line#23>      }
+<Line#24> catch (      Exception e) {
+<Line#25>        throw new RuntimeException(e);
+<Line#26>      }
+<Line#27>    }
+<Line#28>);
+<Line#29>    final boolean doNotReassign=(Boolean)conf.getOrDefault(ServerConfigUtils.NIMBUS_DO_NOT_REASSIGN,false);
+<Line#30>    timer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_MONITOR_FREQ_SECS)),() -> {
+<Line#31>      try {
+<Line#32>        if (!doNotReassign) {
+<Line#33>          mkAssignments();
+<Line#34>        }
+<Line#35>      }
+<Line#36> catch (      Exception e) {
+<Line#37>        throw new RuntimeException(e);
+<Line#38>      }
+<Line#39>    }
+<Line#40>);
+<Line#41>    cleanupTimer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_MONITOR_FREQ_SECS)),() -> {
+<Line#42>      cleanupTimer.schedule(0,() -> doCleanup());
+<Line#43>    }
+<Line#44>);
+<Line#45>    final int jarExpSecs=ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_INBOX_JAR_EXPIRATION_SECS));
+<Line#46>    timer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_CLEANUP_INBOX_FREQ_SECS)),() -> {
+<Line#47>      try {
+<Line#48>        cleanInbox(getInbox(),jarExpSecs);
+<Line#49>      }
+<Line#50> catch (      Exception e) {
+<Line#51>        throw new RuntimeException(e);
+<Line#52>      }
+<Line#53>    }
+<Line#54>);
+<Line#55>    Integer interval=ObjectReader.getInt(conf.get(DaemonConfig.LOGVIEWER_CLEANUP_INTERVAL_SECS),null);
+<Line#56>    if (interval != null) {
+<Line#57>      final int lvCleanupAgeMins=ObjectReader.getInt(conf.get(DaemonConfig.LOGVIEWER_CLEANUP_AGE_MINS));
+<Line#58>      timer.scheduleRecurring(0,interval,() -> {
+<Line#59>        try {
+<Line#60>          cleanTopologyHistory(lvCleanupAgeMins);
+<Line#61>        }
+<Line#62> catch (        Exception e) {
+<Line#63>          throw new RuntimeException(e);
+<Line#64>        }
+<Line#65>      }
+<Line#66>);
+<Line#67>    }
+<Line#68>    timer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_CREDENTIAL_RENEW_FREQ_SECS)),() -> {
+<Line#69>      try {
+<Line#70>        renewCredentials();
+<Line#71>      }
+<Line#72> catch (      Exception e) {
+<Line#73>        throw new RuntimeException(e);
+<Line#74>      }
+<Line#75>    }
+<Line#76>);
+<Line#77>    timer.scheduleRecurring(30,ServerConfigUtils.getLocalizerUpdateBlobInterval(conf) * 5,() -> {
+<Line#78>      try {
+<Line#79>        blobStore.validateBlobUpdateTime();
+<Line#80>      }
+<Line#81> catch (      IOException e) {
+<Line#82>        throw new RuntimeException(e);
+<Line#83>      }
+<Line#84>    }
+<Line#85>);
+<Line#86>    metricsRegistry.registerGauge("nimbus:total-available-memory-non-negative",() -> nodeIdToResources.get().values().parallelStream().mapToDouble(supervisorResources -> Math.max(supervisorResources.getAvailableMem(),0)).sum());
+<Line#87>    metricsRegistry.registerGauge("nimbus:available-cpu-non-negative",() -> nodeIdToResources.get().values().parallelStream().mapToDouble(supervisorResources -> Math.max(supervisorResources.getAvailableCpu(),0)).sum());
+<Line#88>    metricsRegistry.registerGauge("nimbus:total-memory",() -> nodeIdToResources.get().values().parallelStream().mapToDouble(SupervisorResources::getTotalMem).sum());
+<Line#89>    metricsRegistry.registerGauge("nimbus:total-cpu",() -> nodeIdToResources.get().values().parallelStream().mapToDouble(SupervisorResources::getTotalCpu).sum());
+<Line#90>    metricsRegistry.registerGauge("nimbus:longest-scheduling-time-ms",() -> {
+<Line#91>      Long currTime=Time.nanoTime();
+<Line#92>      Long startTime=schedulingStartTimeNs.get();
+<Line#93>      return TimeUnit.NANOSECONDS.toMillis(startTime == null ? longestSchedulingTime.get() : Math.max(currTime - startTime,longestSchedulingTime.get()));
+<Line#94>    }
+<Line#95>);
+<Line#96>    metricsRegistry.registerMeter("nimbus:num-launched").mark();
+<Line#97>    timer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.STORM_CLUSTER_METRICS_CONSUMER_PUBLISH_INTERVAL_SECS)),() -> {
+<Line#98>      try {
+<Line#99>        if (isLeader()) {
+<Line#100>          sendClusterMetricsToExecutors();
+<Line#101>        }
+<Line#102>      }
+<Line#103> catch (      Exception e) {
+<Line#104>        throw new RuntimeException(e);
+<Line#105>      }
+<Line#106>    }
+<Line#107>);
+<Line#108>    timer.scheduleRecurring(5,5,clusterMetricSet);
+<Line#109>  }
+<Line#110> catch (  Exception e) {
+<Line#111>    if (Utils.exceptionCauseIsInstanceOf(InterruptedException.class,e)) {
+<Line#112>      throw e;
+<Line#113>    }
+<Line#114>    if (Utils.exceptionCauseIsInstanceOf(InterruptedIOException.class,e)) {
+<Line#115>      throw e;
+<Line#116>    }
+<Line#117>    LOG.error("Error on initialization of nimbus",e);
+<Line#118>    Utils.exitProcess(13,"Error on initialization of nimbus");
+<Line#119>  }
+<Line#120>}
+Label: <Line#5> LOG.info("Starting Nimbus with conf {}",ConfigUtils.maskPasswords(conf))
+
+Example 5:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    IStormClusterState state=stormClusterState;
+<Line#4>    NimbusInfo hpi=nimbusHostPortInfo;
+<Line#5>    LOG.info("Starting Nimbus with conf {}",ConfigUtils.maskPasswords(conf));
+<Line#6>    validator.prepare(conf);
+<Line#7>    state.addNimbusHost(hpi.getHost(),new NimbusSummary(hpi.getHost(),hpi.getPort(),Time.currentTimeSecs(),false,STORM_VERSION));
+<Line#8>    leaderElector.addToLeaderLockQueue();
+<Line#9>    this.blobStore.startSyncBlobs();
+<Line#10>    for (    ClusterMetricsConsumerExecutor exec : clusterConsumerExceutors) {
+<Line#11>      exec.prepare();
+<Line#12>    }
+<Line#13>    timer.scheduleRecurring(3,5,() -> {
+<Line#14>      try {
+<Line#15>        boolean isLeader=isLeader();
+<Line#16>        if (isLeader && !wasLeader) {
+<Line#17>          for (          String topoId : state.activeStorms()) {
+<Line#18>            transition(topoId,TopologyActions.GAIN_LEADERSHIP,null);
+<Line#19>          }
+<Line#20>          clusterMetricSet.setActive(true);
+<Line#21>        }
+<Line#22>        wasLeader=isLeader;
+<Line#23>      }
+<Line#24> catch (      Exception e) {
+<Line#25>        throw new RuntimeException(e);
+<Line#26>      }
+<Line#27>    }
+<Line#28>);
+<Line#29>    final boolean doNotReassign=(Boolean)conf.getOrDefault(ServerConfigUtils.NIMBUS_DO_NOT_REASSIGN,false);
+<Line#30>    timer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_MONITOR_FREQ_SECS)),() -> {
+<Line#31>      try {
+<Line#32>        if (!doNotReassign) {
+<Line#33>          mkAssignments();
+<Line#34>        }
+<Line#35>      }
+<Line#36> catch (      Exception e) {
+<Line#37>        throw new RuntimeException(e);
+<Line#38>      }
+<Line#39>    }
+<Line#40>);
+<Line#41>    cleanupTimer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_MONITOR_FREQ_SECS)),() -> {
+<Line#42>      cleanupTimer.schedule(0,() -> doCleanup());
+<Line#43>    }
+<Line#44>);
+<Line#45>    final int jarExpSecs=ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_INBOX_JAR_EXPIRATION_SECS));
+<Line#46>    timer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_CLEANUP_INBOX_FREQ_SECS)),() -> {
+<Line#47>      try {
+<Line#48>        cleanInbox(getInbox(),jarExpSecs);
+<Line#49>      }
+<Line#50> catch (      Exception e) {
+<Line#51>        throw new RuntimeException(e);
+<Line#52>      }
+<Line#53>    }
+<Line#54>);
+<Line#55>    Integer interval=ObjectReader.getInt(conf.get(DaemonConfig.LOGVIEWER_CLEANUP_INTERVAL_SECS),null);
+<Line#56>    if (interval != null) {
+<Line#57>      final int lvCleanupAgeMins=ObjectReader.getInt(conf.get(DaemonConfig.LOGVIEWER_CLEANUP_AGE_MINS));
+<Line#58>      timer.scheduleRecurring(0,interval,() -> {
+<Line#59>        try {
+<Line#60>          cleanTopologyHistory(lvCleanupAgeMins);
+<Line#61>        }
+<Line#62> catch (        Exception e) {
+<Line#63>          throw new RuntimeException(e);
+<Line#64>        }
+<Line#65>      }
+<Line#66>);
+<Line#67>    }
+<Line#68>    timer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_CREDENTIAL_RENEW_FREQ_SECS)),() -> {
+<Line#69>      try {
+<Line#70>        renewCredentials();
+<Line#71>      }
+<Line#72> catch (      Exception e) {
+<Line#73>        throw new RuntimeException(e);
+<Line#74>      }
+<Line#75>    }
+<Line#76>);
+<Line#77>    timer.scheduleRecurring(30,ServerConfigUtils.getLocalizerUpdateBlobInterval(conf) * 5,() -> {
+<Line#78>      try {
+<Line#79>        blobStore.validateBlobUpdateTime();
+<Line#80>      }
+<Line#81> catch (      IOException e) {
+<Line#82>        throw new RuntimeException(e);
+<Line#83>      }
+<Line#84>    }
+<Line#85>);
+<Line#86>    metricsRegistry.registerGauge("nimbus:total-available-memory-non-negative",() -> nodeIdToResources.get().values().parallelStream().mapToDouble(supervisorResources -> Math.max(supervisorResources.getAvailableMem(),0)).sum());
+<Line#87>    metricsRegistry.registerGauge("nimbus:available-cpu-non-negative",() -> nodeIdToResources.get().values().parallelStream().mapToDouble(supervisorResources -> Math.max(supervisorResources.getAvailableCpu(),0)).sum());
+<Line#88>    metricsRegistry.registerGauge("nimbus:total-memory",() -> nodeIdToResources.get().values().parallelStream().mapToDouble(SupervisorResources::getTotalMem).sum());
+<Line#89>    metricsRegistry.registerGauge("nimbus:total-cpu",() -> nodeIdToResources.get().values().parallelStream().mapToDouble(SupervisorResources::getTotalCpu).sum());
+<Line#90>    metricsRegistry.registerGauge("nimbus:longest-scheduling-time-ms",() -> {
+<Line#91>      Long currTime=Time.nanoTime();
+<Line#92>      Long startTime=schedulingStartTimeNs.get();
+<Line#93>      return TimeUnit.NANOSECONDS.toMillis(startTime == null ? longestSchedulingTime.get() : Math.max(currTime - startTime,longestSchedulingTime.get()));
+<Line#94>    }
+<Line#95>);
+<Line#96>    metricsRegistry.registerMeter("nimbus:num-launched").mark();
+<Line#97>    timer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.STORM_CLUSTER_METRICS_CONSUMER_PUBLISH_INTERVAL_SECS)),() -> {
+<Line#98>      try {
+<Line#99>        if (isLeader()) {
+<Line#100>          sendClusterMetricsToExecutors();
+<Line#101>        }
+<Line#102>      }
+<Line#103> catch (      Exception e) {
+<Line#104>        throw new RuntimeException(e);
+<Line#105>      }
+<Line#106>    }
+<Line#107>);
+<Line#108>    timer.scheduleRecurring(5,5,clusterMetricSet);
+<Line#109>  }
+<Line#110> catch (  Exception e) {
+<Line#111>    if (Utils.exceptionCauseIsInstanceOf(InterruptedException.class,e)) {
+<Line#112>      throw e;
+<Line#113>    }
+<Line#114>    if (Utils.exceptionCauseIsInstanceOf(InterruptedIOException.class,e)) {
+<Line#115>      throw e;
+<Line#116>    }
+<Line#117>    LOG.error("Error on initialization of nimbus",e);
+<Line#118>    Utils.exitProcess(13,"Error on initialization of nimbus");
+<Line#119>  }
+<Line#120>}
+Label: <Line#117> LOG.error("Error on initialization of nimbus",e)
+

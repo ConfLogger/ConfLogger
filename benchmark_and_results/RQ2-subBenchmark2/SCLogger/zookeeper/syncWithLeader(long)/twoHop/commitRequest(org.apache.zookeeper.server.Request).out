@@ -1,0 +1,10 @@
+/** 
+ * Unlike a Follower, which sees a full request only during the PROPOSAL phase, Observers get all the data required with the INFORM packet. This method commits a request that has been unpacked by from an INFORM received from the Leader.
+ * @param request
+ */
+public void commitRequest(Request request){
+  if (syncRequestProcessorEnabled) {
+    syncProcessor.processRequest(request);
+  }
+  commitProcessor.commit(request);
+}

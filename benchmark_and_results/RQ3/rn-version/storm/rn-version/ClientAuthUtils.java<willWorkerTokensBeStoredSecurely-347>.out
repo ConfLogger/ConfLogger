@@ -1,0 +1,45 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ClientAuthUtils.java	methodSinagture:	org.apache.storm.security.auth.ClientAuthUtils.willWorkerTokensBeStoredSecurely(Ljava/util/Map;)Z	methodLines:	347:355
+blockLines:	351:-1
+paras:	null
+TaintedStat:	NORMAL willWorkerTokensBeStoredSecurely:conditional branch(eq, to iindex=20) 8,6 Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, willWorkerTokensBeStoredSecurely(Ljava/util/Map;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, willWorkerTokensBeStoredSecurely(Ljava/util/Map;)Z > Context: Everywhere[2]5 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,3 @3 exception:4
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, willWorkerTokensBeStoredSecurely(Ljava/util/Map;)Z > Context: Everywhere[2]5 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,3 @3 exception:4
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, willWorkerTokensBeStoredSecurely(Ljava/util/Map;)Z > Context: Everywhere[4]8 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getBoolean(Ljava/lang/Object;Z)Z > 5,6 @9 exception:7 v5
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getBoolean(Ljava/lang/Object;Z)Z > Context: Everywhere v1
+NORMAL getBoolean:conditional branch(ne, to iindex=5) 4,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getBoolean(Ljava/lang/Object;Z)Z > Context: Everywhere
+NORMAL getBoolean:return 2 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getBoolean(Ljava/lang/Object;Z)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getBoolean(Ljava/lang/Object;Z)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, willWorkerTokensBeStoredSecurely(Ljava/util/Map;)Z > Context: Everywhere[4]8 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getBoolean(Ljava/lang/Object;Z)Z > 5,6 @9 exception:7
+NORMAL willWorkerTokensBeStoredSecurely:conditional branch(eq, to iindex=20) 8,6 Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, willWorkerTokensBeStoredSecurely(Ljava/util/Map;)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private static boolean willWorkerTokensBeStoredSecurely(Map<String, Object> conf) {
+        boolean overrideZkAuth = ObjectReader.getBoolean(conf.get("TESTING.ONLY.ENABLE.INSECURE.WORKER.TOKENS"), false);
+        if (Utils.isZkAuthenticationConfiguredStormServer(conf)) {
+            return true;
+        } else if (overrideZkAuth) {
+            LOG.error("\n\n\t\tYOU HAVE ENABLED INSECURE WORKER TOKENS.  IF THIS IS NOT A UNIT TEST PLEASE STOP NOW!!!\n\n");
+            return true;
+        }
+        return false;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, areWorkerTokensEnabledServer(Lorg/apache/storm/security/auth/ThriftConnectionType;Ljava/util/Map;)Z > Context: Everywhere, blocks=[BB[SSA:4..5]3 - org.apache.storm.security.auth.ClientAuthUtils.areWorkerTokensEnabledServer(Lorg/apache/storm/security/auth/ThriftConnectionType;Ljava/util/Map;)Z, BB[SSA:2..3]2 - org.apache.storm.security.auth.ClientAuthUtils.areWorkerTokensEnabledServer(Lorg/apache/storm/security/auth/ThriftConnectionType;Ljava/util/Map;)Z, BB[SSA:6..7]4 - org.apache.storm.security.auth.ClientAuthUtils.areWorkerTokensEnabledServer(Lorg/apache/storm/security/auth/ThriftConnectionType;Ljava/util/Map;)Z, BB[SSA:-1..-2]8 - org.apache.storm.security.auth.ClientAuthUtils.areWorkerTokensEnabledServer(Lorg/apache/storm/security/auth/ThriftConnectionType;Ljava/util/Map;)Z], numberOfBasicBlocks=4, firstLineNumber=378, lastLineNumber=378, firstMethodNumber=377, lastMethodNumber=378, isFirstLineValid=true, methodSrcCode=
+    public static boolean areWorkerTokensEnabledServer(ThriftConnectionType connectionType, Map<String, Object> conf) {
+        return connectionType.getWtType() != null && willWorkerTokensBeStoredSecurely(conf);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, areWorkerTokensEnabledServer(Lorg/apache/storm/security/auth/ThriftServer;Ljava/util/Map;)Z > Context: Everywhere, blocks=[BB[SSA:4..5]3 - org.apache.storm.security.auth.ClientAuthUtils.areWorkerTokensEnabledServer(Lorg/apache/storm/security/auth/ThriftServer;Ljava/util/Map;)Z, BB[SSA:2..3]2 - org.apache.storm.security.auth.ClientAuthUtils.areWorkerTokensEnabledServer(Lorg/apache/storm/security/auth/ThriftServer;Ljava/util/Map;)Z, BB[SSA:6..7]4 - org.apache.storm.security.auth.ClientAuthUtils.areWorkerTokensEnabledServer(Lorg/apache/storm/security/auth/ThriftServer;Ljava/util/Map;)Z, BB[SSA:-1..-2]8 - org.apache.storm.security.auth.ClientAuthUtils.areWorkerTokensEnabledServer(Lorg/apache/storm/security/auth/ThriftServer;Ljava/util/Map;)Z], numberOfBasicBlocks=4, firstLineNumber=367, lastLineNumber=367, firstMethodNumber=366, lastMethodNumber=367, isFirstLineValid=true, methodSrcCode=
+    public static boolean areWorkerTokensEnabledServer(ThriftServer server, Map<String, Object> conf) {
+        return server.supportsWorkerTokens() && willWorkerTokensBeStoredSecurely(conf);
+    }
+}

@@ -1,0 +1,7 @@
+private void setLogAggCheckIntervalMsecs(long retentionSecs){
+  Configuration conf=getConfig();
+  checkIntervalMsecs=1000 * conf.getLong(YarnConfiguration.LOG_AGGREGATION_RETAIN_CHECK_INTERVAL_SECONDS,YarnConfiguration.DEFAULT_LOG_AGGREGATION_RETAIN_CHECK_INTERVAL_SECONDS);
+  if (checkIntervalMsecs <= 0) {
+    checkIntervalMsecs=(retentionSecs * 1000) / 10;
+  }
+}

@@ -1,0 +1,7 @@
+/** 
+ * Explicitly returns system dependent current wall time.
+ * @return Current time in msec.
+ */
+public static long currentWallTime(){
+  return System.currentTimeMillis();
+}

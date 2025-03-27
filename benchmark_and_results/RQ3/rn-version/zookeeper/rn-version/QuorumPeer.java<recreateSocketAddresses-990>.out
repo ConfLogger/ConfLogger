@@ -1,0 +1,50 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	QuorumPeer.java	methodSinagture:	org.apache.zookeeper.server.quorum.QuorumPeer.recreateSocketAddresses(J)V	methodLines:	990:1008
+blockLines:	994:-1
+paras:	null
+TaintedStat:	NORMAL recreateSocketAddresses:conditional branch(eq, to iindex=32) 13,6 Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, recreateSocketAddresses(J)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, recreateSocketAddresses(J)V > Context: Everywhere[10]12 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,10 @19 exception:11
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, recreateSocketAddresses(J)V > Context: Everywhere[10]12 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,10 @19 exception:11
+NORMAL recreateSocketAddresses:13 = checkcast <Application,Lorg/apache/zookeeper/server/quorum/QuorumPeer$QuorumServer>12 <Application,Lorg/apache/zookeeper/server/quorum/QuorumPeer$QuorumServer> Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, recreateSocketAddresses(J)V > Context: Everywhere
+NORMAL recreateSocketAddresses:conditional branch(eq, to iindex=32) 13,6 Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, recreateSocketAddresses(J)V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	QuorumPeer.java	methodSinagture:	org.apache.zookeeper.server.quorum.QuorumPeer.recreateSocketAddresses(J)V	methodLines:	990:1008
+blockLines:	1004:-1
+paras:	null
+TaintedStat:	NORMAL recreateSocketAddresses:conditional branch(eq, to iindex=50) 31,6 Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, recreateSocketAddresses(J)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, recreateSocketAddresses(J)V > Context: Everywhere[42]30 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 26,28 @86 exception:29
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, recreateSocketAddresses(J)V > Context: Everywhere[42]30 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 26,28 @86 exception:29
+NORMAL recreateSocketAddresses:31 = checkcast <Application,Lorg/apache/zookeeper/server/quorum/QuorumPeer$QuorumServer>30 <Application,Lorg/apache/zookeeper/server/quorum/QuorumPeer$QuorumServer> Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, recreateSocketAddresses(J)V > Context: Everywhere
+NORMAL recreateSocketAddresses:conditional branch(eq, to iindex=50) 31,6 Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, recreateSocketAddresses(J)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public void recreateSocketAddresses(long id) {
+        QuorumVerifier qv = getQuorumVerifier();
+        if (qv != null) {
+            QuorumServer qs = qv.getAllMembers().get(id);
+            if (qs != null) {
+                qs.recreateSocketAddresses();
+                if (id == getMyId()) {
+                    setAddrs(qs.addr, qs.electionAddr, qs.clientAddr);
+                }
+            }
+        }
+        qv = getLastSeenQuorumVerifier();
+        if (qv != null) {
+            QuorumServer qs = qv.getAllMembers().get(id);
+            if (qs != null) {
+                qs.recreateSocketAddresses();
+            }
+        }
+    }
+
+
+
+====================ctx:=======================

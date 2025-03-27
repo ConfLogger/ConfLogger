@@ -1,0 +1,7 @@
+private MRClientProtocol checkAndGetHSProxy(ApplicationReport applicationReport,JobState state){
+  if (null == historyServerProxy) {
+    LOG.warn("Job History Server is not configured.");
+    return getNotRunningJob(applicationReport,state);
+  }
+  return historyServerProxy;
+}

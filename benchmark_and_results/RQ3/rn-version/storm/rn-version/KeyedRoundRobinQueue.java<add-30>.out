@@ -1,0 +1,33 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	KeyedRoundRobinQueue.java	methodSinagture:	org.apache.storm.utils.KeyedRoundRobinQueue.add(Ljava/lang/Object;Ljava/lang/Object;)V	methodLines:	30:41
+blockLines:	33:-1
+paras:	null
+TaintedStat:	NORMAL add:conditional branch(ne, to iindex=29) 9,10 Node: < Application, Lorg/apache/storm/utils/KeyedRoundRobinQueue, add(Ljava/lang/Object;Ljava/lang/Object;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/KeyedRoundRobinQueue, add(Ljava/lang/Object;Ljava/lang/Object;)V > Context: Everywhere[8]8 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 6,2 @12 exception:7
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/KeyedRoundRobinQueue, add(Ljava/lang/Object;Ljava/lang/Object;)V > Context: Everywhere[8]8 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 6,2 @12 exception:7
+NORMAL add:9 = checkcast <Application,Ljava/util/Queue>8 <Application,Ljava/util/Queue> Node: < Application, Lorg/apache/storm/utils/KeyedRoundRobinQueue, add(Ljava/lang/Object;Ljava/lang/Object;)V > Context: Everywhere
+NORMAL add:conditional branch(ne, to iindex=29) 9,10 Node: < Application, Lorg/apache/storm/utils/KeyedRoundRobinQueue, add(Ljava/lang/Object;Ljava/lang/Object;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public void add(Object key, V val) {
+        synchronized (lock) {
+            Queue<V> queue = queues.get(key);
+            if (queue == null) {
+                queue = new LinkedList<>();
+                queues.put(key, queue);
+                keyOrder.add(key);
+            }
+            queue.add(val);
+        }
+        size.release();
+    }
+
+
+
+====================ctx:=======================

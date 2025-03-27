@@ -1,0 +1,174 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>private static double parseDecayFactor(String ns, Configuration conf) {
+<Line#1>double factor = conf.getDouble(ns + "." +
+<Line#2>IPC_FCQ_DECAYSCHEDULER_FACTOR_KEY, 0.0);
+<Line#3>if (factor == 0.0) {
+<Line#4>factor = conf.getDouble(ns + "." +
+<Line#5>IPC_SCHEDULER_DECAYSCHEDULER_FACTOR_KEY,
+<Line#6>IPC_SCHEDULER_DECAYSCHEDULER_FACTOR_DEFAULT);
+<Line#7>} else if ((factor > 0.0) && (factor < 1)) {
+<Line#8>;
+<Line#9>}
+<Line#10>if (factor <= 0 || factor >= 1) {
+<Line#11>throw new IllegalArgumentException("Decay Factor " +
+<Line#12>"must be between 0 and 1");
+<Line#13>}
+<Line#14>
+<Line#15>return factor;
+<Line#16>}
+
+Example 1:
+<Line#1>{
+<Line#2>  reset();
+<Line#3>  if (conf == null) {
+<Line#4>    return;
+<Line#5>  }
+<Line#6>  setLevel(ZlibFactory.getCompressionLevel(conf).compressionLevel());
+<Line#7>  final ZlibCompressor.CompressionStrategy strategy=ZlibFactory.getCompressionStrategy(conf);
+<Line#8>  try {
+<Line#9>    setStrategy(strategy.compressionStrategy());
+<Line#10>  }
+<Line#11> catch (  IllegalArgumentException ill) {
+<Line#12>    LOG.warn(strategy + " not supported by BuiltInZlibDeflater.");
+<Line#13>    setStrategy(DEFAULT_STRATEGY);
+<Line#14>  }
+<Line#15>  if (LOG.isDebugEnabled()) {
+<Line#16>    LOG.debug("Reinit compressor with new compression configuration");
+<Line#17>  }
+<Line#18>}
+Label: <Line#12> LOG.warn(strategy + " not supported by BuiltInZlibDeflater.")
+
+Example 2:
+<Line#1>{
+<Line#2>  reset();
+<Line#3>  if (conf == null) {
+<Line#4>    return;
+<Line#5>  }
+<Line#6>  setLevel(ZlibFactory.getCompressionLevel(conf).compressionLevel());
+<Line#7>  final ZlibCompressor.CompressionStrategy strategy=ZlibFactory.getCompressionStrategy(conf);
+<Line#8>  try {
+<Line#9>    setStrategy(strategy.compressionStrategy());
+<Line#10>  }
+<Line#11> catch (  IllegalArgumentException ill) {
+<Line#12>    LOG.warn(strategy + " not supported by BuiltInZlibDeflater.");
+<Line#13>    setStrategy(DEFAULT_STRATEGY);
+<Line#14>  }
+<Line#15>  if (LOG.isDebugEnabled()) {
+<Line#16>    LOG.debug("Reinit compressor with new compression configuration");
+<Line#17>  }
+<Line#18>}
+Label: <Line#16> LOG.debug("Reinit compressor with new compression configuration")
+
+Example 3:
+<Line#1>{
+<Line#2>  finished();
+<Line#3>  if (logAtInfo) {
+<Line#4>    log.info("{}",this);
+<Line#5>  }
+<Line#6> else {
+<Line#7>    if (log.isDebugEnabled()) {
+<Line#8>      log.debug("{}",this);
+<Line#9>    }
+<Line#10>  }
+<Line#11>}
+Label: <Line#4> log.info("{}",this)
+
+Example 4:
+<Line#1>{
+<Line#2>  finished();
+<Line#3>  if (logAtInfo) {
+<Line#4>    log.info("{}",this);
+<Line#5>  }
+<Line#6> else {
+<Line#7>    if (log.isDebugEnabled()) {
+<Line#8>      log.debug("{}",this);
+<Line#9>    }
+<Line#10>  }
+<Line#11>}
+Label: <Line#8> log.debug("{}",this)
+
+Example 5:
+<Line#1>{
+<Line#2>  title("Kerberos Diagnostics scan at %s",new Date(System.currentTimeMillis()));
+<Line#3>  println("Hostname = %s",InetAddress.getLocalHost().getCanonicalHostName());
+<Line#4>  println("%s = %d",ARG_KEYLEN,minKeyLength);
+<Line#5>  println("%s = %s",ARG_KEYTAB,keytab);
+<Line#6>  println("%s = %s",ARG_PRINCIPAL,principal);
+<Line#7>  println("%s = %s",ARG_VERIFYSHORTNAME,checkShortName);
+<Line#8>  validateKeyLength();
+<Line#9>  println("JVM Kerberos Login Module = %s",getKrb5LoginModuleName());
+<Line#10>  title("Core System Properties");
+<Line#11>  for (  String prop : new String[]{"user.name","java.version","java.vendor",JAVA_SECURITY_KRB5_CONF,JAVA_SECURITY_KRB5_REALM,JAVA_SECURITY_KRB5_KDC_ADDRESS,SUN_SECURITY_KRB5_DEBUG,SUN_SECURITY_SPNEGO_DEBUG,SUN_SECURITY_JAAS_FILE}) {
+<Line#12>    printSysprop(prop);
+<Line#13>  }
+<Line#14>  endln();
+<Line#15>  title("All System Properties");
+<Line#16>  ArrayList<String> propList=new ArrayList<>(System.getProperties().stringPropertyNames());
+<Line#17>  Collections.sort(propList,String.CASE_INSENSITIVE_ORDER);
+<Line#18>  for (  String s : propList) {
+<Line#19>    printSysprop(s);
+<Line#20>  }
+<Line#21>  endln();
+<Line#22>  title("Environment Variables");
+<Line#23>  for (  String env : new String[]{HADOOP_JAAS_DEBUG,KRB5_CCNAME,KRB5_CONFIG,HADOOP_USER_NAME,HADOOP_PROXY_USER,HADOOP_TOKEN_FILE_LOCATION,"HADOOP_SECURE_LOG","HADOOP_OPTS","HADOOP_CLIENT_OPTS"}) {
+<Line#24>    printEnv(env);
+<Line#25>  }
+<Line#26>  endln();
+<Line#27>  title("Configuration Options");
+<Line#28>  for (  String prop : new String[]{KERBEROS_KINIT_COMMAND,HADOOP_SECURITY_AUTHENTICATION,HADOOP_SECURITY_AUTHORIZATION,"hadoop.kerberos.min.seconds.before.relogin","hadoop.security.dns.interface","hadoop.security.dns.nameserver",HADOOP_RPC_PROTECTION,HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS,HADOOP_SECURITY_CRYPTO_CODEC_CLASSES_KEY_PREFIX,HADOOP_SECURITY_GROUP_MAPPING,"hadoop.security.impersonation.provider.class",DFS_DATA_TRANSFER_PROTECTION,DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS}) {
+<Line#29>    printConfOpt(prop);
+<Line#30>  }
+<Line#31>  Configuration conf=getConf();
+<Line#32>  if (isSimpleAuthentication(conf)) {
+<Line#33>    println(HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#34>    failif(securityRequired,CAT_CONFIG,HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#35>    LOG.warn("Security is not enabled for the Hadoop cluster");
+<Line#36>  }
+<Line#37> else {
+<Line#38>    if (isSimpleAuthentication(new Configuration())) {
+<Line#39>      LOG.warn("The default cluster security is insecure");
+<Line#40>      failif(securityRequired,CAT_CONFIG,HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#41>    }
+<Line#42>  }
+<Line#43>  boolean krb5Debug=getAndSet(SUN_SECURITY_KRB5_DEBUG);
+<Line#44>  boolean spnegoDebug=getAndSet(SUN_SECURITY_SPNEGO_DEBUG);
+<Line#45>  try {
+<Line#46>    UserGroupInformation.setConfiguration(conf);
+<Line#47>    validateHadoopTokenFiles(conf);
+<Line#48>    validateKrb5File();
+<Line#49>    printDefaultRealm();
+<Line#50>    validateSasl(HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS);
+<Line#51>    if (conf.get(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS) != null) {
+<Line#52>      validateSasl(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS);
+<Line#53>    }
+<Line#54>    validateKinitExecutable();
+<Line#55>    validateJAAS(jaas);
+<Line#56>    validateNTPConf();
+<Line#57>    if (checkShortName) {
+<Line#58>      validateShortName();
+<Line#59>    }
+<Line#60>    if (!nologin) {
+<Line#61>      title("Logging in");
+<Line#62>      if (keytab != null) {
+<Line#63>        dumpKeytab(keytab);
+<Line#64>        loginFromKeytab();
+<Line#65>      }
+<Line#66> else {
+<Line#67>        UserGroupInformation loginUser=getLoginUser();
+<Line#68>        dumpUGI("Log in user",loginUser);
+<Line#69>        validateUGI("Login user",loginUser);
+<Line#70>        println("Ticket based login: %b",isLoginTicketBased());
+<Line#71>        println("Keytab based login: %b",isLoginKeytabBased());
+<Line#72>      }
+<Line#73>    }
+<Line#74>    return true;
+<Line#75>  }
+<Line#76>  finally {
+<Line#77>    System.setProperty(SUN_SECURITY_KRB5_DEBUG,Boolean.toString(krb5Debug));
+<Line#78>    System.setProperty(SUN_SECURITY_SPNEGO_DEBUG,Boolean.toString(spnegoDebug));
+<Line#79>  }
+<Line#80>}
+Label: <Line#35> LOG.warn("Security is not enabled for the Hadoop cluster")
+

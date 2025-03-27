@@ -1,0 +1,145 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> protected void setupTicks(boolean isSpout) {
+<Line#1> final Integer tickTimeSecs = ObjectReader.getInt(topoConf.get(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS), null);
+<Line#2> if (tickTimeSecs != null) {
+<Line#3> boolean enableMessageTimeout = (Boolean) topoConf.get(Config.TOPOLOGY_ENABLE_MESSAGE_TIMEOUTS);
+<Line#4> boolean isAcker = Acker.ACKER_COMPONENT_ID.equals(componentId);
+<Line#5> if ((!isAcker && Utils.isSystemId(componentId))
+<Line#6> || (!enableMessageTimeout && isSpout)
+<Line#7> || (!enableMessageTimeout && isAcker)) {
+<Line#8> } else {
+<Line#9> StormTimer timerTask = workerData.getUserTimer();
+<Line#10> timerTask.scheduleRecurring(tickTimeSecs, tickTimeSecs,
+<Line#11> () -> {
+<Line#12> TupleImpl tuple = new TupleImpl(workerTopologyContext, new Values(tickTimeSecs),
+<Line#13> Constants.SYSTEM_COMPONENT_ID,
+<Line#14> (int) Constants.SYSTEM_TASK_ID,
+<Line#15> Constants.SYSTEM_TICK_STREAM_ID);
+<Line#16> AddressedTuple tickTuple = new AddressedTuple(AddressedTuple.BROADCAST_DEST, tuple);
+<Line#17> try {
+<Line#18> receiveQueue.publish(tickTuple);
+<Line#19> receiveQueue.flush(); // avoid buffering
+<Line#20> } catch (InterruptedException e) {
+<Line#21> 
+<Line#22> Thread.currentThread().interrupt();
+<Line#23> return;
+<Line#24> }
+<Line#25> }
+<Line#26> );
+<Line#27> }
+<Line#28> }
+<Line#29> }
+
+Related Context:
+Method A:
+<Line#0> public static boolean isSystemId(String id){
+<Line#1>   return id.startsWith("__");
+<Line#2> }
+<Line#3> 
+Method B:
+<Line#0> public static Integer getInt(Object o){
+<Line#1>   Integer result=getInt(o,null);
+<Line#2>   if (null == result) {
+<Line#3>     throw new IllegalArgumentException("Don't know how to convert null to int");
+<Line#4>   }
+<Line#5>   return result;
+<Line#6> }
+<Line#7> 
+
+Relevant Logging Patterns:
+Example 1:
+File: storm__preCommit-168__.json
+Code:
+<Line#1>{
+<Line#2>  if (!isStateInitialized() || (!isRecovering() && prePrepared)) {
+<Line#3>    LOG.debug("Commit streamState, txid {}",txid);
+<Line#4>    streamState.commit(txid);
+<Line#5>  }
+<Line#6> else {
+<Line#7>    LOG.debug("Still recovering, ignoring preCommit and not committing streamState.");
+<Line#8>  }
+<Line#9>}
+Log: <Line#3>:# LOG.debug("Commit streamState, txid {}",txid):#
+
+Example 2:
+File: storm__preCommit-168__.json
+Code:
+<Line#1>{
+<Line#2>  if (!isStateInitialized() || (!isRecovering() && prePrepared)) {
+<Line#3>    LOG.debug("Commit streamState, txid {}",txid);
+<Line#4>    streamState.commit(txid);
+<Line#5>  }
+<Line#6> else {
+<Line#7>    LOG.debug("Still recovering, ignoring preCommit and not committing streamState.");
+<Line#8>  }
+<Line#9>}
+Log: <Line#7>:# LOG.debug("Still recovering, ignoring preCommit and not committing streamState."):#
+
+Example 3:
+File: storm__onRemoval-224__.json
+Code:
+<Line#1>{
+<Line#2>  Objects.requireNonNull(pid,"Null partition id");
+<Line#3>  Objects.requireNonNull(p,"Null window partition");
+<Line#4>  LOG.debug("onRemoval for id '{}', WindowPartition '{}'",pid,p);
+<Line#5>  try {
+<Line#6>    windowPartitionsLock.lock(pid);
+<Line#7>    if (p.isEmpty() && pid != latestPartitionId) {
+<Line#8>      if (removalCause != WindowPartitionCache.RemovalCause.EXPLICIT) {
+<Line#9>        deletePartition(pid);
+<Line#10>        windowPartitionsState.delete(pid);
+<Line#11>      }
+<Line#12>    }
+<Line#13> else     if (p.isModified()) {
+<Line#14>      windowPartitionsState.put(pid,p);
+<Line#15>    }
+<Line#16> else {
+<Line#17>      LOG.debug("WindowPartition '{}' is not modified",pid);
+<Line#18>    }
+<Line#19>  }
+<Line#20>  finally {
+<Line#21>    windowPartitionsLock.unlock(pid);
+<Line#22>  }
+<Line#23>}
+Log: <Line#4>:# LOG.debug("onRemoval for id '{}', WindowPartition '{}'",pid,p):#
+
+Example 4:
+File: storm__onRemoval-224__.json
+Code:
+<Line#1>{
+<Line#2>  Objects.requireNonNull(pid,"Null partition id");
+<Line#3>  Objects.requireNonNull(p,"Null window partition");
+<Line#4>  LOG.debug("onRemoval for id '{}', WindowPartition '{}'",pid,p);
+<Line#5>  try {
+<Line#6>    windowPartitionsLock.lock(pid);
+<Line#7>    if (p.isEmpty() && pid != latestPartitionId) {
+<Line#8>      if (removalCause != WindowPartitionCache.RemovalCause.EXPLICIT) {
+<Line#9>        deletePartition(pid);
+<Line#10>        windowPartitionsState.delete(pid);
+<Line#11>      }
+<Line#12>    }
+<Line#13> else     if (p.isModified()) {
+<Line#14>      windowPartitionsState.put(pid,p);
+<Line#15>    }
+<Line#16> else {
+<Line#17>      LOG.debug("WindowPartition '{}' is not modified",pid);
+<Line#18>    }
+<Line#19>  }
+<Line#20>  finally {
+<Line#21>    windowPartitionsLock.unlock(pid);
+<Line#22>  }
+<Line#23>}
+Log: <Line#17>:# LOG.debug("WindowPartition '{}' is not modified",pid):#
+
+Example 5:
+File: storm__success-168__.json
+Code:
+<Line#1>{
+<Line#2>  for (  EmitterPartitionState state : partitionStates.values()) {
+<Line#3>    state.rotatingState.cleanupBefore(tx.getTransactionId());
+<Line#4>  }
+<Line#5>  LOG.debug("Success transaction {}. [{}]",tx,this);
+<Line#6>}
+Log: <Line#5>:# LOG.debug("Success transaction {}. [{}]",tx,this):#

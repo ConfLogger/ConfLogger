@@ -1,0 +1,130 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Chain.java	methodSinagture:	org.apache.hadoop.mapreduce.lib.chain.Chain.checkReducerAlreadySet(ZLorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Z)V	methodLines:	651:665
+blockLines:	654:-1
+paras:	null
+TaintedStat:	NORMAL checkReducerAlreadySet:conditional branch(ne, to iindex=42) 31,16 Node: < Application, Lorg/apache/hadoop/mapreduce/lib/chain/Chain, checkReducerAlreadySet(ZLorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Z)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/mapreduce/lib/chain/Chain, checkReducerAlreadySet(ZLorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Z)V > Context: Everywhere[16]31 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getClass(Ljava/lang/String;Ljava/lang/Class;)Ljava/lang/Class; > 2,29,16 @29 exception:30
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/mapreduce/lib/chain/Chain, checkReducerAlreadySet(ZLorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Z)V > Context: Everywhere[16]31 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getClass(Ljava/lang/String;Ljava/lang/Class;)Ljava/lang/Class; > 2,29,16 @29 exception:30
+NORMAL checkReducerAlreadySet:conditional branch(ne, to iindex=42) 31,16 Node: < Application, Lorg/apache/hadoop/mapreduce/lib/chain/Chain, checkReducerAlreadySet(ZLorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Z)V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	Chain.java	methodSinagture:	org.apache.hadoop.mapreduce.lib.chain.Chain.checkReducerAlreadySet(ZLorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Z)V	methodLines:	651:665
+blockLines:	660:-1
+paras:	null
+TaintedStat:	NORMAL checkReducerAlreadySet:conditional branch(eq, to iindex=42) 18,16 Node: < Application, Lorg/apache/hadoop/mapreduce/lib/chain/Chain, checkReducerAlreadySet(ZLorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Z)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/mapreduce/lib/chain/Chain, checkReducerAlreadySet(ZLorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Z)V > Context: Everywhere[34]18 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getClass(Ljava/lang/String;Ljava/lang/Class;)Ljava/lang/Class; > 2,15,16 @66 exception:17
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/mapreduce/lib/chain/Chain, checkReducerAlreadySet(ZLorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Z)V > Context: Everywhere[34]18 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getClass(Ljava/lang/String;Ljava/lang/Class;)Ljava/lang/Class; > 2,15,16 @66 exception:17
+NORMAL checkReducerAlreadySet:conditional branch(eq, to iindex=42) 18,16 Node: < Application, Lorg/apache/hadoop/mapreduce/lib/chain/Chain, checkReducerAlreadySet(ZLorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Z)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+      Configuration jobConf, String prefix, boolean shouldSet) {
+    if (!isMap) {
+      if (shouldSet) {
+        if (jobConf.getClass(prefix + CHAIN_REDUCER_CLASS, null) == null) {
+          throw new IllegalStateException(
+              "A Mapper can be added to the chain only after the Reducer has "
+                  + "been set");
+        }
+      } else {
+        if (jobConf.getClass(prefix + CHAIN_REDUCER_CLASS, null) != null) {
+          throw new IllegalStateException("Reducer has been already set");
+        }
+      }
+    }
+  }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/mapreduce/lib/chain/Chain, addMapper(ZLorg/apache/hadoop/mapreduce/Job;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere, blocks=[BB[SSA:5..10]3 - org.apache.hadoop.mapreduce.lib.chain.Chain.addMapper(ZLorg/apache/hadoop/mapreduce/Job;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:2..4]2 - org.apache.hadoop.mapreduce.lib.chain.Chain.addMapper(ZLorg/apache/hadoop/mapreduce/Job;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:11..13]4 - org.apache.hadoop.mapreduce.lib.chain.Chain.addMapper(ZLorg/apache/hadoop/mapreduce/Job;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:-1..-2]16 - org.apache.hadoop.mapreduce.lib.chain.Chain.addMapper(ZLorg/apache/hadoop/mapreduce/Job;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Lorg/apache/hadoop/conf/Configuration;)V], numberOfBasicBlocks=4, firstLineNumber=632, lastLineNumber=639, firstMethodNumber=631, lastMethodNumber=647, isFirstLineValid=true, methodSrcCode=
+      Class<?> outputValueClass, Configuration mapperConf) {
+    String prefix = getPrefix(isMap);
+    Configuration jobConf = job.getConfiguration();
+
+    // if a reducer chain check the Reducer has been already set
+    checkReducerAlreadySet(isMap, jobConf, prefix, true);
+
+    // set the mapper class
+    int index = getIndex(jobConf, prefix);
+    jobConf.setClass(prefix + CHAIN_MAPPER_CLASS + index, klass, Mapper.class);
+
+    validateKeyValueTypes(isMap, jobConf, inputKeyClass, inputValueClass,
+        outputKeyClass, outputValueClass, index, prefix);
+
+    setMapperConf(isMap, jobConf, inputKeyClass, inputValueClass,
+        outputKeyClass, outputValueClass, mapperConf, index, prefix);
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/mapred/lib/Chain, addMapper(ZLorg/apache/hadoop/mapred/JobConf;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;ZLorg/apache/hadoop/mapred/JobConf;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=94, lastMethodNumber=119, isFirstLineValid=true, methodSrcCode=
+                           boolean byValue, JobConf mapperConf) {
+    String prefix = getPrefix(isMap);
+
+    // if a reducer chain check the Reducer has been already set
+    checkReducerAlreadySet(isMap, jobConf, prefix, true);
+	    
+    // set the mapper class
+    int index = getIndex(jobConf, prefix);
+    jobConf.setClass(prefix + CHAIN_MAPPER_CLASS + index, klass, Mapper.class);
+	    
+    validateKeyValueTypes(isMap, jobConf, inputKeyClass, inputValueClass,
+      outputKeyClass, outputValueClass, index, prefix);
+	    
+    // if the Mapper does not have a private JobConf create an empty one
+    if (mapperConf == null) {
+    // using a JobConf without defaults to make it lightweight.
+    // still the chain JobConf may have all defaults and this conf is
+    // overlapped to the chain JobConf one.
+      mapperConf = new JobConf(true);
+    }
+    // store in the private mapper conf if it works by value or by reference
+    mapperConf.setBoolean(MAPPER_BY_VALUE, byValue);
+    
+    setMapperConf(isMap, jobConf, inputKeyClass, inputValueClass,
+	      outputKeyClass, outputValueClass, mapperConf, index, prefix);
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/mapred/lib/Chain, setReducer(Lorg/apache/hadoop/mapred/JobConf;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;ZLorg/apache/hadoop/mapred/JobConf;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=145, lastMethodNumber=165, isFirstLineValid=true, methodSrcCode=
+                          boolean byValue, JobConf reducerConf) {
+    String prefix = getPrefix(false);
+    checkReducerAlreadySet(false, jobConf, prefix, false);
+
+    jobConf.setClass(prefix + CHAIN_REDUCER_CLASS, klass, Reducer.class);
+    
+    // if the Reducer does not have a private JobConf create an empty one
+    if (reducerConf == null) {
+      // using a JobConf without defaults to make it lightweight.
+      // still the chain JobConf may have all defaults and this conf is
+      // overlapped to the chain JobConf one.
+      reducerConf = new JobConf(false);
+    }
+
+    // store in the private reducer conf the input/output classes of the reducer
+    // and if it works by value or by reference
+    reducerConf.setBoolean(REDUCER_BY_VALUE, byValue);
+
+    setReducerConf(jobConf, inputKeyClass, inputValueClass, outputKeyClass,
+      outputValueClass, reducerConf, prefix);
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/mapreduce/lib/chain/Chain, setReducer(Lorg/apache/hadoop/mapreduce/Job;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere, blocks=[BB[SSA:5..10]3 - org.apache.hadoop.mapreduce.lib.chain.Chain.setReducer(Lorg/apache/hadoop/mapreduce/Job;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:2..4]2 - org.apache.hadoop.mapreduce.lib.chain.Chain.setReducer(Lorg/apache/hadoop/mapreduce/Job;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:11..12]4 - org.apache.hadoop.mapreduce.lib.chain.Chain.setReducer(Lorg/apache/hadoop/mapreduce/Job;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Lorg/apache/hadoop/conf/Configuration;)V, BB[SSA:-1..-2]13 - org.apache.hadoop.mapreduce.lib.chain.Chain.setReducer(Lorg/apache/hadoop/mapreduce/Job;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Lorg/apache/hadoop/conf/Configuration;)V], numberOfBasicBlocks=4, firstLineNumber=768, lastLineNumber=772, firstMethodNumber=767, lastMethodNumber=776, isFirstLineValid=true, methodSrcCode=
+      Configuration reducerConf) {
+    String prefix = getPrefix(false);
+    Configuration jobConf = job.getConfiguration();
+    checkReducerAlreadySet(false, jobConf, prefix, false);
+
+    jobConf.setClass(prefix + CHAIN_REDUCER_CLASS, klass, Reducer.class);
+
+    setReducerConf(jobConf, inputKeyClass, inputValueClass, outputKeyClass,
+        outputValueClass, reducerConf, prefix);
+  }
+
+}

@@ -1,0 +1,842 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>protected void syncWithLeader(long newLeaderZxid) throws Exception {
+<Line#1>QuorumPacket ack = new QuorumPacket(Leader.ACK, 0, null, null);
+<Line#2>QuorumPacket qp = new QuorumPacket();
+<Line#3>long newEpoch = ZxidUtils.getEpochFromZxid(newLeaderZxid);
+<Line#4>
+<Line#5>QuorumVerifier newLeaderQV = null;
+<Line#6>
+<Line#7>// In the DIFF case we don't need to do a snapshot because the transactions will sync on top of any existing snapshot
+<Line#8>// For SNAP and TRUNC the snapshot is needed to save that history
+<Line#9>boolean snapshotNeeded = true;
+<Line#10>boolean syncSnapshot = false;
+<Line#11>readPacket(qp);
+<Line#12>Deque<Long> packetsCommitted = new ArrayDeque<>();
+<Line#13>Deque<PacketInFlight> packetsNotCommitted = new ArrayDeque<>();
+<Line#14>Deque<Request> requestsToAck = new ArrayDeque<>();
+<Line#15>
+<Line#16>synchronized (zk) {
+<Line#17>if (qp.getType() == Leader.DIFF) {
+<Line#18>LOG.info("Getting a diff from the leader 0x{}", Long.toHexString(qp.getZxid()));
+<Line#19>self.setSyncMode(QuorumPeer.SyncMode.DIFF);
+<Line#20>if (zk.shouldForceWriteInitialSnapshotAfterLeaderElection()) {
+<Line#21>LOG.info("Forcing a snapshot write as part of upgrading from an older Zookeeper. This should only happen while upgrading.");
+<Line#22>snapshotNeeded = true;
+<Line#23>syncSnapshot = true;
+<Line#24>} else {
+<Line#25>snapshotNeeded = false;
+<Line#26>}
+<Line#27>} else if (qp.getType() == Leader.SNAP) {
+<Line#28>self.setSyncMode(QuorumPeer.SyncMode.SNAP);
+<Line#29>LOG.info("Getting a snapshot from leader 0x{}", Long.toHexString(qp.getZxid()));
+<Line#30>// The leader is going to dump the database
+<Line#31>// db is clear as part of deserializeSnapshot()
+<Line#32>zk.getZKDatabase().deserializeSnapshot(leaderIs);
+<Line#33>// ZOOKEEPER-2819: overwrite config node content extracted
+<Line#34>// from leader snapshot with local config, to avoid potential
+<Line#35>// inconsistency of config node content during rolling restart.
+<Line#36>if (!self.isReconfigEnabled()) {
+<Line#37>LOG.debug("Reset config node content from local config after deserialization of snapshot.");
+<Line#38>zk.getZKDatabase().initConfigInZKDatabase(self.getQuorumVerifier());
+<Line#39>}
+<Line#40>String signature = leaderIs.readString("signature");
+<Line#41>if (!signature.equals("BenWasHere")) {
+<Line#42>LOG.error("Missing signature. Got {}", signature);
+<Line#43>throw new IOException("Missing signature");
+<Line#44>}
+<Line#45>zk.getZKDatabase().setlastProcessedZxid(qp.getZxid());
+<Line#46>
+<Line#47>// immediately persist the latest snapshot when there is txn log gap
+<Line#48>syncSnapshot = true;
+<Line#49>} else if (qp.getType() == Leader.TRUNC) {
+<Line#50>//we need to truncate the log to the lastzxid of the leader
+<Line#51>self.setSyncMode(QuorumPeer.SyncMode.TRUNC);
+<Line#52>LOG.warn("Truncating log to get in sync with the leader 0x{}", Long.toHexString(qp.getZxid()));
+<Line#53>boolean truncated = zk.getZKDatabase().truncateLog(qp.getZxid());
+<Line#54>if (!truncated) {
+<Line#55>// not able to truncate the log
+<Line#56>LOG.error("Not able to truncate the log 0x{}", Long.toHexString(qp.getZxid()));
+<Line#57>ServiceUtils.requestSystemExit(ExitCode.QUORUM_PACKET_ERROR.getValue());
+<Line#58>}
+<Line#59>zk.getZKDatabase().setlastProcessedZxid(qp.getZxid());
+<Line#60>
+<Line#61>} else {
+<Line#62>LOG.error("Got unexpected packet from leader: {}, exiting ... ", LearnerHandler.packetToString(qp));
+<Line#63>ServiceUtils.requestSystemExit(ExitCode.QUORUM_PACKET_ERROR.getValue());
+<Line#64>}
+<Line#65>zk.getZKDatabase().initConfigInZKDatabase(self.getQuorumVerifier());
+<Line#66>zk.createSessionTracker();
+<Line#67>
+<Line#68>long lastQueued = 0;
+<Line#69>
+<Line#70>// in Zab V1.0 (ZK 3.4+) we might take a snapshot when we get the NEWLEADER message, but in pre V1.0
+<Line#71>// we take the snapshot on the UPDATE message, since Zab V1.0 also gets the UPDATE (after the NEWLEADER)
+<Line#72>// we need to make sure that we don't take the snapshot twice.
+<Line#73>boolean isPreZAB1_0 = true;
+<Line#74>//If we are not going to take the snapshot be sure the transactions are not applied in memory
+<Line#75>// but written out to the transaction log
+<Line#76>boolean writeToTxnLog = !snapshotNeeded;
+<Line#77>TxnLogEntry logEntry;
+<Line#78>// we are now going to start getting transactions to apply followed by an UPTODATE
+<Line#79>outerLoop:
+<Line#80>while (self.isRunning()) {
+<Line#81>readPacket(qp);
+<Line#82>switch (qp.getType()) {
+<Line#83>case Leader.PROPOSAL:
+<Line#84>PacketInFlight pif = new PacketInFlight();
+<Line#85>logEntry = SerializeUtils.deserializeTxn(qp.getData());
+<Line#86>pif.hdr = logEntry.getHeader();
+<Line#87>pif.rec = logEntry.getTxn();
+<Line#88>pif.digest = logEntry.getDigest();
+<Line#89>if (pif.hdr.getZxid() != lastQueued + 1) {
+<Line#90>LOG.warn(
+<Line#91>"Got zxid 0x{} expected 0x{}",
+<Line#92>Long.toHexString(pif.hdr.getZxid()),
+<Line#93>Long.toHexString(lastQueued + 1));
+<Line#94>}
+<Line#95>lastQueued = pif.hdr.getZxid();
+<Line#96>
+<Line#97>if (pif.hdr.getType() == OpCode.reconfig) {
+<Line#98>SetDataTxn setDataTxn = (SetDataTxn) pif.rec;
+<Line#99>QuorumVerifier qv = self.configFromString(new String(setDataTxn.getData(), UTF_8));
+<Line#100>self.setLastSeenQuorumVerifier(qv, true);
+<Line#101>}
+<Line#102>
+<Line#103>packetsNotCommitted.add(pif);
+<Line#104>break;
+<Line#105>case Leader.COMMIT:
+<Line#106>case Leader.COMMITANDACTIVATE:
+<Line#107>pif = packetsNotCommitted.peekFirst();
+<Line#108>if (pif.hdr.getZxid() == qp.getZxid() && qp.getType() == Leader.COMMITANDACTIVATE) {
+<Line#109>QuorumVerifier qv = self.configFromString(new String(((SetDataTxn) pif.rec).getData(), UTF_8));
+<Line#110>boolean majorChange = self.processReconfig(
+<Line#111>qv,
+<Line#112>ByteBuffer.wrap(qp.getData()).getLong(), qp.getZxid(),
+<Line#113>true);
+<Line#114>if (majorChange) {
+<Line#115>throw new Exception("changes proposed in reconfig");
+<Line#116>}
+<Line#117>}
+<Line#118>if (!writeToTxnLog) {
+<Line#119>if (pif.hdr.getZxid() != qp.getZxid()) {
+<Line#120>LOG.warn(
+<Line#121>"Committing 0x{}, but next proposal is 0x{}",
+<Line#122>Long.toHexString(qp.getZxid()),
+<Line#123>Long.toHexString(pif.hdr.getZxid()));
+<Line#124>} else {
+<Line#125>zk.processTxn(pif.hdr, pif.rec);
+<Line#126>packetsNotCommitted.remove();
+<Line#127>}
+<Line#128>} else {
+<Line#129>packetsCommitted.add(qp.getZxid());
+<Line#130>}
+<Line#131>break;
+<Line#132>case Leader.INFORM:
+<Line#133>case Leader.INFORMANDACTIVATE:
+<Line#134>PacketInFlight packet = new PacketInFlight();
+<Line#135>
+<Line#136>if (qp.getType() == Leader.INFORMANDACTIVATE) {
+<Line#137>ByteBuffer buffer = ByteBuffer.wrap(qp.getData());
+<Line#138>long suggestedLeaderId = buffer.getLong();
+<Line#139>byte[] remainingdata = new byte[buffer.remaining()];
+<Line#140>buffer.get(remainingdata);
+<Line#141>logEntry = SerializeUtils.deserializeTxn(remainingdata);
+<Line#142>packet.hdr = logEntry.getHeader();
+<Line#143>packet.rec = logEntry.getTxn();
+<Line#144>packet.digest = logEntry.getDigest();
+<Line#145>QuorumVerifier qv = self.configFromString(new String(((SetDataTxn) packet.rec).getData(), UTF_8));
+<Line#146>boolean majorChange = self.processReconfig(qv, suggestedLeaderId, qp.getZxid(), true);
+<Line#147>if (majorChange) {
+<Line#148>throw new Exception("changes proposed in reconfig");
+<Line#149>}
+<Line#150>} else {
+<Line#151>logEntry = SerializeUtils.deserializeTxn(qp.getData());
+<Line#152>packet.rec = logEntry.getTxn();
+<Line#153>packet.hdr = logEntry.getHeader();
+<Line#154>packet.digest = logEntry.getDigest();
+<Line#155>// Log warning message if txn comes out-of-order
+<Line#156>if (packet.hdr.getZxid() != lastQueued + 1) {
+<Line#157>LOG.warn(
+<Line#158>"Got zxid 0x{} expected 0x{}",
+<Line#159>Long.toHexString(packet.hdr.getZxid()),
+<Line#160>Long.toHexString(lastQueued + 1));
+<Line#161>}
+<Line#162>lastQueued = packet.hdr.getZxid();
+<Line#163>}
+<Line#164>if (!writeToTxnLog) {
+<Line#165>// Apply to db directly if we haven't taken the snapshot
+<Line#166>zk.processTxn(packet.hdr, packet.rec);
+<Line#167>} else {
+<Line#168>packetsNotCommitted.add(packet);
+<Line#169>packetsCommitted.add(qp.getZxid());
+<Line#170>}
+<Line#171>
+<Line#172>break;
+<Line#173>case Leader.UPTODATE:
+<Line#174>LOG.info("Learner received UPTODATE message");
+<Line#175>if (newLeaderQV != null) {
+<Line#176>boolean majorChange = self.processReconfig(newLeaderQV, null, null, true);
+<Line#177>if (majorChange) {
+<Line#178>throw new Exception("changes proposed in reconfig");
+<Line#179>}
+<Line#180>}
+<Line#181>if (isPreZAB1_0) {
+<Line#182>zk.takeSnapshot(syncSnapshot);
+<Line#183>self.setCurrentEpoch(newEpoch);
+<Line#184>}
+<Line#185>self.setZooKeeperServer(zk);
+<Line#186>self.adminServer.setZooKeeperServer(zk);
+<Line#187>break outerLoop;
+<Line#188>case Leader.NEWLEADER: // Getting NEWLEADER here instead of in discovery
+<Line#189>// means this is Zab 1.0
+<Line#190>LOG.info("Learner received NEWLEADER message");
+<Line#191>if (qp.getData() != null && qp.getData().length > 1) {
+<Line#192>try {
+<Line#193>QuorumVerifier qv = self.configFromString(new String(qp.getData(), UTF_8));
+<Line#194>self.setLastSeenQuorumVerifier(qv, true);
+<Line#195>newLeaderQV = qv;
+<Line#196>} catch (Exception e) {
+<Line#197>e.printStackTrace();
+<Line#198>}
+<Line#199>}
+<Line#200>
+<Line#201>if (snapshotNeeded) {
+<Line#202>zk.takeSnapshot(syncSnapshot);
+<Line#203>}
+<Line#204>
+<Line#205>
+<Line#206>writeToTxnLog = true;
+<Line#207>//Anything after this needs to go to the transaction log, not applied directly in memory
+<Line#208>isPreZAB1_0 = false;
+<Line#209>
+<Line#210>// ZOOKEEPER-3911: make sure sync the uncommitted logs before commit them (ACK NEWLEADER).
+<Line#211>sock.setSoTimeout(self.tickTime * self.syncLimit);
+<Line#212>self.setSyncMode(QuorumPeer.SyncMode.NONE);
+<Line#213>zk.startupWithoutServing();
+<Line#214>if (zk instanceof FollowerZooKeeperServer) {
+<Line#215>long startTime = Time.currentElapsedTime();
+<Line#216>FollowerZooKeeperServer fzk = (FollowerZooKeeperServer) zk;
+<Line#217>for (PacketInFlight p : packetsNotCommitted) {
+<Line#218>final Request request = fzk.appendRequest(p.hdr, p.rec, p.digest);
+<Line#219>requestsToAck.add(request);
+<Line#220>}
+<Line#221>
+<Line#222>// persist the txns to disk
+<Line#223>fzk.getZKDatabase().commit();
+<Line#224>LOG.info("{} txns have been persisted and it took {}ms",
+<Line#225>packetsNotCommitted.size(), Time.currentElapsedTime() - startTime);
+<Line#226>packetsNotCommitted.clear();
+<Line#227>}
+<Line#228>
+<Line#229>// set the current epoch after all the tnxs are persisted
+<Line#230>self.setCurrentEpoch(newEpoch);
+<Line#231>LOG.info("Set the current epoch to {}", newEpoch);
+<Line#232>
+<Line#233>// send NEWLEADER ack after all the tnxs are persisted
+<Line#234>writePacket(new QuorumPacket(Leader.ACK, newLeaderZxid, null, null), true);
+<Line#235>LOG.info("Sent NEWLEADER ack to leader with zxid {}", Long.toHexString(newLeaderZxid));
+<Line#236>break;
+<Line#237>}
+<Line#238>}
+<Line#239>}
+<Line#240>ack.setZxid(ZxidUtils.makeZxid(newEpoch, 0));
+<Line#241>writePacket(ack, true);
+<Line#242>zk.startServing();
+<Line#243>/*
+<Line#244>* Update the election vote here to ensure that all members of the
+<Line#245>* ensemble report the same vote to new servers that start up and
+<Line#246>* send leader election notifications to the ensemble.
+<Line#247>*
+<Line#248>* @see https://issues.apache.org/jira/browse/ZOOKEEPER-1732
+<Line#249>*/
+<Line#250>self.updateElectionVote(newEpoch);
+<Line#251>
+<Line#252>// We need to log the stuff that came in between the snapshot and the uptodate
+<Line#253>if (zk instanceof FollowerZooKeeperServer) {
+<Line#254>// reply ACK of PROPOSAL after ACK of NEWLEADER to avoid leader shutdown due to timeout
+<Line#255>// on waiting for a quorum of followers
+<Line#256>for (final Request request : requestsToAck) {
+<Line#257>final QuorumPacket ackPacket = new QuorumPacket(Leader.ACK, request.getHdr().getZxid(), null, null);
+<Line#258>writePacket(ackPacket, false);
+<Line#259>}
+<Line#260>writePacket(null, true);
+<Line#261>requestsToAck.clear();
+<Line#262>
+<Line#263>FollowerZooKeeperServer fzk = (FollowerZooKeeperServer) zk;
+<Line#264>for (PacketInFlight p : packetsNotCommitted) {
+<Line#265>fzk.logRequest(p.hdr, p.rec, p.digest);
+<Line#266>}
+<Line#267>LOG.info("{} txns have been logged asynchronously", packetsNotCommitted.size());
+<Line#268>
+<Line#269>for (Long zxid : packetsCommitted) {
+<Line#270>fzk.commit(zxid);
+<Line#271>}
+<Line#272>LOG.info("{} txns have been committed", packetsCommitted.size());
+<Line#273>} else if (zk instanceof ObserverZooKeeperServer) {
+<Line#274>// Similar to follower, we need to log requests between the snapshot
+<Line#275>// and UPTODATE
+<Line#276>ObserverZooKeeperServer ozk = (ObserverZooKeeperServer) zk;
+<Line#277>for (PacketInFlight p : packetsNotCommitted) {
+<Line#278>Long zxid = packetsCommitted.peekFirst();
+<Line#279>if (p.hdr.getZxid() != zxid) {
+<Line#280>// log warning message if there is no matching commit
+<Line#281>// old leader send outstanding proposal to observer
+<Line#282>LOG.warn(
+<Line#283>"Committing 0x{}, but next proposal is 0x{}",
+<Line#284>Long.toHexString(zxid),
+<Line#285>Long.toHexString(p.hdr.getZxid()));
+<Line#286>continue;
+<Line#287>}
+<Line#288>packetsCommitted.remove();
+<Line#289>Request request = new Request(p.hdr.getClientId(), p.hdr.getCxid(), p.hdr.getType(), p.hdr, p.rec, -1);
+<Line#290>request.setTxnDigest(p.digest);
+<Line#291>ozk.commitRequest(request);
+<Line#292>}
+<Line#293>} else {
+<Line#294>// New server type need to handle in-flight packets
+<Line#295>throw new UnsupportedOperationException("Unknown server type");
+<Line#296>}
+<Line#297>}
+
+Example 1:
+<Line#1>{
+<Line#2>  ClientX509Util x509Util=null;
+<Line#3>  if (secure) {
+<Line#4>    x509Util=SSLAuthTest.setUpSecure();
+<Line#5>  }
+<Line#6>  try {
+<Line#7>    NettyServerCnxnFactory factory=(NettyServerCnxnFactory)serverFactory;
+<Line#8>    factory.setAdvancedFlowControlEnabled(true);
+<Line#9>    if (secure) {
+<Line#10>      factory.setSecure(true);
+<Line#11>    }
+<Line#12>    final String path="/testEnableDisableThrottling";
+<Line#13>    try (ZooKeeper zk=createClient()){
+<Line#14>      zk.create(path,new byte[1],Ids.OPEN_ACL_UNSAFE,CreateMode.PERSISTENT);
+<Line#15>      AtomicBoolean stopped=new AtomicBoolean(false);
+<Line#16>      Random random=new Random();
+<Line#17>      Thread enableDisableThread=null;
+<Line#18>      if (randomDisableEnable) {
+<Line#19>        enableDisableThread=new Thread(){
+<Line#20>          @Override public void run(){
+<Line#21>            while (!stopped.get()) {
+<Line#22>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#23>                boolean shouldDisableEnable=random.nextBoolean();
+<Line#24>                if (shouldDisableEnable) {
+<Line#25>                  cnxn.disableRecv();
+<Line#26>                }
+<Line#27> else {
+<Line#28>                  cnxn.enableRecv();
+<Line#29>                }
+<Line#30>              }
+<Line#31>              try {
+<Line#32>                Thread.sleep(10);
+<Line#33>              }
+<Line#34> catch (              InterruptedException e) {
+<Line#35>              }
+<Line#36>            }
+<Line#37>            for (            final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#38>              cnxn.enableRecv();
+<Line#39>            }
+<Line#40>          }
+<Line#41>        }
+<Line#42>;
+<Line#43>      }
+<Line#44> else {
+<Line#45>        enableDisableThread=new Thread(){
+<Line#46>          @Override public void run(){
+<Line#47>            while (!stopped.get()) {
+<Line#48>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#49>                try {
+<Line#50>                  cnxn.disableRecv();
+<Line#51>                  Thread.sleep(10);
+<Line#52>                  cnxn.enableRecv();
+<Line#53>                  Thread.sleep(10);
+<Line#54>                }
+<Line#55> catch (                InterruptedException e) {
+<Line#56>                }
+<Line#57>              }
+<Line#58>            }
+<Line#59>          }
+<Line#60>        }
+<Line#61>;
+<Line#62>      }
+<Line#63>      enableDisableThread.start();
+<Line#64>      LOG.info("started thread to enable and disable recv");
+<Line#65>      int totalRequestsNum=100000;
+<Line#66>      AtomicInteger successResponse=new AtomicInteger();
+<Line#67>      CountDownLatch responseReceivedLatch=new CountDownLatch(totalRequestsNum);
+<Line#68>      Thread clientThread=new Thread(){
+<Line#69>        @Override public void run(){
+<Line#70>          int requestIssued=0;
+<Line#71>          while (requestIssued++ < totalRequestsNum) {
+<Line#72>            zk.getData(path,null,new DataCallback(){
+<Line#73>              @Override public void processResult(              int rc,              String path,              Object ctx,              byte[] data,              Stat stat){
+<Line#74>                if (rc == KeeperException.Code.OK.intValue()) {
+<Line#75>                  successResponse.addAndGet(1);
+<Line#76>                }
+<Line#77> else {
+<Line#78>                  LOG.info("failed response is {}",rc);
+<Line#79>                }
+<Line#80>                responseReceivedLatch.countDown();
+<Line#81>              }
+<Line#82>            }
+<Line#83>,null);
+<Line#84>          }
+<Line#85>        }
+<Line#86>      }
+<Line#87>;
+<Line#88>      clientThread.start();
+<Line#89>      LOG.info("started thread to issue {} async requests",totalRequestsNum);
+<Line#90>      assertTrue(responseReceivedLatch.await(60,TimeUnit.SECONDS));
+<Line#91>      LOG.info("received all {} responses",totalRequestsNum);
+<Line#92>      stopped.set(true);
+<Line#93>      enableDisableThread.join();
+<Line#94>      LOG.info("enable and disable recv thread exited");
+<Line#95>      LOG.info("waiting another 1s for the requests to go through");
+<Line#96>      Thread.sleep(1000);
+<Line#97>      assertEquals(successResponse.get(),totalRequestsNum);
+<Line#98>    }
+<Line#99>   }
+<Line#100>  finally {
+<Line#101>    if (secure) {
+<Line#102>      SSLAuthTest.clearSecureSetting(x509Util);
+<Line#103>    }
+<Line#104>  }
+<Line#105>}
+Label: <Line#64> LOG.info("started thread to enable and disable recv")
+
+Example 2:
+<Line#1>{
+<Line#2>  ClientX509Util x509Util=null;
+<Line#3>  if (secure) {
+<Line#4>    x509Util=SSLAuthTest.setUpSecure();
+<Line#5>  }
+<Line#6>  try {
+<Line#7>    NettyServerCnxnFactory factory=(NettyServerCnxnFactory)serverFactory;
+<Line#8>    factory.setAdvancedFlowControlEnabled(true);
+<Line#9>    if (secure) {
+<Line#10>      factory.setSecure(true);
+<Line#11>    }
+<Line#12>    final String path="/testEnableDisableThrottling";
+<Line#13>    try (ZooKeeper zk=createClient()){
+<Line#14>      zk.create(path,new byte[1],Ids.OPEN_ACL_UNSAFE,CreateMode.PERSISTENT);
+<Line#15>      AtomicBoolean stopped=new AtomicBoolean(false);
+<Line#16>      Random random=new Random();
+<Line#17>      Thread enableDisableThread=null;
+<Line#18>      if (randomDisableEnable) {
+<Line#19>        enableDisableThread=new Thread(){
+<Line#20>          @Override public void run(){
+<Line#21>            while (!stopped.get()) {
+<Line#22>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#23>                boolean shouldDisableEnable=random.nextBoolean();
+<Line#24>                if (shouldDisableEnable) {
+<Line#25>                  cnxn.disableRecv();
+<Line#26>                }
+<Line#27> else {
+<Line#28>                  cnxn.enableRecv();
+<Line#29>                }
+<Line#30>              }
+<Line#31>              try {
+<Line#32>                Thread.sleep(10);
+<Line#33>              }
+<Line#34> catch (              InterruptedException e) {
+<Line#35>              }
+<Line#36>            }
+<Line#37>            for (            final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#38>              cnxn.enableRecv();
+<Line#39>            }
+<Line#40>          }
+<Line#41>        }
+<Line#42>;
+<Line#43>      }
+<Line#44> else {
+<Line#45>        enableDisableThread=new Thread(){
+<Line#46>          @Override public void run(){
+<Line#47>            while (!stopped.get()) {
+<Line#48>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#49>                try {
+<Line#50>                  cnxn.disableRecv();
+<Line#51>                  Thread.sleep(10);
+<Line#52>                  cnxn.enableRecv();
+<Line#53>                  Thread.sleep(10);
+<Line#54>                }
+<Line#55> catch (                InterruptedException e) {
+<Line#56>                }
+<Line#57>              }
+<Line#58>            }
+<Line#59>          }
+<Line#60>        }
+<Line#61>;
+<Line#62>      }
+<Line#63>      enableDisableThread.start();
+<Line#64>      LOG.info("started thread to enable and disable recv");
+<Line#65>      int totalRequestsNum=100000;
+<Line#66>      AtomicInteger successResponse=new AtomicInteger();
+<Line#67>      CountDownLatch responseReceivedLatch=new CountDownLatch(totalRequestsNum);
+<Line#68>      Thread clientThread=new Thread(){
+<Line#69>        @Override public void run(){
+<Line#70>          int requestIssued=0;
+<Line#71>          while (requestIssued++ < totalRequestsNum) {
+<Line#72>            zk.getData(path,null,new DataCallback(){
+<Line#73>              @Override public void processResult(              int rc,              String path,              Object ctx,              byte[] data,              Stat stat){
+<Line#74>                if (rc == KeeperException.Code.OK.intValue()) {
+<Line#75>                  successResponse.addAndGet(1);
+<Line#76>                }
+<Line#77> else {
+<Line#78>                  LOG.info("failed response is {}",rc);
+<Line#79>                }
+<Line#80>                responseReceivedLatch.countDown();
+<Line#81>              }
+<Line#82>            }
+<Line#83>,null);
+<Line#84>          }
+<Line#85>        }
+<Line#86>      }
+<Line#87>;
+<Line#88>      clientThread.start();
+<Line#89>      LOG.info("started thread to issue {} async requests",totalRequestsNum);
+<Line#90>      assertTrue(responseReceivedLatch.await(60,TimeUnit.SECONDS));
+<Line#91>      LOG.info("received all {} responses",totalRequestsNum);
+<Line#92>      stopped.set(true);
+<Line#93>      enableDisableThread.join();
+<Line#94>      LOG.info("enable and disable recv thread exited");
+<Line#95>      LOG.info("waiting another 1s for the requests to go through");
+<Line#96>      Thread.sleep(1000);
+<Line#97>      assertEquals(successResponse.get(),totalRequestsNum);
+<Line#98>    }
+<Line#99>   }
+<Line#100>  finally {
+<Line#101>    if (secure) {
+<Line#102>      SSLAuthTest.clearSecureSetting(x509Util);
+<Line#103>    }
+<Line#104>  }
+<Line#105>}
+Label: <Line#89> LOG.info("started thread to issue {} async requests",totalRequestsNum)
+
+Example 3:
+<Line#1>{
+<Line#2>  ClientX509Util x509Util=null;
+<Line#3>  if (secure) {
+<Line#4>    x509Util=SSLAuthTest.setUpSecure();
+<Line#5>  }
+<Line#6>  try {
+<Line#7>    NettyServerCnxnFactory factory=(NettyServerCnxnFactory)serverFactory;
+<Line#8>    factory.setAdvancedFlowControlEnabled(true);
+<Line#9>    if (secure) {
+<Line#10>      factory.setSecure(true);
+<Line#11>    }
+<Line#12>    final String path="/testEnableDisableThrottling";
+<Line#13>    try (ZooKeeper zk=createClient()){
+<Line#14>      zk.create(path,new byte[1],Ids.OPEN_ACL_UNSAFE,CreateMode.PERSISTENT);
+<Line#15>      AtomicBoolean stopped=new AtomicBoolean(false);
+<Line#16>      Random random=new Random();
+<Line#17>      Thread enableDisableThread=null;
+<Line#18>      if (randomDisableEnable) {
+<Line#19>        enableDisableThread=new Thread(){
+<Line#20>          @Override public void run(){
+<Line#21>            while (!stopped.get()) {
+<Line#22>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#23>                boolean shouldDisableEnable=random.nextBoolean();
+<Line#24>                if (shouldDisableEnable) {
+<Line#25>                  cnxn.disableRecv();
+<Line#26>                }
+<Line#27> else {
+<Line#28>                  cnxn.enableRecv();
+<Line#29>                }
+<Line#30>              }
+<Line#31>              try {
+<Line#32>                Thread.sleep(10);
+<Line#33>              }
+<Line#34> catch (              InterruptedException e) {
+<Line#35>              }
+<Line#36>            }
+<Line#37>            for (            final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#38>              cnxn.enableRecv();
+<Line#39>            }
+<Line#40>          }
+<Line#41>        }
+<Line#42>;
+<Line#43>      }
+<Line#44> else {
+<Line#45>        enableDisableThread=new Thread(){
+<Line#46>          @Override public void run(){
+<Line#47>            while (!stopped.get()) {
+<Line#48>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#49>                try {
+<Line#50>                  cnxn.disableRecv();
+<Line#51>                  Thread.sleep(10);
+<Line#52>                  cnxn.enableRecv();
+<Line#53>                  Thread.sleep(10);
+<Line#54>                }
+<Line#55> catch (                InterruptedException e) {
+<Line#56>                }
+<Line#57>              }
+<Line#58>            }
+<Line#59>          }
+<Line#60>        }
+<Line#61>;
+<Line#62>      }
+<Line#63>      enableDisableThread.start();
+<Line#64>      LOG.info("started thread to enable and disable recv");
+<Line#65>      int totalRequestsNum=100000;
+<Line#66>      AtomicInteger successResponse=new AtomicInteger();
+<Line#67>      CountDownLatch responseReceivedLatch=new CountDownLatch(totalRequestsNum);
+<Line#68>      Thread clientThread=new Thread(){
+<Line#69>        @Override public void run(){
+<Line#70>          int requestIssued=0;
+<Line#71>          while (requestIssued++ < totalRequestsNum) {
+<Line#72>            zk.getData(path,null,new DataCallback(){
+<Line#73>              @Override public void processResult(              int rc,              String path,              Object ctx,              byte[] data,              Stat stat){
+<Line#74>                if (rc == KeeperException.Code.OK.intValue()) {
+<Line#75>                  successResponse.addAndGet(1);
+<Line#76>                }
+<Line#77> else {
+<Line#78>                  LOG.info("failed response is {}",rc);
+<Line#79>                }
+<Line#80>                responseReceivedLatch.countDown();
+<Line#81>              }
+<Line#82>            }
+<Line#83>,null);
+<Line#84>          }
+<Line#85>        }
+<Line#86>      }
+<Line#87>;
+<Line#88>      clientThread.start();
+<Line#89>      LOG.info("started thread to issue {} async requests",totalRequestsNum);
+<Line#90>      assertTrue(responseReceivedLatch.await(60,TimeUnit.SECONDS));
+<Line#91>      LOG.info("received all {} responses",totalRequestsNum);
+<Line#92>      stopped.set(true);
+<Line#93>      enableDisableThread.join();
+<Line#94>      LOG.info("enable and disable recv thread exited");
+<Line#95>      LOG.info("waiting another 1s for the requests to go through");
+<Line#96>      Thread.sleep(1000);
+<Line#97>      assertEquals(successResponse.get(),totalRequestsNum);
+<Line#98>    }
+<Line#99>   }
+<Line#100>  finally {
+<Line#101>    if (secure) {
+<Line#102>      SSLAuthTest.clearSecureSetting(x509Util);
+<Line#103>    }
+<Line#104>  }
+<Line#105>}
+Label: <Line#91> LOG.info("received all {} responses",totalRequestsNum)
+
+Example 4:
+<Line#1>{
+<Line#2>  ClientX509Util x509Util=null;
+<Line#3>  if (secure) {
+<Line#4>    x509Util=SSLAuthTest.setUpSecure();
+<Line#5>  }
+<Line#6>  try {
+<Line#7>    NettyServerCnxnFactory factory=(NettyServerCnxnFactory)serverFactory;
+<Line#8>    factory.setAdvancedFlowControlEnabled(true);
+<Line#9>    if (secure) {
+<Line#10>      factory.setSecure(true);
+<Line#11>    }
+<Line#12>    final String path="/testEnableDisableThrottling";
+<Line#13>    try (ZooKeeper zk=createClient()){
+<Line#14>      zk.create(path,new byte[1],Ids.OPEN_ACL_UNSAFE,CreateMode.PERSISTENT);
+<Line#15>      AtomicBoolean stopped=new AtomicBoolean(false);
+<Line#16>      Random random=new Random();
+<Line#17>      Thread enableDisableThread=null;
+<Line#18>      if (randomDisableEnable) {
+<Line#19>        enableDisableThread=new Thread(){
+<Line#20>          @Override public void run(){
+<Line#21>            while (!stopped.get()) {
+<Line#22>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#23>                boolean shouldDisableEnable=random.nextBoolean();
+<Line#24>                if (shouldDisableEnable) {
+<Line#25>                  cnxn.disableRecv();
+<Line#26>                }
+<Line#27> else {
+<Line#28>                  cnxn.enableRecv();
+<Line#29>                }
+<Line#30>              }
+<Line#31>              try {
+<Line#32>                Thread.sleep(10);
+<Line#33>              }
+<Line#34> catch (              InterruptedException e) {
+<Line#35>              }
+<Line#36>            }
+<Line#37>            for (            final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#38>              cnxn.enableRecv();
+<Line#39>            }
+<Line#40>          }
+<Line#41>        }
+<Line#42>;
+<Line#43>      }
+<Line#44> else {
+<Line#45>        enableDisableThread=new Thread(){
+<Line#46>          @Override public void run(){
+<Line#47>            while (!stopped.get()) {
+<Line#48>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#49>                try {
+<Line#50>                  cnxn.disableRecv();
+<Line#51>                  Thread.sleep(10);
+<Line#52>                  cnxn.enableRecv();
+<Line#53>                  Thread.sleep(10);
+<Line#54>                }
+<Line#55> catch (                InterruptedException e) {
+<Line#56>                }
+<Line#57>              }
+<Line#58>            }
+<Line#59>          }
+<Line#60>        }
+<Line#61>;
+<Line#62>      }
+<Line#63>      enableDisableThread.start();
+<Line#64>      LOG.info("started thread to enable and disable recv");
+<Line#65>      int totalRequestsNum=100000;
+<Line#66>      AtomicInteger successResponse=new AtomicInteger();
+<Line#67>      CountDownLatch responseReceivedLatch=new CountDownLatch(totalRequestsNum);
+<Line#68>      Thread clientThread=new Thread(){
+<Line#69>        @Override public void run(){
+<Line#70>          int requestIssued=0;
+<Line#71>          while (requestIssued++ < totalRequestsNum) {
+<Line#72>            zk.getData(path,null,new DataCallback(){
+<Line#73>              @Override public void processResult(              int rc,              String path,              Object ctx,              byte[] data,              Stat stat){
+<Line#74>                if (rc == KeeperException.Code.OK.intValue()) {
+<Line#75>                  successResponse.addAndGet(1);
+<Line#76>                }
+<Line#77> else {
+<Line#78>                  LOG.info("failed response is {}",rc);
+<Line#79>                }
+<Line#80>                responseReceivedLatch.countDown();
+<Line#81>              }
+<Line#82>            }
+<Line#83>,null);
+<Line#84>          }
+<Line#85>        }
+<Line#86>      }
+<Line#87>;
+<Line#88>      clientThread.start();
+<Line#89>      LOG.info("started thread to issue {} async requests",totalRequestsNum);
+<Line#90>      assertTrue(responseReceivedLatch.await(60,TimeUnit.SECONDS));
+<Line#91>      LOG.info("received all {} responses",totalRequestsNum);
+<Line#92>      stopped.set(true);
+<Line#93>      enableDisableThread.join();
+<Line#94>      LOG.info("enable and disable recv thread exited");
+<Line#95>      LOG.info("waiting another 1s for the requests to go through");
+<Line#96>      Thread.sleep(1000);
+<Line#97>      assertEquals(successResponse.get(),totalRequestsNum);
+<Line#98>    }
+<Line#99>   }
+<Line#100>  finally {
+<Line#101>    if (secure) {
+<Line#102>      SSLAuthTest.clearSecureSetting(x509Util);
+<Line#103>    }
+<Line#104>  }
+<Line#105>}
+Label: <Line#94> LOG.info("enable and disable recv thread exited")
+
+Example 5:
+<Line#1>{
+<Line#2>  ClientX509Util x509Util=null;
+<Line#3>  if (secure) {
+<Line#4>    x509Util=SSLAuthTest.setUpSecure();
+<Line#5>  }
+<Line#6>  try {
+<Line#7>    NettyServerCnxnFactory factory=(NettyServerCnxnFactory)serverFactory;
+<Line#8>    factory.setAdvancedFlowControlEnabled(true);
+<Line#9>    if (secure) {
+<Line#10>      factory.setSecure(true);
+<Line#11>    }
+<Line#12>    final String path="/testEnableDisableThrottling";
+<Line#13>    try (ZooKeeper zk=createClient()){
+<Line#14>      zk.create(path,new byte[1],Ids.OPEN_ACL_UNSAFE,CreateMode.PERSISTENT);
+<Line#15>      AtomicBoolean stopped=new AtomicBoolean(false);
+<Line#16>      Random random=new Random();
+<Line#17>      Thread enableDisableThread=null;
+<Line#18>      if (randomDisableEnable) {
+<Line#19>        enableDisableThread=new Thread(){
+<Line#20>          @Override public void run(){
+<Line#21>            while (!stopped.get()) {
+<Line#22>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#23>                boolean shouldDisableEnable=random.nextBoolean();
+<Line#24>                if (shouldDisableEnable) {
+<Line#25>                  cnxn.disableRecv();
+<Line#26>                }
+<Line#27> else {
+<Line#28>                  cnxn.enableRecv();
+<Line#29>                }
+<Line#30>              }
+<Line#31>              try {
+<Line#32>                Thread.sleep(10);
+<Line#33>              }
+<Line#34> catch (              InterruptedException e) {
+<Line#35>              }
+<Line#36>            }
+<Line#37>            for (            final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#38>              cnxn.enableRecv();
+<Line#39>            }
+<Line#40>          }
+<Line#41>        }
+<Line#42>;
+<Line#43>      }
+<Line#44> else {
+<Line#45>        enableDisableThread=new Thread(){
+<Line#46>          @Override public void run(){
+<Line#47>            while (!stopped.get()) {
+<Line#48>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#49>                try {
+<Line#50>                  cnxn.disableRecv();
+<Line#51>                  Thread.sleep(10);
+<Line#52>                  cnxn.enableRecv();
+<Line#53>                  Thread.sleep(10);
+<Line#54>                }
+<Line#55> catch (                InterruptedException e) {
+<Line#56>                }
+<Line#57>              }
+<Line#58>            }
+<Line#59>          }
+<Line#60>        }
+<Line#61>;
+<Line#62>      }
+<Line#63>      enableDisableThread.start();
+<Line#64>      LOG.info("started thread to enable and disable recv");
+<Line#65>      int totalRequestsNum=100000;
+<Line#66>      AtomicInteger successResponse=new AtomicInteger();
+<Line#67>      CountDownLatch responseReceivedLatch=new CountDownLatch(totalRequestsNum);
+<Line#68>      Thread clientThread=new Thread(){
+<Line#69>        @Override public void run(){
+<Line#70>          int requestIssued=0;
+<Line#71>          while (requestIssued++ < totalRequestsNum) {
+<Line#72>            zk.getData(path,null,new DataCallback(){
+<Line#73>              @Override public void processResult(              int rc,              String path,              Object ctx,              byte[] data,              Stat stat){
+<Line#74>                if (rc == KeeperException.Code.OK.intValue()) {
+<Line#75>                  successResponse.addAndGet(1);
+<Line#76>                }
+<Line#77> else {
+<Line#78>                  LOG.info("failed response is {}",rc);
+<Line#79>                }
+<Line#80>                responseReceivedLatch.countDown();
+<Line#81>              }
+<Line#82>            }
+<Line#83>,null);
+<Line#84>          }
+<Line#85>        }
+<Line#86>      }
+<Line#87>;
+<Line#88>      clientThread.start();
+<Line#89>      LOG.info("started thread to issue {} async requests",totalRequestsNum);
+<Line#90>      assertTrue(responseReceivedLatch.await(60,TimeUnit.SECONDS));
+<Line#91>      LOG.info("received all {} responses",totalRequestsNum);
+<Line#92>      stopped.set(true);
+<Line#93>      enableDisableThread.join();
+<Line#94>      LOG.info("enable and disable recv thread exited");
+<Line#95>      LOG.info("waiting another 1s for the requests to go through");
+<Line#96>      Thread.sleep(1000);
+<Line#97>      assertEquals(successResponse.get(),totalRequestsNum);
+<Line#98>    }
+<Line#99>   }
+<Line#100>  finally {
+<Line#101>    if (secure) {
+<Line#102>      SSLAuthTest.clearSecureSetting(x509Util);
+<Line#103>    }
+<Line#104>  }
+<Line#105>}
+Label: <Line#95> LOG.info("waiting another 1s for the requests to go through")
+

@@ -1,0 +1,72 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	JoinBolt.java	methodSinagture:	org.apache.storm.bolt.JoinBolt.lookupField(Lorg/apache/storm/bolt/JoinBolt$FieldSelector;Lorg/apache/storm/tuple/Tuple;)Ljava/lang/Object;	methodLines:	340:361
+blockLines:	356:-1
+paras:	null
+TaintedStat:	NORMAL lookupField:conditional branch(ne, to iindex=57) 19,6 Node: < Application, Lorg/apache/storm/bolt/JoinBolt, lookupField(Lorg/apache/storm/bolt/JoinBolt$FieldSelector;Lorg/apache/storm/tuple/Tuple;)Ljava/lang/Object; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/bolt/JoinBolt, lookupField(Lorg/apache/storm/bolt/JoinBolt$FieldSelector;Lorg/apache/storm/tuple/Tuple;)Ljava/lang/Object; > Context: Everywhere[50]19 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 15,17 @90 exception:18
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/bolt/JoinBolt, lookupField(Lorg/apache/storm/bolt/JoinBolt$FieldSelector;Lorg/apache/storm/tuple/Tuple;)Ljava/lang/Object; > Context: Everywhere[50]19 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 15,17 @90 exception:18
+NORMAL lookupField:conditional branch(ne, to iindex=57) 19,6 Node: < Application, Lorg/apache/storm/bolt/JoinBolt, lookupField(Lorg/apache/storm/bolt/JoinBolt$FieldSelector;Lorg/apache/storm/tuple/Tuple;)Ljava/lang/Object; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+        // very stream name matches, it stream name was specified
+        if (fieldSelector.streamName != null
+                && !fieldSelector.streamName.equalsIgnoreCase(getStreamSelector(tuple))) {
+            return null;
+        }
+
+        Object curr = null;
+        for (int i = 0; i < fieldSelector.field.length; i++) {
+            if (i == 0) {
+                if (tuple.contains(fieldSelector.field[i])) {
+                    curr = tuple.getValueByField(fieldSelector.field[i]);
+                } else {
+                    return null;
+                }
+            } else {
+                curr = ((Map) curr).get(fieldSelector.field[i]);
+                if (curr == null) {
+                    return null;
+                }
+            }
+        }
+        return curr;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/bolt/JoinBolt, getJoinField(Ljava/lang/String;Lorg/apache/storm/tuple/Tuple;)Ljava/lang/Object; > Context: Everywhere, blocks=[BB[SSA:18..19]10 - org.apache.storm.bolt.JoinBolt.getJoinField(Ljava/lang/String;Lorg/apache/storm/tuple/Tuple;)Ljava/lang/Object;, BB[SSA:15..17]9 - org.apache.storm.bolt.JoinBolt.getJoinField(Ljava/lang/String;Lorg/apache/storm/tuple/Tuple;)Ljava/lang/Object;, BB[SSA:20..20]11 - org.apache.storm.bolt.JoinBolt.getJoinField(Ljava/lang/String;Lorg/apache/storm/tuple/Tuple;)Ljava/lang/Object;, BB[SSA:-1..-2]12 - org.apache.storm.bolt.JoinBolt.getJoinField(Ljava/lang/String;Lorg/apache/storm/tuple/Tuple;)Ljava/lang/Object;], numberOfBasicBlocks=4, firstLineNumber=301, lastLineNumber=301, firstMethodNumber=296, lastMethodNumber=301, isFirstLineValid=true, methodSrcCode=
+    private Object getJoinField(String streamId, Tuple tuple) {
+        JoinInfo ji = joinCriteria.get(streamId);
+        if (ji == null) {
+            throw new RuntimeException("Join information for '" + streamId + "' not found. Check the join clauses.");
+        }
+        return lookupField(ji.getJoinField(), tuple);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/bolt/JoinBolt, doProjection(Ljava/util/ArrayList;[Lorg/apache/storm/bolt/JoinBolt$FieldSelector;)Ljava/util/ArrayList; > Context: Everywhere, blocks=[BB[SSA:29..30]14 - org.apache.storm.bolt.JoinBolt.doProjection(Ljava/util/ArrayList;[Lorg/apache/storm/bolt/JoinBolt$FieldSelector;)Ljava/util/ArrayList;, BB[SSA:24..28]13 - org.apache.storm.bolt.JoinBolt.doProjection(Ljava/util/ArrayList;[Lorg/apache/storm/bolt/JoinBolt$FieldSelector;)Ljava/util/ArrayList;, BB[SSA:31..34]15 - org.apache.storm.bolt.JoinBolt.doProjection(Ljava/util/ArrayList;[Lorg/apache/storm/bolt/JoinBolt$FieldSelector;)Ljava/util/ArrayList;, BB[SSA:-1..-2]24 - org.apache.storm.bolt.JoinBolt.doProjection(Ljava/util/ArrayList;[Lorg/apache/storm/bolt/JoinBolt$FieldSelector;)Ljava/util/ArrayList;], numberOfBasicBlocks=4, firstLineNumber=322, lastLineNumber=324, firstMethodNumber=317, lastMethodNumber=334, isFirstLineValid=true, methodSrcCode=
+    protected ArrayList<Object> doProjection(ArrayList<Tuple> tuples, FieldSelector[] projectionFields) {
+        ArrayList<Object> result = new ArrayList<>(projectionFields.length);
+        // Todo: optimize this computation... perhaps inner loop can be outside to avoid rescanning tuples
+        for (int i = 0; i < projectionFields.length; i++) {
+            boolean missingField = true;
+            for (Tuple tuple : tuples) {
+                Object field = lookupField(projectionFields[i], tuple);
+                if (field != null) {
+                    result.add(field);
+                    missingField = false;
+                    break;
+                }
+            }
+            if (missingField) { // add a null for missing fields (usually in case of outer joins)
+                result.add(null);
+            }
+        }
+        return result;
+    }
+}

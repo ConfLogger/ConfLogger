@@ -1,0 +1,324 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>private List<ResourceRequest> generateResourceRequests() throws IOException {
+<Line#1>Resource capability = recordFactory.newRecordInstance(Resource.class);
+<Line#2>boolean memorySet = false;
+<Line#3>boolean cpuVcoresSet = false;
+<Line#4>List<ResourceInformation> resourceRequests = ResourceUtils
+<Line#5>.getRequestedResourcesFromConfig(conf, MR_AM_RESOURCE_PREFIX);
+<Line#6>for (ResourceInformation resourceReq : resourceRequests) {
+<Line#7>String resourceName = resourceReq.getName();
+<Line#8>if (MRJobConfig.RESOURCE_TYPE_NAME_MEMORY.equals(resourceName) ||
+<Line#9>MRJobConfig.RESOURCE_TYPE_ALTERNATIVE_NAME_MEMORY.equals(
+<Line#10>resourceName)) {
+<Line#11>if (memorySet) {
+<Line#12>throw new IllegalArgumentException(
+<Line#13>"Only one of the following keys " +
+<Line#14>"can be specified for a single job: " +
+<Line#15>MRJobConfig.RESOURCE_TYPE_ALTERNATIVE_NAME_MEMORY + ", " +
+<Line#16>MRJobConfig.RESOURCE_TYPE_NAME_MEMORY);
+<Line#17>}
+<Line#18>String units = isEmpty(resourceReq.getUnits()) ?
+<Line#19>ResourceUtils.getDefaultUnit(ResourceInformation.MEMORY_URI) :
+<Line#20>resourceReq.getUnits();
+<Line#21>capability.setMemorySize(
+<Line#22>UnitsConversionUtil.convert(units, "Mi", resourceReq.getValue()));
+<Line#23>memorySet = true;
+<Line#24>if (conf.get(MRJobConfig.MR_AM_VMEM_MB) != null) {
+<Line#25>}
+<Line#26>} else if (MRJobConfig.RESOURCE_TYPE_NAME_VCORE.equals(resourceName)) {
+<Line#27>capability.setVirtualCores(
+<Line#28>(int) UnitsConversionUtil.convert(resourceReq.getUnits(), "",
+<Line#29>resourceReq.getValue()));
+<Line#30>cpuVcoresSet = true;
+<Line#31>if (conf.get(MRJobConfig.MR_AM_CPU_VCORES) != null) {
+<Line#32>}
+<Line#33>} else if (!MRJobConfig.MR_AM_VMEM_MB.equals(
+<Line#34>MR_AM_RESOURCE_PREFIX + resourceName) &&
+<Line#35>!MRJobConfig.MR_AM_CPU_VCORES.equals(
+<Line#36>MR_AM_RESOURCE_PREFIX + resourceName)) {
+<Line#37>// the "mb", "cpu-vcores" resource types are not processed here
+<Line#38>// since the yarn.app.mapreduce.am.resource.mb,
+<Line#39>// yarn.app.mapreduce.am.resource.cpu-vcores keys are used for
+<Line#40>// backward-compatibility - which is handled after this loop
+<Line#41>ResourceInformation resourceInformation = capability
+<Line#42>.getResourceInformation(resourceName);
+<Line#43>resourceInformation.setUnits(resourceReq.getUnits());
+<Line#44>resourceInformation.setValue(resourceReq.getValue());
+<Line#45>capability.setResourceInformation(resourceName, resourceInformation);
+<Line#46>}
+<Line#47>}
+<Line#48>if (!memorySet) {
+<Line#49>capability.setMemorySize(
+<Line#50>conf.getInt(
+<Line#51>MRJobConfig.MR_AM_VMEM_MB, MRJobConfig.DEFAULT_MR_AM_VMEM_MB
+<Line#52>)
+<Line#53>);
+<Line#54>}
+<Line#55>if (!cpuVcoresSet) {
+<Line#56>capability.setVirtualCores(
+<Line#57>conf.getInt(
+<Line#58>MRJobConfig.MR_AM_CPU_VCORES, MRJobConfig.DEFAULT_MR_AM_CPU_VCORES
+<Line#59>)
+<Line#60>);
+<Line#61>}
+<Line#62>if (LOG.isDebugEnabled()) {
+<Line#63>LOG.debug("AppMaster capability = " + capability);
+<Line#64>}
+<Line#65>
+<Line#66>List<ResourceRequest> amResourceRequests = new ArrayList<>();
+<Line#67>// Always have an ANY request
+<Line#68>ResourceRequest amAnyResourceRequest =
+<Line#69>createAMResourceRequest(ResourceRequest.ANY, capability);
+<Line#70>Map<String, ResourceRequest> rackRequests = new HashMap<>();
+<Line#71>amResourceRequests.add(amAnyResourceRequest);
+<Line#72>Collection<String> amStrictResources = conf.getStringCollection(
+<Line#73>MRJobConfig.AM_STRICT_LOCALITY);
+<Line#74>for (String amStrictResource : amStrictResources) {
+<Line#75>amAnyResourceRequest.setRelaxLocality(false);
+<Line#76>Matcher matcher = RACK_NODE_PATTERN.matcher(amStrictResource);
+<Line#77>if (matcher.matches()) {
+<Line#78>String nodeName;
+<Line#79>String rackName = matcher.group(RACK_GROUP);
+<Line#80>if (rackName == null) {
+<Line#81>rackName = "/default-rack";
+<Line#82>nodeName = matcher.group(NODE_IF_NO_RACK_GROUP);
+<Line#83>} else {
+<Line#84>nodeName = matcher.group(NODE_IF_RACK_GROUP);
+<Line#85>}
+<Line#86>ResourceRequest amRackResourceRequest = rackRequests.get(rackName);
+<Line#87>if (amRackResourceRequest == null) {
+<Line#88>amRackResourceRequest = createAMResourceRequest(rackName, capability);
+<Line#89>amResourceRequests.add(amRackResourceRequest);
+<Line#90>rackRequests.put(rackName, amRackResourceRequest);
+<Line#91>}
+<Line#92>if (nodeName != null) {
+<Line#93>amRackResourceRequest.setRelaxLocality(false);
+<Line#94>ResourceRequest amNodeResourceRequest =
+<Line#95>createAMResourceRequest(nodeName, capability);
+<Line#96>amResourceRequests.add(amNodeResourceRequest);
+<Line#97>}
+<Line#98>} else {
+<Line#99>String errMsg =
+<Line#100>"Invalid resource name: " + amStrictResource + " specified.";
+<Line#101>LOG.warn(errMsg);
+<Line#102>throw new IOException(errMsg);
+<Line#103>}
+<Line#104>}
+<Line#105>if (LOG.isDebugEnabled()) {
+<Line#106>for (ResourceRequest amResourceRequest : amResourceRequests) {
+<Line#107>LOG.debug("ResourceRequest: resource = "
+<Line#108>+ amResourceRequest.getResourceName() + ", locality = "
+<Line#109>+ amResourceRequest.getRelaxLocality());
+<Line#110>}
+<Line#111>}
+<Line#112>return amResourceRequests;
+<Line#113>}
+
+Example 1:
+<Line#1>{
+<Line#2>  boolean attemptRecovery=shouldAttemptRecovery();
+<Line#3>  boolean recoverySucceeded=true;
+<Line#4>  if (attemptRecovery) {
+<Line#5>    LOG.info("Attempting to recover.");
+<Line#6>    try {
+<Line#7>      parsePreviousJobHistory();
+<Line#8>    }
+<Line#9> catch (    IOException e) {
+<Line#10>      LOG.warn("Unable to parse prior job history, aborting recovery",e);
+<Line#11>      recoverySucceeded=false;
+<Line#12>    }
+<Line#13>  }
+<Line#14>  if (!isFirstAttempt() && (!attemptRecovery || !recoverySucceeded)) {
+<Line#15>    amInfos.addAll(readJustAMInfos());
+<Line#16>  }
+<Line#17>}
+Label: <Line#5> LOG.info("Attempting to recover.")
+
+Example 2:
+<Line#1>{
+<Line#2>  boolean attemptRecovery=shouldAttemptRecovery();
+<Line#3>  boolean recoverySucceeded=true;
+<Line#4>  if (attemptRecovery) {
+<Line#5>    LOG.info("Attempting to recover.");
+<Line#6>    try {
+<Line#7>      parsePreviousJobHistory();
+<Line#8>    }
+<Line#9> catch (    IOException e) {
+<Line#10>      LOG.warn("Unable to parse prior job history, aborting recovery",e);
+<Line#11>      recoverySucceeded=false;
+<Line#12>    }
+<Line#13>  }
+<Line#14>  if (!isFirstAttempt() && (!attemptRecovery || !recoverySucceeded)) {
+<Line#15>    amInfos.addAll(readJustAMInfos());
+<Line#16>  }
+<Line#17>}
+Label: <Line#10> LOG.warn("Unable to parse prior job history, aborting recovery",e)
+
+Example 3:
+<Line#1>{
+<Line#2>  if (LOG.isDebugEnabled()) {
+<Line#3>    LOG.debug("Storing token " + tokenId.getSequenceNumber());
+<Line#4>  }
+<Line#5>  ByteArrayOutputStream memStream=new ByteArrayOutputStream();
+<Line#6>  DataOutputStream dataStream=new DataOutputStream(memStream);
+<Line#7>  try {
+<Line#8>    tokenId.write(dataStream);
+<Line#9>    dataStream.writeLong(renewDate);
+<Line#10>    dataStream.close();
+<Line#11>    dataStream=null;
+<Line#12>  }
+<Line#13>  finally {
+<Line#14>    IOUtils.cleanupWithLogger(LOG,dataStream);
+<Line#15>  }
+<Line#16>  String dbKey=getTokenDatabaseKey(tokenId);
+<Line#17>  try {
+<Line#18>    db.put(bytes(dbKey),memStream.toByteArray());
+<Line#19>  }
+<Line#20> catch (  DBException e) {
+<Line#21>    throw new IOException(e);
+<Line#22>  }
+<Line#23>}
+Label: <Line#3> LOG.debug("Storing token " + tokenId.getSequenceNumber())
+
+Example 4:
+<Line#1>{
+<Line#2>  if (LOG.isDebugEnabled()) {
+<Line#3>    LOG.debug("Flushing " + toString());
+<Line#4>  }
+<Line#5>synchronized (lock) {
+<Line#6>    if (numUnflushedCompletionEvents != 0) {
+<Line#7>      writer.flush();
+<Line#8>      numUnflushedCompletionEvents=0;
+<Line#9>      resetFlushTimer();
+<Line#10>    }
+<Line#11>  }
+<Line#12>}
+Label: <Line#3> LOG.debug("Flushing " + toString())
+
+Example 5:
+<Line#1>{
+<Line#2>  ArrayList<OneBlockInfo> validBlocks=new ArrayList<OneBlockInfo>();
+<Line#3>  long curSplitSize=0;
+<Line#4>  int totalNodes=nodeToBlocks.size();
+<Line#5>  long totalLength=totLength;
+<Line#6>  Multiset<String> splitsPerNode=HashMultiset.create();
+<Line#7>  Set<String> completedNodes=new HashSet<String>();
+<Line#8>  while (true) {
+<Line#9>    for (Iterator<Map.Entry<String,Set<OneBlockInfo>>> iter=nodeToBlocks.entrySet().iterator(); iter.hasNext(); ) {
+<Line#10>      Map.Entry<String,Set<OneBlockInfo>> one=iter.next();
+<Line#11>      String node=one.getKey();
+<Line#12>      if (completedNodes.contains(node)) {
+<Line#13>        continue;
+<Line#14>      }
+<Line#15>      Set<OneBlockInfo> blocksInCurrentNode=one.getValue();
+<Line#16>      Iterator<OneBlockInfo> oneBlockIter=blocksInCurrentNode.iterator();
+<Line#17>      while (oneBlockIter.hasNext()) {
+<Line#18>        OneBlockInfo oneblock=oneBlockIter.next();
+<Line#19>        if (!blockToNodes.containsKey(oneblock)) {
+<Line#20>          oneBlockIter.remove();
+<Line#21>          continue;
+<Line#22>        }
+<Line#23>        validBlocks.add(oneblock);
+<Line#24>        blockToNodes.remove(oneblock);
+<Line#25>        curSplitSize+=oneblock.length;
+<Line#26>        if (maxSize != 0 && curSplitSize >= maxSize) {
+<Line#27>          addCreatedSplit(splits,Collections.singleton(node),validBlocks);
+<Line#28>          totalLength-=curSplitSize;
+<Line#29>          curSplitSize=0;
+<Line#30>          splitsPerNode.add(node);
+<Line#31>          blocksInCurrentNode.removeAll(validBlocks);
+<Line#32>          validBlocks.clear();
+<Line#33>          break;
+<Line#34>        }
+<Line#35>      }
+<Line#36>      if (validBlocks.size() != 0) {
+<Line#37>        if (minSizeNode != 0 && curSplitSize >= minSizeNode && splitsPerNode.count(node) == 0) {
+<Line#38>          addCreatedSplit(splits,Collections.singleton(node),validBlocks);
+<Line#39>          totalLength-=curSplitSize;
+<Line#40>          splitsPerNode.add(node);
+<Line#41>          blocksInCurrentNode.removeAll(validBlocks);
+<Line#42>        }
+<Line#43> else {
+<Line#44>          for (          OneBlockInfo oneblock : validBlocks) {
+<Line#45>            blockToNodes.put(oneblock,oneblock.hosts);
+<Line#46>          }
+<Line#47>        }
+<Line#48>        validBlocks.clear();
+<Line#49>        curSplitSize=0;
+<Line#50>        completedNodes.add(node);
+<Line#51>      }
+<Line#52> else {
+<Line#53>        if (blocksInCurrentNode.size() == 0) {
+<Line#54>          completedNodes.add(node);
+<Line#55>        }
+<Line#56>      }
+<Line#57>    }
+<Line#58>    if (completedNodes.size() == totalNodes || totalLength == 0) {
+<Line#59>      LOG.debug("Terminated node allocation with : CompletedNodes: {}, size left: {}",completedNodes.size(),totalLength);
+<Line#60>      break;
+<Line#61>    }
+<Line#62>  }
+<Line#63>  ArrayList<OneBlockInfo> overflowBlocks=new ArrayList<OneBlockInfo>();
+<Line#64>  Set<String> racks=new HashSet<String>();
+<Line#65>  while (blockToNodes.size() > 0) {
+<Line#66>    for (Iterator<Map.Entry<String,List<OneBlockInfo>>> iter=rackToBlocks.entrySet().iterator(); iter.hasNext(); ) {
+<Line#67>      Map.Entry<String,List<OneBlockInfo>> one=iter.next();
+<Line#68>      racks.add(one.getKey());
+<Line#69>      List<OneBlockInfo> blocks=one.getValue();
+<Line#70>      boolean createdSplit=false;
+<Line#71>      for (      OneBlockInfo oneblock : blocks) {
+<Line#72>        if (blockToNodes.containsKey(oneblock)) {
+<Line#73>          validBlocks.add(oneblock);
+<Line#74>          blockToNodes.remove(oneblock);
+<Line#75>          curSplitSize+=oneblock.length;
+<Line#76>          if (maxSize != 0 && curSplitSize >= maxSize) {
+<Line#77>            addCreatedSplit(splits,getHosts(racks),validBlocks);
+<Line#78>            createdSplit=true;
+<Line#79>            break;
+<Line#80>          }
+<Line#81>        }
+<Line#82>      }
+<Line#83>      if (createdSplit) {
+<Line#84>        curSplitSize=0;
+<Line#85>        validBlocks.clear();
+<Line#86>        racks.clear();
+<Line#87>        continue;
+<Line#88>      }
+<Line#89>      if (!validBlocks.isEmpty()) {
+<Line#90>        if (minSizeRack != 0 && curSplitSize >= minSizeRack) {
+<Line#91>          addCreatedSplit(splits,getHosts(racks),validBlocks);
+<Line#92>        }
+<Line#93> else {
+<Line#94>          overflowBlocks.addAll(validBlocks);
+<Line#95>        }
+<Line#96>      }
+<Line#97>      curSplitSize=0;
+<Line#98>      validBlocks.clear();
+<Line#99>      racks.clear();
+<Line#100>    }
+<Line#101>  }
+<Line#102>  assert blockToNodes.isEmpty();
+<Line#103>  assert curSplitSize == 0;
+<Line#104>  assert validBlocks.isEmpty();
+<Line#105>  assert racks.isEmpty();
+<Line#106>  for (  OneBlockInfo oneblock : overflowBlocks) {
+<Line#107>    validBlocks.add(oneblock);
+<Line#108>    curSplitSize+=oneblock.length;
+<Line#109>    for (int i=0; i < oneblock.racks.length; i++) {
+<Line#110>      racks.add(oneblock.racks[i]);
+<Line#111>    }
+<Line#112>    if (maxSize != 0 && curSplitSize >= maxSize) {
+<Line#113>      addCreatedSplit(splits,getHosts(racks),validBlocks);
+<Line#114>      curSplitSize=0;
+<Line#115>      validBlocks.clear();
+<Line#116>      racks.clear();
+<Line#117>    }
+<Line#118>  }
+<Line#119>  if (!validBlocks.isEmpty()) {
+<Line#120>    addCreatedSplit(splits,getHosts(racks),validBlocks);
+<Line#121>  }
+<Line#122>}
+Label: <Line#59> LOG.debug("Terminated node allocation with : CompletedNodes: {}, size left: {}",completedNodes.size(),totalLength)
+

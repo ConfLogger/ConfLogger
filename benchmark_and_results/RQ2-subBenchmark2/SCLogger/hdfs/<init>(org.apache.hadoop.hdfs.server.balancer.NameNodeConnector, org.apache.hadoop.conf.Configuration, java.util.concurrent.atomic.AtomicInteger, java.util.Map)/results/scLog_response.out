@@ -1,0 +1,6 @@
+<Line#36>:# LOG.error("Another " + name + " is running."):#
+<Line#17>:# LOG.info("Creating proxy for " + nameNodeUri + " with fallback to simple auth"):#
+<Line#23>:# LOG.debug("Getting FileSystem instance for " + nameNodeUri):#
+<Line#25>:# LOG.info("Requesting version from namenode"):#
+<Line#28>:# LOG.debug("Getting server defaults"):#
+<Line#30>:# LOG.info("Creating KeyManager for blockpool " + blockpoolID):#

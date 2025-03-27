@@ -1,0 +1,57 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Executor.java	methodSinagture:	org.apache.storm.executor.Executor.processGauges(ILjava/util/List;)V	methodLines:	381:396
+blockLines:	386:-1
+paras:	null
+TaintedStat:	NORMAL processGauges:conditional branch(eq, to iindex=32) 23,16 Node: < Application, Lorg/apache/storm/executor/Executor, processGauges(ILjava/util/List;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/executor/Executor, processGauges(ILjava/util/List;)V > Context: Everywhere[19]21 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 19 @49 exception:20
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/executor/Executor, processGauges(ILjava/util/List;)V > Context: Everywhere[19]21 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 19 @49 exception:20
+NORMAL processGauges:[null]: 22 = checkcast <Application,Lcom/codahale/metrics/Gauge>21 <Application,Lcom/codahale/metrics/Gauge> Node: < Application, Lorg/apache/storm/executor/Executor, processGauges(ILjava/util/List;)V > Context: Everywhere
+NORMAL processGauges:23 = instanceof 22 <Application,Lorg/apache/storm/metrics2/PerReporterGauge> Node: < Application, Lorg/apache/storm/executor/Executor, processGauges(ILjava/util/List;)V > Context: Everywhere
+NORMAL processGauges:conditional branch(eq, to iindex=32) 23,16 Node: < Application, Lorg/apache/storm/executor/Executor, processGauges(ILjava/util/List;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private void processGauges(int taskId, List<IMetricsConsumer.DataPoint> dataPoints) {
+        Map<String, Gauge> gauges = workerData.getMetricRegistry().getTaskGauges(taskId);
+        for (Map.Entry<String, Gauge> entry : gauges.entrySet()) {
+            Gauge gauge = entry.getValue();
+            Object v;
+            if (gauge instanceof PerReporterGauge) {
+                v = ((PerReporterGauge) gauge).getValueForReporter(this);
+            } else {
+                v = gauge.getValue();
+            }
+            if (v instanceof Number) {
+                IMetricsConsumer.DataPoint dataPoint = new IMetricsConsumer.DataPoint(entry.getKey(), v);
+                dataPoints.add(dataPoint);
+            }
+        }
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/executor/Executor, addV2Metrics(ILjava/util/List;I)V > Context: Everywhere, blocks=[BB[SSA:11..14]8 - org.apache.storm.executor.Executor.addV2Metrics(ILjava/util/List;I)V, BB[SSA:9..9]6 - org.apache.storm.executor.Executor.addV2Metrics(ILjava/util/List;I)V, BB[SSA:15..18]9 - org.apache.storm.executor.Executor.addV2Metrics(ILjava/util/List;I)V, BB[SSA:-1..-2]14 - org.apache.storm.executor.Executor.addV2Metrics(ILjava/util/List;I)V], numberOfBasicBlocks=4, firstLineNumber=370, lastLineNumber=375, firstMethodNumber=364, lastMethodNumber=379, isFirstLineValid=true, methodSrcCode=
+    private void addV2Metrics(int taskId, List<IMetricsConsumer.DataPoint> dataPoints, int interval) {
+        if (!enableV2MetricsDataPoints) {
+            return;
+        }
+
+        // only report v2 metric on the proper metrics tick interval
+        if (interval != v2MetricsTickInterval) {
+            return;
+        }
+
+        processGauges(taskId, dataPoints);
+        processCounters(taskId, dataPoints);
+        processHistograms(taskId, dataPoints);
+        processMeters(taskId, dataPoints);
+        processTimers(taskId, dataPoints);
+    }
+
+}

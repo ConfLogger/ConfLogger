@@ -1,0 +1,8 @@
+<Line#24>:# LOG.debug("Checking configuration for memory settings."):#
+<Line#26>:# LOG.debug("Checking configuration for vcore settings."):#
+<Line#37>:# LOG.debug("Resource type " + resourceName + " not processed here."):#
+<Line#48>:# LOG.debug("Memory not explicitly set, using default configuration."):#
+<Line#55>:# LOG.debug("CPU vcores not explicitly set, using default configuration."):#
+<Line#74>:# LOG.debug("Processing strict locality resources."):#
+<Line#86>:# LOG.debug("Creating resource request for rack: " + rackName):#
+<Line#94>:# LOG.debug("Creating resource request for node: " + nodeName):#

@@ -1,0 +1,38 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	WatchManager.java	methodSinagture:	org.apache.zookeeper.server.watch.WatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z	methodLines:	263:269
+blockLines:	265:-1
+paras:	null
+TaintedStat:	NORMAL containsWatcher:conditional branch(ne, to iindex=11) 9,10 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere[3]8 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 6,3 @5 exception:7
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere[3]8 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 6,3 @5 exception:7
+NORMAL containsWatcher:9 = checkcast <Application,Ljava/util/Map>8 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+NORMAL containsWatcher:conditional branch(ne, to iindex=11) 9,10 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	WatchManager.java	methodSinagture:	org.apache.zookeeper.server.watch.WatchManager.containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z	methodLines:	263:269
+blockLines:	269:-1
+paras:	null
+TaintedStat:	NORMAL containsWatcher:conditional branch(eq, to iindex=29) 13,10 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere[13]12 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 9,2 @25 exception:11
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere[13]12 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 9,2 @25 exception:11
+NORMAL containsWatcher:13 = checkcast <Application,Lorg/apache/zookeeper/server/watch/WatchStats>12 <Application,Lorg/apache/zookeeper/server/watch/WatchStats> Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+NORMAL containsWatcher:conditional branch(eq, to iindex=29) 13,10 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, containsWatcher(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public synchronized boolean containsWatcher(String path, Watcher watcher, WatcherMode watcherMode) {
+        Map<String, WatchStats> paths = watch2Paths.get(watcher);
+        if (paths == null) {
+            return false;
+        }
+        WatchStats stats = paths.get(path);
+        return stats != null && (watcherMode == null || stats.hasMode(watcherMode));
+    }
+
+
+====================ctx:=======================

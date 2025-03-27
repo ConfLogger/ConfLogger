@@ -1,0 +1,12 @@
+/** 
+ * Build a request for the txn and append it to the transaction log
+ * @param hdr the txn header
+ * @param txn the txn
+ * @param digest the digest of txn
+ * @return a request moving through a chain of RequestProcessors
+ */
+public Request appendRequest(final TxnHeader hdr,final Record txn,final TxnDigest digest) throws IOException {
+  final Request request=buildRequestToProcess(hdr,txn,digest);
+  getZKDatabase().append(request);
+  return request;
+}

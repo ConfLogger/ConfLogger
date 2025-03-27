@@ -1,0 +1,5 @@
+<Line#14>:# LOG.info("Creating URI for namenode: " + namenodeURI);:#
+<Line#20>:# LOG.info("Creating URI for namenode from address: " + namenodeURI);:#
+<Line#28>:# LOG.error("Failed to create proxy for InMemoryAliasMapProtocol", e);:#
+<Line#42>:# LOG.info("Successfully connected to InMemoryAliasMap at {}", uri);:#
+<Line#44>:# LOG.error("Failed to connect to InMemoryAliasMap at {}: {}", uri, e);:#

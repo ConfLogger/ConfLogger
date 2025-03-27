@@ -1,0 +1,387 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>// Read progress monitor poll interval from config. Default is 1 second.
+<Line#1>int progMonitorPollIntervalMillis = conf.getInt(
+<Line#2>PROGRESS_MONITOR_POLL_INTERVAL_KEY, DEFAULT_MONITOR_POLL_INTERVAL);
+<Line#3>if (progMonitorPollIntervalMillis < 1) {
+<Line#4>progMonitorPollIntervalMillis = DEFAULT_MONITOR_POLL_INTERVAL;
+<Line#5>}
+<Line#6>return progMonitorPollIntervalMillis;
+<Line#7>}
+
+Example 1:
+<Line#1>{
+<Line#2>  ParsedOutput parsedOpts=null;
+<Line#3>  try {
+<Line#4>    ArgumentParser argHolder=new ArgumentParser(args);
+<Line#5>    parsedOpts=argHolder.parse();
+<Line#6>    if (parsedOpts.shouldOutputHelp()) {
+<Line#7>      parsedOpts.outputHelp();
+<Line#8>      return 1;
+<Line#9>    }
+<Line#10>  }
+<Line#11> catch (  Exception e) {
+<Line#12>    LOG.error("Unable to parse arguments due to error: ",e);
+<Line#13>    return 1;
+<Line#14>  }
+<Line#15>  LOG.info("Running with option list " + Helper.stringifyArray(args," "));
+<Line#16>  ConfigExtractor config=null;
+<Line#17>  try {
+<Line#18>    ConfigMerger cfgMerger=new ConfigMerger();
+<Line#19>    Configuration cfg=cfgMerger.getMerged(parsedOpts,new Configuration(base));
+<Line#20>    if (cfg != null) {
+<Line#21>      config=new ConfigExtractor(cfg);
+<Line#22>    }
+<Line#23>  }
+<Line#24> catch (  Exception e) {
+<Line#25>    LOG.error("Unable to merge config due to error: ",e);
+<Line#26>    return 1;
+<Line#27>  }
+<Line#28>  if (config == null) {
+<Line#29>    LOG.error("Unable to merge config & options!");
+<Line#30>    return 1;
+<Line#31>  }
+<Line#32>  try {
+<Line#33>    LOG.info("Options are:");
+<Line#34>    ConfigExtractor.dumpOptions(config);
+<Line#35>  }
+<Line#36> catch (  Exception e) {
+<Line#37>    LOG.error("Unable to dump options due to error: ",e);
+<Line#38>    return 1;
+<Line#39>  }
+<Line#40>  boolean jobOk=false;
+<Line#41>  try {
+<Line#42>    LOG.info("Running job:");
+<Line#43>    runJob(config);
+<Line#44>    jobOk=true;
+<Line#45>  }
+<Line#46> catch (  Exception e) {
+<Line#47>    LOG.error("Unable to run job due to error: ",e);
+<Line#48>  }
+<Line#49>  if (jobOk) {
+<Line#50>    try {
+<Line#51>      LOG.info("Reporting on job:");
+<Line#52>      writeReport(config);
+<Line#53>    }
+<Line#54> catch (    Exception e) {
+<Line#55>      LOG.error("Unable to report on job due to error: ",e);
+<Line#56>    }
+<Line#57>  }
+<Line#58>  boolean cleanUp=getBool(parsedOpts.getValue(ConfigOption.CLEANUP.getOpt()));
+<Line#59>  if (cleanUp) {
+<Line#60>    try {
+<Line#61>      LOG.info("Cleaning up job:");
+<Line#62>      cleanup(config);
+<Line#63>    }
+<Line#64> catch (    Exception e) {
+<Line#65>      LOG.error("Unable to cleanup job due to error: ",e);
+<Line#66>    }
+<Line#67>  }
+<Line#68>  if (jobOk) {
+<Line#69>    return 0;
+<Line#70>  }
+<Line#71>  return 1;
+<Line#72>}
+Label: <Line#12> LOG.error("Unable to parse arguments due to error: ",e)
+
+Example 2:
+<Line#1>{
+<Line#2>  ParsedOutput parsedOpts=null;
+<Line#3>  try {
+<Line#4>    ArgumentParser argHolder=new ArgumentParser(args);
+<Line#5>    parsedOpts=argHolder.parse();
+<Line#6>    if (parsedOpts.shouldOutputHelp()) {
+<Line#7>      parsedOpts.outputHelp();
+<Line#8>      return 1;
+<Line#9>    }
+<Line#10>  }
+<Line#11> catch (  Exception e) {
+<Line#12>    LOG.error("Unable to parse arguments due to error: ",e);
+<Line#13>    return 1;
+<Line#14>  }
+<Line#15>  LOG.info("Running with option list " + Helper.stringifyArray(args," "));
+<Line#16>  ConfigExtractor config=null;
+<Line#17>  try {
+<Line#18>    ConfigMerger cfgMerger=new ConfigMerger();
+<Line#19>    Configuration cfg=cfgMerger.getMerged(parsedOpts,new Configuration(base));
+<Line#20>    if (cfg != null) {
+<Line#21>      config=new ConfigExtractor(cfg);
+<Line#22>    }
+<Line#23>  }
+<Line#24> catch (  Exception e) {
+<Line#25>    LOG.error("Unable to merge config due to error: ",e);
+<Line#26>    return 1;
+<Line#27>  }
+<Line#28>  if (config == null) {
+<Line#29>    LOG.error("Unable to merge config & options!");
+<Line#30>    return 1;
+<Line#31>  }
+<Line#32>  try {
+<Line#33>    LOG.info("Options are:");
+<Line#34>    ConfigExtractor.dumpOptions(config);
+<Line#35>  }
+<Line#36> catch (  Exception e) {
+<Line#37>    LOG.error("Unable to dump options due to error: ",e);
+<Line#38>    return 1;
+<Line#39>  }
+<Line#40>  boolean jobOk=false;
+<Line#41>  try {
+<Line#42>    LOG.info("Running job:");
+<Line#43>    runJob(config);
+<Line#44>    jobOk=true;
+<Line#45>  }
+<Line#46> catch (  Exception e) {
+<Line#47>    LOG.error("Unable to run job due to error: ",e);
+<Line#48>  }
+<Line#49>  if (jobOk) {
+<Line#50>    try {
+<Line#51>      LOG.info("Reporting on job:");
+<Line#52>      writeReport(config);
+<Line#53>    }
+<Line#54> catch (    Exception e) {
+<Line#55>      LOG.error("Unable to report on job due to error: ",e);
+<Line#56>    }
+<Line#57>  }
+<Line#58>  boolean cleanUp=getBool(parsedOpts.getValue(ConfigOption.CLEANUP.getOpt()));
+<Line#59>  if (cleanUp) {
+<Line#60>    try {
+<Line#61>      LOG.info("Cleaning up job:");
+<Line#62>      cleanup(config);
+<Line#63>    }
+<Line#64> catch (    Exception e) {
+<Line#65>      LOG.error("Unable to cleanup job due to error: ",e);
+<Line#66>    }
+<Line#67>  }
+<Line#68>  if (jobOk) {
+<Line#69>    return 0;
+<Line#70>  }
+<Line#71>  return 1;
+<Line#72>}
+Label: <Line#15> LOG.info("Running with option list " + Helper.stringifyArray(args," "))
+
+Example 3:
+<Line#1>{
+<Line#2>  ParsedOutput parsedOpts=null;
+<Line#3>  try {
+<Line#4>    ArgumentParser argHolder=new ArgumentParser(args);
+<Line#5>    parsedOpts=argHolder.parse();
+<Line#6>    if (parsedOpts.shouldOutputHelp()) {
+<Line#7>      parsedOpts.outputHelp();
+<Line#8>      return 1;
+<Line#9>    }
+<Line#10>  }
+<Line#11> catch (  Exception e) {
+<Line#12>    LOG.error("Unable to parse arguments due to error: ",e);
+<Line#13>    return 1;
+<Line#14>  }
+<Line#15>  LOG.info("Running with option list " + Helper.stringifyArray(args," "));
+<Line#16>  ConfigExtractor config=null;
+<Line#17>  try {
+<Line#18>    ConfigMerger cfgMerger=new ConfigMerger();
+<Line#19>    Configuration cfg=cfgMerger.getMerged(parsedOpts,new Configuration(base));
+<Line#20>    if (cfg != null) {
+<Line#21>      config=new ConfigExtractor(cfg);
+<Line#22>    }
+<Line#23>  }
+<Line#24> catch (  Exception e) {
+<Line#25>    LOG.error("Unable to merge config due to error: ",e);
+<Line#26>    return 1;
+<Line#27>  }
+<Line#28>  if (config == null) {
+<Line#29>    LOG.error("Unable to merge config & options!");
+<Line#30>    return 1;
+<Line#31>  }
+<Line#32>  try {
+<Line#33>    LOG.info("Options are:");
+<Line#34>    ConfigExtractor.dumpOptions(config);
+<Line#35>  }
+<Line#36> catch (  Exception e) {
+<Line#37>    LOG.error("Unable to dump options due to error: ",e);
+<Line#38>    return 1;
+<Line#39>  }
+<Line#40>  boolean jobOk=false;
+<Line#41>  try {
+<Line#42>    LOG.info("Running job:");
+<Line#43>    runJob(config);
+<Line#44>    jobOk=true;
+<Line#45>  }
+<Line#46> catch (  Exception e) {
+<Line#47>    LOG.error("Unable to run job due to error: ",e);
+<Line#48>  }
+<Line#49>  if (jobOk) {
+<Line#50>    try {
+<Line#51>      LOG.info("Reporting on job:");
+<Line#52>      writeReport(config);
+<Line#53>    }
+<Line#54> catch (    Exception e) {
+<Line#55>      LOG.error("Unable to report on job due to error: ",e);
+<Line#56>    }
+<Line#57>  }
+<Line#58>  boolean cleanUp=getBool(parsedOpts.getValue(ConfigOption.CLEANUP.getOpt()));
+<Line#59>  if (cleanUp) {
+<Line#60>    try {
+<Line#61>      LOG.info("Cleaning up job:");
+<Line#62>      cleanup(config);
+<Line#63>    }
+<Line#64> catch (    Exception e) {
+<Line#65>      LOG.error("Unable to cleanup job due to error: ",e);
+<Line#66>    }
+<Line#67>  }
+<Line#68>  if (jobOk) {
+<Line#69>    return 0;
+<Line#70>  }
+<Line#71>  return 1;
+<Line#72>}
+Label: <Line#25> LOG.error("Unable to merge config due to error: ",e)
+
+Example 4:
+<Line#1>{
+<Line#2>  ParsedOutput parsedOpts=null;
+<Line#3>  try {
+<Line#4>    ArgumentParser argHolder=new ArgumentParser(args);
+<Line#5>    parsedOpts=argHolder.parse();
+<Line#6>    if (parsedOpts.shouldOutputHelp()) {
+<Line#7>      parsedOpts.outputHelp();
+<Line#8>      return 1;
+<Line#9>    }
+<Line#10>  }
+<Line#11> catch (  Exception e) {
+<Line#12>    LOG.error("Unable to parse arguments due to error: ",e);
+<Line#13>    return 1;
+<Line#14>  }
+<Line#15>  LOG.info("Running with option list " + Helper.stringifyArray(args," "));
+<Line#16>  ConfigExtractor config=null;
+<Line#17>  try {
+<Line#18>    ConfigMerger cfgMerger=new ConfigMerger();
+<Line#19>    Configuration cfg=cfgMerger.getMerged(parsedOpts,new Configuration(base));
+<Line#20>    if (cfg != null) {
+<Line#21>      config=new ConfigExtractor(cfg);
+<Line#22>    }
+<Line#23>  }
+<Line#24> catch (  Exception e) {
+<Line#25>    LOG.error("Unable to merge config due to error: ",e);
+<Line#26>    return 1;
+<Line#27>  }
+<Line#28>  if (config == null) {
+<Line#29>    LOG.error("Unable to merge config & options!");
+<Line#30>    return 1;
+<Line#31>  }
+<Line#32>  try {
+<Line#33>    LOG.info("Options are:");
+<Line#34>    ConfigExtractor.dumpOptions(config);
+<Line#35>  }
+<Line#36> catch (  Exception e) {
+<Line#37>    LOG.error("Unable to dump options due to error: ",e);
+<Line#38>    return 1;
+<Line#39>  }
+<Line#40>  boolean jobOk=false;
+<Line#41>  try {
+<Line#42>    LOG.info("Running job:");
+<Line#43>    runJob(config);
+<Line#44>    jobOk=true;
+<Line#45>  }
+<Line#46> catch (  Exception e) {
+<Line#47>    LOG.error("Unable to run job due to error: ",e);
+<Line#48>  }
+<Line#49>  if (jobOk) {
+<Line#50>    try {
+<Line#51>      LOG.info("Reporting on job:");
+<Line#52>      writeReport(config);
+<Line#53>    }
+<Line#54> catch (    Exception e) {
+<Line#55>      LOG.error("Unable to report on job due to error: ",e);
+<Line#56>    }
+<Line#57>  }
+<Line#58>  boolean cleanUp=getBool(parsedOpts.getValue(ConfigOption.CLEANUP.getOpt()));
+<Line#59>  if (cleanUp) {
+<Line#60>    try {
+<Line#61>      LOG.info("Cleaning up job:");
+<Line#62>      cleanup(config);
+<Line#63>    }
+<Line#64> catch (    Exception e) {
+<Line#65>      LOG.error("Unable to cleanup job due to error: ",e);
+<Line#66>    }
+<Line#67>  }
+<Line#68>  if (jobOk) {
+<Line#69>    return 0;
+<Line#70>  }
+<Line#71>  return 1;
+<Line#72>}
+Label: <Line#29> LOG.error("Unable to merge config & options!")
+
+Example 5:
+<Line#1>{
+<Line#2>  ParsedOutput parsedOpts=null;
+<Line#3>  try {
+<Line#4>    ArgumentParser argHolder=new ArgumentParser(args);
+<Line#5>    parsedOpts=argHolder.parse();
+<Line#6>    if (parsedOpts.shouldOutputHelp()) {
+<Line#7>      parsedOpts.outputHelp();
+<Line#8>      return 1;
+<Line#9>    }
+<Line#10>  }
+<Line#11> catch (  Exception e) {
+<Line#12>    LOG.error("Unable to parse arguments due to error: ",e);
+<Line#13>    return 1;
+<Line#14>  }
+<Line#15>  LOG.info("Running with option list " + Helper.stringifyArray(args," "));
+<Line#16>  ConfigExtractor config=null;
+<Line#17>  try {
+<Line#18>    ConfigMerger cfgMerger=new ConfigMerger();
+<Line#19>    Configuration cfg=cfgMerger.getMerged(parsedOpts,new Configuration(base));
+<Line#20>    if (cfg != null) {
+<Line#21>      config=new ConfigExtractor(cfg);
+<Line#22>    }
+<Line#23>  }
+<Line#24> catch (  Exception e) {
+<Line#25>    LOG.error("Unable to merge config due to error: ",e);
+<Line#26>    return 1;
+<Line#27>  }
+<Line#28>  if (config == null) {
+<Line#29>    LOG.error("Unable to merge config & options!");
+<Line#30>    return 1;
+<Line#31>  }
+<Line#32>  try {
+<Line#33>    LOG.info("Options are:");
+<Line#34>    ConfigExtractor.dumpOptions(config);
+<Line#35>  }
+<Line#36> catch (  Exception e) {
+<Line#37>    LOG.error("Unable to dump options due to error: ",e);
+<Line#38>    return 1;
+<Line#39>  }
+<Line#40>  boolean jobOk=false;
+<Line#41>  try {
+<Line#42>    LOG.info("Running job:");
+<Line#43>    runJob(config);
+<Line#44>    jobOk=true;
+<Line#45>  }
+<Line#46> catch (  Exception e) {
+<Line#47>    LOG.error("Unable to run job due to error: ",e);
+<Line#48>  }
+<Line#49>  if (jobOk) {
+<Line#50>    try {
+<Line#51>      LOG.info("Reporting on job:");
+<Line#52>      writeReport(config);
+<Line#53>    }
+<Line#54> catch (    Exception e) {
+<Line#55>      LOG.error("Unable to report on job due to error: ",e);
+<Line#56>    }
+<Line#57>  }
+<Line#58>  boolean cleanUp=getBool(parsedOpts.getValue(ConfigOption.CLEANUP.getOpt()));
+<Line#59>  if (cleanUp) {
+<Line#60>    try {
+<Line#61>      LOG.info("Cleaning up job:");
+<Line#62>      cleanup(config);
+<Line#63>    }
+<Line#64> catch (    Exception e) {
+<Line#65>      LOG.error("Unable to cleanup job due to error: ",e);
+<Line#66>    }
+<Line#67>  }
+<Line#68>  if (jobOk) {
+<Line#69>    return 0;
+<Line#70>  }
+<Line#71>  return 1;
+<Line#72>}
+Label: <Line#33> LOG.info("Options are:")
+

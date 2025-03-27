@@ -1,0 +1,27 @@
+To insert log level and log verbosity messages into the provided target method code, we will follow the pattern observed in the examples. We will add logging statements at appropriate lines to capture potential issues or important information. Here is the modified code with inserted log statements:
+
+```java
+<Line#0>private URI createKeyProviderURI(Configuration conf) {
+<Line#1>final String providerUriStr = conf.getTrimmed(
+<Line#2>CommonConfigurationKeysPublic.HADOOP_SECURITY_KEY_PROVIDER_PATH);
+<Line#3>// No provider set in conf
+<Line#4>if (providerUriStr == null || providerUriStr.isEmpty()) {
+<Line#5>LOG.warn("No key provider URI set in configuration.");
+<Line#6>return null;
+<Line#7>}
+<Line#8>final URI providerUri;
+<Line#9>try {
+<Line#10>providerUri = new URI(providerUriStr);
+<Line#11>} catch (URISyntaxException e) {
+<Line#12>LOG.error("Invalid URI syntax for key provider: " + providerUriStr, e);
+<Line#13>return null;
+<Line#14>}
+<Line#15>LOG.info("Key provider URI created successfully: " + providerUri);
+<Line#16>return providerUri;
+<Line#17>}
+```
+
+### Explanation:
+- **Line#5**: Added a warning log to indicate that no key provider URI is set in the configuration.
+- **Line#12**: Added an error log to capture any `URISyntaxException` that occurs when trying to create a URI, including the invalid URI string.
+- **Line#15**: Added an info log to confirm that the key provider URI was created successfully.

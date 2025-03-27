@@ -1,0 +1,4 @@
+Lorg/apache/hadoop/yarn/conf/YarnConfiguration	 type:Both
+Lorg/apache/hadoop/yarn/client/RMProxy	 type:Dict-Holder
+Lorg/apache/hadoop/yarn/util/RMHAUtils	 type:Dict-Holder
+Lorg/apache/hadoop/yarn/client/ClientRMProxy	 type:Dict-Holder

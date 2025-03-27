@@ -1,0 +1,27 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ReflectionUtils.java	methodSinagture:	org.apache.storm.utils.ReflectionUtils.newSchedulerStrategyInstance(Ljava/lang/String;Ljava/util/Map;)Ljava/lang/Object;	methodLines:	77:82
+blockLines:	79:-1
+paras:	null
+TaintedStat:	NORMAL newSchedulerStrategyInstance:conditional branch(eq, to iindex=13) 7,8 Node: < Application, Lorg/apache/storm/utils/ReflectionUtils, newSchedulerStrategyInstance(Ljava/lang/String;Ljava/util/Map;)Ljava/lang/Object; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ReflectionUtils, newSchedulerStrategyInstance(Ljava/lang/String;Ljava/util/Map;)Ljava/lang/Object; > Context: Everywhere[2]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,4 @3 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ReflectionUtils, newSchedulerStrategyInstance(Ljava/lang/String;Ljava/util/Map;)Ljava/lang/Object; > Context: Everywhere[2]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,4 @3 exception:5
+NORMAL newSchedulerStrategyInstance:7 = checkcast <Application,Ljava/util/List>6 <Application,Ljava/util/List> Node: < Application, Lorg/apache/storm/utils/ReflectionUtils, newSchedulerStrategyInstance(Ljava/lang/String;Ljava/util/Map;)Ljava/lang/Object; > Context: Everywhere
+NORMAL newSchedulerStrategyInstance:conditional branch(eq, to iindex=13) 7,8 Node: < Application, Lorg/apache/storm/utils/ReflectionUtils, newSchedulerStrategyInstance(Ljava/lang/String;Ljava/util/Map;)Ljava/lang/Object; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static <T> T newSchedulerStrategyInstance(String klass, Map<String, Object> conf) {
+        List<String> allowedSchedulerStrategies = (List<String>) conf.get(Config.NIMBUS_SCHEDULER_STRATEGY_CLASS_WHITELIST);
+        if (allowedSchedulerStrategies == null || allowedSchedulerStrategies.contains(klass)) {
+            return newInstance(klass);
+        } else {
+            throw new DisallowedStrategyException(klass, allowedSchedulerStrategies);
+        }
+
+
+====================ctx:=======================

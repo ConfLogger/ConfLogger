@@ -1,0 +1,52 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ClientStatsUtil.java	methodSinagture:	org.apache.storm.stats.ClientStatsUtil.getMapByKey(Ljava/util/Map;Ljava/lang/String;)Ljava/util/Map;	methodLines:	111:115
+blockLines:	112:-1
+paras:	null
+TaintedStat:	NORMAL getMapByKey:conditional branch(ne, to iindex=5) 1,4 Node: < Application, Lorg/apache/storm/stats/ClientStatsUtil, getMapByKey(Ljava/util/Map;Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/stats/StatsUtil, extractDataFromHb(Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;ZLorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Ljava/util/List; > Context: Everywhere[63]55 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,53 @159 exception:54
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/stats/StatsUtil, extractDataFromHb(Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;ZLorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Ljava/util/List; > Context: Everywhere[63]55 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,53 @159 exception:54
+NORMAL extractDataFromHb:[null]: 56 = checkcast <Application,Ljava/util/Map>55 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/stats/StatsUtil, extractDataFromHb(Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;ZLorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Ljava/util/List; > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/stats/StatsUtil, extractDataFromHb(Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;ZLorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Ljava/util/List; > Context: Everywhere[129]93 = invokestatic < Application, Lorg/apache/storm/stats/ClientStatsUtil, getMapByKey(Ljava/util/Map;Ljava/lang/String;)Ljava/util/Map; > 56,91 @309 exception:92 v56
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/stats/ClientStatsUtil, getMapByKey(Ljava/util/Map;Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere v1
+NORMAL getMapByKey:conditional branch(ne, to iindex=5) 1,4 Node: < Application, Lorg/apache/storm/stats/ClientStatsUtil, getMapByKey(Ljava/util/Map;Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static <K, V> Map<K, V> getMapByKey(Map map, String key) {
+        if (map == null) {
+            return null;
+        }
+        return (Map<K, V>) map.get(key);
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/stats/ClientStatsUtil, thriftifyZkWorkerHb(Ljava/util/Map;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat; > Context: Everywhere, blocks=[BB[SSA:25..28]14 - org.apache.storm.stats.ClientStatsUtil.thriftifyZkWorkerHb(Ljava/util/Map;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat;, BB[SSA:23..24]13 - org.apache.storm.stats.ClientStatsUtil.thriftifyZkWorkerHb(Ljava/util/Map;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat;, BB[SSA:29..32]15 - org.apache.storm.stats.ClientStatsUtil.thriftifyZkWorkerHb(Ljava/util/Map;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat;, BB[SSA:-1..-2]41 - org.apache.storm.stats.ClientStatsUtil.thriftifyZkWorkerHb(Ljava/util/Map;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat;], numberOfBasicBlocks=4, firstLineNumber=124, lastLineNumber=127, firstMethodNumber=118, lastMethodNumber=138, isFirstLineValid=true, methodSrcCode=
+    public static ClusterWorkerHeartbeat thriftifyZkWorkerHb(Map<String, Object> heartbeat) {
+        ClusterWorkerHeartbeat ret = new ClusterWorkerHeartbeat();
+        ret.set_uptime_secs(getByKeyOr0(heartbeat, UPTIME).intValue());
+        ret.set_storm_id((String) heartbeat.get("storm-id"));
+        ret.set_time_secs(getByKeyOr0(heartbeat, TIME_SECS).intValue());
+
+        Map<ExecutorInfo, ExecutorStats> convertedStats = new HashMap<>();
+
+        Map<List<Integer>, ExecutorStats> executorStats = getMapByKey(heartbeat, EXECUTOR_STATS);
+        if (executorStats != null) {
+            for (Map.Entry<List<Integer>, ExecutorStats> entry : executorStats.entrySet()) {
+                List<Integer> executor = entry.getKey();
+                ExecutorStats stats = entry.getValue();
+                if (null != stats) {
+                    convertedStats.put(new ExecutorInfo(executor.get(0), executor.get(1)), stats);
+                }
+            }
+        }
+        ret.set_executor_stats(convertedStats);
+
+        return ret;
+    }
+}

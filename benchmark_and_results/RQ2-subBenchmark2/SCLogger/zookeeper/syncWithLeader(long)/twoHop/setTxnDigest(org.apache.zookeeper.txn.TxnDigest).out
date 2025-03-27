@@ -1,0 +1,3 @@
+public void setTxn(Record txn){
+  this.txn=txn;
+}

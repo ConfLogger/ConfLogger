@@ -1,0 +1,29 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	MultiReducedMetric.java	methodSinagture:	org.apache.storm.metric.api.MultiReducedMetric.scope(Ljava/lang/String;)Lorg/apache/storm/metric/api/ReducedMetric;	methodLines:	26:33
+blockLines:	29:-1
+paras:	null
+TaintedStat:	NORMAL scope:conditional branch(ne, to iindex=26) 8,9 Node: < Application, Lorg/apache/storm/metric/api/MultiReducedMetric, scope(Ljava/lang/String;)Lorg/apache/storm/metric/api/ReducedMetric; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/metric/api/MultiReducedMetric, scope(Ljava/lang/String;)Lorg/apache/storm/metric/api/ReducedMetric; > Context: Everywhere[8]7 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,2 @12 exception:6
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/metric/api/MultiReducedMetric, scope(Ljava/lang/String;)Lorg/apache/storm/metric/api/ReducedMetric; > Context: Everywhere[8]7 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,2 @12 exception:6
+NORMAL scope:8 = checkcast <Application,Lorg/apache/storm/metric/api/ReducedMetric>7 <Application,Lorg/apache/storm/metric/api/ReducedMetric> Node: < Application, Lorg/apache/storm/metric/api/MultiReducedMetric, scope(Ljava/lang/String;)Lorg/apache/storm/metric/api/ReducedMetric; > Context: Everywhere
+NORMAL scope:conditional branch(ne, to iindex=26) 8,9 Node: < Application, Lorg/apache/storm/metric/api/MultiReducedMetric, scope(Ljava/lang/String;)Lorg/apache/storm/metric/api/ReducedMetric; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public ReducedMetric scope(String key) {
+        synchronized (value) {
+            ReducedMetric val = value.get(key);
+            if (val == null) {
+                value.put(key, val = new ReducedMetric(reducer));
+            }
+            return val;
+        }
+    }
+
+
+====================ctx:=======================

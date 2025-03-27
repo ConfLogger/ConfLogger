@@ -1,0 +1,25 @@
+To insert log level and log verbosity messages into the given target method code, we can follow the pattern demonstrated in the examples. We will add logging statements at appropriate locations in the method. Here's how you can do it:
+
+```java
+<Line#0>public void setConf(Configuration conf) {
+<Line#1>    this.conf = conf;
+<Line#2>    keyFieldHelper = new KeyFieldHelper();
+<Line#3>    String keyFieldSeparator =
+<Line#4>    conf.get(MRJobConfig.MAP_OUTPUT_KEY_FIELD_SEPARATOR, "\t");
+<Line#5>    keyFieldHelper.setKeyFieldSeparator(keyFieldSeparator);
+<Line#6>    LOG.debug("Key field separator set to: " + keyFieldSeparator); // Debug log for separator
+<Line#7>    if (conf.get("num.key.fields.for.partition") != null) {
+<Line#8>        this.numOfPartitionFields = conf.getInt("num.key.fields.for.partition",0);
+<Line#9>        LOG.info("Number of partition fields set to: " + numOfPartitionFields); // Info log for partition fields
+<Line#10>        keyFieldHelper.setKeyFieldSpec(1,numOfPartitionFields);
+<Line#11>    } else {
+<Line#12>        String option = conf.get(PARTITIONER_OPTIONS);
+<Line#13>        LOG.warn("Partitioner options not found, using default: " + option); // Warn log for default option
+<Line#14>        keyFieldHelper.parseOption(option);
+<Line#15>    }
+<Line#16>}
+```
+
+- At Line#6, a debug log is added to indicate the key field separator being set.
+- At Line#9, an info log is added to indicate the number of partition fields being set.
+- At Line#13, a warn log is added to indicate that partitioner options were not found and a default is being used.

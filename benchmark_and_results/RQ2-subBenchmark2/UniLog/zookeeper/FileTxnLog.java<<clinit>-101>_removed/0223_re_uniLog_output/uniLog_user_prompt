@@ -1,0 +1,588 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>public static final int TXNLOG_MAGIC = ByteBuffer.wrap("ZKLG".getBytes()).getInt();
+<Line#1>
+<Line#2>public static final int VERSION = 2;
+<Line#3>
+<Line#4>public static final String LOG_FILE_PREFIX = "log";
+<Line#5>
+<Line#6>static final String FSYNC_WARNING_THRESHOLD_MS_PROPERTY = "fsync.warningthresholdms";
+<Line#7>static final String ZOOKEEPER_FSYNC_WARNING_THRESHOLD_MS_PROPERTY = "zookeeper." + FSYNC_WARNING_THRESHOLD_MS_PROPERTY;
+<Line#8>
+<Line#9>/** Maximum time we allow for elapsed fsync before WARNing */
+<Line#10>private static final long fsyncWarningThresholdMS;
+<Line#11>
+<Line#12>/**
+<Line#13>* This parameter limit the size of each txnlog to a given limit (KB).
+<Line#14>* It does not affect how often the system will take a snapshot [zookeeper.snapCount]
+<Line#15>* We roll the txnlog when either of the two limits are reached.
+<Line#16>* Also since we only roll the logs at transaction boundaries, actual file size can exceed
+<Line#17>* this limit by the maximum size of a serialized transaction.
+<Line#18>* The feature is disabled by default (-1)
+<Line#19>*/
+<Line#20>private static final String txnLogSizeLimitSetting = "zookeeper.txnLogSizeLimitInKb";
+<Line#21>
+<Line#22>/**
+<Line#23>* The actual txnlog size limit in bytes.
+<Line#24>*/
+<Line#25>private static long txnLogSizeLimit = -1;
+<Line#26>
+<Line#27>static {
+<Line#28>LOG = LoggerFactory.getLogger(FileTxnLog.class);
+<Line#29>
+<Line#30>/** Local variable to read fsync.warningthresholdms into */
+<Line#31>Long fsyncWarningThreshold;
+<Line#32>if ((fsyncWarningThreshold = Long.getLong(ZOOKEEPER_FSYNC_WARNING_THRESHOLD_MS_PROPERTY)) == null) {
+<Line#33>fsyncWarningThreshold = Long.getLong(FSYNC_WARNING_THRESHOLD_MS_PROPERTY, 1000);
+<Line#34>}
+<Line#35>fsyncWarningThresholdMS = fsyncWarningThreshold;
+<Line#36>
+<Line#37>Long logSize = Long.getLong(txnLogSizeLimitSetting, -1);
+<Line#38>if (logSize > 0) {
+<Line#39>// Convert to bytes
+<Line#40>logSize = logSize * 1024;
+<Line#41>txnLogSizeLimit = logSize;
+<Line#42>}
+<Line#43>}
+
+Example 1:
+<Line#1>{
+<Line#2>  ClientX509Util x509Util=null;
+<Line#3>  if (secure) {
+<Line#4>    x509Util=SSLAuthTest.setUpSecure();
+<Line#5>  }
+<Line#6>  try {
+<Line#7>    NettyServerCnxnFactory factory=(NettyServerCnxnFactory)serverFactory;
+<Line#8>    factory.setAdvancedFlowControlEnabled(true);
+<Line#9>    if (secure) {
+<Line#10>      factory.setSecure(true);
+<Line#11>    }
+<Line#12>    final String path="/testEnableDisableThrottling";
+<Line#13>    try (ZooKeeper zk=createClient()){
+<Line#14>      zk.create(path,new byte[1],Ids.OPEN_ACL_UNSAFE,CreateMode.PERSISTENT);
+<Line#15>      AtomicBoolean stopped=new AtomicBoolean(false);
+<Line#16>      Random random=new Random();
+<Line#17>      Thread enableDisableThread=null;
+<Line#18>      if (randomDisableEnable) {
+<Line#19>        enableDisableThread=new Thread(){
+<Line#20>          @Override public void run(){
+<Line#21>            while (!stopped.get()) {
+<Line#22>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#23>                boolean shouldDisableEnable=random.nextBoolean();
+<Line#24>                if (shouldDisableEnable) {
+<Line#25>                  cnxn.disableRecv();
+<Line#26>                }
+<Line#27> else {
+<Line#28>                  cnxn.enableRecv();
+<Line#29>                }
+<Line#30>              }
+<Line#31>              try {
+<Line#32>                Thread.sleep(10);
+<Line#33>              }
+<Line#34> catch (              InterruptedException e) {
+<Line#35>              }
+<Line#36>            }
+<Line#37>            for (            final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#38>              cnxn.enableRecv();
+<Line#39>            }
+<Line#40>          }
+<Line#41>        }
+<Line#42>;
+<Line#43>      }
+<Line#44> else {
+<Line#45>        enableDisableThread=new Thread(){
+<Line#46>          @Override public void run(){
+<Line#47>            while (!stopped.get()) {
+<Line#48>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#49>                try {
+<Line#50>                  cnxn.disableRecv();
+<Line#51>                  Thread.sleep(10);
+<Line#52>                  cnxn.enableRecv();
+<Line#53>                  Thread.sleep(10);
+<Line#54>                }
+<Line#55> catch (                InterruptedException e) {
+<Line#56>                }
+<Line#57>              }
+<Line#58>            }
+<Line#59>          }
+<Line#60>        }
+<Line#61>;
+<Line#62>      }
+<Line#63>      enableDisableThread.start();
+<Line#64>      LOG.info("started thread to enable and disable recv");
+<Line#65>      int totalRequestsNum=100000;
+<Line#66>      AtomicInteger successResponse=new AtomicInteger();
+<Line#67>      CountDownLatch responseReceivedLatch=new CountDownLatch(totalRequestsNum);
+<Line#68>      Thread clientThread=new Thread(){
+<Line#69>        @Override public void run(){
+<Line#70>          int requestIssued=0;
+<Line#71>          while (requestIssued++ < totalRequestsNum) {
+<Line#72>            zk.getData(path,null,new DataCallback(){
+<Line#73>              @Override public void processResult(              int rc,              String path,              Object ctx,              byte[] data,              Stat stat){
+<Line#74>                if (rc == KeeperException.Code.OK.intValue()) {
+<Line#75>                  successResponse.addAndGet(1);
+<Line#76>                }
+<Line#77> else {
+<Line#78>                  LOG.info("failed response is {}",rc);
+<Line#79>                }
+<Line#80>                responseReceivedLatch.countDown();
+<Line#81>              }
+<Line#82>            }
+<Line#83>,null);
+<Line#84>          }
+<Line#85>        }
+<Line#86>      }
+<Line#87>;
+<Line#88>      clientThread.start();
+<Line#89>      LOG.info("started thread to issue {} async requests",totalRequestsNum);
+<Line#90>      assertTrue(responseReceivedLatch.await(60,TimeUnit.SECONDS));
+<Line#91>      LOG.info("received all {} responses",totalRequestsNum);
+<Line#92>      stopped.set(true);
+<Line#93>      enableDisableThread.join();
+<Line#94>      LOG.info("enable and disable recv thread exited");
+<Line#95>      LOG.info("waiting another 1s for the requests to go through");
+<Line#96>      Thread.sleep(1000);
+<Line#97>      assertEquals(successResponse.get(),totalRequestsNum);
+<Line#98>    }
+<Line#99>   }
+<Line#100>  finally {
+<Line#101>    if (secure) {
+<Line#102>      SSLAuthTest.clearSecureSetting(x509Util);
+<Line#103>    }
+<Line#104>  }
+<Line#105>}
+Label: <Line#64> LOG.info("started thread to enable and disable recv")
+
+Example 2:
+<Line#1>{
+<Line#2>  ClientX509Util x509Util=null;
+<Line#3>  if (secure) {
+<Line#4>    x509Util=SSLAuthTest.setUpSecure();
+<Line#5>  }
+<Line#6>  try {
+<Line#7>    NettyServerCnxnFactory factory=(NettyServerCnxnFactory)serverFactory;
+<Line#8>    factory.setAdvancedFlowControlEnabled(true);
+<Line#9>    if (secure) {
+<Line#10>      factory.setSecure(true);
+<Line#11>    }
+<Line#12>    final String path="/testEnableDisableThrottling";
+<Line#13>    try (ZooKeeper zk=createClient()){
+<Line#14>      zk.create(path,new byte[1],Ids.OPEN_ACL_UNSAFE,CreateMode.PERSISTENT);
+<Line#15>      AtomicBoolean stopped=new AtomicBoolean(false);
+<Line#16>      Random random=new Random();
+<Line#17>      Thread enableDisableThread=null;
+<Line#18>      if (randomDisableEnable) {
+<Line#19>        enableDisableThread=new Thread(){
+<Line#20>          @Override public void run(){
+<Line#21>            while (!stopped.get()) {
+<Line#22>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#23>                boolean shouldDisableEnable=random.nextBoolean();
+<Line#24>                if (shouldDisableEnable) {
+<Line#25>                  cnxn.disableRecv();
+<Line#26>                }
+<Line#27> else {
+<Line#28>                  cnxn.enableRecv();
+<Line#29>                }
+<Line#30>              }
+<Line#31>              try {
+<Line#32>                Thread.sleep(10);
+<Line#33>              }
+<Line#34> catch (              InterruptedException e) {
+<Line#35>              }
+<Line#36>            }
+<Line#37>            for (            final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#38>              cnxn.enableRecv();
+<Line#39>            }
+<Line#40>          }
+<Line#41>        }
+<Line#42>;
+<Line#43>      }
+<Line#44> else {
+<Line#45>        enableDisableThread=new Thread(){
+<Line#46>          @Override public void run(){
+<Line#47>            while (!stopped.get()) {
+<Line#48>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#49>                try {
+<Line#50>                  cnxn.disableRecv();
+<Line#51>                  Thread.sleep(10);
+<Line#52>                  cnxn.enableRecv();
+<Line#53>                  Thread.sleep(10);
+<Line#54>                }
+<Line#55> catch (                InterruptedException e) {
+<Line#56>                }
+<Line#57>              }
+<Line#58>            }
+<Line#59>          }
+<Line#60>        }
+<Line#61>;
+<Line#62>      }
+<Line#63>      enableDisableThread.start();
+<Line#64>      LOG.info("started thread to enable and disable recv");
+<Line#65>      int totalRequestsNum=100000;
+<Line#66>      AtomicInteger successResponse=new AtomicInteger();
+<Line#67>      CountDownLatch responseReceivedLatch=new CountDownLatch(totalRequestsNum);
+<Line#68>      Thread clientThread=new Thread(){
+<Line#69>        @Override public void run(){
+<Line#70>          int requestIssued=0;
+<Line#71>          while (requestIssued++ < totalRequestsNum) {
+<Line#72>            zk.getData(path,null,new DataCallback(){
+<Line#73>              @Override public void processResult(              int rc,              String path,              Object ctx,              byte[] data,              Stat stat){
+<Line#74>                if (rc == KeeperException.Code.OK.intValue()) {
+<Line#75>                  successResponse.addAndGet(1);
+<Line#76>                }
+<Line#77> else {
+<Line#78>                  LOG.info("failed response is {}",rc);
+<Line#79>                }
+<Line#80>                responseReceivedLatch.countDown();
+<Line#81>              }
+<Line#82>            }
+<Line#83>,null);
+<Line#84>          }
+<Line#85>        }
+<Line#86>      }
+<Line#87>;
+<Line#88>      clientThread.start();
+<Line#89>      LOG.info("started thread to issue {} async requests",totalRequestsNum);
+<Line#90>      assertTrue(responseReceivedLatch.await(60,TimeUnit.SECONDS));
+<Line#91>      LOG.info("received all {} responses",totalRequestsNum);
+<Line#92>      stopped.set(true);
+<Line#93>      enableDisableThread.join();
+<Line#94>      LOG.info("enable and disable recv thread exited");
+<Line#95>      LOG.info("waiting another 1s for the requests to go through");
+<Line#96>      Thread.sleep(1000);
+<Line#97>      assertEquals(successResponse.get(),totalRequestsNum);
+<Line#98>    }
+<Line#99>   }
+<Line#100>  finally {
+<Line#101>    if (secure) {
+<Line#102>      SSLAuthTest.clearSecureSetting(x509Util);
+<Line#103>    }
+<Line#104>  }
+<Line#105>}
+Label: <Line#89> LOG.info("started thread to issue {} async requests",totalRequestsNum)
+
+Example 3:
+<Line#1>{
+<Line#2>  ClientX509Util x509Util=null;
+<Line#3>  if (secure) {
+<Line#4>    x509Util=SSLAuthTest.setUpSecure();
+<Line#5>  }
+<Line#6>  try {
+<Line#7>    NettyServerCnxnFactory factory=(NettyServerCnxnFactory)serverFactory;
+<Line#8>    factory.setAdvancedFlowControlEnabled(true);
+<Line#9>    if (secure) {
+<Line#10>      factory.setSecure(true);
+<Line#11>    }
+<Line#12>    final String path="/testEnableDisableThrottling";
+<Line#13>    try (ZooKeeper zk=createClient()){
+<Line#14>      zk.create(path,new byte[1],Ids.OPEN_ACL_UNSAFE,CreateMode.PERSISTENT);
+<Line#15>      AtomicBoolean stopped=new AtomicBoolean(false);
+<Line#16>      Random random=new Random();
+<Line#17>      Thread enableDisableThread=null;
+<Line#18>      if (randomDisableEnable) {
+<Line#19>        enableDisableThread=new Thread(){
+<Line#20>          @Override public void run(){
+<Line#21>            while (!stopped.get()) {
+<Line#22>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#23>                boolean shouldDisableEnable=random.nextBoolean();
+<Line#24>                if (shouldDisableEnable) {
+<Line#25>                  cnxn.disableRecv();
+<Line#26>                }
+<Line#27> else {
+<Line#28>                  cnxn.enableRecv();
+<Line#29>                }
+<Line#30>              }
+<Line#31>              try {
+<Line#32>                Thread.sleep(10);
+<Line#33>              }
+<Line#34> catch (              InterruptedException e) {
+<Line#35>              }
+<Line#36>            }
+<Line#37>            for (            final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#38>              cnxn.enableRecv();
+<Line#39>            }
+<Line#40>          }
+<Line#41>        }
+<Line#42>;
+<Line#43>      }
+<Line#44> else {
+<Line#45>        enableDisableThread=new Thread(){
+<Line#46>          @Override public void run(){
+<Line#47>            while (!stopped.get()) {
+<Line#48>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#49>                try {
+<Line#50>                  cnxn.disableRecv();
+<Line#51>                  Thread.sleep(10);
+<Line#52>                  cnxn.enableRecv();
+<Line#53>                  Thread.sleep(10);
+<Line#54>                }
+<Line#55> catch (                InterruptedException e) {
+<Line#56>                }
+<Line#57>              }
+<Line#58>            }
+<Line#59>          }
+<Line#60>        }
+<Line#61>;
+<Line#62>      }
+<Line#63>      enableDisableThread.start();
+<Line#64>      LOG.info("started thread to enable and disable recv");
+<Line#65>      int totalRequestsNum=100000;
+<Line#66>      AtomicInteger successResponse=new AtomicInteger();
+<Line#67>      CountDownLatch responseReceivedLatch=new CountDownLatch(totalRequestsNum);
+<Line#68>      Thread clientThread=new Thread(){
+<Line#69>        @Override public void run(){
+<Line#70>          int requestIssued=0;
+<Line#71>          while (requestIssued++ < totalRequestsNum) {
+<Line#72>            zk.getData(path,null,new DataCallback(){
+<Line#73>              @Override public void processResult(              int rc,              String path,              Object ctx,              byte[] data,              Stat stat){
+<Line#74>                if (rc == KeeperException.Code.OK.intValue()) {
+<Line#75>                  successResponse.addAndGet(1);
+<Line#76>                }
+<Line#77> else {
+<Line#78>                  LOG.info("failed response is {}",rc);
+<Line#79>                }
+<Line#80>                responseReceivedLatch.countDown();
+<Line#81>              }
+<Line#82>            }
+<Line#83>,null);
+<Line#84>          }
+<Line#85>        }
+<Line#86>      }
+<Line#87>;
+<Line#88>      clientThread.start();
+<Line#89>      LOG.info("started thread to issue {} async requests",totalRequestsNum);
+<Line#90>      assertTrue(responseReceivedLatch.await(60,TimeUnit.SECONDS));
+<Line#91>      LOG.info("received all {} responses",totalRequestsNum);
+<Line#92>      stopped.set(true);
+<Line#93>      enableDisableThread.join();
+<Line#94>      LOG.info("enable and disable recv thread exited");
+<Line#95>      LOG.info("waiting another 1s for the requests to go through");
+<Line#96>      Thread.sleep(1000);
+<Line#97>      assertEquals(successResponse.get(),totalRequestsNum);
+<Line#98>    }
+<Line#99>   }
+<Line#100>  finally {
+<Line#101>    if (secure) {
+<Line#102>      SSLAuthTest.clearSecureSetting(x509Util);
+<Line#103>    }
+<Line#104>  }
+<Line#105>}
+Label: <Line#91> LOG.info("received all {} responses",totalRequestsNum)
+
+Example 4:
+<Line#1>{
+<Line#2>  ClientX509Util x509Util=null;
+<Line#3>  if (secure) {
+<Line#4>    x509Util=SSLAuthTest.setUpSecure();
+<Line#5>  }
+<Line#6>  try {
+<Line#7>    NettyServerCnxnFactory factory=(NettyServerCnxnFactory)serverFactory;
+<Line#8>    factory.setAdvancedFlowControlEnabled(true);
+<Line#9>    if (secure) {
+<Line#10>      factory.setSecure(true);
+<Line#11>    }
+<Line#12>    final String path="/testEnableDisableThrottling";
+<Line#13>    try (ZooKeeper zk=createClient()){
+<Line#14>      zk.create(path,new byte[1],Ids.OPEN_ACL_UNSAFE,CreateMode.PERSISTENT);
+<Line#15>      AtomicBoolean stopped=new AtomicBoolean(false);
+<Line#16>      Random random=new Random();
+<Line#17>      Thread enableDisableThread=null;
+<Line#18>      if (randomDisableEnable) {
+<Line#19>        enableDisableThread=new Thread(){
+<Line#20>          @Override public void run(){
+<Line#21>            while (!stopped.get()) {
+<Line#22>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#23>                boolean shouldDisableEnable=random.nextBoolean();
+<Line#24>                if (shouldDisableEnable) {
+<Line#25>                  cnxn.disableRecv();
+<Line#26>                }
+<Line#27> else {
+<Line#28>                  cnxn.enableRecv();
+<Line#29>                }
+<Line#30>              }
+<Line#31>              try {
+<Line#32>                Thread.sleep(10);
+<Line#33>              }
+<Line#34> catch (              InterruptedException e) {
+<Line#35>              }
+<Line#36>            }
+<Line#37>            for (            final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#38>              cnxn.enableRecv();
+<Line#39>            }
+<Line#40>          }
+<Line#41>        }
+<Line#42>;
+<Line#43>      }
+<Line#44> else {
+<Line#45>        enableDisableThread=new Thread(){
+<Line#46>          @Override public void run(){
+<Line#47>            while (!stopped.get()) {
+<Line#48>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#49>                try {
+<Line#50>                  cnxn.disableRecv();
+<Line#51>                  Thread.sleep(10);
+<Line#52>                  cnxn.enableRecv();
+<Line#53>                  Thread.sleep(10);
+<Line#54>                }
+<Line#55> catch (                InterruptedException e) {
+<Line#56>                }
+<Line#57>              }
+<Line#58>            }
+<Line#59>          }
+<Line#60>        }
+<Line#61>;
+<Line#62>      }
+<Line#63>      enableDisableThread.start();
+<Line#64>      LOG.info("started thread to enable and disable recv");
+<Line#65>      int totalRequestsNum=100000;
+<Line#66>      AtomicInteger successResponse=new AtomicInteger();
+<Line#67>      CountDownLatch responseReceivedLatch=new CountDownLatch(totalRequestsNum);
+<Line#68>      Thread clientThread=new Thread(){
+<Line#69>        @Override public void run(){
+<Line#70>          int requestIssued=0;
+<Line#71>          while (requestIssued++ < totalRequestsNum) {
+<Line#72>            zk.getData(path,null,new DataCallback(){
+<Line#73>              @Override public void processResult(              int rc,              String path,              Object ctx,              byte[] data,              Stat stat){
+<Line#74>                if (rc == KeeperException.Code.OK.intValue()) {
+<Line#75>                  successResponse.addAndGet(1);
+<Line#76>                }
+<Line#77> else {
+<Line#78>                  LOG.info("failed response is {}",rc);
+<Line#79>                }
+<Line#80>                responseReceivedLatch.countDown();
+<Line#81>              }
+<Line#82>            }
+<Line#83>,null);
+<Line#84>          }
+<Line#85>        }
+<Line#86>      }
+<Line#87>;
+<Line#88>      clientThread.start();
+<Line#89>      LOG.info("started thread to issue {} async requests",totalRequestsNum);
+<Line#90>      assertTrue(responseReceivedLatch.await(60,TimeUnit.SECONDS));
+<Line#91>      LOG.info("received all {} responses",totalRequestsNum);
+<Line#92>      stopped.set(true);
+<Line#93>      enableDisableThread.join();
+<Line#94>      LOG.info("enable and disable recv thread exited");
+<Line#95>      LOG.info("waiting another 1s for the requests to go through");
+<Line#96>      Thread.sleep(1000);
+<Line#97>      assertEquals(successResponse.get(),totalRequestsNum);
+<Line#98>    }
+<Line#99>   }
+<Line#100>  finally {
+<Line#101>    if (secure) {
+<Line#102>      SSLAuthTest.clearSecureSetting(x509Util);
+<Line#103>    }
+<Line#104>  }
+<Line#105>}
+Label: <Line#94> LOG.info("enable and disable recv thread exited")
+
+Example 5:
+<Line#1>{
+<Line#2>  ClientX509Util x509Util=null;
+<Line#3>  if (secure) {
+<Line#4>    x509Util=SSLAuthTest.setUpSecure();
+<Line#5>  }
+<Line#6>  try {
+<Line#7>    NettyServerCnxnFactory factory=(NettyServerCnxnFactory)serverFactory;
+<Line#8>    factory.setAdvancedFlowControlEnabled(true);
+<Line#9>    if (secure) {
+<Line#10>      factory.setSecure(true);
+<Line#11>    }
+<Line#12>    final String path="/testEnableDisableThrottling";
+<Line#13>    try (ZooKeeper zk=createClient()){
+<Line#14>      zk.create(path,new byte[1],Ids.OPEN_ACL_UNSAFE,CreateMode.PERSISTENT);
+<Line#15>      AtomicBoolean stopped=new AtomicBoolean(false);
+<Line#16>      Random random=new Random();
+<Line#17>      Thread enableDisableThread=null;
+<Line#18>      if (randomDisableEnable) {
+<Line#19>        enableDisableThread=new Thread(){
+<Line#20>          @Override public void run(){
+<Line#21>            while (!stopped.get()) {
+<Line#22>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#23>                boolean shouldDisableEnable=random.nextBoolean();
+<Line#24>                if (shouldDisableEnable) {
+<Line#25>                  cnxn.disableRecv();
+<Line#26>                }
+<Line#27> else {
+<Line#28>                  cnxn.enableRecv();
+<Line#29>                }
+<Line#30>              }
+<Line#31>              try {
+<Line#32>                Thread.sleep(10);
+<Line#33>              }
+<Line#34> catch (              InterruptedException e) {
+<Line#35>              }
+<Line#36>            }
+<Line#37>            for (            final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#38>              cnxn.enableRecv();
+<Line#39>            }
+<Line#40>          }
+<Line#41>        }
+<Line#42>;
+<Line#43>      }
+<Line#44> else {
+<Line#45>        enableDisableThread=new Thread(){
+<Line#46>          @Override public void run(){
+<Line#47>            while (!stopped.get()) {
+<Line#48>              for (              final ServerCnxn cnxn : serverFactory.cnxns) {
+<Line#49>                try {
+<Line#50>                  cnxn.disableRecv();
+<Line#51>                  Thread.sleep(10);
+<Line#52>                  cnxn.enableRecv();
+<Line#53>                  Thread.sleep(10);
+<Line#54>                }
+<Line#55> catch (                InterruptedException e) {
+<Line#56>                }
+<Line#57>              }
+<Line#58>            }
+<Line#59>          }
+<Line#60>        }
+<Line#61>;
+<Line#62>      }
+<Line#63>      enableDisableThread.start();
+<Line#64>      LOG.info("started thread to enable and disable recv");
+<Line#65>      int totalRequestsNum=100000;
+<Line#66>      AtomicInteger successResponse=new AtomicInteger();
+<Line#67>      CountDownLatch responseReceivedLatch=new CountDownLatch(totalRequestsNum);
+<Line#68>      Thread clientThread=new Thread(){
+<Line#69>        @Override public void run(){
+<Line#70>          int requestIssued=0;
+<Line#71>          while (requestIssued++ < totalRequestsNum) {
+<Line#72>            zk.getData(path,null,new DataCallback(){
+<Line#73>              @Override public void processResult(              int rc,              String path,              Object ctx,              byte[] data,              Stat stat){
+<Line#74>                if (rc == KeeperException.Code.OK.intValue()) {
+<Line#75>                  successResponse.addAndGet(1);
+<Line#76>                }
+<Line#77> else {
+<Line#78>                  LOG.info("failed response is {}",rc);
+<Line#79>                }
+<Line#80>                responseReceivedLatch.countDown();
+<Line#81>              }
+<Line#82>            }
+<Line#83>,null);
+<Line#84>          }
+<Line#85>        }
+<Line#86>      }
+<Line#87>;
+<Line#88>      clientThread.start();
+<Line#89>      LOG.info("started thread to issue {} async requests",totalRequestsNum);
+<Line#90>      assertTrue(responseReceivedLatch.await(60,TimeUnit.SECONDS));
+<Line#91>      LOG.info("received all {} responses",totalRequestsNum);
+<Line#92>      stopped.set(true);
+<Line#93>      enableDisableThread.join();
+<Line#94>      LOG.info("enable and disable recv thread exited");
+<Line#95>      LOG.info("waiting another 1s for the requests to go through");
+<Line#96>      Thread.sleep(1000);
+<Line#97>      assertEquals(successResponse.get(),totalRequestsNum);
+<Line#98>    }
+<Line#99>   }
+<Line#100>  finally {
+<Line#101>    if (secure) {
+<Line#102>      SSLAuthTest.clearSecureSetting(x509Util);
+<Line#103>    }
+<Line#104>  }
+<Line#105>}
+Label: <Line#95> LOG.info("waiting another 1s for the requests to go through")
+

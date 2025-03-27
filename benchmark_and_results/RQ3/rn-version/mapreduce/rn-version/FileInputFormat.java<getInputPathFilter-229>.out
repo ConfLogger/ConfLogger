@@ -1,0 +1,80 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	FileInputFormat.java	methodSinagture:	org.apache.hadoop.mapreduce.lib.input.FileInputFormat.getInputPathFilter(Lorg/apache/hadoop/mapreduce/JobContext;)Lorg/apache/hadoop/fs/PathFilter;	methodLines:	229:233
+blockLines:	233:-1
+paras:	null
+TaintedStat:	NORMAL getInputPathFilter:conditional branch(eq, to iindex=17) 9,6 Node: < Application, Lorg/apache/hadoop/mapreduce/lib/input/FileInputFormat, getInputPathFilter(Lorg/apache/hadoop/mapreduce/JobContext;)Lorg/apache/hadoop/fs/PathFilter; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/mapreduce/lib/input/FileInputFormat, getInputPathFilter(Lorg/apache/hadoop/mapreduce/JobContext;)Lorg/apache/hadoop/fs/PathFilter; > Context: Everywhere[7]9 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getClass(Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Class;)Ljava/lang/Class; > 4,5,6,7 @13 exception:8
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/mapreduce/lib/input/FileInputFormat, getInputPathFilter(Lorg/apache/hadoop/mapreduce/JobContext;)Lorg/apache/hadoop/fs/PathFilter; > Context: Everywhere[7]9 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getClass(Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Class;)Ljava/lang/Class; > 4,5,6,7 @13 exception:8
+NORMAL getInputPathFilter:conditional branch(eq, to iindex=17) 9,6 Node: < Application, Lorg/apache/hadoop/mapreduce/lib/input/FileInputFormat, getInputPathFilter(Lorg/apache/hadoop/mapreduce/JobContext;)Lorg/apache/hadoop/fs/PathFilter; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  public static PathFilter getInputPathFilter(JobContext context) {
+    Configuration conf = context.getConfiguration();
+    Class<?> filterClass = conf.getClass(PATHFILTER_CLASS, null,
+        PathFilter.class);
+    return (filterClass != null) ?
+        (PathFilter) ReflectionUtils.newInstance(filterClass, conf) : null;
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/mapreduce/lib/input/FileInputFormat, listStatus(Lorg/apache/hadoop/mapreduce/JobContext;)Ljava/util/List; > Context: Everywhere, blocks=[BB[SSA:28..30]14 - org.apache.hadoop.mapreduce.lib.input.FileInputFormat.listStatus(Lorg/apache/hadoop/mapreduce/JobContext;)Ljava/util/List;, BB[SSA:24..27]13 - org.apache.hadoop.mapreduce.lib.input.FileInputFormat.listStatus(Lorg/apache/hadoop/mapreduce/JobContext;)Ljava/util/List;, BB[SSA:31..34]15 - org.apache.hadoop.mapreduce.lib.input.FileInputFormat.listStatus(Lorg/apache/hadoop/mapreduce/JobContext;)Ljava/util/List;, BB[SSA:-1..-2]58 - org.apache.hadoop.mapreduce.lib.input.FileInputFormat.listStatus(Lorg/apache/hadoop/mapreduce/JobContext;)Ljava/util/List;], numberOfBasicBlocks=4, firstLineNumber=265, lastLineNumber=268, firstMethodNumber=250, lastMethodNumber=301, isFirstLineValid=true, methodSrcCode=
+                                        ) throws IOException {
+    Path[] dirs = getInputPaths(job);
+    if (dirs.length == 0) {
+      throw new IOException("No input paths specified in job");
+    }
+    
+    // get tokens for all the required FileSystems..
+    TokenCache.obtainTokensForNamenodes(job.getCredentials(), dirs, 
+                                        job.getConfiguration());
+
+    // Whether we need to recursive look into the directory structure
+    boolean recursive = getInputDirRecursive(job);
+
+    // creates a MultiPathFilter with the hiddenFileFilter and the
+    // user provided one (if any).
+    List<PathFilter> filters = new ArrayList<PathFilter>();
+    filters.add(hiddenFileFilter);
+    PathFilter jobFilter = getInputPathFilter(job);
+    if (jobFilter != null) {
+      filters.add(jobFilter);
+    }
+    PathFilter inputFilter = new MultiPathFilter(filters);
+    
+    List<FileStatus> result = null;
+
+    int numThreads = job.getConfiguration().getInt(LIST_STATUS_NUM_THREADS,
+        DEFAULT_LIST_STATUS_NUM_THREADS);
+    StopWatch sw = new StopWatch().start();
+    if (numThreads == 1) {
+      result = singleThreadedListStatus(job, dirs, inputFilter, recursive);
+    } else {
+      Iterable<FileStatus> locatedFiles = null;
+      try {
+        LocatedFileStatusFetcher locatedFileStatusFetcher = new LocatedFileStatusFetcher(
+            job.getConfiguration(), dirs, recursive, inputFilter, true);
+        locatedFiles = locatedFileStatusFetcher.getFileStatuses();
+      } catch (InterruptedException e) {
+        throw (IOException)
+            new InterruptedIOException(
+                "Interrupted while getting file statuses")
+                .initCause(e);
+      }
+      result = Lists.newArrayList(locatedFiles);
+    }
+    
+    sw.stop();
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Time taken to get FileStatuses: "
+          + sw.now(TimeUnit.MILLISECONDS));
+    }
+    LOG.info("Total input files to process : " + result.size());
+    return result;
+  }
+}

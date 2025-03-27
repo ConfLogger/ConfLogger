@@ -1,0 +1,5 @@
+<Line#5>:# LOG.debug("Entering the method with configuration: {}", conf);:#
+<Line#9>:# LOG.debug("Resource isolation plugin enabled, creating new instance");:#
+<Line#11>:# LOG.debug("Resource isolation plugin not enabled, using default resource isolation manager");:#
+<Line#15>:# LOG.debug("Preparing resource isolation manager with configuration: {}", conf);:#
+<Line#17>:# LOG.debug("Creating new BasicContainerLauncher with configuration: {}", conf);:#

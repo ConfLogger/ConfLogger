@@ -1,0 +1,27 @@
+To add a log level and log verbosity message to the given code snippet, you need to identify the appropriate line and insert a log statement. In this case, the line where a log statement should be added is `<Line#19>`. Here's how you can modify the code:
+
+```java
+<Line#0>private void setupFlushTupleTimer(final Map<String, Object> topologyConf, final List<IRunningExecutor> executors) {
+<Line#1>final Integer producerBatchSize = ObjectReader.getInt(topologyConf.get(Config.TOPOLOGY_PRODUCER_BATCH_SIZE));
+<Line#2>final Integer xferBatchSize = ObjectReader.getInt(topologyConf.get(Config.TOPOLOGY_TRANSFER_BATCH_SIZE));
+<Line#3>final Long flushIntervalMillis = ObjectReader.getLong(topologyConf.get(Config.TOPOLOGY_BATCH_FLUSH_INTERVAL_MILLIS));
+<Line#4>if ((producerBatchSize == 1 && xferBatchSize == 1) || flushIntervalMillis == 0) {
+<Line#5>return;
+<Line#6>}
+<Line#7>
+<Line#8>workerState.flushTupleTimer.scheduleRecurringMs(flushIntervalMillis, flushIntervalMillis,
+<Line#9>() -> {
+<Line#10>// send flush tuple to all local executors
+<Line#11>for (int i = 0; i < executors.size(); i++) {
+<Line#12>IRunningExecutor exec = executors.get(i);
+<Line#13>if (exec.getExecutorId().get(0) != Constants.SYSTEM_TASK_ID) {
+<Line#14>exec.publishFlushTuple();
+<Line#15>}
+<Line#16>}
+<Line#17>}
+<Line#18>);
+<Line#19>LOG.info("Flush tuple will be generated every {} millis", flushIntervalMillis); // Log level: INFO
+<Line#20>}
+```
+
+Label: `<Line#19> LOG.info("Flush tuple will be generated every {} millis", flushIntervalMillis)`

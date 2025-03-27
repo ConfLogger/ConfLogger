@@ -1,0 +1,134 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	KerberosSaslTransportPlugin.java	methodSinagture:	org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin.kerberosConnect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport;	methodLines:	141:223
+blockLines:	165:-1
+paras:	null
+TaintedStat:	NORMAL kerberosConnect:conditional branch(ne, to iindex=89) 31,10 Node: < Application, Lorg/apache/storm/security/auth/kerberos/KerberosSaslTransportPlugin, kerberosConnect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/kerberos/KerberosSaslTransportPlugin, kerberosConnect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport; > Context: Everywhere[52]30 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 28,23 @123 exception:29
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/kerberos/KerberosSaslTransportPlugin, kerberosConnect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport; > Context: Everywhere[52]30 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 28,23 @123 exception:29
+NORMAL kerberosConnect:31 = checkcast <Application,Lorg/apache/storm/messaging/netty/Login>30 <Application,Lorg/apache/storm/messaging/netty/Login> Node: < Application, Lorg/apache/storm/security/auth/kerberos/KerberosSaslTransportPlugin, kerberosConnect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport; > Context: Everywhere
+NORMAL kerberosConnect:conditional branch(ne, to iindex=89) 31,10 Node: < Application, Lorg/apache/storm/security/auth/kerberos/KerberosSaslTransportPlugin, kerberosConnect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	KerberosSaslTransportPlugin.java	methodSinagture:	org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin.kerberosConnect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport;	methodLines:	141:223
+blockLines:	168:-1
+paras:	null
+TaintedStat:	NORMAL kerberosConnect:conditional branch(ne, to iindex=81) 36,10 Node: < Application, Lorg/apache/storm/security/auth/kerberos/KerberosSaslTransportPlugin, kerberosConnect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/kerberos/KerberosSaslTransportPlugin, kerberosConnect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport; > Context: Everywhere[64]35 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 33,23 @150 exception:34
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/kerberos/KerberosSaslTransportPlugin, kerberosConnect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport; > Context: Everywhere[64]35 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 33,23 @150 exception:34
+NORMAL kerberosConnect:36 = checkcast <Application,Lorg/apache/storm/messaging/netty/Login>35 <Application,Lorg/apache/storm/messaging/netty/Login> Node: < Application, Lorg/apache/storm/security/auth/kerberos/KerberosSaslTransportPlugin, kerberosConnect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport; > Context: Everywhere
+NORMAL kerberosConnect:conditional branch(ne, to iindex=81) 36,10 Node: < Application, Lorg/apache/storm/security/auth/kerberos/KerberosSaslTransportPlugin, kerberosConnect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+        //login our user
+        SortedMap<String, ?> authConf = ClientAuthUtils.pullConfig(conf, ClientAuthUtils.LOGIN_CONTEXT_CLIENT);
+        if (authConf == null) {
+            throw new RuntimeException("Error in parsing the kerberos login Configuration, returned null");
+        }
+
+        boolean disableLoginCache = false;
+        if (authConf.containsKey(DISABLE_LOGIN_CACHE)) {
+            disableLoginCache = Boolean.valueOf((String) authConf.get(DISABLE_LOGIN_CACHE));
+        }
+
+        Login login;
+        LoginCacheKey key = new LoginCacheKey(authConf);
+        if (disableLoginCache) {
+            LOG.debug("Kerberos Login Cache is disabled, attempting to contact the Kerberos Server");
+            login = mkLogin();
+            //this is to prevent the potential bug that
+            //if the Login Cache is (1) enabled, and then (2) disabled and then (3) enabled again,
+            //and if the LoginCacheKey remains unchanged, (3) will use the Login cache from (1), which could be wrong,
+            //because the TGT cache (as well as the principle) could have been changed during (2)
+            loginCache.remove(key);
+        } else {
+            LOG.debug("Trying to get the Kerberos Login from the Login Cache");
+            login = loginCache.get(key);
+            if (login == null) {
+                synchronized (loginCache) {
+                    login = loginCache.get(key);
+                    if (login == null) {
+                        LOG.debug("Kerberos Login was not found in the Login Cache, attempting to contact the Kerberos Server");
+                        login = mkLogin();
+                        loginCache.put(key, login);
+                    }
+                }
+            }
+        }
+
+        final Subject subject = login.getSubject();
+        if (subject.getPrivateCredentials(KerberosTicket.class).isEmpty()) { //error
+            throw new RuntimeException("Fail to verify user principal with section \""
+                    + ClientAuthUtils.LOGIN_CONTEXT_CLIENT + "\" in login configuration file " + ClientAuthUtils.getJaasConf(conf));
+        }
+
+        final String principal = StringUtils.isBlank(asUser) ? getPrincipal(subject) : asUser;
+        String serviceName = ClientAuthUtils.get(conf, ClientAuthUtils.LOGIN_CONTEXT_CLIENT, "serviceName");
+        if (serviceName == null) {
+            serviceName = ClientAuthUtils.SERVICE;
+        }
+        Map<String, String> props = new TreeMap<>();
+        props.put(Sasl.QOP, "auth");
+        props.put(Sasl.SERVER_AUTH, "false");
+
+        LOG.debug("SASL GSSAPI client transport is being established");
+        final TTransport sasalTransport = new TSaslClientTransport(KERBEROS,
+                                                                   principal,
+                                                                   serviceName,
+                                                                   serverHost,
+                                                                   props,
+                                                                   null,
+                                                                   transport);
+
+        //open Sasl transport with the login credential
+        try {
+            Subject.doAs(subject,
+                    new PrivilegedExceptionAction<Void>() {
+                        @Override
+                        public Void run() {
+                            try {
+                                LOG.debug("do as:" + principal);
+                                sasalTransport.open();
+                            } catch (Exception e) {
+                                LOG.error("Client failed to open SaslClientTransport to interact with a server during "
+                                                + "session initiation: "
+                                                + e,
+                                        e);
+                        }
+                        return null;
+                    }
+                });
+        } catch (PrivilegedActionException e) {
+            throw new RuntimeException(e);
+        }
+
+        return sasalTransport;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/security/auth/kerberos/KerberosSaslTransportPlugin, connect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport; > Context: Everywhere, blocks=[BB[SSA:30..34]11 - org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin.connect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport;, BB[SSA:3..6]3 - org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin.connect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport;, BB[SSA:35..35]12 - org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin.connect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport;, BB[SSA:-1..-2]13 - org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin.connect(Lorg/apache/storm/thrift/transport/TTransport;Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/thrift/transport/TTransport;], numberOfBasicBlocks=4, firstLineNumber=122, lastLineNumber=137, firstMethodNumber=121, lastMethodNumber=137, isFirstLineValid=true, methodSrcCode=
+    public TTransport connect(TTransport transport, String serverHost, String asUser) throws IOException, TTransportException {
+        WorkerToken token = WorkerTokenClientCallbackHandler.findWorkerTokenInSubject(type);
+        if (token != null) {
+            CallbackHandler clientCallbackHandler = new WorkerTokenClientCallbackHandler(token);
+            TSaslClientTransport wrapperTransport = new TSaslClientTransport(DIGEST,
+                                                                             null,
+                                                                             ClientAuthUtils.SERVICE,
+                                                                             serverHost,
+                                                                             null,
+                                                                             clientCallbackHandler,
+                                                                             transport);
+            wrapperTransport.open();
+            LOG.debug("SASL DIGEST-MD5 WorkerToken client transport has been established");
+
+            return wrapperTransport;
+        }
+        return kerberosConnect(transport, serverHost, asUser);
+    }
+}

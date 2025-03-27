@@ -1,0 +1,72 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	CodecUtil.java	methodSinagture:	org.apache.hadoop.io.erasurecode.CodecUtil.getCodecClassName(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;)Ljava/lang/String;	methodLines:	239:266
+blockLines:	262:-1
+paras:	null
+TaintedStat:	NORMAL getCodecClassName:conditional branch(ne, to iindex=90) 37,38 Node: < Application, Lorg/apache/hadoop/io/erasurecode/CodecUtil, getCodecClassName(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/io/erasurecode/CodecUtil, getCodecClassName(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere[73]37 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 1,35 @205 exception:36
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/io/erasurecode/CodecUtil, getCodecClassName(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere[73]37 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 1,35 @205 exception:36
+NORMAL getCodecClassName:conditional branch(ne, to iindex=90) 37,38 Node: < Application, Lorg/apache/hadoop/io/erasurecode/CodecUtil, getCodecClassName(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  private static String getCodecClassName(Configuration conf, String codec) {
+    switch (codec) {
+    case ErasureCodeConstants.RS_CODEC_NAME:
+      return conf.get(
+          CodecUtil.IO_ERASURECODE_CODEC_RS_KEY,
+          CodecUtil.IO_ERASURECODE_CODEC_RS);
+    case ErasureCodeConstants.RS_LEGACY_CODEC_NAME:
+      //TODO:rs-legacy should be handled differently.
+      return conf.get(
+          CodecUtil.IO_ERASURECODE_CODEC_RS_KEY,
+          CodecUtil.IO_ERASURECODE_CODEC_RS);
+    case ErasureCodeConstants.XOR_CODEC_NAME:
+      return conf.get(
+          CodecUtil.IO_ERASURECODE_CODEC_XOR_KEY,
+          CodecUtil.IO_ERASURECODE_CODEC_XOR);
+    case ErasureCodeConstants.HHXOR_CODEC_NAME:
+      return conf.get(
+          CodecUtil.IO_ERASURECODE_CODEC_HHXOR_KEY,
+          CodecUtil.IO_ERASURECODE_CODEC_HHXOR);
+    default:
+      // For custom codec, we throw exception if the factory is not configured
+      String codecKey = "io.erasurecode.codec." + codec + ".coder";
+      String codecClass = conf.get(codecKey);
+      if (codecClass == null) {
+        throw new IllegalArgumentException("Codec not configured " +
+                "for custom codec " + codec);
+      }
+      return codecClass;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/io/erasurecode/CodecUtil, createDecoder(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/io/erasurecode/ErasureCodecOptions;)Lorg/apache/hadoop/io/erasurecode/coder/ErasureDecoder; > Context: Everywhere, blocks=[BB[SSA:10..10]5 - org.apache.hadoop.io.erasurecode.CodecUtil.createDecoder(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/io/erasurecode/ErasureCodecOptions;)Lorg/apache/hadoop/io/erasurecode/coder/ErasureDecoder;, BB[SSA:9..9]4 - org.apache.hadoop.io.erasurecode.CodecUtil.createDecoder(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/io/erasurecode/ErasureCodecOptions;)Lorg/apache/hadoop/io/erasurecode/coder/ErasureDecoder;, BB[SSA:11..15]6 - org.apache.hadoop.io.erasurecode.CodecUtil.createDecoder(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/io/erasurecode/ErasureCodecOptions;)Lorg/apache/hadoop/io/erasurecode/coder/ErasureDecoder;, BB[SSA:-1..-2]9 - org.apache.hadoop.io.erasurecode.CodecUtil.createDecoder(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/io/erasurecode/ErasureCodecOptions;)Lorg/apache/hadoop/io/erasurecode/coder/ErasureDecoder;], numberOfBasicBlocks=4, firstLineNumber=113, lastLineNumber=115, firstMethodNumber=108, lastMethodNumber=116, isFirstLineValid=true, methodSrcCode=
+      ErasureCodecOptions options) {
+    Preconditions.checkNotNull(conf);
+    Preconditions.checkNotNull(options);
+
+    String codecKey = getCodecClassName(conf,
+        options.getSchema().getCodecName());
+
+    ErasureCodec codec = createCodec(conf, codecKey, options);
+    return codec.createDecoder();
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/io/erasurecode/CodecUtil, createEncoder(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/io/erasurecode/ErasureCodecOptions;)Lorg/apache/hadoop/io/erasurecode/coder/ErasureEncoder; > Context: Everywhere, blocks=[BB[SSA:10..10]5 - org.apache.hadoop.io.erasurecode.CodecUtil.createEncoder(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/io/erasurecode/ErasureCodecOptions;)Lorg/apache/hadoop/io/erasurecode/coder/ErasureEncoder;, BB[SSA:9..9]4 - org.apache.hadoop.io.erasurecode.CodecUtil.createEncoder(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/io/erasurecode/ErasureCodecOptions;)Lorg/apache/hadoop/io/erasurecode/coder/ErasureEncoder;, BB[SSA:11..15]6 - org.apache.hadoop.io.erasurecode.CodecUtil.createEncoder(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/io/erasurecode/ErasureCodecOptions;)Lorg/apache/hadoop/io/erasurecode/coder/ErasureEncoder;, BB[SSA:-1..-2]9 - org.apache.hadoop.io.erasurecode.CodecUtil.createEncoder(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/io/erasurecode/ErasureCodecOptions;)Lorg/apache/hadoop/io/erasurecode/coder/ErasureEncoder;], numberOfBasicBlocks=4, firstLineNumber=95, lastLineNumber=97, firstMethodNumber=90, lastMethodNumber=98, isFirstLineValid=true, methodSrcCode=
+      ErasureCodecOptions options) {
+    Preconditions.checkNotNull(conf);
+    Preconditions.checkNotNull(options);
+
+    String codecKey = getCodecClassName(conf,
+        options.getSchema().getCodecName());
+
+    ErasureCodec codec = createCodec(conf, codecKey, options);
+    return codec.createEncoder();
+  }
+}

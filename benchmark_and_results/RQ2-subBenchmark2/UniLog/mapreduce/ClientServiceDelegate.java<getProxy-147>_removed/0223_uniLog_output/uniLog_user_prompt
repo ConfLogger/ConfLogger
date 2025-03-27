@@ -1,0 +1,330 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>private MRClientProtocol getProxy() throws IOException {
+<Line#1>if (realProxy != null) {
+<Line#2>return realProxy;
+<Line#3>}
+<Line#4>
+<Line#5>// Possibly allow nulls through the PB tunnel, otherwise deal with an exception
+<Line#6>// and redirect to the history server.
+<Line#7>ApplicationReport application = null;
+<Line#8>try {
+<Line#9>application = rm.getApplicationReport(appId);
+<Line#10>} catch (ApplicationNotFoundException e) {
+<Line#11>application = null;
+<Line#12>} catch (YarnException e2) {
+<Line#13>throw new IOException(e2);
+<Line#14>}
+<Line#15>if (application != null) {
+<Line#16>trackingUrl = application.getTrackingUrl();
+<Line#17>}
+<Line#18>InetSocketAddress serviceAddr = null;
+<Line#19>while (application == null
+<Line#20>|| YarnApplicationState.RUNNING == application
+<Line#21>.getYarnApplicationState()) {
+<Line#22>if (application == null) {
+<Line#23>LOG.info("Could not get Job info from RM for job " + jobId
+<Line#24>+ ". Redirecting to job history server.");
+<Line#25>return checkAndGetHSProxy(null, JobState.NEW);
+<Line#26>}
+<Line#27>try {
+<Line#28>if (application.getHost() == null || "".equals(application.getHost())) {
+<Line#29>LOG.debug("AM not assigned to Job. Waiting to get the AM ...");
+<Line#30>Thread.sleep(2000);
+<Line#31>
+<Line#32>LOG.debug("Application state is " + application.getYarnApplicationState());
+<Line#33>application = rm.getApplicationReport(appId);
+<Line#34>continue;
+<Line#35>} else if (UNAVAILABLE.equals(application.getHost())) {
+<Line#36>if (!amAclDisabledStatusLogged) {
+<Line#37>LOG.info("Job " + jobId + " is running, but the host is unknown."
+<Line#38>+ " Verify user has VIEW_JOB access.");
+<Line#39>amAclDisabledStatusLogged = true;
+<Line#40>}
+<Line#41>return getNotRunningJob(application, JobState.RUNNING);
+<Line#42>}
+<Line#43>if(!conf.getBoolean(MRJobConfig.JOB_AM_ACCESS_DISABLED, false)) {
+<Line#44>UserGroupInformation newUgi = UserGroupInformation.createRemoteUser(
+<Line#45>UserGroupInformation.getCurrentUser().getUserName());
+<Line#46>serviceAddr = NetUtils.createSocketAddrForHost(
+<Line#47>application.getHost(), application.getRpcPort());
+<Line#48>if (UserGroupInformation.isSecurityEnabled()) {
+<Line#49>org.apache.hadoop.yarn.api.records.Token clientToAMToken =
+<Line#50>application.getClientToAMToken();
+<Line#51>Token<ClientToAMTokenIdentifier> token =
+<Line#52>ConverterUtils.convertFromYarn(clientToAMToken, serviceAddr);
+<Line#53>newUgi.addToken(token);
+<Line#54>}
+<Line#55>LOG.debug("Connecting to " + serviceAddr);
+<Line#56>final InetSocketAddress finalServiceAddr = serviceAddr;
+<Line#57>realProxy = newUgi.doAs(new PrivilegedExceptionAction<MRClientProtocol>() {
+<Line#58>@Override
+<Line#59>public MRClientProtocol run() throws IOException {
+<Line#60>return instantiateAMProxy(finalServiceAddr);
+<Line#61>}
+<Line#62>});
+<Line#63>} else {
+<Line#64>if (!amAclDisabledStatusLogged) {
+<Line#65>amAclDisabledStatusLogged = true;
+<Line#66>}
+<Line#67>return getNotRunningJob(null, JobState.RUNNING);
+<Line#68>}
+<Line#69>return realProxy;
+<Line#70>} catch (IOException e) {
+<Line#71>//possibly the AM has crashed
+<Line#72>//there may be some time before AM is restarted
+<Line#73>//keep retrying by getting the address from RM
+<Line#74>LOG.info("Could not connect to " + serviceAddr +
+<Line#75>". Waiting for getting the latest AM address...");
+<Line#76>try {
+<Line#77>Thread.sleep(2000);
+<Line#78>} catch (InterruptedException e1) {
+<Line#79>LOG.warn("getProxy() call interruped", e1);
+<Line#80>throw new YarnRuntimeException(e1);
+<Line#81>}
+<Line#82>try {
+<Line#83>application = rm.getApplicationReport(appId);
+<Line#84>} catch (YarnException e1) {
+<Line#85>throw new IOException(e1);
+<Line#86>}
+<Line#87>if (application == null) {
+<Line#88>LOG.info("Could not get Job info from RM for job " + jobId
+<Line#89>+ ". Redirecting to job history server.");
+<Line#90>return checkAndGetHSProxy(null, JobState.RUNNING);
+<Line#91>}
+<Line#92>} catch (InterruptedException e) {
+<Line#93>LOG.warn("getProxy() call interruped", e);
+<Line#94>throw new YarnRuntimeException(e);
+<Line#95>} catch (YarnException e) {
+<Line#96>throw new IOException(e);
+<Line#97>}
+<Line#98>}
+<Line#99>
+<Line#100>/** we just want to return if its allocating, so that we don't
+<Line#101>* block on it. This is to be able to return job status
+<Line#102>* on an allocating Application.
+<Line#103>*/
+<Line#104>String user = application.getUser();
+<Line#105>if (user == null) {
+<Line#106>throw new IOException("User is not set in the application report");
+<Line#107>}
+<Line#108>if (application.getYarnApplicationState() == YarnApplicationState.NEW
+<Line#109>|| application.getYarnApplicationState() ==
+<Line#110>YarnApplicationState.NEW_SAVING
+<Line#111>|| application.getYarnApplicationState() == YarnApplicationState.SUBMITTED
+<Line#112>|| application.getYarnApplicationState() == YarnApplicationState.ACCEPTED) {
+<Line#113>realProxy = null;
+<Line#114>return getNotRunningJob(application, JobState.NEW);
+<Line#115>}
+<Line#116>
+<Line#117>if (application.getYarnApplicationState() == YarnApplicationState.FAILED) {
+<Line#118>realProxy = null;
+<Line#119>return getNotRunningJob(application, JobState.FAILED);
+<Line#120>}
+<Line#121>
+<Line#122>if (application.getYarnApplicationState() == YarnApplicationState.KILLED) {
+<Line#123>realProxy = null;
+<Line#124>return getNotRunningJob(application, JobState.KILLED);
+<Line#125>}
+<Line#126>
+<Line#127>//History server can serve a job only if application
+<Line#128>//succeeded.
+<Line#129>if (application.getYarnApplicationState() == YarnApplicationState.FINISHED) {
+<Line#130>LOG.info("Application state is completed. FinalApplicationStatus="
+<Line#131>+ application.getFinalApplicationStatus().toString()
+<Line#132>+ ". Redirecting to job history server");
+<Line#133>realProxy = checkAndGetHSProxy(application, JobState.SUCCEEDED);
+<Line#134>}
+<Line#135>return realProxy;
+<Line#136>}
+
+Example 1:
+<Line#1>{
+<Line#2>  if (LOG.isDebugEnabled()) {
+<Line#3>    LOG.debug("Shutting down timer " + toString());
+<Line#4>  }
+<Line#5>synchronized (lock) {
+<Line#6>    isTimerShutDown=true;
+<Line#7>    flushTimer.cancel();
+<Line#8>    if (flushTimerTask != null && flushTimerTask.getException() != null) {
+<Line#9>      throw flushTimerTask.getException();
+<Line#10>    }
+<Line#11>  }
+<Line#12>}
+Label: <Line#3> LOG.debug("Shutting down timer " + toString())
+
+Example 2:
+<Line#1>{
+<Line#2>  if (isOk) {
+<Line#3>    OutputCollector<K3,V3> nullCollector=new OutputCollector<K3,V3>(){
+<Line#4>      public void collect(      K3 key,      V3 value) throws IOException {
+<Line#5>      }
+<Line#6>    }
+<Line#7>;
+<Line#8>    startApplication(nullCollector,Reporter.NULL);
+<Line#9>  }
+<Line#10>  try {
+<Line#11>    if (isOk) {
+<Line#12>      application.getDownlink().endOfInput();
+<Line#13>    }
+<Line#14> else {
+<Line#15>      application.getDownlink().abort();
+<Line#16>    }
+<Line#17>    LOG.info("waiting for finish");
+<Line#18>    application.waitForFinish();
+<Line#19>    LOG.info("got done");
+<Line#20>  }
+<Line#21> catch (  Throwable t) {
+<Line#22>    application.abort(t);
+<Line#23>  }
+<Line#24> finally {
+<Line#25>    application.cleanup();
+<Line#26>  }
+<Line#27>}
+Label: <Line#17> LOG.info("waiting for finish")
+
+Example 3:
+<Line#1>{
+<Line#2>  if (isOk) {
+<Line#3>    OutputCollector<K3,V3> nullCollector=new OutputCollector<K3,V3>(){
+<Line#4>      public void collect(      K3 key,      V3 value) throws IOException {
+<Line#5>      }
+<Line#6>    }
+<Line#7>;
+<Line#8>    startApplication(nullCollector,Reporter.NULL);
+<Line#9>  }
+<Line#10>  try {
+<Line#11>    if (isOk) {
+<Line#12>      application.getDownlink().endOfInput();
+<Line#13>    }
+<Line#14> else {
+<Line#15>      application.getDownlink().abort();
+<Line#16>    }
+<Line#17>    LOG.info("waiting for finish");
+<Line#18>    application.waitForFinish();
+<Line#19>    LOG.info("got done");
+<Line#20>  }
+<Line#21> catch (  Throwable t) {
+<Line#22>    application.abort(t);
+<Line#23>  }
+<Line#24> finally {
+<Line#25>    application.cleanup();
+<Line#26>  }
+<Line#27>}
+Label: <Line#19> LOG.info("got done")
+
+Example 4:
+<Line#1>{
+<Line#2>  Method methodOb=null;
+<Line#3>  try {
+<Line#4>    methodOb=MRClientProtocol.class.getMethod(method,argClass);
+<Line#5>  }
+<Line#6> catch (  SecurityException e) {
+<Line#7>    throw new YarnRuntimeException(e);
+<Line#8>  }
+<Line#9>catch (  NoSuchMethodException e) {
+<Line#10>    throw new YarnRuntimeException("Method name mismatch",e);
+<Line#11>  }
+<Line#12>  maxClientRetry=this.conf.getInt(MRJobConfig.MR_CLIENT_MAX_RETRIES,MRJobConfig.DEFAULT_MR_CLIENT_MAX_RETRIES);
+<Line#13>  IOException lastException=null;
+<Line#14>  while (maxClientRetry > 0) {
+<Line#15>    MRClientProtocol MRClientProxy=null;
+<Line#16>    try {
+<Line#17>      MRClientProxy=getProxy();
+<Line#18>      return methodOb.invoke(MRClientProxy,args);
+<Line#19>    }
+<Line#20> catch (    InvocationTargetException e) {
+<Line#21>      LOG.debug("Failed to contact AM/History for job " + jobId + " retrying..",e.getTargetException());
+<Line#22>      realProxy=null;
+<Line#23>      if (e.getCause() instanceof AuthorizationException) {
+<Line#24>        throw new IOException(e.getTargetException());
+<Line#25>      }
+<Line#26>      if (!usingAMProxy.get()) {
+<Line#27>        maxClientRetry--;
+<Line#28>      }
+<Line#29>      usingAMProxy.set(false);
+<Line#30>      lastException=new IOException(e.getTargetException());
+<Line#31>      try {
+<Line#32>        Thread.sleep(100);
+<Line#33>      }
+<Line#34> catch (      InterruptedException ie) {
+<Line#35>        LOG.warn("ClientServiceDelegate invoke call interrupted",ie);
+<Line#36>        throw new YarnRuntimeException(ie);
+<Line#37>      }
+<Line#38>    }
+<Line#39>catch (    Exception e) {
+<Line#40>      LOG.debug("Failed to contact AM/History for job " + jobId + "  Will retry..",e);
+<Line#41>      realProxy=null;
+<Line#42>      maxClientRetry--;
+<Line#43>      lastException=new IOException(e.getMessage());
+<Line#44>      try {
+<Line#45>        Thread.sleep(100);
+<Line#46>      }
+<Line#47> catch (      InterruptedException ie) {
+<Line#48>        LOG.warn("ClientServiceDelegate invoke call interrupted",ie);
+<Line#49>        throw new YarnRuntimeException(ie);
+<Line#50>      }
+<Line#51>    }
+<Line#52>  }
+<Line#53>  throw lastException;
+<Line#54>}
+Label: <Line#21> LOG.debug("Failed to contact AM/History for job " + jobId + " retrying..",e.getTargetException())
+
+Example 5:
+<Line#1>{
+<Line#2>  Method methodOb=null;
+<Line#3>  try {
+<Line#4>    methodOb=MRClientProtocol.class.getMethod(method,argClass);
+<Line#5>  }
+<Line#6> catch (  SecurityException e) {
+<Line#7>    throw new YarnRuntimeException(e);
+<Line#8>  }
+<Line#9>catch (  NoSuchMethodException e) {
+<Line#10>    throw new YarnRuntimeException("Method name mismatch",e);
+<Line#11>  }
+<Line#12>  maxClientRetry=this.conf.getInt(MRJobConfig.MR_CLIENT_MAX_RETRIES,MRJobConfig.DEFAULT_MR_CLIENT_MAX_RETRIES);
+<Line#13>  IOException lastException=null;
+<Line#14>  while (maxClientRetry > 0) {
+<Line#15>    MRClientProtocol MRClientProxy=null;
+<Line#16>    try {
+<Line#17>      MRClientProxy=getProxy();
+<Line#18>      return methodOb.invoke(MRClientProxy,args);
+<Line#19>    }
+<Line#20> catch (    InvocationTargetException e) {
+<Line#21>      LOG.debug("Failed to contact AM/History for job " + jobId + " retrying..",e.getTargetException());
+<Line#22>      realProxy=null;
+<Line#23>      if (e.getCause() instanceof AuthorizationException) {
+<Line#24>        throw new IOException(e.getTargetException());
+<Line#25>      }
+<Line#26>      if (!usingAMProxy.get()) {
+<Line#27>        maxClientRetry--;
+<Line#28>      }
+<Line#29>      usingAMProxy.set(false);
+<Line#30>      lastException=new IOException(e.getTargetException());
+<Line#31>      try {
+<Line#32>        Thread.sleep(100);
+<Line#33>      }
+<Line#34> catch (      InterruptedException ie) {
+<Line#35>        LOG.warn("ClientServiceDelegate invoke call interrupted",ie);
+<Line#36>        throw new YarnRuntimeException(ie);
+<Line#37>      }
+<Line#38>    }
+<Line#39>catch (    Exception e) {
+<Line#40>      LOG.debug("Failed to contact AM/History for job " + jobId + "  Will retry..",e);
+<Line#41>      realProxy=null;
+<Line#42>      maxClientRetry--;
+<Line#43>      lastException=new IOException(e.getMessage());
+<Line#44>      try {
+<Line#45>        Thread.sleep(100);
+<Line#46>      }
+<Line#47> catch (      InterruptedException ie) {
+<Line#48>        LOG.warn("ClientServiceDelegate invoke call interrupted",ie);
+<Line#49>        throw new YarnRuntimeException(ie);
+<Line#50>      }
+<Line#51>    }
+<Line#52>  }
+<Line#53>  throw lastException;
+<Line#54>}
+Label: <Line#35> LOG.warn("ClientServiceDelegate invoke call interrupted",ie)
+

@@ -1,0 +1,223 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>throws ReconfigurationException {
+<Line#1>namesystem.writeLock();
+<Line#2>try {
+<Line#3>if (newVal == null) {
+<Line#4>// set to default
+<Line#5>datanodeManager.setHeartbeatInterval(DFS_HEARTBEAT_INTERVAL_DEFAULT);
+<Line#6>return String.valueOf(DFS_HEARTBEAT_INTERVAL_DEFAULT);
+<Line#7>} else {
+<Line#8>long newInterval = getConf()
+<Line#9>.getTimeDurationHelper(DFS_HEARTBEAT_INTERVAL_KEY,
+<Line#10>newVal, TimeUnit.SECONDS);
+<Line#11>datanodeManager.setHeartbeatInterval(newInterval);
+<Line#12>return String.valueOf(datanodeManager.getHeartbeatInterval());
+<Line#13>}
+<Line#14>} catch (NumberFormatException nfe) {
+<Line#15>throw new ReconfigurationException(property, newVal, getConf().get(
+<Line#16>property), nfe);
+<Line#17>} finally {
+<Line#18>namesystem.writeUnlock();
+<Line#19>}
+<Line#20>}
+
+Example 1:
+<Line#1>{
+<Line#2>  namesystem.writeLock();
+<Line#3>  try {
+<Line#4>    if (newVal == null) {
+<Line#5>      datanodeManager.setBlockInvalidateLimit(DFSConfigKeys.DFS_BLOCK_INVALIDATE_LIMIT_DEFAULT);
+<Line#6>    }
+<Line#7> else {
+<Line#8>      datanodeManager.setBlockInvalidateLimit(Integer.parseInt(newVal));
+<Line#9>    }
+<Line#10>    final String updatedBlockInvalidateLimit=String.valueOf(datanodeManager.getBlockInvalidateLimit());
+<Line#11>    LOG.info("RECONFIGURE* changed blockInvalidateLimit to {}",updatedBlockInvalidateLimit);
+<Line#12>    return updatedBlockInvalidateLimit;
+<Line#13>  }
+<Line#14> catch (  NumberFormatException e) {
+<Line#15>    throw new ReconfigurationException(property,newVal,getConf().get(property),e);
+<Line#16>  }
+<Line#17> finally {
+<Line#18>    namesystem.writeUnlock();
+<Line#19>  }
+<Line#20>}
+Label: <Line#11> LOG.info("RECONFIGURE* changed blockInvalidateLimit to {}",updatedBlockInvalidateLimit)
+
+Example 2:
+<Line#1>{
+<Line#2>  while (namesystem.isRunning()) {
+<Line#3>    try {
+<Line#4>      namesystem.writeLock();
+<Line#5>      if (status == BMSafeModeStatus.OFF) {
+<Line#6>        break;
+<Line#7>      }
+<Line#8>      if (canLeave()) {
+<Line#9>        leaveSafeMode(false);
+<Line#10>        break;
+<Line#11>      }
+<Line#12>    }
+<Line#13>  finally {
+<Line#14>      namesystem.writeUnlock();
+<Line#15>    }
+<Line#16>    try {
+<Line#17>      Thread.sleep(RECHECK_INTERVAL);
+<Line#18>    }
+<Line#19> catch (    InterruptedException ignored) {
+<Line#20>    }
+<Line#21>  }
+<Line#22>  if (!namesystem.isRunning()) {
+<Line#23>    LOG.info("NameNode is being shutdown, exit SafeModeMonitor thread");
+<Line#24>  }
+<Line#25>}
+Label: <Line#23> LOG.info("NameNode is being shutdown, exit SafeModeMonitor thread")
+
+Example 3:
+<Line#1>{
+<Line#2>synchronized (dataQueue) {
+<Line#3>    try {
+<Line#4>      boolean firstWait=true;
+<Line#5>      try {
+<Line#6>        while (!streamerClosed && dataQueue.size() + ackQueue.size() > dfsClient.getConf().getWriteMaxPackets()) {
+<Line#7>          if (firstWait) {
+<Line#8>            Span span=Tracer.getCurrentSpan();
+<Line#9>            if (span != null) {
+<Line#10>              span.addTimelineAnnotation("dataQueue.wait");
+<Line#11>            }
+<Line#12>            firstWait=false;
+<Line#13>          }
+<Line#14>          try {
+<Line#15>            dataQueue.wait();
+<Line#16>          }
+<Line#17> catch (          InterruptedException e) {
+<Line#18>            Thread.currentThread().interrupt();
+<Line#19>            break;
+<Line#20>          }
+<Line#21>        }
+<Line#22>      }
+<Line#23>  finally {
+<Line#24>        Span span=Tracer.getCurrentSpan();
+<Line#25>        if ((span != null) && (!firstWait)) {
+<Line#26>          span.addTimelineAnnotation("end.wait");
+<Line#27>        }
+<Line#28>      }
+<Line#29>      checkClosed();
+<Line#30>      queuePacket(packet);
+<Line#31>    }
+<Line#32> catch (    ClosedChannelException cce) {
+<Line#33>      LOG.debug("Closed channel exception",cce);
+<Line#34>    }
+<Line#35>  }
+<Line#36>}
+Label: <Line#33> LOG.debug("Closed channel exception",cce)
+
+Example 4:
+<Line#1>{
+<Line#2>  long currentSleepTimeMs=sleepTimeMs;
+<Line#3>  while (shouldRun) {
+<Line#4>    long editsTailed=0;
+<Line#5>    try {
+<Line#6>      boolean triggeredLogRoll=false;
+<Line#7>      if (tooLongSinceLastLoad() && lastRollTriggerTxId < lastLoadedTxnId) {
+<Line#8>        triggerActiveLogRoll();
+<Line#9>        triggeredLogRoll=true;
+<Line#10>      }
+<Line#11>      if (!shouldRun) {
+<Line#12>        break;
+<Line#13>      }
+<Line#14>      namesystem.cpLockInterruptibly();
+<Line#15>      long startTime=Time.monotonicNow();
+<Line#16>      try {
+<Line#17>        NameNode.getNameNodeMetrics().addEditLogTailInterval(startTime - lastLoadTimeMs);
+<Line#18>        editsTailed=doTailEdits();
+<Line#19>      }
+<Line#20>  finally {
+<Line#21>        namesystem.cpUnlock();
+<Line#22>        NameNode.getNameNodeMetrics().addEditLogTailTime(Time.monotonicNow() - startTime);
+<Line#23>      }
+<Line#24>      if (triggeredLogRoll) {
+<Line#25>        namesystem.getFSImage().getStorage().updateNameDirSize();
+<Line#26>      }
+<Line#27>    }
+<Line#28> catch (    EditLogInputException elie) {
+<Line#29>      LOG.warn("Error while reading edits from disk. Will try again.",elie);
+<Line#30>    }
+<Line#31>catch (    InterruptedException ie) {
+<Line#32>      continue;
+<Line#33>    }
+<Line#34>catch (    Throwable t) {
+<Line#35>      LOG.error("Unknown error encountered while tailing edits. " + "Shutting down standby NN.",t);
+<Line#36>      terminate(1,t);
+<Line#37>    }
+<Line#38>    try {
+<Line#39>      if (editsTailed == 0 && maxSleepTimeMs > 0) {
+<Line#40>        currentSleepTimeMs=Math.min(maxSleepTimeMs,(currentSleepTimeMs == 0 ? 1 : currentSleepTimeMs) * 2);
+<Line#41>      }
+<Line#42> else {
+<Line#43>        currentSleepTimeMs=sleepTimeMs;
+<Line#44>      }
+<Line#45>      EditLogTailer.this.sleep(currentSleepTimeMs);
+<Line#46>    }
+<Line#47> catch (    InterruptedException e) {
+<Line#48>      LOG.warn("Edit log tailer interrupted: {}",e.getMessage());
+<Line#49>    }
+<Line#50>  }
+<Line#51>}
+Label: <Line#29> LOG.warn("Error while reading edits from disk. Will try again.",elie)
+
+Example 5:
+<Line#1>{
+<Line#2>  long currentSleepTimeMs=sleepTimeMs;
+<Line#3>  while (shouldRun) {
+<Line#4>    long editsTailed=0;
+<Line#5>    try {
+<Line#6>      boolean triggeredLogRoll=false;
+<Line#7>      if (tooLongSinceLastLoad() && lastRollTriggerTxId < lastLoadedTxnId) {
+<Line#8>        triggerActiveLogRoll();
+<Line#9>        triggeredLogRoll=true;
+<Line#10>      }
+<Line#11>      if (!shouldRun) {
+<Line#12>        break;
+<Line#13>      }
+<Line#14>      namesystem.cpLockInterruptibly();
+<Line#15>      long startTime=Time.monotonicNow();
+<Line#16>      try {
+<Line#17>        NameNode.getNameNodeMetrics().addEditLogTailInterval(startTime - lastLoadTimeMs);
+<Line#18>        editsTailed=doTailEdits();
+<Line#19>      }
+<Line#20>  finally {
+<Line#21>        namesystem.cpUnlock();
+<Line#22>        NameNode.getNameNodeMetrics().addEditLogTailTime(Time.monotonicNow() - startTime);
+<Line#23>      }
+<Line#24>      if (triggeredLogRoll) {
+<Line#25>        namesystem.getFSImage().getStorage().updateNameDirSize();
+<Line#26>      }
+<Line#27>    }
+<Line#28> catch (    EditLogInputException elie) {
+<Line#29>      LOG.warn("Error while reading edits from disk. Will try again.",elie);
+<Line#30>    }
+<Line#31>catch (    InterruptedException ie) {
+<Line#32>      continue;
+<Line#33>    }
+<Line#34>catch (    Throwable t) {
+<Line#35>      LOG.error("Unknown error encountered while tailing edits. " + "Shutting down standby NN.",t);
+<Line#36>      terminate(1,t);
+<Line#37>    }
+<Line#38>    try {
+<Line#39>      if (editsTailed == 0 && maxSleepTimeMs > 0) {
+<Line#40>        currentSleepTimeMs=Math.min(maxSleepTimeMs,(currentSleepTimeMs == 0 ? 1 : currentSleepTimeMs) * 2);
+<Line#41>      }
+<Line#42> else {
+<Line#43>        currentSleepTimeMs=sleepTimeMs;
+<Line#44>      }
+<Line#45>      EditLogTailer.this.sleep(currentSleepTimeMs);
+<Line#46>    }
+<Line#47> catch (    InterruptedException e) {
+<Line#48>      LOG.warn("Edit log tailer interrupted: {}",e.getMessage());
+<Line#49>    }
+<Line#50>  }
+<Line#51>}
+Label: <Line#35> LOG.error("Unknown error encountered while tailing edits. " + "Shutting down standby NN.",t)
+

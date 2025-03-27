@@ -1,0 +1,70 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	SerializationFactory.java	methodSinagture:	org.apache.storm.serialization.SerializationFactory.normalizeKryoRegister(Ljava/lang/Object;)Ljava/util/Map;	methodLines:	192:210
+blockLines:	193:-1
+paras:	null
+TaintedStat:	NORMAL normalizeKryoRegister:conditional branch(ne, to iindex=7) 1,3 Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, normalizeKryoRegister(Ljava/lang/Object;)Ljava/util/Map; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, getKryo(Ljava/util/Map;)Lcom/esotericsoftware/kryo/Kryo; > Context: Everywhere[144]91 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,89 @296 exception:90
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, getKryo(Ljava/util/Map;)Lcom/esotericsoftware/kryo/Kryo; > Context: Everywhere[144]91 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,89 @296 exception:90
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, getKryo(Ljava/util/Map;)Lcom/esotericsoftware/kryo/Kryo; > Context: Everywhere[147]invokestatic < Application, Lorg/apache/storm/serialization/SerializationFactory, register(Lcom/esotericsoftware/kryo/Kryo;Ljava/lang/Object;Ljava/util/Map;Z)V > 11,91,1,88 @304 exception:92 v91
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, register(Lcom/esotericsoftware/kryo/Kryo;Ljava/lang/Object;Ljava/util/Map;Z)V > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, register(Lcom/esotericsoftware/kryo/Kryo;Ljava/lang/Object;Ljava/util/Map;Z)V > Context: Everywhere[1]7 = invokestatic < Application, Lorg/apache/storm/serialization/SerializationFactory, normalizeKryoRegister(Ljava/lang/Object;)Ljava/util/Map; > 2 @1 exception:6 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, normalizeKryoRegister(Ljava/lang/Object;)Ljava/util/Map; > Context: Everywhere v1
+NORMAL normalizeKryoRegister:conditional branch(ne, to iindex=7) 1,3 Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, normalizeKryoRegister(Ljava/lang/Object;)Ljava/util/Map; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+        // TODO: de-duplicate this logic with the code in nimbus
+        if (kryoRegistrations == null) {
+            return new TreeMap<>();
+        }
+        Map<String, String> ret = new HashMap<>();
+        if (kryoRegistrations instanceof Map) {
+            ret = (Map<String, String>) kryoRegistrations;
+        } else {
+            for (Object o : (List) kryoRegistrations) {
+                if (o instanceof Map) {
+                    ret.putAll((Map) o);
+                } else {
+                    ret.put((String) o, null);
+                }
+            }
+        }
+
+        //ensure always same order for registrations with TreeMap
+        return new TreeMap<>(ret);
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/serialization/SerializationFactory, register(Lcom/esotericsoftware/kryo/Kryo;Ljava/lang/Object;Ljava/util/Map;Z)V > Context: Everywhere, blocks=[BB[SSA:0..1]1 - org.apache.storm.serialization.SerializationFactory.register(Lcom/esotericsoftware/kryo/Kryo;Ljava/lang/Object;Ljava/util/Map;Z)V, BB[SSA:-1..-2]0 - org.apache.storm.serialization.SerializationFactory.register(Lcom/esotericsoftware/kryo/Kryo;Ljava/lang/Object;Ljava/util/Map;Z)V, BB[SSA:2..4]2 - org.apache.storm.serialization.SerializationFactory.register(Lcom/esotericsoftware/kryo/Kryo;Ljava/lang/Object;Ljava/util/Map;Z)V, BB[SSA:-1..-2]33 - org.apache.storm.serialization.SerializationFactory.register(Lcom/esotericsoftware/kryo/Kryo;Ljava/lang/Object;Ljava/util/Map;Z)V], numberOfBasicBlocks=4, firstLineNumber=128, lastLineNumber=130, firstMethodNumber=128, lastMethodNumber=151, isFirstLineValid=false, methodSrcCode=
+    public static void register(Kryo k, Object kryoRegistrations, Map<String, Object> conf, boolean skipMissing) {
+        Map<String, String> registrations = normalizeKryoRegister(kryoRegistrations);
+        for (Map.Entry<String, String> entry : registrations.entrySet()) {
+            String serializerClassName = entry.getValue();
+            try {
+                Class klass = Class.forName(entry.getKey());
+                Class serializerClass = null;
+                if (serializerClassName != null) {
+                    serializerClass = Class.forName(serializerClassName);
+                }
+                if (serializerClass == null) {
+                    k.register(klass);
+                } else {
+                    k.register(klass, resolveSerializerInstance(k, klass, serializerClass, conf));
+                }
+            } catch (ClassNotFoundException e) {
+                if (skipMissing) {
+                    LOG.info("Could not find serialization or class for " + serializerClassName + ". Skipping registration...");
+                } else {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+}

@@ -1,0 +1,72 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	OutputFieldsGetter.java	methodSinagture:	org.apache.storm.topology.OutputFieldsGetter.declareStream(Ljava/lang/String;ZLorg/apache/storm/tuple/Fields;)V	methodLines:	40:48
+blockLines:	41:-1
+paras:	null
+TaintedStat:	NORMAL declareStream:conditional branch(ne, to iindex=8) 6,2 Node: < Application, Lorg/apache/storm/topology/OutputFieldsGetter, declareStream(Ljava/lang/String;ZLorg/apache/storm/tuple/Fields;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/topology/WindowedBoltExecutor, declareOutputFields(Lorg/apache/storm/topology/OutputFieldsDeclarer;)V > Context: Everywhere[3]8 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,6 @6 exception:7
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/topology/WindowedBoltExecutor, declareOutputFields(Lorg/apache/storm/topology/OutputFieldsDeclarer;)V > Context: Everywhere[3]8 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,6 @6 exception:7
+NORMAL declareOutputFields:9 = checkcast <Application,Ljava/lang/String>8 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/topology/WindowedBoltExecutor, declareOutputFields(Lorg/apache/storm/topology/OutputFieldsDeclarer;)V > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/topology/WindowedBoltExecutor, declareOutputFields(Lorg/apache/storm/topology/OutputFieldsDeclarer;)V > Context: Everywhere[20]invokeinterface < Application, Lorg/apache/storm/topology/OutputFieldsDeclarer, declareStream(Ljava/lang/String;Lorg/apache/storm/tuple/Fields;)V > 2,9,11 @38 exception:17 v9
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/topology/OutputFieldsGetter, declareStream(Ljava/lang/String;Lorg/apache/storm/tuple/Fields;)V > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/topology/OutputFieldsGetter, declareStream(Ljava/lang/String;Lorg/apache/storm/tuple/Fields;)V > Context: Everywhere[4]invokevirtual < Application, Lorg/apache/storm/topology/OutputFieldsGetter, declareStream(Ljava/lang/String;ZLorg/apache/storm/tuple/Fields;)V > 1,2,5,3 @4 exception:6 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/topology/OutputFieldsGetter, declareStream(Ljava/lang/String;ZLorg/apache/storm/tuple/Fields;)V > Context: Everywhere v2
+NORMAL declareStream:conditional branch(ne, to iindex=8) 6,2 Node: < Application, Lorg/apache/storm/topology/OutputFieldsGetter, declareStream(Ljava/lang/String;ZLorg/apache/storm/tuple/Fields;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public void declareStream(String streamId, boolean direct, Fields fields) {
+        if (null == streamId) {
+            throw new IllegalArgumentException("streamId can't be null");
+        }
+        if (this.fields.containsKey(streamId)) {
+            throw new IllegalArgumentException("Fields for " + streamId + " already set");
+        }
+        this.fields.put(streamId, new StreamInfo(fields.toList(), direct));
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/coordination/CoordinatedBolt, declareOutputFields(Lorg/apache/storm/topology/OutputFieldsDeclarer;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=211, lastMethodNumber=214, isFirstLineValid=true, methodSrcCode=
+    public void declareOutputFields(OutputFieldsDeclarer declarer) {
+        delegate.declareOutputFields(declarer);
+        declarer.declareStream(Constants.COORDINATED_STREAM_ID, true, new Fields("id", "count"));
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/topology/OutputFieldsGetter, declareStream(Ljava/lang/String;Lorg/apache/storm/tuple/Fields;)V > Context: Everywhere, blocks=[BB[SSA:0..4]1 - org.apache.storm.topology.OutputFieldsGetter.declareStream(Ljava/lang/String;Lorg/apache/storm/tuple/Fields;)V, BB[SSA:-1..-2]0 - org.apache.storm.topology.OutputFieldsGetter.declareStream(Ljava/lang/String;Lorg/apache/storm/tuple/Fields;)V, BB[SSA:5..5]2 - org.apache.storm.topology.OutputFieldsGetter.declareStream(Ljava/lang/String;Lorg/apache/storm/tuple/Fields;)V, BB[SSA:-1..-2]3 - org.apache.storm.topology.OutputFieldsGetter.declareStream(Ljava/lang/String;Lorg/apache/storm/tuple/Fields;)V], numberOfBasicBlocks=4, firstLineNumber=35, lastLineNumber=37, firstMethodNumber=35, lastMethodNumber=37, isFirstLineValid=false, methodSrcCode=
+    public void declareStream(String streamId, Fields fields) {
+        declareStream(streamId, false, fields);
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/topology/OutputFieldsGetter, declare(ZLorg/apache/storm/tuple/Fields;)V > Context: Everywhere, blocks=[BB[SSA:0..4]1 - org.apache.storm.topology.OutputFieldsGetter.declare(ZLorg/apache/storm/tuple/Fields;)V, BB[SSA:-1..-2]0 - org.apache.storm.topology.OutputFieldsGetter.declare(ZLorg/apache/storm/tuple/Fields;)V, BB[SSA:5..5]2 - org.apache.storm.topology.OutputFieldsGetter.declare(ZLorg/apache/storm/tuple/Fields;)V, BB[SSA:-1..-2]3 - org.apache.storm.topology.OutputFieldsGetter.declare(ZLorg/apache/storm/tuple/Fields;)V], numberOfBasicBlocks=4, firstLineNumber=30, lastLineNumber=32, firstMethodNumber=30, lastMethodNumber=32, isFirstLineValid=false, methodSrcCode=
+    public void declare(boolean direct, Fields fields) {
+        declareStream(Utils.DEFAULT_STREAM_ID, direct, fields);
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/trident/spout/RichSpoutBatchTriggerer, declareOutputFields(Lorg/apache/storm/topology/OutputFieldsDeclarer;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=108, lastMethodNumber=114, isFirstLineValid=true, methodSrcCode=
+    public void declareOutputFields(OutputFieldsDeclarer declarer) {
+        Fields outFields = TridentUtils.getSingleOutputStreamFields(delegate);
+        outFields = TridentUtils.fieldsConcat(new Fields("$id$"), outFields);
+        declarer.declareStream(stream, outFields);
+        // try to find a way to merge this code with what's already done in TridentBoltExecutor
+        declarer.declareStream(coordStream, true, new Fields("id", "count"));
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/trident/topology/TridentBoltExecutor, declareOutputFields(Lorg/apache/storm/topology/OutputFieldsDeclarer;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=257, lastMethodNumber=262, isFirstLineValid=true, methodSrcCode=
+    public void declareOutputFields(OutputFieldsDeclarer declarer) {
+        bolt.declareOutputFields(declarer);
+        for (String batchGroup : coordSpecs.keySet()) {
+            declarer.declareStream(coordStream(batchGroup), true, new Fields("id", "count"));
+        }
+    }
+
+}

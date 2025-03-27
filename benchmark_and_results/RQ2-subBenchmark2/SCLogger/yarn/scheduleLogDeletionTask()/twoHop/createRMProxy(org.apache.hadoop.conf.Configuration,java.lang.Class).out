@@ -1,0 +1,12 @@
+/** 
+ * Create a proxy to the ResourceManager for the specified protocol.
+ * @param configuration Configuration with all the required information.
+ * @param protocol Client protocol for which proxy is being requested.
+ * @param < T > Type of proxy.
+ * @return Proxy to the ResourceManager for the specified client protocol.
+ * @throws IOException
+ */
+public static <T>T createRMProxy(final Configuration configuration,final Class<T> protocol) throws IOException {
+  ClientRMProxy<T> clientRMProxy=new ClientRMProxy<>();
+  return createRMProxy(configuration,protocol,clientRMProxy);
+}

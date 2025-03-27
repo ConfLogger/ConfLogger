@@ -1,0 +1,310 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> public List<T> findAllWithRecorder(String path, S conf, Recorder recorder) {
+<Line#1> Preconditions.checkArgument(path != null, "path may not be null");
+<Line#2> 
+<Line#3> List<T> eligibleFactories = scanRegistered(path, conf);
+<Line#4> if (!eligibleFactories.isEmpty()) {
+<Line#5> return eligibleFactories;
+<Line#6> }
+<Line#7> 
+<Line#8> List<T> factories = new ArrayList<>(mFactories);
+<Line#9> String libDir = PathUtils.concatPath(conf.getString(PropertyKey.HOME), "lib");
+<Line#10> String extensionDir = conf.getString(PropertyKey.EXTENSIONS_DIR);
+<Line#11> scanLibs(factories, libDir);
+<Line#12> recorder.record("Loaded {} factory core jars from {}", factories.size(), libDir);
+<Line#13> scanExtensions(factories, extensionDir);
+<Line#14> recorder.record("Loaded extension jars from {}.%n"
+<Line#15> + "The total number of loaded factory core jars is {}", extensionDir, factories.size());
+<Line#16> 
+<Line#17> if (conf.isSetByUser(PropertyKey.UNDERFS_VERSION)) {
+<Line#18> recorder.record("alluxio.underfs.version is set by user, target version is {}",
+<Line#19> conf.getString(PropertyKey.UNDERFS_VERSION));
+<Line#20> } else {
+<Line#21> recorder.record("alluxio.underfs.version is not set by user");
+<Line#22> }
+<Line#23> 
+<Line#24> for (T factory : factories) {
+<Line#25> // if `getVersion` returns null set the version to "unknown"
+<Line#26> String version = UNKNOWN_VERSION;
+<Line#27> if (factory instanceof UnderFileSystemFactory) {
+<Line#28> version = Optional.ofNullable(((UnderFileSystemFactory) factory)
+<Line#29> .getVersion()).orElse(UNKNOWN_VERSION);
+<Line#30> }
+<Line#31> if (factory.supportsPath(path, conf)) {
+<Line#32> String message =
+<Line#33> String.format("Adding factory %s of version %s which supports path %s",
+<Line#34> factory.getClass().getSimpleName(), version, path);
+<Line#35> recorder.record(message);
+<Line#36> LOG.debug(message);
+<Line#37> eligibleFactories.add(factory);
+<Line#38> } else {
+<Line#39> recorder.record("Factory implementation {} of version {} "
+<Line#40> + "isn't eligible for path {}", factory.getClass().getSimpleName(), version, path);
+<Line#41> }
+<Line#42> }
+<Line#43> if (eligibleFactories.isEmpty()) {
+<Line#44> String message = String.format("No factory implementation supports the path %s", path);
+<Line#45> recorder.record(message);
+<Line#46> LOG.warn(message);
+<Line#47> }
+<Line#48> return eligibleFactories;
+<Line#49> }
+
+Relevant Logging Patterns:
+Example 1:
+File: alluxio__AccumulatingReducer-49__.json
+Code:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    mHostname=java.net.InetAddress.getLocalHost().getHostName();
+<Line#4>  }
+<Line#5> catch (  Exception e) {
+<Line#6>    mHostname="localhost";
+<Line#7>  }
+<Line#8>  LOG.info("Starting AccumulatingReducer on " + mHostname);
+<Line#9>}
+Log: <Line#8>:# LOG.info("Starting AccumulatingReducer on " + mHostname):#
+
+Example 2:
+File: alluxio__move-839__.json
+Code:
+<Line#1>{
+<Line#2>  List<ListenableFuture<Void>> futures=new ArrayList<>();
+<Line#3>  List<RouteFailure> errors=Collections.synchronizedList(new ArrayList<>());
+<Line#4>  for (  Route route : routes) {
+<Line#5>    UnderFileSystem srcUfs=getUnderFileSystem(route.getSrc());
+<Line#6>    UnderFileSystem dstUfs=getUnderFileSystem(route.getDst());
+<Line#7>    String srcRoot=new AlluxioURI(route.getSrc()).getRootPath();
+<Line#8>    String dstRoot=new AlluxioURI(route.getDst()).getRootPath();
+<Line#9>    try (FileSystem srcFs=new UfsBaseFileSystem(mFsContext,new UfsFileSystemOptions(srcRoot),new UfsManager.UfsClient(() -> srcUfs,new AlluxioURI(srcRoot)));FileSystem dstFs=new UfsBaseFileSystem(mFsContext,new UfsFileSystemOptions(dstRoot),new UfsManager.UfsClient(() -> dstUfs,new AlluxioURI(dstRoot)))){
+<Line#10>      ListenableFuture<Void> future=Futures.submit(() -> {
+<Line#11>        Boolean deleteFailure=false;
+<Line#12>        try {
+<Line#13>          if (readOptions.hasUser()) {
+<Line#14>            AuthenticatedClientUser.set(readOptions.getUser());
+<Line#15>          }
+<Line#16>          checkMovePermission(route.getSrc(),route.getDst());
+<Line#17>          if (!ValidateHandler.validate(route,writeOptions,srcFs,dstFs,true)) {
+<Line#18>            throw new FailedPreconditionRuntimeException("File " + route.getDst() + " is already in UFS");
+<Line#19>          }
+<Line#20>          CopyHandler.copy(route,writeOptions,srcFs,dstFs);
+<Line#21>          try {
+<Line#22>            DeleteHandler.delete(new AlluxioURI(route.getSrc()),srcFs);
+<Line#23>          }
+<Line#24> catch (          Exception e) {
+<Line#25>            deleteFailure=true;
+<Line#26>            throw e;
+<Line#27>          }
+<Line#28>        }
+<Line#29> catch (        Throwable t) {
+<Line#30>          LOG.error("Failed to move {} to {}",route.getSrc(),route.getDst(),t);
+<Line#31>          boolean permissionCheckSucceeded=!(t instanceof AccessControlException);
+<Line#32>          AlluxioRuntimeException e=AlluxioRuntimeException.from(t);
+<Line#33>          RouteFailure.Builder builder=RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value()).setRetryable(e.isRetryable() && permissionCheckSucceeded);
+<Line#34>          if (e.getMessage() != null) {
+<Line#35>            builder.setMessage(e.getMessage());
+<Line#36>          }
+<Line#37>          if (deleteFailure) {
+<Line#38>            builder.setRetryable(false);
+<Line#39>          }
+<Line#40>          errors.add(builder.build());
+<Line#41>        }
+<Line#42>      }
+<Line#43>,GrpcExecutors.WRITER_EXECUTOR);
+<Line#44>      futures.add(future);
+<Line#45>    }
+<Line#46> catch (    IOException e) {
+<Line#47>    }
+<Line#48>catch (    RejectedExecutionException e) {
+<Line#49>      LOG.warn("BlockDataWriterExecutor overloaded.");
+<Line#50>      AlluxioRuntimeException t=AlluxioRuntimeException.from(e);
+<Line#51>      RouteFailure.Builder builder=RouteFailure.newBuilder().setRoute(route).setCode(t.getStatus().getCode().value()).setRetryable(true);
+<Line#52>      errors.add(builder.build());
+<Line#53>    }
+<Line#54>  }
+<Line#55>  return Futures.whenAllComplete(futures).call(() -> errors,GrpcExecutors.WRITER_EXECUTOR);
+<Line#56>}
+Log: <Line#30>:# LOG.error("Failed to move {} to {}",route.getSrc(),route.getDst(),t):#
+
+Example 3:
+File: alluxio__move-839__.json
+Code:
+<Line#1>{
+<Line#2>  List<ListenableFuture<Void>> futures=new ArrayList<>();
+<Line#3>  List<RouteFailure> errors=Collections.synchronizedList(new ArrayList<>());
+<Line#4>  for (  Route route : routes) {
+<Line#5>    UnderFileSystem srcUfs=getUnderFileSystem(route.getSrc());
+<Line#6>    UnderFileSystem dstUfs=getUnderFileSystem(route.getDst());
+<Line#7>    String srcRoot=new AlluxioURI(route.getSrc()).getRootPath();
+<Line#8>    String dstRoot=new AlluxioURI(route.getDst()).getRootPath();
+<Line#9>    try (FileSystem srcFs=new UfsBaseFileSystem(mFsContext,new UfsFileSystemOptions(srcRoot),new UfsManager.UfsClient(() -> srcUfs,new AlluxioURI(srcRoot)));FileSystem dstFs=new UfsBaseFileSystem(mFsContext,new UfsFileSystemOptions(dstRoot),new UfsManager.UfsClient(() -> dstUfs,new AlluxioURI(dstRoot)))){
+<Line#10>      ListenableFuture<Void> future=Futures.submit(() -> {
+<Line#11>        Boolean deleteFailure=false;
+<Line#12>        try {
+<Line#13>          if (readOptions.hasUser()) {
+<Line#14>            AuthenticatedClientUser.set(readOptions.getUser());
+<Line#15>          }
+<Line#16>          checkMovePermission(route.getSrc(),route.getDst());
+<Line#17>          if (!ValidateHandler.validate(route,writeOptions,srcFs,dstFs,true)) {
+<Line#18>            throw new FailedPreconditionRuntimeException("File " + route.getDst() + " is already in UFS");
+<Line#19>          }
+<Line#20>          CopyHandler.copy(route,writeOptions,srcFs,dstFs);
+<Line#21>          try {
+<Line#22>            DeleteHandler.delete(new AlluxioURI(route.getSrc()),srcFs);
+<Line#23>          }
+<Line#24> catch (          Exception e) {
+<Line#25>            deleteFailure=true;
+<Line#26>            throw e;
+<Line#27>          }
+<Line#28>        }
+<Line#29> catch (        Throwable t) {
+<Line#30>          LOG.error("Failed to move {} to {}",route.getSrc(),route.getDst(),t);
+<Line#31>          boolean permissionCheckSucceeded=!(t instanceof AccessControlException);
+<Line#32>          AlluxioRuntimeException e=AlluxioRuntimeException.from(t);
+<Line#33>          RouteFailure.Builder builder=RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value()).setRetryable(e.isRetryable() && permissionCheckSucceeded);
+<Line#34>          if (e.getMessage() != null) {
+<Line#35>            builder.setMessage(e.getMessage());
+<Line#36>          }
+<Line#37>          if (deleteFailure) {
+<Line#38>            builder.setRetryable(false);
+<Line#39>          }
+<Line#40>          errors.add(builder.build());
+<Line#41>        }
+<Line#42>      }
+<Line#43>,GrpcExecutors.WRITER_EXECUTOR);
+<Line#44>      futures.add(future);
+<Line#45>    }
+<Line#46> catch (    IOException e) {
+<Line#47>    }
+<Line#48>catch (    RejectedExecutionException e) {
+<Line#49>      LOG.warn("BlockDataWriterExecutor overloaded.");
+<Line#50>      AlluxioRuntimeException t=AlluxioRuntimeException.from(e);
+<Line#51>      RouteFailure.Builder builder=RouteFailure.newBuilder().setRoute(route).setCode(t.getStatus().getCode().value()).setRetryable(true);
+<Line#52>      errors.add(builder.build());
+<Line#53>    }
+<Line#54>  }
+<Line#55>  return Futures.whenAllComplete(futures).call(() -> errors,GrpcExecutors.WRITER_EXECUTOR);
+<Line#56>}
+Log: <Line#49>:# LOG.warn("BlockDataWriterExecutor overloaded."):#
+
+Example 4:
+File: alluxio__connect-245__.json
+Code:
+<Line#1>{
+<Line#2>  if (mConnected) {
+<Line#3>    return;
+<Line#4>  }
+<Line#5>  disconnect();
+<Line#6>  Preconditions.checkState(!mClosed,"Client is closed, will not try to connect.");
+<Line#7>  IOException lastConnectFailure=null;
+<Line#8>  RetryPolicy retryPolicy=mRetryPolicySupplier.get();
+<Line#9>  while (retryPolicy.attempt()) {
+<Line#10>    if (mClosed) {
+<Line#11>      throw new FailedPreconditionException("Failed to connect: client has been closed");
+<Line#12>    }
+<Line#13>    try {
+<Line#14>      mServerAddress=queryGrpcServerAddress();
+<Line#15>    }
+<Line#16> catch (    UnavailableException e) {
+<Line#17>      LOG.debug("Failed to determine {} rpc address ({}): {}",getServiceName(),retryPolicy.getAttemptCount(),e.toString());
+<Line#18>      continue;
+<Line#19>    }
+<Line#20>    try {
+<Line#21>      beforeConnect();
+<Line#22>      LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",RuntimeConstants.VERSION,getServiceName(),mServerAddress);
+<Line#23>      mChannel=createChannel();
+<Line#24>      mVersionService=ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
+<Line#25>      mConnected=true;
+<Line#26>      afterConnect();
+<Line#27>      checkVersion(getServiceVersion());
+<Line#28>      LOG.debug("Alluxio client (version {}) is connected with {} @ {}",RuntimeConstants.VERSION,getServiceName(),mServerAddress);
+<Line#29>      return;
+<Line#30>    }
+<Line#31> catch (    IOException e) {
+<Line#32>      LOG.debug("Failed to connect ({}) with {} @ {}",retryPolicy.getAttemptCount(),getServiceName(),mServerAddress,e);
+<Line#33>      lastConnectFailure=e;
+<Line#34>      if (e instanceof UnauthenticatedException) {
+<Line#35>        mContext.getUserState().relogin();
+<Line#36>      }
+<Line#37>      if (e instanceof NotFoundException) {
+<Line#38>        break;
+<Line#39>      }
+<Line#40>    }
+<Line#41>  }
+<Line#42>  if (mChannel != null) {
+<Line#43>    mChannel.shutdown();
+<Line#44>  }
+<Line#45>  if (mServerAddress == null) {
+<Line#46>    throw new UnavailableException(String.format("Failed to determine address for %s after %s attempts",getServiceName(),retryPolicy.getAttemptCount()));
+<Line#47>  }
+<Line#48>  if (lastConnectFailure instanceof UnauthenticatedException) {
+<Line#49>    throw (AlluxioStatusException)lastConnectFailure;
+<Line#50>  }
+<Line#51>  if (lastConnectFailure instanceof NotFoundException) {
+<Line#52>    throw new NotFoundException(lastConnectFailure.getMessage(),new ServiceNotFoundException(lastConnectFailure.getMessage(),lastConnectFailure));
+<Line#53>  }
+<Line#54>  throw new UnavailableException(String.format("Failed to connect to master (%s) after %s attempts." + "Please check if Alluxio master is currently running on \"%s\". Service=\"%s\"",mServerAddress,retryPolicy.getAttemptCount(),mServerAddress,getServiceName()),lastConnectFailure);
+<Line#55>}
+Log: <Line#17>:# LOG.debug("Failed to determine {} rpc address ({}): {}",getServiceName(),retryPolicy.getAttemptCount(),e.toString()):#
+
+Example 5:
+File: alluxio__connect-245__.json
+Code:
+<Line#1>{
+<Line#2>  if (mConnected) {
+<Line#3>    return;
+<Line#4>  }
+<Line#5>  disconnect();
+<Line#6>  Preconditions.checkState(!mClosed,"Client is closed, will not try to connect.");
+<Line#7>  IOException lastConnectFailure=null;
+<Line#8>  RetryPolicy retryPolicy=mRetryPolicySupplier.get();
+<Line#9>  while (retryPolicy.attempt()) {
+<Line#10>    if (mClosed) {
+<Line#11>      throw new FailedPreconditionException("Failed to connect: client has been closed");
+<Line#12>    }
+<Line#13>    try {
+<Line#14>      mServerAddress=queryGrpcServerAddress();
+<Line#15>    }
+<Line#16> catch (    UnavailableException e) {
+<Line#17>      LOG.debug("Failed to determine {} rpc address ({}): {}",getServiceName(),retryPolicy.getAttemptCount(),e.toString());
+<Line#18>      continue;
+<Line#19>    }
+<Line#20>    try {
+<Line#21>      beforeConnect();
+<Line#22>      LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",RuntimeConstants.VERSION,getServiceName(),mServerAddress);
+<Line#23>      mChannel=createChannel();
+<Line#24>      mVersionService=ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
+<Line#25>      mConnected=true;
+<Line#26>      afterConnect();
+<Line#27>      checkVersion(getServiceVersion());
+<Line#28>      LOG.debug("Alluxio client (version {}) is connected with {} @ {}",RuntimeConstants.VERSION,getServiceName(),mServerAddress);
+<Line#29>      return;
+<Line#30>    }
+<Line#31> catch (    IOException e) {
+<Line#32>      LOG.debug("Failed to connect ({}) with {} @ {}",retryPolicy.getAttemptCount(),getServiceName(),mServerAddress,e);
+<Line#33>      lastConnectFailure=e;
+<Line#34>      if (e instanceof UnauthenticatedException) {
+<Line#35>        mContext.getUserState().relogin();
+<Line#36>      }
+<Line#37>      if (e instanceof NotFoundException) {
+<Line#38>        break;
+<Line#39>      }
+<Line#40>    }
+<Line#41>  }
+<Line#42>  if (mChannel != null) {
+<Line#43>    mChannel.shutdown();
+<Line#44>  }
+<Line#45>  if (mServerAddress == null) {
+<Line#46>    throw new UnavailableException(String.format("Failed to determine address for %s after %s attempts",getServiceName(),retryPolicy.getAttemptCount()));
+<Line#47>  }
+<Line#48>  if (lastConnectFailure instanceof UnauthenticatedException) {
+<Line#49>    throw (AlluxioStatusException)lastConnectFailure;
+<Line#50>  }
+<Line#51>  if (lastConnectFailure instanceof NotFoundException) {
+<Line#52>    throw new NotFoundException(lastConnectFailure.getMessage(),new ServiceNotFoundException(lastConnectFailure.getMessage(),lastConnectFailure));
+<Line#53>  }
+<Line#54>  throw new UnavailableException(String.format("Failed to connect to master (%s) after %s attempts." + "Please check if Alluxio master is currently running on \"%s\". Service=\"%s\"",mServerAddress,retryPolicy.getAttemptCount(),mServerAddress,getServiceName()),lastConnectFailure);
+<Line#55>}
+Log: <Line#22>:# LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",RuntimeConstants.VERSION,getServiceName(),mServerAddress):#

@@ -1,0 +1,154 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	QuorumHierarchical.java	methodSinagture:	org.apache.zookeeper.server.quorum.flexible.QuorumHierarchical.containsQuorum(Ljava/util/Set;)Z	methodLines:	328:370
+blockLines:	341:-1
+paras:	null
+TaintedStat:	NORMAL containsQuorum:conditional branch(ne, to iindex=39) 30,31 Node: < Application, Lorg/apache/zookeeper/server/quorum/flexible/QuorumHierarchical, containsQuorum(Ljava/util/Set;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/flexible/QuorumHierarchical, containsQuorum(Ljava/util/Set;)Z > Context: Everywhere[32]29 = invokevirtual < Application, Ljava/util/HashMap, get(Ljava/lang/Object;)Ljava/lang/Object; > 25,27 @77 exception:28
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/flexible/QuorumHierarchical, containsQuorum(Ljava/util/Set;)Z > Context: Everywhere[32]29 = invokevirtual < Application, Ljava/util/HashMap, get(Ljava/lang/Object;)Ljava/lang/Object; > 25,27 @77 exception:28
+NORMAL containsQuorum:[null]: 30 = checkcast <Application,Ljava/lang/Long>29 <Application,Ljava/lang/Long> Node: < Application, Lorg/apache/zookeeper/server/quorum/flexible/QuorumHierarchical, containsQuorum(Ljava/util/Set;)Z > Context: Everywhere
+NORMAL containsQuorum:conditional branch(ne, to iindex=39) 30,31 Node: < Application, Lorg/apache/zookeeper/server/quorum/flexible/QuorumHierarchical, containsQuorum(Ljava/util/Set;)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public boolean containsQuorum(Set<Long> set) {
+        HashMap<Long, Long> expansion = new HashMap<>();
+
+        /*
+         * Adds up weights per group
+         */
+        LOG.debug("Set size: {}", set.size());
+        if (set.size() == 0) {
+            return false;
+        }
+
+        for (long sid : set) {
+            Long gid = serverGroup.get(sid);
+            if (gid == null) {
+                continue;
+            }
+            if (!expansion.containsKey(gid)) {
+                expansion.put(gid, serverWeight.get(sid));
+            } else {
+                long totalWeight = serverWeight.get(sid) + expansion.get(gid);
+                expansion.put(gid, totalWeight);
+            }
+        }
+
+        /*
+         * Check if all groups have majority
+         */
+        int majGroupCounter = 0;
+        for (Entry<Long, Long> entry : expansion.entrySet()) {
+            Long gid = entry.getKey();
+            LOG.debug("Group info: {}, {}, {}", entry.getValue(), gid, groupWeight.get(gid));
+            if (entry.getValue() > (groupWeight.get(gid) / 2)) {
+                majGroupCounter++;
+            }
+        }
+
+        LOG.debug("Majority group counter: {}, {}", majGroupCounter, numGroups);
+        if ((majGroupCounter > (numGroups / 2))) {
+            LOG.debug("Positive set size: {}", set.size());
+            return true;
+        } else {
+            LOG.debug("Negative set size: {}", set.size());
+            return false;
+        }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, isQuorumSynced(Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;)Z > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=317, lastMethodNumber=329, isFirstLineValid=true, methodSrcCode=
+    public boolean isQuorumSynced(QuorumVerifier qv) {
+        HashSet<Long> ids = new HashSet<>();
+        if (qv.getVotingMembers().containsKey(self.getMyId())) {
+            ids.add(self.getMyId());
+        }
+        synchronized (forwardingFollowers) {
+            for (LearnerHandler learnerHandler : forwardingFollowers) {
+                if (learnerHandler.synced() && qv.getVotingMembers().containsKey(learnerHandler.getSid())) {
+                    ids.add(learnerHandler.getSid());
+                }
+            }
+        }
+        return qv.containsQuorum(ids);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, getEpochToPropose(JJ)J > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=1462, lastMethodNumber=1494, isFirstLineValid=true, methodSrcCode=
+    public long getEpochToPropose(long sid, long lastAcceptedEpoch) throws InterruptedException, IOException {
+        synchronized (connectingFollowers) {
+            if (!waitingForNewEpoch) {
+                return epoch;
+            }
+            if (lastAcceptedEpoch >= epoch) {
+                epoch = lastAcceptedEpoch + 1;
+            }
+            if (isParticipant(sid)) {
+                connectingFollowers.add(sid);
+            }
+            QuorumVerifier verifier = self.getQuorumVerifier();
+            if (connectingFollowers.contains(self.getMyId()) && verifier.containsQuorum(connectingFollowers)) {
+                waitingForNewEpoch = false;
+                self.setAcceptedEpoch(epoch);
+                connectingFollowers.notifyAll();
+            } else {
+                long start = Time.currentElapsedTime();
+                if (sid == self.getMyId()) {
+                    timeStartWaitForEpoch = start;
+                }
+                long cur = start;
+                long end = start + self.getInitLimit() * self.getTickTime();
+                while (waitingForNewEpoch && cur < end && !quitWaitForEpoch) {
+                    connectingFollowers.wait(end - cur);
+                    cur = Time.currentElapsedTime();
+                }
+                if (waitingForNewEpoch) {
+                    throw new InterruptedException("Timeout while waiting for epoch from quorum");
+                }
+            }
+            return epoch;
+        }
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, waitForEpochAck(JLorg/apache/zookeeper/server/quorum/StateSummary;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=1508, lastMethodNumber=1542, isFirstLineValid=true, methodSrcCode=
+    public void waitForEpochAck(long id, StateSummary ss) throws IOException, InterruptedException {
+        synchronized (electingFollowers) {
+            if (electionFinished) {
+                return;
+            }
+            if (ss.getCurrentEpoch() != -1) {
+                if (ss.isMoreRecentThan(leaderStateSummary)) {
+                    throw new IOException("Follower is ahead of the leader, leader summary: "
+                                          + leaderStateSummary.getCurrentEpoch()
+                                          + " (current epoch), "
+                                          + leaderStateSummary.getLastZxid()
+                                          + " (last zxid)");
+                }
+                if (ss.getLastZxid() != -1 && isParticipant(id)) {
+                    electingFollowers.add(id);
+                }
+            }
+            QuorumVerifier verifier = self.getQuorumVerifier();
+            if (electingFollowers.contains(self.getMyId()) && verifier.containsQuorum(electingFollowers)) {
+                electionFinished = true;
+                electingFollowers.notifyAll();
+            } else {
+                long start = Time.currentElapsedTime();
+                long cur = start;
+                long end = start + self.getInitLimit() * self.getTickTime();
+                while (!electionFinished && cur < end) {
+                    electingFollowers.wait(end - cur);
+                    cur = Time.currentElapsedTime();
+                }
+                if (!electionFinished) {
+                    throw new InterruptedException("Timeout while waiting for epoch to be acked by quorum");
+                }
+            }
+        }
+    }
+
+}

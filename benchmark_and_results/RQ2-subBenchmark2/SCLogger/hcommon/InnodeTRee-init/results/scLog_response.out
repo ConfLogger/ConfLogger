@@ -1,0 +1,17 @@
+<Line#3>:# LOG.debug("Checking if mountTableName is null"):#
+<Line#4>:# LOG.debug("Default mount table name used: " + mountTableName):#
+<Line#6>:# LOG.debug("Home directory prefix retrieved: " + homedirPrefix):#
+<Line#21>:# LOG.debug("Iterating through configuration entries"):#
+<Line#23>:# LOG.debug("Skipping key as it does not start with mountTablePrefix: " + key):#
+<Line#27>:# LOG.debug("Found mount table entry for key: " + key):#
+<Line#34>:# LOG.debug("Unsupported file system exception for key: " + key):#
+<Line#70>:# LOG.debug("Invalid entry in mount table configuration: " + src):#
+<Line#75>:# LOG.debug("Processing non-merge slash link for source: " + src):#
+<Line#84>:# LOG.debug("Merge slash link configuration error, regular links already configured"):#
+<Line#89>:# LOG.debug("Multiple merge slash links configuration error for mount table: " + mountTableName):#
+<Line#100>:# LOG.debug("Configuring root with merge slash link to target: " + mergeSlashTarget):#
+<Line#107>:# LOG.debug("Configuring root as directory with current user UGI"):#
+<Line#111>:# LOG.debug("Processing link entries for fallback and other configurations"):#
+<Line#114>:# LOG.debug("Multiple fallback links configuration error for mount table: " + mountTableName):#
+<Line#135>:# LOG.debug("No mount table entries found, checking initialization URI as fallback"):#
+<Line#137>:# LOG.debug("Throwing IOException due to empty mount table for URI: " + theUri):#

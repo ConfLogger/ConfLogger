@@ -1,0 +1,9 @@
+/** 
+ * Add tags to the resource.
+ * @param tags resource tags
+ */
+public void setTags(Set<String> tags){
+  if (tags != null) {
+    this.tags=tags;
+  }
+}

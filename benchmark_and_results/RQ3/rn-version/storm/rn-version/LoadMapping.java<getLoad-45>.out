@@ -1,0 +1,46 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	LoadMapping.java	methodSinagture:	org.apache.storm.grouping.LoadMapping.getLoad(I)Lorg/apache/storm/grouping/Load;	methodLines:	45:53
+blockLines:	47:-1
+paras:	null
+TaintedStat:	NORMAL getLoad:conditional branch(ne, to iindex=21) 12,13 Node: < Application, Lorg/apache/storm/grouping/LoadMapping, getLoad(I)Lorg/apache/storm/grouping/Load; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/grouping/LoadMapping, getLoad(I)Lorg/apache/storm/grouping/Load; > Context: Everywhere[6]11 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,9 @14 exception:10
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/grouping/LoadMapping, getLoad(I)Lorg/apache/storm/grouping/Load; > Context: Everywhere[6]11 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,9 @14 exception:10
+NORMAL getLoad:12 = checkcast <Application,Lorg/apache/storm/grouping/Load>11 <Application,Lorg/apache/storm/grouping/Load> Node: < Application, Lorg/apache/storm/grouping/LoadMapping, getLoad(I)Lorg/apache/storm/grouping/Load; > Context: Everywhere
+NORMAL getLoad:conditional branch(ne, to iindex=21) 12,13 Node: < Application, Lorg/apache/storm/grouping/LoadMapping, getLoad(I)Lorg/apache/storm/grouping/Load; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	LoadMapping.java	methodSinagture:	org.apache.storm.grouping.LoadMapping.getLoad(I)Lorg/apache/storm/grouping/Load;	methodLines:	45:53
+blockLines:	50:-1
+paras:	null
+TaintedStat:	NORMAL getLoad:conditional branch(ne, to iindex=26) 23,13 Node: < Application, Lorg/apache/storm/grouping/LoadMapping, getLoad(I)Lorg/apache/storm/grouping/Load; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/grouping/LoadMapping, getLoad(I)Lorg/apache/storm/grouping/Load; > Context: Everywhere[18]21 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 17,19 @41 exception:20
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/grouping/LoadMapping, getLoad(I)Lorg/apache/storm/grouping/Load; > Context: Everywhere[18]21 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 17,19 @41 exception:20
+NORMAL getLoad:22 = checkcast <Application,Lorg/apache/storm/grouping/Load>21 <Application,Lorg/apache/storm/grouping/Load> Node: < Application, Lorg/apache/storm/grouping/LoadMapping, getLoad(I)Lorg/apache/storm/grouping/Load; > Context: Everywhere
+PHI Node: < Application, Lorg/apache/storm/grouping/LoadMapping, getLoad(I)Lorg/apache/storm/grouping/Load; > Context: Everywhere:23 = phi  12,22
+NORMAL getLoad:conditional branch(ne, to iindex=26) 23,13 Node: < Application, Lorg/apache/storm/grouping/LoadMapping, getLoad(I)Lorg/apache/storm/grouping/Load; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public Load getLoad(int task) {
+        Load ret = local.get().get(task);
+        if (ret == null) {
+            ret = remote.get().get(task);
+        }
+        if (ret == null) {
+            ret = NOT_CONNECTED;
+        }
+        return ret;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/grouping/LoadMapping, get(I)D > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.storm.grouping.LoadMapping.get(I)D, BB[SSA:-1..-2]0 - org.apache.storm.grouping.LoadMapping.get(I)D, BB[SSA:3..3]2 - org.apache.storm.grouping.LoadMapping.get(I)D, BB[SSA:-1..-2]4 - org.apache.storm.grouping.LoadMapping.get(I)D], numberOfBasicBlocks=4, firstLineNumber=56, lastLineNumber=57, firstMethodNumber=56, lastMethodNumber=57, isFirstLineValid=false, methodSrcCode=
+    public double get(int task) {
+        return getLoad(task).getLoad();
+    }
+}

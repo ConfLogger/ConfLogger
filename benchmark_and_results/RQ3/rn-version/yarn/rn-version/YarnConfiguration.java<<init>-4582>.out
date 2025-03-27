@@ -1,0 +1,423 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	YarnConfiguration.java	methodSinagture:	org.apache.hadoop.yarn.conf.YarnConfiguration.<init>(Lorg/apache/hadoop/conf/Configuration;)V	methodLines:	4582:4587
+blockLines:	4584:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(ne, to iindex=9) 5,6 Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, <init>(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/client/api/impl/YarnClientImpl, getTimelineDelegationTokenRenewer(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere[2]5 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 1,3 @3 exception:4
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/client/api/impl/YarnClientImpl, getTimelineDelegationTokenRenewer(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere[2]5 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 1,3 @3 exception:4
+NORMAL getTimelineDelegationTokenRenewer:18 = invokestatic < Application, Lorg/apache/hadoop/security/SecurityUtil, getServerPrincipal(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 5,16 @37 exception:17 Node: < Application, Lorg/apache/hadoop/yarn/client/api/impl/YarnClientImpl, getTimelineDelegationTokenRenewer(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere
+METHOD_ENTRY:Node: < Extension, Lorg/apache/hadoop/security/SecurityUtil, getServerPrincipal(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL getServerPrincipal:conditional branch(eq, to iindex=17) 5,6 Node: < Extension, Lorg/apache/hadoop/security/SecurityUtil, getServerPrincipal(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL getServerPrincipal:conditional branch(ne, to iindex=17) 7,8 Node: < Extension, Lorg/apache/hadoop/security/SecurityUtil, getServerPrincipal(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL getServerPrincipal:13 = invokevirtual < Extension, Ljava/lang/String, equals(Ljava/lang/Object;)Z > 10,11 @20 exception:12 Node: < Extension, Lorg/apache/hadoop/security/SecurityUtil, getServerPrincipal(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL equals:conditional branch(ne, to iindex=5) 1,2 Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL equals:return 22 Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Extension, Lorg/apache/hadoop/ha/HAAdmin, runCmd([Ljava/lang/String;)I > Context: Everywhere[88]38 = invokevirtual < Extension, Ljava/lang/String, equals(Ljava/lang/Object;)Z > 36,8 @154 exception:37
+NORMAL runCmd:conditional branch(eq, to iindex=95) 38,7 Node: < Extension, Lorg/apache/hadoop/ha/HAAdmin, runCmd([Ljava/lang/String;)I > Context: Everywhere
+NORMAL runCmd:66 = invokespecial < Extension, Lorg/apache/hadoop/ha/HAAdmin, getServiceState(Lorg/apache/commons/cli/CommandLine;)I > 1,25 @163 exception:65 Node: < Extension, Lorg/apache/hadoop/ha/HAAdmin, runCmd([Ljava/lang/String;)I > Context: Everywhere
+METHOD_ENTRY:Node: < Extension, Lorg/apache/hadoop/ha/HAAdmin, getServiceState(Lorg/apache/commons/cli/CommandLine;)I > Context: Everywhere
+NORMAL getServiceState:conditional branch(eq, to iindex=18) 6,7 Node: < Extension, Lorg/apache/hadoop/ha/HAAdmin, getServiceState(Lorg/apache/commons/cli/CommandLine;)I > Context: Everywhere
+NORMAL getServiceState:13 = invokevirtual < Extension, Lorg/apache/hadoop/ha/HAAdmin, getConf()Lorg/apache/hadoop/conf/Configuration; > 1 @40 exception:12 Node: < Extension, Lorg/apache/hadoop/ha/HAAdmin, getServiceState(Lorg/apache/commons/cli/CommandLine;)I > Context: Everywhere
+METHOD_ENTRY:Node: < Extension, Lorg/apache/hadoop/conf/Configured, getConf()Lorg/apache/hadoop/conf/Configuration; > Context: Everywhere
+NORMAL getConf:return 3 Node: < Extension, Lorg/apache/hadoop/conf/Configured, getConf()Lorg/apache/hadoop/conf/Configuration; > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Extension, Lorg/apache/hadoop/conf/Configured, getConf()Lorg/apache/hadoop/conf/Configuration; > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Extension, Lorg/apache/hadoop/util/ToolRunner, run(Lorg/apache/hadoop/util/Tool;[Ljava/lang/String;)I > Context: Everywhere[1]5 = invokeinterface < Extension, Lorg/apache/hadoop/util/Tool, getConf()Lorg/apache/hadoop/conf/Configuration; > 1 @1 exception:4
+NORMAL run:7 = invokestatic < Extension, Lorg/apache/hadoop/util/ToolRunner, run(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/util/Tool;[Ljava/lang/String;)I > 5,1,2 @8 exception:6 Node: < Extension, Lorg/apache/hadoop/util/ToolRunner, run(Lorg/apache/hadoop/util/Tool;[Ljava/lang/String;)I > Context: Everywhere
+METHOD_ENTRY:Node: < Extension, Lorg/apache/hadoop/util/ToolRunner, run(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/util/Tool;[Ljava/lang/String;)I > Context: Everywhere
+PHI Node: < Extension, Lorg/apache/hadoop/util/ToolRunner, run(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/util/Tool;[Ljava/lang/String;)I > Context: Everywhere:17 = phi  1,15
+PARAM_CALLER:Node: < Extension, Lorg/apache/hadoop/util/ToolRunner, run(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/util/Tool;[Ljava/lang/String;)I > Context: Everywhere[28]invokeinterface < Extension, Lorg/apache/hadoop/util/Tool, setConf(Lorg/apache/hadoop/conf/Configuration;)V > 2,17 @51 exception:20 v17
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/yarn/client/cli/RMAdminCLI, setConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/client/cli/RMAdminCLI, setConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[4]6 = invokestatic < Application, Lorg/apache/hadoop/yarn/client/cli/RMAdminCLI, addSecurityConfiguration(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/conf/Configuration; > 2 @5 exception:5 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/yarn/client/cli/RMAdminCLI, addSecurityConfiguration(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/conf/Configuration; > Context: Everywhere v1
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/yarn/client/cli/RMAdminCLI, addSecurityConfiguration(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/conf/Configuration; > Context: Everywhere[3]invokespecial < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, <init>(Lorg/apache/hadoop/conf/Configuration;)V > 3,1 @5 exception:4 v1
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, <init>(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere v2
+NORMAL <init>:5 = instanceof 2 <Application,Lorg/apache/hadoop/yarn/conf/YarnConfiguration> Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, <init>(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+NORMAL <init>:conditional branch(ne, to iindex=9) 5,6 Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, <init>(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  public YarnConfiguration(Configuration conf) {
+    super(conf);
+    if (! (conf instanceof YarnConfiguration)) {
+      this.reloadConfiguration();
+    }
+  }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/webapp/util/WebAppUtils, getProxyHostsAndPortsForAmFilter(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/List; > Context: Everywhere, blocks=[BB[SSA:20..22]10 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getProxyHostsAndPortsForAmFilter(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/List;, BB[SSA:19..19]9 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getProxyHostsAndPortsForAmFilter(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/List;, BB[SSA:23..23]11 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getProxyHostsAndPortsForAmFilter(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/List;, BB[SSA:-1..-2]32 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getProxyHostsAndPortsForAmFilter(Lorg/apache/hadoop/conf/Configuration;)Ljava/util/List;], numberOfBasicBlocks=4, firstLineNumber=188, lastLineNumber=189, firstMethodNumber=180, lastMethodNumber=206, isFirstLineValid=true, methodSrcCode=
+      Configuration conf) {
+    List<String> addrs = new ArrayList<String>();
+    String proxyAddr = conf.get(YarnConfiguration.PROXY_ADDRESS);
+    // If PROXY_ADDRESS isn't set, fallback to RM_WEBAPP(_HTTPS)_ADDRESS
+    // There could be multiple if using RM HA
+    if (proxyAddr == null || proxyAddr.isEmpty()) {
+      // If RM HA is enabled, try getting those addresses
+      if (HAUtil.isHAEnabled(conf)) {
+        List<String> haAddrs =
+            RMHAUtils.getRMHAWebappAddresses(new YarnConfiguration(conf));
+        for (String addr : haAddrs) {
+          try {
+            InetSocketAddress socketAddr = NetUtils.createSocketAddr(addr);
+            addrs.add(getResolvedAddress(socketAddr));
+          } catch(IllegalArgumentException e) {
+            // skip if can't resolve
+          }
+        }
+      }
+      // If couldn't resolve any of the addresses or not using RM HA, fallback
+      if (addrs.isEmpty()) {
+        addrs.add(getResolvedRMWebAppURLWithoutScheme(conf));
+      }
+    } else {
+      addrs.add(proxyAddr);
+    }
+    return addrs;
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/util/YarnClientUtils, getYarnConfWithRmHaId(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/yarn/conf/YarnConfiguration; > Context: Everywhere, blocks=[BB[SSA:1..3]2 - org.apache.hadoop.yarn.client.util.YarnClientUtils.getYarnConfWithRmHaId(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/yarn/conf/YarnConfiguration;, BB[SSA:0..0]1 - org.apache.hadoop.yarn.client.util.YarnClientUtils.getYarnConfWithRmHaId(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/yarn/conf/YarnConfiguration;, BB[SSA:4..7]3 - org.apache.hadoop.yarn.client.util.YarnClientUtils.getYarnConfWithRmHaId(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/yarn/conf/YarnConfiguration;, BB[SSA:-1..-2]16 - org.apache.hadoop.yarn.client.util.YarnClientUtils.getYarnConfWithRmHaId(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/yarn/conf/YarnConfiguration;], numberOfBasicBlocks=4, firstLineNumber=188, lastLineNumber=190, firstMethodNumber=187, lastMethodNumber=203, isFirstLineValid=true, methodSrcCode=
+      throws IOException {
+    YarnConfiguration yarnConf = new YarnConfiguration(conf);
+
+    if (yarnConf.get(YarnConfiguration.RM_HA_ID) == null) {
+      // If RM_HA_ID is not configured, use the first of RM_HA_IDS.
+      // Any valid RM HA ID should work.
+      String[] rmIds = yarnConf.getStrings(YarnConfiguration.RM_HA_IDS);
+
+      if ((rmIds != null) && (rmIds.length > 0)) {
+        yarnConf.set(YarnConfiguration.RM_HA_ID, rmIds[0]);
+      } else {
+        throw new IOException("RM_HA_IDS property is not set for HA resource "
+            + "manager");
+      }
+    }
+
+    return yarnConf;
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/cli/RMAdminCLI, resolveTarget(Ljava/lang/String;)Lorg/apache/hadoop/ha/HAServiceTarget; > Context: Everywhere, blocks=[BB[SSA:57..57]32 - org.apache.hadoop.yarn.client.cli.RMAdminCLI.resolveTarget(Ljava/lang/String;)Lorg/apache/hadoop/ha/HAServiceTarget;, BB[SSA:54..56]31 - org.apache.hadoop.yarn.client.cli.RMAdminCLI.resolveTarget(Ljava/lang/String;)Lorg/apache/hadoop/ha/HAServiceTarget;, BB[SSA:58..62]33 - org.apache.hadoop.yarn.client.cli.RMAdminCLI.resolveTarget(Ljava/lang/String;)Lorg/apache/hadoop/ha/HAServiceTarget;, BB[SSA:-1..-2]54 - org.apache.hadoop.yarn.client.cli.RMAdminCLI.resolveTarget(Ljava/lang/String;)Lorg/apache/hadoop/ha/HAServiceTarget;], numberOfBasicBlocks=4, firstLineNumber=1017, lastLineNumber=1018, firstMethodNumber=1006, lastMethodNumber=1024, isFirstLineValid=true, methodSrcCode=
+  protected HAServiceTarget resolveTarget(String rmId) {
+    Collection<String> rmIds = HAUtil.getRMHAIds(getConf());
+    if (!rmIds.contains(rmId)) {
+      StringBuilder msg = new StringBuilder();
+      msg.append(rmId + " is not a valid serviceId. It should be one of ");
+      for (String id : rmIds) {
+        msg.append(id + " ");
+      }
+      throw new IllegalArgumentException(msg.toString());
+    }
+    try {
+      YarnConfiguration conf = new YarnConfiguration(getConf());
+      conf.set(YarnConfiguration.RM_HA_ID, rmId);
+      return new RMHAServiceTarget(conf);
+    } catch (IllegalArgumentException iae) {
+      throw new YarnRuntimeException("Could not connect to " + rmId +
+          "; the configuration for it might be missing");
+    } catch (IOException ioe) {
+      throw new YarnRuntimeException(
+          "Could not connect to RM HA Admin for node " + rmId);
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/ClientRMProxy, getTokenService(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;I)Lorg/apache/hadoop/io/Text; > Context: Everywhere, blocks=[BB[SSA:9..11]6 - org.apache.hadoop.yarn.client.ClientRMProxy.getTokenService(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;I)Lorg/apache/hadoop/io/Text;, BB[SSA:7..8]5 - org.apache.hadoop.yarn.client.ClientRMProxy.getTokenService(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;I)Lorg/apache/hadoop/io/Text;, BB[SSA:12..14]7 - org.apache.hadoop.yarn.client.ClientRMProxy.getTokenService(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;I)Lorg/apache/hadoop/io/Text;, BB[SSA:-1..-2]28 - org.apache.hadoop.yarn.client.ClientRMProxy.getTokenService(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/String;Ljava/lang/String;I)Lorg/apache/hadoop/io/Text;], numberOfBasicBlocks=4, firstLineNumber=149, lastLineNumber=151, firstMethodNumber=146, lastMethodNumber=162, isFirstLineValid=true, methodSrcCode=
+      String defaultAddr, int defaultPort) {
+    if (HAUtil.isHAEnabled(conf)) {
+      // Build a list of service addresses to form the service name
+      ArrayList<String> services = new ArrayList<String>();
+      YarnConfiguration yarnConf = new YarnConfiguration(conf);
+      for (String rmId : HAUtil.getRMHAIds(conf)) {
+        // Set RM_ID to get the corresponding RM_ADDRESS
+        yarnConf.set(YarnConfiguration.RM_HA_ID, rmId);
+        services.add(SecurityUtil.buildTokenService(
+            yarnConf.getSocketAddr(address, defaultAddr, defaultPort))
+            .toString());
+      }
+      return new Text(Joiner.on(',').join(services));
+    }
+
+    // Non-HA case - no need to set RM_ID
+    return SecurityUtil.buildTokenService(conf.getSocketAddr(address,
+      defaultAddr, defaultPort));
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/cli/RMAdminCLI, run([Ljava/lang/String;)I > Context: Everywhere, blocks=[BB[SSA:12..12]8 - org.apache.hadoop.yarn.client.cli.RMAdminCLI.run([Ljava/lang/String;)I, BB[SSA:9..11]7 - org.apache.hadoop.yarn.client.cli.RMAdminCLI.run([Ljava/lang/String;)I, BB[SSA:13..17]9 - org.apache.hadoop.yarn.client.cli.RMAdminCLI.run([Ljava/lang/String;)I, BB[SSA:-1..-2]162 - org.apache.hadoop.yarn.client.cli.RMAdminCLI.run([Ljava/lang/String;)I], numberOfBasicBlocks=4, firstLineNumber=705, lastLineNumber=708, firstMethodNumber=703, lastMethodNumber=813, isFirstLineValid=true, methodSrcCode=
+  public int run(String[] args) throws Exception {
+    YarnConfiguration yarnConf =
+        getConf() == null ? new YarnConfiguration() : new YarnConfiguration(
+            getConf());
+    boolean isHAEnabled =
+        yarnConf.getBoolean(YarnConfiguration.RM_HA_ENABLED,
+            YarnConfiguration.DEFAULT_RM_HA_ENABLED);
+
+    if (args.length < 1) {
+      printUsage("", isHAEnabled);
+      return -1;
+    }
+
+    int exitCode = -1;
+    int i = 0;
+    String cmd = args[i++];
+
+    exitCode = 0;
+    if ("-help".equals(cmd)) {
+      if (i < args.length) {
+        printUsage(args[i], isHAEnabled);
+      } else {
+        printHelp("", isHAEnabled);
+      }
+      return exitCode;
+    }
+
+    if (USAGE.containsKey(cmd)) {
+      if (isHAEnabled) {
+        return super.run(args);
+      }
+      System.out.println("Cannot run " + cmd
+          + " when ResourceManager HA is not enabled");
+      return -1;
+    }
+
+    //
+    // verify that we have enough command line parameters
+    //
+    if ("-refreshAdminAcls".equals(cmd) || "-refreshQueues".equals(cmd) ||
+        "-refreshNodesResources".equals(cmd) ||
+        "-refreshServiceAcl".equals(cmd) ||
+        "-refreshUserToGroupsMappings".equals(cmd) ||
+        "-refreshSuperUserGroupsConfiguration".equals(cmd)) {
+      if (args.length != 1) {
+        printUsage(cmd, isHAEnabled);
+        return exitCode;
+      }
+    }
+
+    try {
+      if ("-refreshQueues".equals(cmd)) {
+        exitCode = refreshQueues();
+      } else if ("-refreshNodes".equals(cmd)) {
+        exitCode = handleRefreshNodes(args, cmd, isHAEnabled);
+      } else if ("-refreshNodesResources".equals(cmd)) {
+        exitCode = refreshNodesResources();
+      } else if ("-refreshUserToGroupsMappings".equals(cmd)) {
+        exitCode = refreshUserToGroupsMappings();
+      } else if ("-refreshSuperUserGroupsConfiguration".equals(cmd)) {
+        exitCode = refreshSuperUserGroupsConfiguration();
+      } else if ("-refreshAdminAcls".equals(cmd)) {
+        exitCode = refreshAdminAcls();
+      } else if ("-refreshServiceAcl".equals(cmd)) {
+        exitCode = refreshServiceAcls();
+      } else if ("-refreshClusterMaxPriority".equals(cmd)) {
+        exitCode = refreshClusterMaxPriority();
+      } else if ("-getGroups".equals(cmd)) {
+        String[] usernames = Arrays.copyOfRange(args, i, args.length);
+        exitCode = getGroups(usernames);
+      } else if ("-updateNodeResource".equals(cmd)) {
+        exitCode = handleUpdateNodeResource(args, cmd, isHAEnabled);
+      } else if ("-addToClusterNodeLabels".equals(cmd)) {
+        exitCode = handleAddToClusterNodeLabels(args, cmd, isHAEnabled);
+      } else if ("-removeFromClusterNodeLabels".equals(cmd)) {
+        exitCode = handleRemoveFromClusterNodeLabels(args, cmd, isHAEnabled);
+      } else if ("-replaceLabelsOnNode".equals(cmd)) {
+        exitCode = handleReplaceLabelsOnNodes(args, cmd, isHAEnabled);
+      } else {
+        exitCode = -1;
+        System.err.println(cmd.substring(1) + ": Unknown command");
+        printUsage("", isHAEnabled);
+      }
+
+    } catch (IllegalArgumentException arge) {
+      exitCode = -1;
+      System.err.println(cmd.substring(1) + ": " + arge.getLocalizedMessage());
+      printUsage(cmd, isHAEnabled);
+    } catch (RemoteException e) {
+      //
+      // This is a error returned by hadoop server. Print
+      // out the first line of the error message, ignore the stack trace.
+      exitCode = -1;
+      try {
+        String[] content;
+        content = e.getLocalizedMessage().split("\n");
+        System.err.println(cmd.substring(1) + ": "
+                           + content[0]);
+      } catch (Exception ex) {
+        System.err.println(cmd.substring(1) + ": "
+                           + ex.getLocalizedMessage());
+      }
+    } catch (Exception e) {
+      exitCode = -1;
+      System.err.println(cmd.substring(1) + ": "
+                         + e.getLocalizedMessage());
+    }
+    if (null != localNodeLabelsManager) {
+      localNodeLabelsManager.stop();
+    }
+    return exitCode;
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/cli/RMAdminCLI, createAdminProtocol()Lorg/apache/hadoop/yarn/server/api/ResourceManagerAdministrationProtocol; > Context: Everywhere, blocks=[BB[SSA:4..4]3 - org.apache.hadoop.yarn.client.cli.RMAdminCLI.createAdminProtocol()Lorg/apache/hadoop/yarn/server/api/ResourceManagerAdministrationProtocol;, BB[SSA:1..3]2 - org.apache.hadoop.yarn.client.cli.RMAdminCLI.createAdminProtocol()Lorg/apache/hadoop/yarn/server/api/ResourceManagerAdministrationProtocol;, BB[SSA:5..7]4 - org.apache.hadoop.yarn.client.cli.RMAdminCLI.createAdminProtocol()Lorg/apache/hadoop/yarn/server/api/ResourceManagerAdministrationProtocol;, BB[SSA:-1..-2]8 - org.apache.hadoop.yarn.client.cli.RMAdminCLI.createAdminProtocol()Lorg/apache/hadoop/yarn/server/api/ResourceManagerAdministrationProtocol;], numberOfBasicBlocks=4, firstLineNumber=336, lastLineNumber=337, firstMethodNumber=335, lastMethodNumber=337, isFirstLineValid=true, methodSrcCode=
+    // Get the current configuration
+    final YarnConfiguration conf = new YarnConfiguration(getConf());
+    return ClientRMProxy.createRMProxy(conf,
+        ResourceManagerAdministrationProtocol.class);
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/AutoRefreshNoHARMFailoverProxyProvider, init(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/yarn/client/RMProxy;Ljava/lang/Class;)V > Context: Everywhere, blocks=[BB[SSA:8..10]4 - org.apache.hadoop.yarn.client.AutoRefreshNoHARMFailoverProxyProvider.init(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/yarn/client/RMProxy;Ljava/lang/Class;)V, BB[SSA:6..7]3 - org.apache.hadoop.yarn.client.AutoRefreshNoHARMFailoverProxyProvider.init(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/yarn/client/RMProxy;Ljava/lang/Class;)V, BB[SSA:11..11]5 - org.apache.hadoop.yarn.client.AutoRefreshNoHARMFailoverProxyProvider.init(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/yarn/client/RMProxy;Ljava/lang/Class;)V, BB[SSA:-1..-2]7 - org.apache.hadoop.yarn.client.AutoRefreshNoHARMFailoverProxyProvider.init(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/yarn/client/RMProxy;Ljava/lang/Class;)V], numberOfBasicBlocks=4, firstLineNumber=52, lastLineNumber=52, firstMethodNumber=49, lastMethodNumber=53, isFirstLineValid=true, methodSrcCode=
+      Class<T> protocol) {
+    this.rmProxy = rmProxy;
+    this.protocol = protocol;
+    this.conf = new YarnConfiguration(configuration);
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRMProxy(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/Class;Lorg/apache/hadoop/yarn/client/RMProxy;)Ljava/lang/Object; > Context: Everywhere, blocks=[BB[SSA:8..10]5 - org.apache.hadoop.yarn.client.RMProxy.createRMProxy(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/Class;Lorg/apache/hadoop/yarn/client/RMProxy;)Ljava/lang/Object;, BB[SSA:7..7]4 - org.apache.hadoop.yarn.client.RMProxy.createRMProxy(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/Class;Lorg/apache/hadoop/yarn/client/RMProxy;)Ljava/lang/Object;, BB[SSA:11..14]6 - org.apache.hadoop.yarn.client.RMProxy.createRMProxy(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/Class;Lorg/apache/hadoop/yarn/client/RMProxy;)Ljava/lang/Object;, BB[SSA:-1..-2]15 - org.apache.hadoop.yarn.client.RMProxy.createRMProxy(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/Class;Lorg/apache/hadoop/yarn/client/RMProxy;)Ljava/lang/Object;], numberOfBasicBlocks=4, firstLineNumber=98, lastLineNumber=102, firstMethodNumber=97, lastMethodNumber=103, isFirstLineValid=true, methodSrcCode=
+      final Class<T> protocol, RMProxy<T> instance) throws IOException {
+    YarnConfiguration conf = (configuration instanceof YarnConfiguration)
+        ? (YarnConfiguration) configuration
+        : new YarnConfiguration(configuration);
+    RetryPolicy retryPolicy = createRetryPolicy(conf,
+        (HAUtil.isHAEnabled(conf) || HAUtil.isFederationFailoverEnabled(conf)));
+    return newProxyInstance(conf, protocol, instance, retryPolicy);
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/ConfiguredRMFailoverProxyProvider, init(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/yarn/client/RMProxy;Ljava/lang/Class;)V > Context: Everywhere, blocks=[BB[SSA:13..15]7 - org.apache.hadoop.yarn.client.ConfiguredRMFailoverProxyProvider.init(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/yarn/client/RMProxy;Ljava/lang/Class;)V, BB[SSA:11..12]6 - org.apache.hadoop.yarn.client.ConfiguredRMFailoverProxyProvider.init(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/yarn/client/RMProxy;Ljava/lang/Class;)V, BB[SSA:16..16]8 - org.apache.hadoop.yarn.client.ConfiguredRMFailoverProxyProvider.init(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/yarn/client/RMProxy;Ljava/lang/Class;)V, BB[SSA:-1..-2]30 - org.apache.hadoop.yarn.client.ConfiguredRMFailoverProxyProvider.init(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/yarn/client/RMProxy;Ljava/lang/Class;)V], numberOfBasicBlocks=4, firstLineNumber=59, lastLineNumber=59, firstMethodNumber=55, lastMethodNumber=72, isFirstLineValid=true, methodSrcCode=
+                    Class<T> protocol) {
+    this.rmProxy = rmProxy;
+    this.protocol = protocol;
+    this.rmProxy.checkAllowedProtocols(this.protocol);
+    this.conf = new YarnConfiguration(configuration);
+    Collection<String> rmIds = HAUtil.getRMHAIds(conf);
+    this.rmServiceIds = rmIds.toArray(new String[rmIds.size()]);
+    conf.set(YarnConfiguration.RM_HA_ID, rmServiceIds[currentProxyIndex]);
+
+    conf.setInt(CommonConfigurationKeysPublic.IPC_CLIENT_CONNECT_MAX_RETRIES_KEY,
+        conf.getInt(YarnConfiguration.CLIENT_FAILOVER_RETRIES,
+            YarnConfiguration.DEFAULT_CLIENT_FAILOVER_RETRIES));
+
+    conf.setInt(CommonConfigurationKeysPublic.
+        IPC_CLIENT_CONNECT_MAX_RETRIES_ON_SOCKET_TIMEOUTS_KEY,
+        conf.getInt(YarnConfiguration.CLIENT_FAILOVER_RETRIES_ON_SOCKET_TIMEOUTS,
+            YarnConfiguration.DEFAULT_CLIENT_FAILOVER_RETRIES_ON_SOCKET_TIMEOUTS));
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/conf/YarnConfiguration, main([Ljava/lang/String;)V > Context: Everywhere, blocks=[BB[SSA:5..5]4 - org.apache.hadoop.yarn.conf.YarnConfiguration.main([Ljava/lang/String;)V, BB[SSA:3..4]3 - org.apache.hadoop.yarn.conf.YarnConfiguration.main([Ljava/lang/String;)V, BB[SSA:6..7]5 - org.apache.hadoop.yarn.conf.YarnConfiguration.main([Ljava/lang/String;)V, BB[SSA:-1..-2]7 - org.apache.hadoop.yarn.conf.YarnConfiguration.main([Ljava/lang/String;)V], numberOfBasicBlocks=4, firstLineNumber=4818, lastLineNumber=4818, firstMethodNumber=4817, lastMethodNumber=4819, isFirstLineValid=true, methodSrcCode=
+  public static void main(String[] args) throws Exception {
+    new YarnConfiguration(new Configuration()).writeXml(System.out);
+  }
+}
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/webapp/util/WebAppUtils, getRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;ZI)Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:1..3]2 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;ZI)Ljava/lang/String;, BB[SSA:0..0]1 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;ZI)Ljava/lang/String;, BB[SSA:4..7]3 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;ZI)Ljava/lang/String;, BB[SSA:-1..-2]29 - org.apache.hadoop.yarn.webapp.util.WebAppUtils.getRMWebAppURLWithoutScheme(Lorg/apache/hadoop/conf/Configuration;ZI)Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=122, lastLineNumber=124, firstMethodNumber=121, lastMethodNumber=145, isFirstLineValid=true, methodSrcCode=
+      boolean isHAEnabled, int haIdIndex)  {
+    YarnConfiguration yarnConfig = new YarnConfiguration(conf);
+    // set RM_ID if we have not configure it.
+    if (isHAEnabled) {
+      String rmId = yarnConfig.get(YarnConfiguration.RM_HA_ID);
+      if (rmId == null || rmId.isEmpty()) {
+        List<String> rmIds = new ArrayList<>(HAUtil.getRMHAIds(conf));
+        if (rmIds != null && !rmIds.isEmpty()) {
+          yarnConfig.set(YarnConfiguration.RM_HA_ID, rmIds.get(haIdIndex));
+        }
+      }
+    }
+    if (YarnConfiguration.useHttps(yarnConfig)) {
+      if (isHAEnabled) {
+        return HAUtil.getConfValueForRMInstance(
+            YarnConfiguration.RM_WEBAPP_HTTPS_ADDRESS, yarnConfig);
+      }
+      return yarnConfig.get(YarnConfiguration.RM_WEBAPP_HTTPS_ADDRESS,
+          YarnConfiguration.DEFAULT_RM_WEBAPP_HTTPS_ADDRESS);
+    }else {
+      if (isHAEnabled) {
+        return HAUtil.getConfValueForRMInstance(
+            YarnConfiguration.RM_WEBAPP_ADDRESS, yarnConfig);
+      }
+      return yarnConfig.get(YarnConfiguration.RM_WEBAPP_ADDRESS,
+          YarnConfiguration.DEFAULT_RM_WEBAPP_ADDRESS);
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/DefaultNoHARMFailoverProxyProvider, init(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/yarn/client/RMProxy;Ljava/lang/Class;)V > Context: Everywhere, blocks=[BB[SSA:4..6]3 - org.apache.hadoop.yarn.client.DefaultNoHARMFailoverProxyProvider.init(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/yarn/client/RMProxy;Ljava/lang/Class;)V, BB[SSA:3..3]2 - org.apache.hadoop.yarn.client.DefaultNoHARMFailoverProxyProvider.init(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/yarn/client/RMProxy;Ljava/lang/Class;)V, BB[SSA:7..11]4 - org.apache.hadoop.yarn.client.DefaultNoHARMFailoverProxyProvider.init(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/yarn/client/RMProxy;Ljava/lang/Class;)V, BB[SSA:-1..-2]11 - org.apache.hadoop.yarn.client.DefaultNoHARMFailoverProxyProvider.init(Lorg/apache/hadoop/conf/Configuration;Lorg/apache/hadoop/yarn/client/RMProxy;Ljava/lang/Class;)V], numberOfBasicBlocks=4, firstLineNumber=61, lastLineNumber=63, firstMethodNumber=58, lastMethodNumber=69, isFirstLineValid=true, methodSrcCode=
+                    Class<T> protocol) {
+    this.protocol = protocol;
+    try {
+      YarnConfiguration yarnConf = new YarnConfiguration(conf);
+      InetSocketAddress rmAddress =
+          proxy.getRMAddress(yarnConf, protocol);
+      LOG.info("Connecting to ResourceManager at {}", rmAddress);
+      this.proxy = proxy.getProxy(yarnConf, protocol, rmAddress);
+    } catch (IOException ioe) {
+      LOG.error("Unable to create proxy to the ResourceManager ", ioe);
+    }
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/SCMAdmin, createSCMAdminProtocol()Lorg/apache/hadoop/yarn/server/api/SCMAdminProtocol; > Context: Everywhere, blocks=[BB[SSA:4..4]3 - org.apache.hadoop.yarn.client.SCMAdmin.createSCMAdminProtocol()Lorg/apache/hadoop/yarn/server/api/SCMAdminProtocol;, BB[SSA:1..3]2 - org.apache.hadoop.yarn.client.SCMAdmin.createSCMAdminProtocol()Lorg/apache/hadoop/yarn/server/api/SCMAdminProtocol;, BB[SSA:5..10]4 - org.apache.hadoop.yarn.client.SCMAdmin.createSCMAdminProtocol()Lorg/apache/hadoop/yarn/server/api/SCMAdminProtocol;, BB[SSA:-1..-2]10 - org.apache.hadoop.yarn.client.SCMAdmin.createSCMAdminProtocol()Lorg/apache/hadoop/yarn/server/api/SCMAdminProtocol;], numberOfBasicBlocks=4, firstLineNumber=96, lastLineNumber=99, firstMethodNumber=95, lastMethodNumber=106, isFirstLineValid=true, methodSrcCode=
+    // Get the current configuration
+    final YarnConfiguration conf = new YarnConfiguration(getConf());
+
+    // Create the admin client
+    final InetSocketAddress addr = conf.getSocketAddr(
+        YarnConfiguration.SCM_ADMIN_ADDRESS,
+        YarnConfiguration.DEFAULT_SCM_ADMIN_ADDRESS,
+        YarnConfiguration.DEFAULT_SCM_ADMIN_PORT);
+    final YarnRPC rpc = YarnRPC.create(conf);
+    SCMAdminProtocol scmAdminProtocol =
+        (SCMAdminProtocol) rpc.getProxy(SCMAdminProtocol.class, addr, conf);
+    return scmAdminProtocol;
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/util/RMHAUtils, findActiveRMHAId(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:1..3]2 - org.apache.hadoop.yarn.util.RMHAUtils.findActiveRMHAId(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:0..0]1 - org.apache.hadoop.yarn.util.RMHAUtils.findActiveRMHAId(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:4..7]3 - org.apache.hadoop.yarn.util.RMHAUtils.findActiveRMHAId(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;, BB[SSA:-1..-2]19 - org.apache.hadoop.yarn.util.RMHAUtils.findActiveRMHAId(Lorg/apache/hadoop/conf/Configuration;)Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=40, lastLineNumber=42, firstMethodNumber=39, lastMethodNumber=55, isFirstLineValid=true, methodSrcCode=
+  public static String findActiveRMHAId(Configuration conf) {
+    YarnConfiguration yarnConf = new YarnConfiguration(conf);
+    Collection<String> rmIds =
+        yarnConf.getStringCollection(YarnConfiguration.RM_HA_IDS);
+    for (String currentId : rmIds) {
+      yarnConf.set(YarnConfiguration.RM_HA_ID, currentId);
+      try {
+        HAServiceState haState = getHAState(yarnConf);
+        if (haState.equals(HAServiceState.ACTIVE)) {
+          return currentId;
+        }
+      } catch (Exception e) {
+        // Couldn't check if this RM is active. Do nothing. Worst case,
+        // we wouldn't find an Active RM and return null.
+      }
+    }
+    return null; // Couldn't find an Active RM
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/RMProxy, createRMProxy(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/Class;Lorg/apache/hadoop/yarn/client/RMProxy;JJ)Ljava/lang/Object; > Context: Everywhere, blocks=[BB[SSA:8..10]5 - org.apache.hadoop.yarn.client.RMProxy.createRMProxy(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/Class;Lorg/apache/hadoop/yarn/client/RMProxy;JJ)Ljava/lang/Object;, BB[SSA:7..7]4 - org.apache.hadoop.yarn.client.RMProxy.createRMProxy(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/Class;Lorg/apache/hadoop/yarn/client/RMProxy;JJ)Ljava/lang/Object;, BB[SSA:11..16]6 - org.apache.hadoop.yarn.client.RMProxy.createRMProxy(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/Class;Lorg/apache/hadoop/yarn/client/RMProxy;JJ)Ljava/lang/Object;, BB[SSA:-1..-2]10 - org.apache.hadoop.yarn.client.RMProxy.createRMProxy(Lorg/apache/hadoop/conf/Configuration;Ljava/lang/Class;Lorg/apache/hadoop/yarn/client/RMProxy;JJ)Ljava/lang/Object;], numberOfBasicBlocks=4, firstLineNumber=117, lastLineNumber=121, firstMethodNumber=116, lastMethodNumber=122, isFirstLineValid=true, methodSrcCode=
+      final long retryInterval) throws IOException {
+    YarnConfiguration conf = (configuration instanceof YarnConfiguration)
+        ? (YarnConfiguration) configuration
+        : new YarnConfiguration(configuration);
+    RetryPolicy retryPolicy = createRetryPolicy(conf, retryTime, retryInterval,
+        HAUtil.isHAEnabled(conf));
+    return newProxyInstance(conf, protocol, instance, retryPolicy);
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/api/impl/AMRMClientImpl, serviceStart()V > Context: Everywhere, blocks=[BB[SSA:4..4]3 - org.apache.hadoop.yarn.client.api.impl.AMRMClientImpl.serviceStart()V, BB[SSA:1..3]2 - org.apache.hadoop.yarn.client.api.impl.AMRMClientImpl.serviceStart()V, BB[SSA:5..7]4 - org.apache.hadoop.yarn.client.api.impl.AMRMClientImpl.serviceStart()V, BB[SSA:-1..-2]16 - org.apache.hadoop.yarn.client.api.impl.AMRMClientImpl.serviceStart()V], numberOfBasicBlocks=4, firstLineNumber=190, lastLineNumber=192, firstMethodNumber=189, lastMethodNumber=200, isFirstLineValid=true, methodSrcCode=
+  protected void serviceStart() throws Exception {
+    final YarnConfiguration conf = new YarnConfiguration(getConfig());
+    try {
+      if (rmClient == null) {
+        rmClient = ClientRMProxy.createRMProxy(
+            conf, ApplicationMasterProtocol.class);
+      }
+    } catch (IOException e) {
+      throw new YarnRuntimeException(e);
+    }
+    super.serviceStart();
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/yarn/client/cli/RMAdminCLI, addSecurityConfiguration(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/conf/Configuration; > Context: Everywhere, blocks=[BB[SSA:1..3]2 - org.apache.hadoop.yarn.client.cli.RMAdminCLI.addSecurityConfiguration(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/conf/Configuration;, BB[SSA:0..0]1 - org.apache.hadoop.yarn.client.cli.RMAdminCLI.addSecurityConfiguration(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/conf/Configuration;, BB[SSA:4..10]3 - org.apache.hadoop.yarn.client.cli.RMAdminCLI.addSecurityConfiguration(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/conf/Configuration;, BB[SSA:-1..-2]6 - org.apache.hadoop.yarn.client.cli.RMAdminCLI.addSecurityConfiguration(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/conf/Configuration;], numberOfBasicBlocks=4, firstLineNumber=999, lastLineNumber=1001, firstMethodNumber=998, lastMethodNumber=1002, isFirstLineValid=true, methodSrcCode=
+    // force loading of yarn-site.xml.
+    conf = new YarnConfiguration(conf);
+    conf.set(CommonConfigurationKeys.HADOOP_SECURITY_SERVICE_USER_NAME_KEY,
+        conf.get(YarnConfiguration.RM_PRINCIPAL, ""));
+    return conf;
+  }
+}

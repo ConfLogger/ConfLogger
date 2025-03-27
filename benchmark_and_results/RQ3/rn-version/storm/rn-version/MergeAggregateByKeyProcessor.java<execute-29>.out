@@ -1,0 +1,30 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	MergeAggregateByKeyProcessor.java	methodSinagture:	org.apache.storm.streams.processors.MergeAggregateByKeyProcessor.execute(Lorg/apache/storm/streams/Pair;)V	methodLines:	29:38
+blockLines:	33:-1
+paras:	null
+TaintedStat:	NORMAL execute:conditional branch(ne, to iindex=18) 10,11 Node: < Application, Lorg/apache/storm/streams/processors/MergeAggregateByKeyProcessor, execute(Lorg/apache/storm/streams/Pair;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/streams/processors/MergeAggregateByKeyProcessor, execute(Lorg/apache/storm/streams/Pair;)V > Context: Everywhere[9]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,5 @15 exception:9
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/streams/processors/MergeAggregateByKeyProcessor, execute(Lorg/apache/storm/streams/Pair;)V > Context: Everywhere[9]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,5 @15 exception:9
+NORMAL execute:conditional branch(ne, to iindex=18) 10,11 Node: < Application, Lorg/apache/storm/streams/processors/MergeAggregateByKeyProcessor, execute(Lorg/apache/storm/streams/Pair;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public void execute(Pair<K, A> input) {
+        K key = input.getFirst();
+        A val = input.getSecond();
+        A accumulator = state.get(key);
+        if (accumulator == null) {
+            accumulator = aggregator.init();
+        }
+        state.put(key, aggregator.merge(accumulator, val));
+        mayBeForwardAggUpdate(() -> Pair.of(key, aggregator.result(state.get(key))));
+    }
+
+
+
+====================ctx:=======================

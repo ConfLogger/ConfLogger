@@ -1,0 +1,196 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> boolean force, boolean interactive) throws IOException {
+<Line#1> String nsId = DFSUtil.getNamenodeNameServiceId(conf);
+<Line#2> String namenodeId = HAUtil.getNameNodeId(conf, nsId);
+<Line#3> initializeGenericKeys(conf, nsId, namenodeId);
+<Line#4> 
+<Line#5> if (conf.get(DFSConfigKeys.DFS_NAMENODE_SHARED_EDITS_DIR_KEY) == null) {
+<Line#6> return false;
+<Line#7> }
+<Line#8> 
+<Line#9> if (UserGroupInformation.isSecurityEnabled()) {
+<Line#10> InetSocketAddress socAddr = DFSUtilClient.getNNAddress(conf);
+<Line#11> SecurityUtil.login(conf, DFS_NAMENODE_KEYTAB_FILE_KEY,
+<Line#12> DFS_NAMENODE_KERBEROS_PRINCIPAL_KEY, socAddr.getHostName());
+<Line#13> }
+<Line#14> 
+<Line#15> NNStorage existingStorage = null;
+<Line#16> FSImage sharedEditsImage = null;
+<Line#17> try {
+<Line#18> FSNamesystem fsns =
+<Line#19> FSNamesystem.loadFromDisk(getConfigurationWithoutSharedEdits(conf));
+<Line#20> 
+<Line#21> existingStorage = fsns.getFSImage().getStorage();
+<Line#22> NamespaceInfo nsInfo = existingStorage.getNamespaceInfo();
+<Line#23> 
+<Line#24> List<URI> sharedEditsDirs = FSNamesystem.getSharedEditsDirs(conf);
+<Line#25> 
+<Line#26> sharedEditsImage = new FSImage(conf,
+<Line#27> Lists.<URI>newArrayList(),
+<Line#28> sharedEditsDirs);
+<Line#29> sharedEditsImage.getEditLog().initJournalsForWrite();
+<Line#30> 
+<Line#31> if (!sharedEditsImage.confirmFormat(force, interactive)) {
+<Line#32> return true; // abort
+<Line#33> }
+<Line#34> 
+<Line#35> NNStorage newSharedStorage = sharedEditsImage.getStorage();
+<Line#36> // Call Storage.format instead of FSImage.format here, since we don't
+<Line#37> // actually want to save a checkpoint - just prime the dirs with
+<Line#38> // the existing namespace info
+<Line#39> newSharedStorage.format(nsInfo);
+<Line#40> sharedEditsImage.getEditLog().formatNonFileJournals(nsInfo, force);
+<Line#41> 
+<Line#42> // Need to make sure the edit log segments are in good shape to initialize
+<Line#43> // the shared edits dir.
+<Line#44> fsns.getFSImage().getEditLog().close();
+<Line#45> fsns.getFSImage().getEditLog().initJournalsForWrite();
+<Line#46> fsns.getFSImage().getEditLog().recoverUnclosedStreams();
+<Line#47> 
+<Line#48> copyEditLogSegmentsToSharedDir(fsns, sharedEditsDirs, newSharedStorage,
+<Line#49> conf);
+<Line#50> } catch (IOException ioe) {
+<Line#51> LOG.error("Could not initialize shared edits dir", ioe);
+<Line#52> return true; // aborted
+<Line#53> } finally {
+<Line#54> if (sharedEditsImage != null) {
+<Line#55> try {
+<Line#56> sharedEditsImage.close();
+<Line#57> }  catch (IOException ioe) {
+<Line#58> LOG.warn("Could not close sharedEditsImage", ioe);
+<Line#59> }
+<Line#60> }
+<Line#61> // Have to unlock storage explicitly for the case when we're running in a
+<Line#62> // unit test, which runs in the same JVM as NNs.
+<Line#63> if (existingStorage != null) {
+<Line#64> try {
+<Line#65> existingStorage.unlockAll();
+<Line#66> } catch (IOException ioe) {
+<Line#67> LOG.warn("Could not unlock storage directories", ioe);
+<Line#68> return true; // aborted
+<Line#69> }
+<Line#70> }
+<Line#71> }
+<Line#72> return false; // did not abort
+<Line#73> }
+
+Relevant Logging Patterns:
+Example 1:
+File: hdfs__breakHardlinks-183__.json
+Code:
+<Line#1>{
+<Line#2>  final FileIoProvider fileIoProvider=getFileIoProvider();
+<Line#3>  final File tmpFile=DatanodeUtil.createFileWithExistsCheck(getVolume(),b,DatanodeUtil.getUnlinkTmpFile(file),fileIoProvider);
+<Line#4>  try {
+<Line#5>    try (FileInputStream in=fileIoProvider.getFileInputStream(getVolume(),file)){
+<Line#6>      try (FileOutputStream out=fileIoProvider.getFileOutputStream(getVolume(),tmpFile)){
+<Line#7>        IOUtils.copyBytes(in,out,16 * 1024);
+<Line#8>      }
+<Line#9>     }
+<Line#10>     if (file.length() != tmpFile.length()) {
+<Line#11>      throw new IOException("Copy of file " + file + " size "+ file.length()+ " into file "+ tmpFile+ " resulted in a size of "+ tmpFile.length());
+<Line#12>    }
+<Line#13>    fileIoProvider.replaceFile(getVolume(),tmpFile,file);
+<Line#14>  }
+<Line#15> catch (  IOException e) {
+<Line#16>    if (!fileIoProvider.delete(getVolume(),tmpFile)) {
+<Line#17>      DataNode.LOG.info("detachFile failed to delete temporary file " + tmpFile);
+<Line#18>    }
+<Line#19>    throw e;
+<Line#20>  }
+<Line#21>}
+Log: <Line#17>:# DataNode.LOG.info("detachFile failed to delete temporary file " + tmpFile):#
+
+Example 2:
+File: hdfs__cancelDelegationToken-766__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("Cancelling " + DelegationTokenIdentifier.stringifyToken(token));
+<Line#3>  try {
+<Line#4>    token.cancel(conf);
+<Line#5>  }
+<Line#6> catch (  InterruptedException ie) {
+<Line#7>    throw new RuntimeException("caught interrupted",ie);
+<Line#8>  }
+<Line#9>catch (  RemoteException re) {
+<Line#10>    throw re.unwrapRemoteException(InvalidToken.class,AccessControlException.class);
+<Line#11>  }
+<Line#12>}
+Log: <Line#2>:# LOG.info("Cancelling " + DelegationTokenIdentifier.stringifyToken(token)):#
+
+Example 3:
+File: hdfs__verifyChunks-484__.json
+Code:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    clientChecksum.verifyChunkedSums(dataBuf,checksumBuf,clientname,0);
+<Line#4>  }
+<Line#5> catch (  ChecksumException ce) {
+<Line#6>    PacketHeader header=packetReceiver.getHeader();
+<Line#7>    String specificOffset="specific offsets are:" + " offsetInBlock = " + header.getOffsetInBlock() + " offsetInPacket = "+ ce.getPos();
+<Line#8>    LOG.warn("Checksum error in block " + block + " from "+ inAddr+ ", "+ specificOffset,ce);
+<Line#9>    if (srcDataNode != null && isDatanode) {
+<Line#10>      try {
+<Line#11>        LOG.info("report corrupt " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#12>        datanode.reportRemoteBadBlock(srcDataNode,block);
+<Line#13>      }
+<Line#14> catch (      IOException e) {
+<Line#15>        LOG.warn("Failed to report bad " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#16>      }
+<Line#17>    }
+<Line#18>    throw new IOException("Unexpected checksum mismatch while writing " + block + " from "+ inAddr);
+<Line#19>  }
+<Line#20>}
+Log: <Line#8>:# LOG.warn("Checksum error in block " + block + " from "+ inAddr+ ", "+ specificOffset,ce):#
+
+Example 4:
+File: hdfs__verifyChunks-484__.json
+Code:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    clientChecksum.verifyChunkedSums(dataBuf,checksumBuf,clientname,0);
+<Line#4>  }
+<Line#5> catch (  ChecksumException ce) {
+<Line#6>    PacketHeader header=packetReceiver.getHeader();
+<Line#7>    String specificOffset="specific offsets are:" + " offsetInBlock = " + header.getOffsetInBlock() + " offsetInPacket = "+ ce.getPos();
+<Line#8>    LOG.warn("Checksum error in block " + block + " from "+ inAddr+ ", "+ specificOffset,ce);
+<Line#9>    if (srcDataNode != null && isDatanode) {
+<Line#10>      try {
+<Line#11>        LOG.info("report corrupt " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#12>        datanode.reportRemoteBadBlock(srcDataNode,block);
+<Line#13>      }
+<Line#14> catch (      IOException e) {
+<Line#15>        LOG.warn("Failed to report bad " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#16>      }
+<Line#17>    }
+<Line#18>    throw new IOException("Unexpected checksum mismatch while writing " + block + " from "+ inAddr);
+<Line#19>  }
+<Line#20>}
+Log: <Line#11>:# LOG.info("report corrupt " + block + " from datanode "+ srcDataNode+ " to namenode"):#
+
+Example 5:
+File: hdfs__verifyChunks-484__.json
+Code:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    clientChecksum.verifyChunkedSums(dataBuf,checksumBuf,clientname,0);
+<Line#4>  }
+<Line#5> catch (  ChecksumException ce) {
+<Line#6>    PacketHeader header=packetReceiver.getHeader();
+<Line#7>    String specificOffset="specific offsets are:" + " offsetInBlock = " + header.getOffsetInBlock() + " offsetInPacket = "+ ce.getPos();
+<Line#8>    LOG.warn("Checksum error in block " + block + " from "+ inAddr+ ", "+ specificOffset,ce);
+<Line#9>    if (srcDataNode != null && isDatanode) {
+<Line#10>      try {
+<Line#11>        LOG.info("report corrupt " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#12>        datanode.reportRemoteBadBlock(srcDataNode,block);
+<Line#13>      }
+<Line#14> catch (      IOException e) {
+<Line#15>        LOG.warn("Failed to report bad " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#16>      }
+<Line#17>    }
+<Line#18>    throw new IOException("Unexpected checksum mismatch while writing " + block + " from "+ inAddr);
+<Line#19>  }
+<Line#20>}
+Log: <Line#15>:# LOG.warn("Failed to report bad " + block + " from datanode "+ srcDataNode+ " to namenode"):#

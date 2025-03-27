@@ -1,0 +1,54 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	TopologyContext.java	methodSinagture:	org.apache.storm.task.TopologyContext.toJSONString()Ljava/lang/String;	methodLines:	303:335
+blockLines:	327:-1
+paras:	null
+TaintedStat:	NORMAL toJSONString:conditional branch(ne, to iindex=142) 102,103 Node: < Application, Lorg/apache/storm/task/TopologyContext, toJSONString()Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/task/TopologyContext, toJSONString()Ljava/lang/String; > Context: Everywhere[126]101 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 82,99 @323 exception:100
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/task/TopologyContext, toJSONString()Ljava/lang/String; > Context: Everywhere[126]101 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 82,99 @323 exception:100
+NORMAL toJSONString:102 = checkcast <Application,Ljava/util/Map>101 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/task/TopologyContext, toJSONString()Ljava/lang/String; > Context: Everywhere
+NORMAL toJSONString:conditional branch(ne, to iindex=142) 102,103 Node: < Application, Lorg/apache/storm/task/TopologyContext, toJSONString()Ljava/lang/String; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public String toJSONString() {
+        Map<String, Object> obj = new HashMap<>();
+        obj.put("task->component", this.getTaskToComponent());
+        obj.put("taskid", this.getThisTaskId());
+        obj.put("componentid", this.getThisComponentId());
+        List<String> streamList = new ArrayList<>();
+        streamList.addAll(this.getThisStreams());
+        obj.put("streams", streamList);
+        obj.put("stream->outputfields", this.getThisOutputFieldsForStreams());
+        // Convert targets to a JSON serializable format
+        Map<String, Map<String, Object>> stringTargets = new HashMap<>();
+        for (Map.Entry<String, Map<String, Grouping>> entry : this.getThisTargets().entrySet()) {
+            Map<String, Object> stringTargetMap = new HashMap<>();
+            for (Map.Entry<String, Grouping> innerEntry : entry.getValue().entrySet()) {
+                stringTargetMap.put(innerEntry.getKey(), groupingToJSONableMap(innerEntry.getValue()));
+            }
+            stringTargets.put(entry.getKey(), stringTargetMap);
+        }
+        obj.put("stream->target->grouping", stringTargets);
+        // Convert sources to a JSON serializable format
+        Map<String, Map<String, Object>> stringSources = new HashMap<>();
+        for (Map.Entry<GlobalStreamId, Grouping> entry : this.getThisSources().entrySet()) {
+            GlobalStreamId gid = entry.getKey();
+            Map<String, Object> stringSourceMap = stringSources.get(gid.get_componentId());
+            if (stringSourceMap == null) {
+                stringSourceMap = new HashMap<>();
+                stringSources.put(gid.get_componentId(), stringSourceMap);
+            }
+            stringSourceMap.put(gid.get_streamId(), groupingToJSONableMap(entry.getValue()));
+        }
+        obj.put("source->stream->grouping", stringSources);
+        obj.put("source->stream->fields", this.getThisInputFields());
+        return JSONValue.toJSONString(obj);
+    }
+
+
+====================ctx:=======================

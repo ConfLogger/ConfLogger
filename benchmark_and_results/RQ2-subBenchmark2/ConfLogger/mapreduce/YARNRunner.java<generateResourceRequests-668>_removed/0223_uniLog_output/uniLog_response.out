@@ -1,0 +1,15 @@
+To select a line and insert a log level and log verbosity message, you would identify lines in the given code that involve logging and label them accordingly. Here are the lines from the target method code that involve logging:
+
+1. `<Line#62> if (LOG.isDebugEnabled()) {`
+2. `<Line#63> LOG.debug("AppMaster capability = " + capability);`
+3. `<Line#101> LOG.warn(errMsg);`
+4. `<Line#105> if (LOG.isDebugEnabled()) {`
+5. `<Line#107> LOG.debug("ResourceRequest: resource = " + amResourceRequest.getResourceName() + ", locality = " + amResourceRequest.getRelaxLocality());`
+
+Now, let's create labels for these lines:
+
+- Label for `<Line#63>`: `LOG.debug("AppMaster capability = " + capability)`
+- Label for `<Line#101>`: `LOG.warn(errMsg)`
+- Label for `<Line#107>`: `LOG.debug("ResourceRequest: resource = " + amResourceRequest.getResourceName() + ", locality = " + amResourceRequest.getRelaxLocality())`
+
+These labels indicate the log level (`debug` or `warn`) and the message being logged.

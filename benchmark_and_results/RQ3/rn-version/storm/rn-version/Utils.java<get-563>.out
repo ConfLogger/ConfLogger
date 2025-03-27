@@ -1,0 +1,176 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Utils.java	methodSinagture:	org.apache.storm.utils.Utils.get(Ljava/util/Map;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;	methodLines:	563:568
+blockLines:	565:-1
+paras:	null
+TaintedStat:	NORMAL get:conditional branch(ne, to iindex=9) 6,7 Node: < Application, Lorg/apache/storm/utils/Utils, get(Ljava/util/Map;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/Utils, get(Ljava/util/Map;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; > Context: Everywhere[2]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,2 @2 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/Utils, get(Ljava/util/Map;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; > Context: Everywhere[2]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,2 @2 exception:5
+NORMAL get:conditional branch(ne, to iindex=9) 6,7 Node: < Application, Lorg/apache/storm/utils/Utils, get(Ljava/util/Map;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static <S, T> T get(Map<S, T> m, S key, T def) {
+        T ret = m.get(key);
+        if (ret == null) {
+            ret = def;
+        }
+        return ret;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/testing/TestEventLogSpout, ack(Ljava/lang/Object;)V > Context: Everywhere, blocks=[BB[SSA:9..9]4 - org.apache.storm.testing.TestEventLogSpout.ack(Ljava/lang/Object;)V, BB[SSA:7..8]3 - org.apache.storm.testing.TestEventLogSpout.ack(Ljava/lang/Object;)V, BB[SSA:10..10]5 - org.apache.storm.testing.TestEventLogSpout.ack(Ljava/lang/Object;)V], numberOfBasicBlocks=3, firstLineNumber=117, lastLineNumber=117, firstMethodNumber=115, lastMethodNumber=120, isFirstLineValid=true, methodSrcCode=
+    public void ack(Object msgId) {
+        synchronized (acked) {
+            int curr = get(acked, uid, 0);
+            acked.put(uid, curr + 1);
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/testing/TestEventLogSpout, fail(Ljava/lang/Object;)V > Context: Everywhere, blocks=[BB[SSA:9..9]4 - org.apache.storm.testing.TestEventLogSpout.fail(Ljava/lang/Object;)V, BB[SSA:7..8]3 - org.apache.storm.testing.TestEventLogSpout.fail(Ljava/lang/Object;)V, BB[SSA:10..10]5 - org.apache.storm.testing.TestEventLogSpout.fail(Ljava/lang/Object;)V], numberOfBasicBlocks=3, firstLineNumber=125, lastLineNumber=125, firstMethodNumber=123, lastMethodNumber=128, isFirstLineValid=true, methodSrcCode=
+    public void fail(Object msgId) {
+        synchronized (failed) {
+            int curr = get(failed, uid, 0);
+            failed.put(uid, curr + 1);
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/coordination/CoordinatedBolt, checkFinishId(Lorg/apache/storm/tuple/Tuple;Lorg/apache/storm/coordination/CoordinatedBolt$TupleType;)Z > Context: Everywhere, blocks=[BB[SSA:134..134]67 - org.apache.storm.coordination.CoordinatedBolt.checkFinishId(Lorg/apache/storm/tuple/Tuple;Lorg/apache/storm/coordination/CoordinatedBolt$TupleType;)Z, BB[SSA:132..133]66 - org.apache.storm.coordination.CoordinatedBolt.checkFinishId(Lorg/apache/storm/tuple/Tuple;Lorg/apache/storm/coordination/CoordinatedBolt$TupleType;)Z, BB[SSA:135..135]68 - org.apache.storm.coordination.CoordinatedBolt.checkFinishId(Lorg/apache/storm/tuple/Tuple;Lorg/apache/storm/coordination/CoordinatedBolt$TupleType;)Z], numberOfBasicBlocks=3, firstLineNumber=136, lastLineNumber=136, firstMethodNumber=106, lastMethodNumber=166, isFirstLineValid=true, methodSrcCode=
+    private boolean checkFinishId(Tuple tup, TupleType type) {
+        Object id = tup.getValue(0);
+        boolean failed = false;
+
+        synchronized (tracked) {
+            TrackingInfo track = tracked.get(id);
+            try {
+                if (track != null) {
+                    boolean delayed = false;
+                    if (idStreamSpec == null && type == TupleType.COORD || idStreamSpec != null && type == TupleType.ID) {
+                        track.ackTuples.add(tup);
+                        delayed = true;
+                    }
+                    if (track.failed) {
+                        failed = true;
+                        for (Tuple t : track.ackTuples) {
+                            collector.fail(t);
+                        }
+                        tracked.remove(id);
+                    } else if (track.receivedId && (sourceArgs.isEmpty()
+                            || track.reportCount == numSourceReports && track.expectedTupleCount == track.receivedTuples)) {
+                        if (delegate instanceof FinishedCallback) {
+                            ((FinishedCallback) delegate).finishedId(id);
+                        }
+                        if (!(sourceArgs.isEmpty() || type != TupleType.REGULAR)) {
+                            throw new IllegalStateException("Coordination condition met on a non-coordinating tuple. Should be impossible");
+                        }
+                        Iterator<Integer> outTasks = countOutTasks.iterator();
+                        while (outTasks.hasNext()) {
+                            int task = outTasks.next();
+                            int numTuples = Utils.get(track.taskEmittedTuples, task, 0);
+                            collector.emitDirect(task, Constants.COORDINATED_STREAM_ID, tup, new Values(id, numTuples));
+                        }
+                        for (Tuple t : track.ackTuples) {
+                            collector.ack(t);
+                        }
+                        track.finished = true;
+                        tracked.remove(id);
+                    }
+                    if (!delayed && type != TupleType.REGULAR) {
+                        if (track.failed) {
+                            collector.fail(tup);
+                        } else {
+                            collector.ack(tup);
+                        }
+                    }
+                } else {
+                    if (type != TupleType.REGULAR) {
+                        collector.fail(tup);
+                    }
+                }
+            } catch (FailedException e) {
+                LOG.error("Failed to finish batch", e);
+                for (Tuple t : track.ackTuples) {
+                    collector.fail(t);
+                }
+                tracked.remove(id);
+                failed = true;
+            }
+        }
+        return failed;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/testing/FixedTupleSpout, getNumFailed(Ljava/lang/String;)I > Context: Everywhere, blocks=[BB[SSA:8..8]3 - org.apache.storm.testing.FixedTupleSpout.getNumFailed(Ljava/lang/String;)I, BB[SSA:4..7]2 - org.apache.storm.testing.FixedTupleSpout.getNumFailed(Ljava/lang/String;)I, BB[SSA:9..9]4 - org.apache.storm.testing.FixedTupleSpout.getNumFailed(Ljava/lang/String;)I], numberOfBasicBlocks=3, firstLineNumber=72, lastLineNumber=72, firstMethodNumber=70, lastMethodNumber=73, isFirstLineValid=true, methodSrcCode=
+    public static int getNumFailed(String stormId) {
+        synchronized (failed) {
+            return get(failed, stormId, 0);
+        }
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/testing/FixedTupleSpout, fail(Ljava/lang/Object;)V > Context: Everywhere, blocks=[BB[SSA:9..9]4 - org.apache.storm.testing.FixedTupleSpout.fail(Ljava/lang/Object;)V, BB[SSA:7..8]3 - org.apache.storm.testing.FixedTupleSpout.fail(Ljava/lang/Object;)V, BB[SSA:10..10]5 - org.apache.storm.testing.FixedTupleSpout.fail(Ljava/lang/Object;)V], numberOfBasicBlocks=3, firstLineNumber=150, lastLineNumber=150, firstMethodNumber=148, lastMethodNumber=153, isFirstLineValid=true, methodSrcCode=
+    public void fail(Object msgId) {
+        synchronized (failed) {
+            int curr = get(failed, id, 0);
+            failed.put(id, curr + 1);
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/testing/FixedTupleSpout, ack(Ljava/lang/Object;)V > Context: Everywhere, blocks=[BB[SSA:9..9]4 - org.apache.storm.testing.FixedTupleSpout.ack(Ljava/lang/Object;)V, BB[SSA:7..8]3 - org.apache.storm.testing.FixedTupleSpout.ack(Ljava/lang/Object;)V, BB[SSA:10..10]5 - org.apache.storm.testing.FixedTupleSpout.ack(Ljava/lang/Object;)V], numberOfBasicBlocks=3, firstLineNumber=142, lastLineNumber=142, firstMethodNumber=140, lastMethodNumber=145, isFirstLineValid=true, methodSrcCode=
+    public void ack(Object msgId) {
+        synchronized (acked) {
+            int curr = get(acked, id, 0);
+            acked.put(id, curr + 1);
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/trident/topology/TridentBoltExecutor, finishBatch(Lorg/apache/storm/trident/topology/TridentBoltExecutor$TrackedBatch;Lorg/apache/storm/tuple/Tuple;)Z > Context: Everywhere, blocks=[BB[SSA:48..48]24 - org.apache.storm.trident.topology.TridentBoltExecutor.finishBatch(Lorg/apache/storm/trident/topology/TridentBoltExecutor$TrackedBatch;Lorg/apache/storm/tuple/Tuple;)Z, BB[SSA:45..47]23 - org.apache.storm.trident.topology.TridentBoltExecutor.finishBatch(Lorg/apache/storm/trident/topology/TridentBoltExecutor$TrackedBatch;Lorg/apache/storm/tuple/Tuple;)Z, BB[SSA:49..49]25 - org.apache.storm.trident.topology.TridentBoltExecutor.finishBatch(Lorg/apache/storm/trident/topology/TridentBoltExecutor$TrackedBatch;Lorg/apache/storm/tuple/Tuple;)Z, BB[SSA:-1..-2]44 - org.apache.storm.trident.topology.TridentBoltExecutor.finishBatch(Lorg/apache/storm/trident/topology/TridentBoltExecutor$TrackedBatch;Lorg/apache/storm/tuple/Tuple;)Z], numberOfBasicBlocks=4, firstLineNumber=131, lastLineNumber=131, firstMethodNumber=124, lastMethodNumber=142, isFirstLineValid=true, methodSrcCode=
+    private boolean finishBatch(TrackedBatch tracked, Tuple finishTuple) {
+        boolean success = true;
+        try {
+            bolt.finishBatch(tracked.info);
+            String stream = coordStream(tracked.info.batchGroup);
+            for (Integer task : tracked.condition.targetTasks) {
+                collector
+                    .emitDirect(task, stream, finishTuple, new Values(tracked.info.batchId, Utils.get(tracked.taskEmittedTuples, task, 0)));
+            }
+            if (tracked.delayedAck != null) {
+                collector.ack(tracked.delayedAck);
+                tracked.delayedAck = null;
+            }
+        } catch (FailedException e) {
+            failBatch(tracked, e);
+            success = false;
+        }
+        batches.remove(tracked.info.batchId.getId());
+        return success;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/testing/TestEventLogSpout, getNumAcked(Ljava/lang/String;)I > Context: Everywhere, blocks=[BB[SSA:8..8]3 - org.apache.storm.testing.TestEventLogSpout.getNumAcked(Ljava/lang/String;)I, BB[SSA:4..7]2 - org.apache.storm.testing.TestEventLogSpout.getNumAcked(Ljava/lang/String;)I, BB[SSA:9..9]4 - org.apache.storm.testing.TestEventLogSpout.getNumAcked(Ljava/lang/String;)I], numberOfBasicBlocks=3, firstLineNumber=55, lastLineNumber=55, firstMethodNumber=53, lastMethodNumber=56, isFirstLineValid=true, methodSrcCode=
+    public static int getNumAcked(String stormId) {
+        synchronized (acked) {
+            return get(acked, stormId, 0);
+        }
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/testing/TestEventLogSpout, getNumFailed(Ljava/lang/String;)I > Context: Everywhere, blocks=[BB[SSA:8..8]3 - org.apache.storm.testing.TestEventLogSpout.getNumFailed(Ljava/lang/String;)I, BB[SSA:4..7]2 - org.apache.storm.testing.TestEventLogSpout.getNumFailed(Ljava/lang/String;)I, BB[SSA:9..9]4 - org.apache.storm.testing.TestEventLogSpout.getNumFailed(Ljava/lang/String;)I], numberOfBasicBlocks=3, firstLineNumber=61, lastLineNumber=61, firstMethodNumber=59, lastMethodNumber=62, isFirstLineValid=true, methodSrcCode=
+    public static int getNumFailed(String stormId) {
+        synchronized (failed) {
+            return get(failed, stormId, 0);
+        }
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/testing/FixedTupleSpout, getNumAcked(Ljava/lang/String;)I > Context: Everywhere, blocks=[BB[SSA:8..8]3 - org.apache.storm.testing.FixedTupleSpout.getNumAcked(Ljava/lang/String;)I, BB[SSA:4..7]2 - org.apache.storm.testing.FixedTupleSpout.getNumAcked(Ljava/lang/String;)I, BB[SSA:9..9]4 - org.apache.storm.testing.FixedTupleSpout.getNumAcked(Ljava/lang/String;)I], numberOfBasicBlocks=3, firstLineNumber=66, lastLineNumber=66, firstMethodNumber=64, lastMethodNumber=67, isFirstLineValid=true, methodSrcCode=
+    public static int getNumAcked(String stormId) {
+        synchronized (acked) {
+            return get(acked, stormId, 0);
+        }
+    }
+}

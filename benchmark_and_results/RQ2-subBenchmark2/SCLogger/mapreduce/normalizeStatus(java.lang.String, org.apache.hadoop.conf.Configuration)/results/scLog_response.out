@@ -1,0 +1,2 @@
+<Line#2>:# LOG.info("Normalizing status with progressStatusLength: " + progressStatusLength);#
+<Line#4>:# LOG.warn("Status length exceeded progressStatusLength. Trimming status to fit.");#

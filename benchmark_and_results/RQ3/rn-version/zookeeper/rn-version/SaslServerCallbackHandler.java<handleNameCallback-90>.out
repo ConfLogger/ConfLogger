@@ -1,0 +1,44 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	SaslServerCallbackHandler.java	methodSinagture:	org.apache.zookeeper.server.auth.SaslServerCallbackHandler.handleNameCallback(Ljavax/security/auth/callback/NameCallback;)V	methodLines:	90:97
+blockLines:	91:-1
+paras:	null
+TaintedStat:	NORMAL handleNameCallback:conditional branch(ne, to iindex=13) 8,9 Node: < Application, Lorg/apache/zookeeper/server/auth/SaslServerCallbackHandler, handleNameCallback(Ljavax/security/auth/callback/NameCallback;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/SaslServerCallbackHandler, handleNameCallback(Ljavax/security/auth/callback/NameCallback;)V > Context: Everywhere[4]8 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,6 @8 exception:7
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/SaslServerCallbackHandler, handleNameCallback(Ljavax/security/auth/callback/NameCallback;)V > Context: Everywhere[4]8 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,6 @8 exception:7
+NORMAL handleNameCallback:conditional branch(ne, to iindex=13) 8,9 Node: < Application, Lorg/apache/zookeeper/server/auth/SaslServerCallbackHandler, handleNameCallback(Ljavax/security/auth/callback/NameCallback;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+        // check to see if this user is in the user password database.
+        if (credentials.get(nc.getDefaultName()) == null) {
+            LOG.warn("User '{}' not found in list of DIGEST-MD5 authenticateable users.", nc.getDefaultName());
+            return;
+        }
+        nc.setName(nc.getDefaultName());
+        userName = nc.getDefaultName();
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/auth/SaslServerCallbackHandler, handle([Ljavax/security/auth/callback/Callback;)V > Context: Everywhere, blocks=[BB[SSA:21..21]7 - org.apache.zookeeper.server.auth.SaslServerCallbackHandler.handle([Ljavax/security/auth/callback/Callback;)V, BB[SSA:18..20]6 - org.apache.zookeeper.server.auth.SaslServerCallbackHandler.handle([Ljavax/security/auth/callback/Callback;)V, BB[SSA:22..22]8 - org.apache.zookeeper.server.auth.SaslServerCallbackHandler.handle([Ljavax/security/auth/callback/Callback;)V, BB[SSA:-1..-2]22 - org.apache.zookeeper.server.auth.SaslServerCallbackHandler.handle([Ljavax/security/auth/callback/Callback;)V], numberOfBasicBlocks=4, firstLineNumber=78, lastLineNumber=78, firstMethodNumber=75, lastMethodNumber=87, isFirstLineValid=true, methodSrcCode=
+    public void handle(Callback[] callbacks) throws UnsupportedCallbackException {
+        for (Callback callback : callbacks) {
+            if (callback instanceof NameCallback) {
+                handleNameCallback((NameCallback) callback);
+            } else if (callback instanceof PasswordCallback) {
+                handlePasswordCallback((PasswordCallback) callback);
+            } else if (callback instanceof RealmCallback) {
+                handleRealmCallback((RealmCallback) callback);
+            } else if (callback instanceof AuthorizeCallback) {
+                handleAuthorizeCallback((AuthorizeCallback) callback);
+            }
+        }
+    }
+
+}

@@ -1,0 +1,185 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> /** 
+<Line#1>  * Adds SslProvider.OPENSSL if OpenSsl is available and enabled. In order to make it available, one must ensure that a properly shaded netty-tcnative is on the classpath. Properly shaded means relocated to be prefixed with "org.apache.hbase.thirdparty" like the rest of the netty classes.
+<Line#2>  */
+<Line#3> private static boolean configureOpenSslIfAvailable(SslContextBuilder sslContextBuilder,Configuration conf){
+<Line#4>   if (OpenSsl.isAvailable() && conf.getBoolean(TLS_USE_OPENSSL,true)) {
+<Line#5>     return true;
+<Line#6>   }
+<Line#7>  else {
+<Line#8>     sslContextBuilder.sslProvider(SslProvider.JDK);
+<Line#9>     return false;
+<Line#10>   }
+<Line#11> }
+<Line#12> 
+
+Relevant Logging Patterns:
+Example 1:
+File: hbase__findForRow-193__.json
+Code:
+<Line#1>{
+<Line#2>  Map.Entry<byte[],RegionLocations> entry=cache.floorEntry(row);
+<Line#3>  if (entry == null) {
+<Line#4>    return null;
+<Line#5>  }
+<Line#6>  RegionLocations locs=entry.getValue();
+<Line#7>  if (locs == null) {
+<Line#8>    return null;
+<Line#9>  }
+<Line#10>  HRegionLocation loc=locs.getRegionLocation(replicaId);
+<Line#11>  if (loc == null) {
+<Line#12>    return null;
+<Line#13>  }
+<Line#14>  byte[] endKey=loc.getRegion().getEndKey();
+<Line#15>  if (isEmptyStopRow(endKey) || Bytes.compareTo(row,endKey) < 0) {
+<Line#16>    if (LOG.isTraceEnabled()) {
+<Line#17>      LOG.trace("Found {} in cache for {}, row='{}', locateType={}, replicaId={}",loc,tableName,Bytes.toStringBinary(row),RegionLocateType.CURRENT,replicaId);
+<Line#18>    }
+<Line#19>    return locs;
+<Line#20>  }
+<Line#21> else {
+<Line#22>    if (LOG.isTraceEnabled()) {
+<Line#23>      LOG.trace("Requested row {} comes after region end key of {} for cached location {}",Bytes.toStringBinary(row),Bytes.toStringBinary(endKey),locs);
+<Line#24>    }
+<Line#25>    return null;
+<Line#26>  }
+<Line#27>}
+Log: <Line#17>:# LOG.trace("Found {} in cache for {}, row='{}', locateType={}, replicaId={}",loc,tableName,Bytes.toStringBinary(row),RegionLocateType.CURRENT,replicaId):#
+
+Example 2:
+File: hbase__findForRow-193__.json
+Code:
+<Line#1>{
+<Line#2>  Map.Entry<byte[],RegionLocations> entry=cache.floorEntry(row);
+<Line#3>  if (entry == null) {
+<Line#4>    return null;
+<Line#5>  }
+<Line#6>  RegionLocations locs=entry.getValue();
+<Line#7>  if (locs == null) {
+<Line#8>    return null;
+<Line#9>  }
+<Line#10>  HRegionLocation loc=locs.getRegionLocation(replicaId);
+<Line#11>  if (loc == null) {
+<Line#12>    return null;
+<Line#13>  }
+<Line#14>  byte[] endKey=loc.getRegion().getEndKey();
+<Line#15>  if (isEmptyStopRow(endKey) || Bytes.compareTo(row,endKey) < 0) {
+<Line#16>    if (LOG.isTraceEnabled()) {
+<Line#17>      LOG.trace("Found {} in cache for {}, row='{}', locateType={}, replicaId={}",loc,tableName,Bytes.toStringBinary(row),RegionLocateType.CURRENT,replicaId);
+<Line#18>    }
+<Line#19>    return locs;
+<Line#20>  }
+<Line#21> else {
+<Line#22>    if (LOG.isTraceEnabled()) {
+<Line#23>      LOG.trace("Requested row {} comes after region end key of {} for cached location {}",Bytes.toStringBinary(row),Bytes.toStringBinary(endKey),locs);
+<Line#24>    }
+<Line#25>    return null;
+<Line#26>  }
+<Line#27>}
+Log: <Line#23>:# LOG.trace("Requested row {} comes after region end key of {} for cached location {}",Bytes.toStringBinary(row),Bytes.toStringBinary(endKey),locs):#
+
+Example 3:
+File: hbase__add-57__.json
+Code:
+<Line#1>{
+<Line#2>  byte[] startKey=locs.getRegionLocation().getRegion().getStartKey();
+<Line#3>  RegionLocations oldLocs=cache.putIfAbsent(startKey,locs);
+<Line#4>  if (oldLocs == null) {
+<Line#5>    cleanProblematicOverlappedRegions(locs);
+<Line#6>    return locs;
+<Line#7>  }
+<Line#8>  RegionInfo region=locs.getRegionLocation().getRegion();
+<Line#9>  RegionInfo oldRegion=oldLocs.getRegionLocation().getRegion();
+<Line#10>  if (region.getEncodedName().equals(oldRegion.getEncodedName())) {
+<Line#11>    RegionLocations mergedLocs=oldLocs.mergeLocations(locs);
+<Line#12>    if (isEqual(mergedLocs,oldLocs)) {
+<Line#13>      LOG.trace("Will not add {} to cache because the old value {} " + " is newer than us or has the same server name." + " Maybe it is updated before we replace it",locs,oldLocs);
+<Line#14>      return oldLocs;
+<Line#15>    }
+<Line#16>    locs=mergedLocs;
+<Line#17>  }
+<Line#18> else {
+<Line#19>    if (LOG.isDebugEnabled()) {
+<Line#20>      LOG.debug("The newly fetch region {} is different from the old one {} for row '{}'," + " try replaying the old one...",region,oldRegion,Bytes.toStringBinary(startKey));
+<Line#21>    }
+<Line#22>  }
+<Line#23>  cache.put(startKey,locs);
+<Line#24>  cleanProblematicOverlappedRegions(locs);
+<Line#25>  return locs;
+<Line#26>}
+Log: <Line#13>:# LOG.trace("Will not add {} to cache because the old value {} " + " is newer than us or has the same server name." + " Maybe it is updated before we replace it",locs,oldLocs):#
+
+Example 4:
+File: hbase__add-57__.json
+Code:
+<Line#1>{
+<Line#2>  byte[] startKey=locs.getRegionLocation().getRegion().getStartKey();
+<Line#3>  RegionLocations oldLocs=cache.putIfAbsent(startKey,locs);
+<Line#4>  if (oldLocs == null) {
+<Line#5>    cleanProblematicOverlappedRegions(locs);
+<Line#6>    return locs;
+<Line#7>  }
+<Line#8>  RegionInfo region=locs.getRegionLocation().getRegion();
+<Line#9>  RegionInfo oldRegion=oldLocs.getRegionLocation().getRegion();
+<Line#10>  if (region.getEncodedName().equals(oldRegion.getEncodedName())) {
+<Line#11>    RegionLocations mergedLocs=oldLocs.mergeLocations(locs);
+<Line#12>    if (isEqual(mergedLocs,oldLocs)) {
+<Line#13>      LOG.trace("Will not add {} to cache because the old value {} " + " is newer than us or has the same server name." + " Maybe it is updated before we replace it",locs,oldLocs);
+<Line#14>      return oldLocs;
+<Line#15>    }
+<Line#16>    locs=mergedLocs;
+<Line#17>  }
+<Line#18> else {
+<Line#19>    if (LOG.isDebugEnabled()) {
+<Line#20>      LOG.debug("The newly fetch region {} is different from the old one {} for row '{}'," + " try replaying the old one...",region,oldRegion,Bytes.toStringBinary(startKey));
+<Line#21>    }
+<Line#22>  }
+<Line#23>  cache.put(startKey,locs);
+<Line#24>  cleanProblematicOverlappedRegions(locs);
+<Line#25>  return locs;
+<Line#26>}
+Log: <Line#20>:# LOG.debug("The newly fetch region {} is different from the old one {} for row '{}'," + " try replaying the old one...",region,oldRegion,Bytes.toStringBinary(startKey)):#
+
+Example 5:
+File: hbase__exec-166__.json
+Code:
+<Line#1>{
+<Line#2>  pendingRequests--;
+<Line#3>  Code code=Code.get(rc);
+<Line#4>  if (code == Code.OK) {
+<Line#5>    future.complete(ret);
+<Line#6>  }
+<Line#7> else   if (code == Code.NONODE) {
+<Line#8>    if (errorIfNoNode) {
+<Line#9>      future.completeExceptionally(KeeperException.create(code,path));
+<Line#10>    }
+<Line#11> else {
+<Line#12>      future.complete(ret);
+<Line#13>    }
+<Line#14>  }
+<Line#15> else   if (FAIL_FAST_CODES.contains(code)) {
+<Line#16>    future.completeExceptionally(KeeperException.create(code,path));
+<Line#17>  }
+<Line#18> else {
+<Line#19>    if (code == Code.SESSIONEXPIRED) {
+<Line#20>      LOG.warn("{} to {} session expired, close and reconnect",getId(),connectString);
+<Line#21>      try {
+<Line#22>        zk.close();
+<Line#23>      }
+<Line#24> catch (      InterruptedException e) {
+<Line#25>        Thread.currentThread().interrupt();
+<Line#26>      }
+<Line#27>    }
+<Line#28>    if (ZKTask.this.delay(retryIntervalMs,maxRetries)) {
+<Line#29>      LOG.warn("{} to {} failed for {} of {}, code = {}, retries = {}",getId(),connectString,operationType,path,code,ZKTask.this.retries);
+<Line#30>      tasks.add(ZKTask.this);
+<Line#31>    }
+<Line#32> else {
+<Line#33>      LOG.warn("{} to {} failed for {} of {}, code = {}, retries = {}, give up",getId(),connectString,operationType,path,code,ZKTask.this.retries);
+<Line#34>      future.completeExceptionally(KeeperException.create(code,path));
+<Line#35>    }
+<Line#36>  }
+<Line#37>}
+Log: <Line#20>:# LOG.warn("{} to {} session expired, close and reconnect",getId(),connectString):#

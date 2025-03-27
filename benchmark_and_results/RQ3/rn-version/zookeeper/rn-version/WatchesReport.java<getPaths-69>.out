@@ -1,0 +1,24 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	WatchesReport.java	methodSinagture:	org.apache.zookeeper.server.watch.WatchesReport.getPaths(J)Ljava/util/Set;	methodLines:	69:71
+blockLines:	71:-1
+paras:	null
+TaintedStat:	NORMAL getPaths:conditional branch(eq, to iindex=13) 9,10 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchesReport, getPaths(J)Ljava/util/Set; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchesReport, getPaths(J)Ljava/util/Set; > Context: Everywhere[4]8 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,6 @8 exception:7
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchesReport, getPaths(J)Ljava/util/Set; > Context: Everywhere[4]8 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,6 @8 exception:7
+NORMAL getPaths:9 = checkcast <Application,Ljava/util/Set>8 <Application,Ljava/util/Set> Node: < Application, Lorg/apache/zookeeper/server/watch/WatchesReport, getPaths(J)Ljava/util/Set; > Context: Everywhere
+NORMAL getPaths:conditional branch(eq, to iindex=13) 9,10 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchesReport, getPaths(J)Ljava/util/Set; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public Set<String> getPaths(long sessionId) {
+        Set<String> s = id2paths.get(sessionId);
+        return s != null ? Collections.unmodifiableSet(s) : null;
+    }
+
+
+====================ctx:=======================

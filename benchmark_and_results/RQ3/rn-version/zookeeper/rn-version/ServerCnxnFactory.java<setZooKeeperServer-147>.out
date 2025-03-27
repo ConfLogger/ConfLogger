@@ -1,0 +1,106 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ServerCnxnFactory.java	methodSinagture:	org.apache.zookeeper.server.ServerCnxnFactory.setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V	methodLines:	147:156
+blockLines:	149:-1
+paras:	null
+TaintedStat:	NORMAL setZooKeeperServer:conditional branch(eq, to iindex=17) 2,4 Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, lead()V > Context: Everywhere[339]248 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 246 @780 exception:247
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, lead()V > Context: Everywhere[339]248 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 246 @780 exception:247
+NORMAL lead:250 = invokestatic < Application, Ljava/lang/Long, parseLong(Ljava/lang/String;)J > 248 @792 exception:249 Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, lead()V > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/Long, parseLong(Ljava/lang/String;)J > Context: Everywhere
+NORMAL parseLong:5 = invokestatic < Primordial, Ljava/lang/Long, parseLong(Ljava/lang/String;I)J > 1,3 @3 exception:4 Node: < Primordial, Ljava/lang/Long, parseLong(Ljava/lang/String;)J > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/Long, parseLong(Ljava/lang/String;I)J > Context: Everywhere
+NORMAL parseLong:9 = invokevirtual < Primordial, Ljava/lang/String, length()I > 1 @94 exception:8 Node: < Primordial, Ljava/lang/Long, parseLong(Ljava/lang/String;I)J > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, length()I > Context: Everywhere
+NORMAL length:6 = invokevirtual < Primordial, Ljava/lang/String, coder()B > 1 @6 exception:5 Node: < Primordial, Ljava/lang/String, length()I > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, coder()B > Context: Everywhere
+NORMAL coder:return 7 Node: < Primordial, Ljava/lang/String, coder()B > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, coder()B > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere[13]8 = invokevirtual < Primordial, Ljava/lang/String, coder()B > 1 @20 exception:7
+NORMAL equals:conditional branch(ne, to iindex=33) 8,10 Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL equals:return 21 Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, lead()V > Context: Everywhere[361]265 = invokevirtual < Application, Ljava/lang/String, equals(Ljava/lang/Object;)Z > 262,263 @827 exception:264
+NORMAL lead:conditional branch(ne, to iindex=369) 265,38 Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, lead()V > Context: Everywhere
+NORMAL lead:267 = getfield < Application, Lorg/apache/zookeeper/server/quorum/Leader, zk, <Application,Lorg/apache/zookeeper/server/quorum/LeaderZooKeeperServer> > 1 Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, lead()V > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, lead()V > Context: Everywhere[368]invokevirtual < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V > 266,267 @841 exception:268 v267
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V > Context: Everywhere[7]invokevirtual < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V > 6,2 @12 exception:7 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V > Context: Everywhere v2
+NORMAL setZooKeeperServer:conditional branch(eq, to iindex=17) 2,4 Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ServerCnxnFactory.java	methodSinagture:	org.apache.zookeeper.server.ServerCnxnFactory.setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V	methodLines:	147:156
+blockLines:	150:-1
+paras:	null
+TaintedStat:	NORMAL setZooKeeperServer:conditional branch(eq, to iindex=14) 5,6 Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, lead()V > Context: Everywhere[359]262 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 259,260 @822 exception:261
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, lead()V > Context: Everywhere[359]262 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 259,260 @822 exception:261
+NORMAL lead:265 = invokevirtual < Application, Ljava/lang/String, equals(Ljava/lang/Object;)Z > 262,263 @827 exception:264 Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, lead()V > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL equals:conditional branch(ne, to iindex=5) 1,2 Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL equals:return 22 Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, equals(Ljava/lang/Object;)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, lead()V > Context: Everywhere[361]265 = invokevirtual < Application, Ljava/lang/String, equals(Ljava/lang/Object;)Z > 262,263 @827 exception:264
+NORMAL lead:conditional branch(ne, to iindex=369) 265,38 Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, lead()V > Context: Everywhere
+NORMAL lead:267 = getfield < Application, Lorg/apache/zookeeper/server/quorum/Leader, zk, <Application,Lorg/apache/zookeeper/server/quorum/LeaderZooKeeperServer> > 1 Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, lead()V > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, lead()V > Context: Everywhere[368]invokevirtual < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V > 266,267 @841 exception:268 v267
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V > Context: Everywhere[7]invokevirtual < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V > 6,2 @12 exception:7 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V > Context: Everywhere v2
+NORMAL setZooKeeperServer:conditional branch(eq, to iindex=17) 2,4 Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V > Context: Everywhere
+NORMAL setZooKeeperServer:conditional branch(eq, to iindex=14) 5,6 Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public final void setZooKeeperServer(ZooKeeperServer zks) {
+        this.zkServer = zks;
+        if (zks != null) {
+            if (secure) {
+                zks.setSecureServerCnxnFactory(this);
+            } else {
+                zks.setServerCnxnFactory(this);
+            }
+        }
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V > Context: Everywhere, blocks=[BB[SSA:6..7]4 - org.apache.zookeeper.server.quorum.QuorumPeer.setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V, BB[SSA:4..5]3 - org.apache.zookeeper.server.quorum.QuorumPeer.setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V, BB[SSA:8..9]5 - org.apache.zookeeper.server.quorum.QuorumPeer.setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V, BB[SSA:-1..-2]10 - org.apache.zookeeper.server.quorum.QuorumPeer.setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V, BB[SSA:14..15]8 - org.apache.zookeeper.server.quorum.QuorumPeer.setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V, BB[SSA:12..13]7 - org.apache.zookeeper.server.quorum.QuorumPeer.setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V, BB[SSA:16..16]9 - org.apache.zookeeper.server.quorum.QuorumPeer.setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V, BB[SSA:-1..-2]10 - org.apache.zookeeper.server.quorum.QuorumPeer.setZooKeeperServer(Lorg/apache/zookeeper/server/ZooKeeperServer;)V], numberOfBasicBlocks=8, firstLineNumber=2139, lastLineNumber=2141, firstMethodNumber=2134, lastMethodNumber=2141, isFirstLineValid=true, methodSrcCode=
+    public void setZooKeeperServer(ZooKeeperServer zks) {
+        if (cnxnFactory != null) {
+            cnxnFactory.setZooKeeperServer(zks);
+        }
+        if (secureCnxnFactory != null) {
+            secureCnxnFactory.setZooKeeperServer(zks);
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/NettyServerCnxnFactory, startup(Lorg/apache/zookeeper/server/ZooKeeperServer;Z)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=749, lastMethodNumber=756, isFirstLineValid=true, methodSrcCode=
+    public void startup(ZooKeeperServer zks, boolean startServer) throws IOException, InterruptedException {
+        start();
+        setZooKeeperServer(zks);
+        if (startServer) {
+            zks.startdata();
+            zks.startup();
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/NIOServerCnxnFactory, startup(Lorg/apache/zookeeper/server/ZooKeeperServer;Z)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=744, lastMethodNumber=751, isFirstLineValid=true, methodSrcCode=
+    public void startup(ZooKeeperServer zks, boolean startServer) throws IOException, InterruptedException {
+        start();
+        setZooKeeperServer(zks);
+        if (startServer) {
+            zks.startdata();
+            zks.startup();
+        }
+    }
+
+}

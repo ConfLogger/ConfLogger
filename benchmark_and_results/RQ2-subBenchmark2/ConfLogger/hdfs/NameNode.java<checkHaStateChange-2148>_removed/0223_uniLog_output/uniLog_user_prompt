@@ -1,0 +1,311 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>throws AccessControlException {
+<Line#1>boolean autoHaEnabled = getConf().getBoolean(
+<Line#2>DFS_HA_AUTO_FAILOVER_ENABLED_KEY, DFS_HA_AUTO_FAILOVER_ENABLED_DEFAULT);
+<Line#3>switch (req.getSource()) {
+<Line#4>case REQUEST_BY_USER:
+<Line#5>if (autoHaEnabled) {
+<Line#6>throw new AccessControlException(
+<Line#7>"Manual HA control for this NameNode is disallowed, because " +
+<Line#8>"automatic HA is enabled.");
+<Line#9>}
+<Line#10>break;
+<Line#11>case REQUEST_BY_USER_FORCED:
+<Line#12>if (autoHaEnabled) {
+<Line#13>;
+<Line#14>}
+<Line#15>break;
+<Line#16>case REQUEST_BY_ZKFC:
+<Line#17>if (!autoHaEnabled) {
+<Line#18>throw new AccessControlException(
+<Line#19>"Request from ZK failover controller at " +
+<Line#20>Server.getRemoteAddress() + " denied since automatic HA " +
+<Line#21>"is not enabled");
+<Line#22>}
+<Line#23>break;
+<Line#24>}
+<Line#25>}
+
+Example 1:
+<Line#1>{
+<Line#2>  Preconditions.checkArgument(reconstructLength >= 0 && reconstructLength <= bufferSize);
+<Line#3>  int nSuccess=0;
+<Line#4>  int[] newSuccess=new int[minRequiredSources];
+<Line#5>  BitSet usedFlag=new BitSet(sources.length);
+<Line#6>  for (int i=0; i < minRequiredSources; i++) {
+<Line#7>    StripedBlockReader reader=readers.get(successList[i]);
+<Line#8>    int toRead=getReadLength(liveIndices[successList[i]],reconstructLength);
+<Line#9>    if (toRead > 0) {
+<Line#10>      Callable<BlockReadStats> readCallable=reader.readFromBlock(toRead,corruptedBlocks);
+<Line#11>      Future<BlockReadStats> f=readService.submit(readCallable);
+<Line#12>      futures.put(f,successList[i]);
+<Line#13>    }
+<Line#14> else {
+<Line#15>      reader.getReadBuffer().position(0);
+<Line#16>      newSuccess[nSuccess++]=successList[i];
+<Line#17>    }
+<Line#18>    usedFlag.set(successList[i]);
+<Line#19>  }
+<Line#20>  while (!futures.isEmpty()) {
+<Line#21>    try {
+<Line#22>      StripingChunkReadResult result=StripedBlockUtil.getNextCompletedStripedRead(readService,futures,stripedReadTimeoutInMills);
+<Line#23>      int resultIndex=-1;
+<Line#24>      if (result.state == StripingChunkReadResult.SUCCESSFUL) {
+<Line#25>        resultIndex=result.index;
+<Line#26>      }
+<Line#27> else       if (result.state == StripingChunkReadResult.FAILED) {
+<Line#28>        StripedBlockReader failedReader=readers.get(result.index);
+<Line#29>        failedReader.closeBlockReader();
+<Line#30>        resultIndex=scheduleNewRead(usedFlag,reconstructLength,corruptedBlocks);
+<Line#31>      }
+<Line#32> else       if (result.state == StripingChunkReadResult.TIMEOUT) {
+<Line#33>        resultIndex=scheduleNewRead(usedFlag,reconstructLength,corruptedBlocks);
+<Line#34>      }
+<Line#35>      if (resultIndex >= 0) {
+<Line#36>        newSuccess[nSuccess++]=resultIndex;
+<Line#37>        if (nSuccess >= minRequiredSources) {
+<Line#38>          cancelReads(futures.keySet());
+<Line#39>          clearFuturesAndService();
+<Line#40>          break;
+<Line#41>        }
+<Line#42>      }
+<Line#43>    }
+<Line#44> catch (    InterruptedException e) {
+<Line#45>      LOG.info("Read data interrupted.",e);
+<Line#46>      cancelReads(futures.keySet());
+<Line#47>      clearFuturesAndService();
+<Line#48>      break;
+<Line#49>    }
+<Line#50>  }
+<Line#51>  if (nSuccess < minRequiredSources) {
+<Line#52>    String error="Can't read data from minimum number of sources " + "required by reconstruction, block id: " + reconstructor.getBlockGroup().getBlockId();
+<Line#53>    throw new IOException(error);
+<Line#54>  }
+<Line#55>  return newSuccess;
+<Line#56>}
+Label: <Line#45> LOG.info("Read data interrupted.",e)
+
+Example 2:
+<Line#1>{
+<Line#2>  final DDatanode targetDn=p.target.getDDatanode();
+<Line#3>  ExecutorService moveExecutor=targetDn.getMoveExecutor();
+<Line#4>  if (moveExecutor == null) {
+<Line#5>    final int nThreads=moverThreadAllocator.allocate();
+<Line#6>    if (nThreads > 0) {
+<Line#7>      moveExecutor=targetDn.initMoveExecutor(nThreads);
+<Line#8>    }
+<Line#9>  }
+<Line#10>  if (moveExecutor == null) {
+<Line#11>    LOG.warn("No mover threads available: skip moving " + p);
+<Line#12>    targetDn.removePendingBlock(p);
+<Line#13>    p.proxySource.removePendingBlock(p);
+<Line#14>    return;
+<Line#15>  }
+<Line#16>  moveExecutor.execute(new Runnable(){
+<Line#17>    @Override public void run(){
+<Line#18>      p.dispatch();
+<Line#19>    }
+<Line#20>  }
+<Line#21>);
+<Line#22>}
+Label: <Line#11> LOG.warn("No mover threads available: skip moving " + p)
+
+Example 3:
+<Line#1>{
+<Line#2>synchronized (dataQueue) {
+<Line#3>    try {
+<Line#4>      boolean firstWait=true;
+<Line#5>      try {
+<Line#6>        while (!streamerClosed && dataQueue.size() + ackQueue.size() > dfsClient.getConf().getWriteMaxPackets()) {
+<Line#7>          if (firstWait) {
+<Line#8>            Span span=Tracer.getCurrentSpan();
+<Line#9>            if (span != null) {
+<Line#10>              span.addTimelineAnnotation("dataQueue.wait");
+<Line#11>            }
+<Line#12>            firstWait=false;
+<Line#13>          }
+<Line#14>          try {
+<Line#15>            dataQueue.wait();
+<Line#16>          }
+<Line#17> catch (          InterruptedException e) {
+<Line#18>            Thread.currentThread().interrupt();
+<Line#19>            break;
+<Line#20>          }
+<Line#21>        }
+<Line#22>      }
+<Line#23>  finally {
+<Line#24>        Span span=Tracer.getCurrentSpan();
+<Line#25>        if ((span != null) && (!firstWait)) {
+<Line#26>          span.addTimelineAnnotation("end.wait");
+<Line#27>        }
+<Line#28>      }
+<Line#29>      checkClosed();
+<Line#30>      queuePacket(packet);
+<Line#31>    }
+<Line#32> catch (    ClosedChannelException cce) {
+<Line#33>      LOG.debug("Closed channel exception",cce);
+<Line#34>    }
+<Line#35>  }
+<Line#36>}
+Label: <Line#33> LOG.debug("Closed channel exception",cce)
+
+Example 4:
+<Line#1>{
+<Line#2>  int dataLen=(int)Math.min(endOffset - offset,(chunkSize * (long)maxChunks));
+<Line#3>  int numChunks=numberOfChunks(dataLen);
+<Line#4>  int checksumDataLen=numChunks * checksumSize;
+<Line#5>  int packetLen=dataLen + checksumDataLen + 4;
+<Line#6>  boolean lastDataPacket=offset + dataLen == endOffset && dataLen > 0;
+<Line#7>  int headerLen=writePacketHeader(pkt,dataLen,packetLen);
+<Line#8>  int headerOff=pkt.position() - headerLen;
+<Line#9>  int checksumOff=pkt.position();
+<Line#10>  byte[] buf=pkt.array();
+<Line#11>  if (checksumSize > 0 && ris.getChecksumIn() != null) {
+<Line#12>    readChecksum(buf,checksumOff,checksumDataLen);
+<Line#13>    if (lastDataPacket && lastChunkChecksum != null) {
+<Line#14>      int start=checksumOff + checksumDataLen - checksumSize;
+<Line#15>      byte[] updatedChecksum=lastChunkChecksum.getChecksum();
+<Line#16>      if (updatedChecksum != null) {
+<Line#17>        System.arraycopy(updatedChecksum,0,buf,start,checksumSize);
+<Line#18>      }
+<Line#19>    }
+<Line#20>  }
+<Line#21>  int dataOff=checksumOff + checksumDataLen;
+<Line#22>  if (!transferTo) {
+<Line#23>    try {
+<Line#24>      ris.readDataFully(buf,dataOff,dataLen);
+<Line#25>    }
+<Line#26> catch (    IOException ioe) {
+<Line#27>      if (ioe.getMessage().startsWith(EIO_ERROR)) {
+<Line#28>        throw new DiskFileCorruptException("A disk IO error occurred",ioe);
+<Line#29>      }
+<Line#30>      throw ioe;
+<Line#31>    }
+<Line#32>    if (verifyChecksum) {
+<Line#33>      verifyChecksum(buf,dataOff,dataLen,numChunks,checksumOff);
+<Line#34>    }
+<Line#35>  }
+<Line#36>  try {
+<Line#37>    if (transferTo) {
+<Line#38>      SocketOutputStream sockOut=(SocketOutputStream)out;
+<Line#39>      sockOut.write(buf,headerOff,dataOff - headerOff);
+<Line#40>      FileChannel fileCh=((FileInputStream)ris.getDataIn()).getChannel();
+<Line#41>      LongWritable waitTime=new LongWritable();
+<Line#42>      LongWritable transferTime=new LongWritable();
+<Line#43>      fileIoProvider.transferToSocketFully(ris.getVolumeRef().getVolume(),sockOut,fileCh,blockInPosition,dataLen,waitTime,transferTime);
+<Line#44>      datanode.metrics.addSendDataPacketBlockedOnNetworkNanos(waitTime.get());
+<Line#45>      datanode.metrics.addSendDataPacketTransferNanos(transferTime.get());
+<Line#46>      blockInPosition+=dataLen;
+<Line#47>    }
+<Line#48> else {
+<Line#49>      out.write(buf,headerOff,dataOff + dataLen - headerOff);
+<Line#50>    }
+<Line#51>  }
+<Line#52> catch (  IOException e) {
+<Line#53>    if (e instanceof SocketTimeoutException) {
+<Line#54>      LOG.warn("Sending packets timed out.",e);
+<Line#55>    }
+<Line#56> else {
+<Line#57>      String ioem=e.getMessage();
+<Line#58>      if (ioem != null) {
+<Line#59>        if (ioem.startsWith(EIO_ERROR)) {
+<Line#60>          throw new DiskFileCorruptException("A disk IO error occurred",e);
+<Line#61>        }
+<Line#62>        String causeMessage=e.getCause() != null ? e.getCause().getMessage() : "";
+<Line#63>        causeMessage=causeMessage != null ? causeMessage : "";
+<Line#64>        if (!ioem.startsWith("Broken pipe") && !ioem.startsWith("Connection reset") && !causeMessage.startsWith("Broken pipe")&& !causeMessage.startsWith("Connection reset")) {
+<Line#65>          LOG.error("BlockSender.sendChunks() exception: ",e);
+<Line#66>          datanode.getBlockScanner().markSuspectBlock(ris.getVolumeRef().getVolume().getStorageID(),block);
+<Line#67>        }
+<Line#68>      }
+<Line#69>    }
+<Line#70>    throw ioeToSocketException(e);
+<Line#71>  }
+<Line#72>  if (throttler != null) {
+<Line#73>    throttler.throttle(packetLen);
+<Line#74>  }
+<Line#75>  return dataLen;
+<Line#76>}
+Label: <Line#54> LOG.warn("Sending packets timed out.",e)
+
+Example 5:
+<Line#1>{
+<Line#2>  int dataLen=(int)Math.min(endOffset - offset,(chunkSize * (long)maxChunks));
+<Line#3>  int numChunks=numberOfChunks(dataLen);
+<Line#4>  int checksumDataLen=numChunks * checksumSize;
+<Line#5>  int packetLen=dataLen + checksumDataLen + 4;
+<Line#6>  boolean lastDataPacket=offset + dataLen == endOffset && dataLen > 0;
+<Line#7>  int headerLen=writePacketHeader(pkt,dataLen,packetLen);
+<Line#8>  int headerOff=pkt.position() - headerLen;
+<Line#9>  int checksumOff=pkt.position();
+<Line#10>  byte[] buf=pkt.array();
+<Line#11>  if (checksumSize > 0 && ris.getChecksumIn() != null) {
+<Line#12>    readChecksum(buf,checksumOff,checksumDataLen);
+<Line#13>    if (lastDataPacket && lastChunkChecksum != null) {
+<Line#14>      int start=checksumOff + checksumDataLen - checksumSize;
+<Line#15>      byte[] updatedChecksum=lastChunkChecksum.getChecksum();
+<Line#16>      if (updatedChecksum != null) {
+<Line#17>        System.arraycopy(updatedChecksum,0,buf,start,checksumSize);
+<Line#18>      }
+<Line#19>    }
+<Line#20>  }
+<Line#21>  int dataOff=checksumOff + checksumDataLen;
+<Line#22>  if (!transferTo) {
+<Line#23>    try {
+<Line#24>      ris.readDataFully(buf,dataOff,dataLen);
+<Line#25>    }
+<Line#26> catch (    IOException ioe) {
+<Line#27>      if (ioe.getMessage().startsWith(EIO_ERROR)) {
+<Line#28>        throw new DiskFileCorruptException("A disk IO error occurred",ioe);
+<Line#29>      }
+<Line#30>      throw ioe;
+<Line#31>    }
+<Line#32>    if (verifyChecksum) {
+<Line#33>      verifyChecksum(buf,dataOff,dataLen,numChunks,checksumOff);
+<Line#34>    }
+<Line#35>  }
+<Line#36>  try {
+<Line#37>    if (transferTo) {
+<Line#38>      SocketOutputStream sockOut=(SocketOutputStream)out;
+<Line#39>      sockOut.write(buf,headerOff,dataOff - headerOff);
+<Line#40>      FileChannel fileCh=((FileInputStream)ris.getDataIn()).getChannel();
+<Line#41>      LongWritable waitTime=new LongWritable();
+<Line#42>      LongWritable transferTime=new LongWritable();
+<Line#43>      fileIoProvider.transferToSocketFully(ris.getVolumeRef().getVolume(),sockOut,fileCh,blockInPosition,dataLen,waitTime,transferTime);
+<Line#44>      datanode.metrics.addSendDataPacketBlockedOnNetworkNanos(waitTime.get());
+<Line#45>      datanode.metrics.addSendDataPacketTransferNanos(transferTime.get());
+<Line#46>      blockInPosition+=dataLen;
+<Line#47>    }
+<Line#48> else {
+<Line#49>      out.write(buf,headerOff,dataOff + dataLen - headerOff);
+<Line#50>    }
+<Line#51>  }
+<Line#52> catch (  IOException e) {
+<Line#53>    if (e instanceof SocketTimeoutException) {
+<Line#54>      LOG.warn("Sending packets timed out.",e);
+<Line#55>    }
+<Line#56> else {
+<Line#57>      String ioem=e.getMessage();
+<Line#58>      if (ioem != null) {
+<Line#59>        if (ioem.startsWith(EIO_ERROR)) {
+<Line#60>          throw new DiskFileCorruptException("A disk IO error occurred",e);
+<Line#61>        }
+<Line#62>        String causeMessage=e.getCause() != null ? e.getCause().getMessage() : "";
+<Line#63>        causeMessage=causeMessage != null ? causeMessage : "";
+<Line#64>        if (!ioem.startsWith("Broken pipe") && !ioem.startsWith("Connection reset") && !causeMessage.startsWith("Broken pipe")&& !causeMessage.startsWith("Connection reset")) {
+<Line#65>          LOG.error("BlockSender.sendChunks() exception: ",e);
+<Line#66>          datanode.getBlockScanner().markSuspectBlock(ris.getVolumeRef().getVolume().getStorageID(),block);
+<Line#67>        }
+<Line#68>      }
+<Line#69>    }
+<Line#70>    throw ioeToSocketException(e);
+<Line#71>  }
+<Line#72>  if (throttler != null) {
+<Line#73>    throttler.throttle(packetLen);
+<Line#74>  }
+<Line#75>  return dataLen;
+<Line#76>}
+Label: <Line#65> LOG.error("BlockSender.sendChunks() exception: ",e)
+

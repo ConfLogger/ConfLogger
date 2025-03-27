@@ -1,0 +1,132 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ZooKeeperMain.java	methodSinagture:	org.apache.zookeeper.ZooKeeperMain.processZKCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z	methodLines:	376:442
+blockLines:	436:-1
+paras:	null
+TaintedStat:	NORMAL processZKCmd:conditional branch(eq, to iindex=246) 136,127 Node: < Application, Lorg/apache/zookeeper/ZooKeeperMain, processZKCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/ZooKeeperMain, processZKCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z > Context: Everywhere[230]135 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 133,7 @474 exception:134
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/ZooKeeperMain, processZKCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z > Context: Everywhere[230]135 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 133,7 @474 exception:134
+NORMAL processZKCmd:136 = checkcast <Application,Lorg/apache/zookeeper/cli/CliCommand>135 <Application,Lorg/apache/zookeeper/cli/CliCommand> Node: < Application, Lorg/apache/zookeeper/ZooKeeperMain, processZKCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z > Context: Everywhere
+NORMAL processZKCmd:conditional branch(eq, to iindex=246) 136,127 Node: < Application, Lorg/apache/zookeeper/ZooKeeperMain, processZKCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ZooKeeperMain.java	methodSinagture:	org.apache.zookeeper.ZooKeeperMain.processZKCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z	methodLines:	376:442
+blockLines:	398:-1
+paras:	null
+TaintedStat:	NORMAL processZKCmd:conditional branch(le, to iindex=75) 86,88 Node: < Application, Lorg/apache/zookeeper/ZooKeeperMain, processZKCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/ZooKeeperMain, processZKCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z > Context: Everywhere[149]74 = invokevirtual < Application, Ljava/util/HashMap, get(Ljava/lang/Object;)Ljava/lang/Object; > 70,72 @312 exception:73
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/ZooKeeperMain, processZKCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z > Context: Everywhere[149]74 = invokevirtual < Application, Ljava/util/HashMap, get(Ljava/lang/Object;)Ljava/lang/Object; > 70,72 @312 exception:73
+NORMAL processZKCmd:75 = checkcast <Application,Ljava/lang/String>74 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/zookeeper/ZooKeeperMain, processZKCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z > Context: Everywhere
+NORMAL processZKCmd:77 = invokevirtual < Application, Ljava/lang/StringBuilder, append(Ljava/lang/String;)Ljava/lang/StringBuilder; > 69,75 @318 exception:76 Node: < Application, Lorg/apache/zookeeper/ZooKeeperMain, processZKCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/StringBuilder, append(Ljava/lang/String;)Ljava/lang/StringBuilder; > Context: Everywhere
+NORMAL append:return 1 Node: < Primordial, Ljava/lang/StringBuilder, append(Ljava/lang/String;)Ljava/lang/StringBuilder; > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/StringBuilder, append(Ljava/lang/String;)Ljava/lang/StringBuilder; > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Primordial, Ljava/lang/ThreadGroup, uncaughtException(Ljava/lang/Thread;Ljava/lang/Throwable;)V > Context: Everywhere[34]23 = invokevirtual < Primordial, Ljava/lang/StringBuilder, append(Ljava/lang/String;)Ljava/lang/StringBuilder; > 20,21 @69 exception:22
+NORMAL uncaughtException:25 = invokevirtual < Primordial, Ljava/lang/StringBuilder, toString()Ljava/lang/String; > 23 @72 exception:24 Node: < Primordial, Ljava/lang/ThreadGroup, uncaughtException(Ljava/lang/Thread;Ljava/lang/Throwable;)V > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/StringBuilder, toString()Ljava/lang/String; > Context: Everywhere
+NORMAL toString:return 14 Node: < Primordial, Ljava/lang/StringBuilder, toString()Ljava/lang/String; > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/StringBuilder, toString()Ljava/lang/String; > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Primordial, Ljava/lang/Integer, decode(Ljava/lang/String;)Ljava/lang/Integer; > Context: Everywhere[133]66 = invokevirtual < Primordial, Ljava/lang/StringBuilder, toString()Ljava/lang/String; > 64 @220 exception:65
+PHI Node: < Primordial, Ljava/lang/Integer, decode(Ljava/lang/String;)Ljava/lang/Integer; > Context: Everywhere:67 = phi  66,56
+NORMAL decode:69 = invokestatic < Primordial, Ljava/lang/Integer, valueOf(Ljava/lang/String;I)Ljava/lang/Integer; > 67,37 @236 exception:68 Node: < Primordial, Ljava/lang/Integer, decode(Ljava/lang/String;)Ljava/lang/Integer; > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/Integer, valueOf(Ljava/lang/String;I)Ljava/lang/Integer; > Context: Everywhere
+NORMAL valueOf:return 7 Node: < Primordial, Ljava/lang/Integer, valueOf(Ljava/lang/String;I)Ljava/lang/Integer; > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/Integer, valueOf(Ljava/lang/String;I)Ljava/lang/Integer; > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Primordial, Ljava/lang/Integer, decode(Ljava/lang/String;)Ljava/lang/Integer; > Context: Everywhere[107]48 = invokestatic < Primordial, Ljava/lang/Integer, valueOf(Ljava/lang/String;I)Ljava/lang/Integer; > 46,37 @166 exception:47
+NORMAL decode:50 = invokevirtual < Primordial, Ljava/lang/Integer, intValue()I > 48 @177 exception:49 Node: < Primordial, Ljava/lang/Integer, decode(Ljava/lang/String;)Ljava/lang/Integer; > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/Integer, intValue()I > Context: Everywhere
+NORMAL intValue:return 3 Node: < Primordial, Ljava/lang/Integer, intValue()I > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/Integer, intValue()I > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/ZooKeeperMain, processZKCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z > Context: Everywhere[69]88 = invokevirtual < Application, Ljava/lang/Integer, intValue()I > 85 @140 exception:87
+NORMAL processZKCmd:conditional branch(le, to iindex=75) 86,88 Node: < Application, Lorg/apache/zookeeper/ZooKeeperMain, processZKCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    protected boolean processZKCmd(MyCommandOptions co) throws CliException, IOException, InterruptedException {
+        String[] args = co.getArgArray();
+        String cmd = co.getCommand();
+        if (args.length < 1) {
+            usage();
+            throw new MalformedCommandException("No command entered");
+        }
+
+        if (!commandMap.containsKey(cmd)) {
+            usage();
+            throw new CommandNotFoundException("Command not found " + cmd);
+        }
+
+        boolean watch = false;
+
+        LOG.debug("Processing {}", cmd);
+
+        if (cmd.equals("quit")) {
+            zk.close();
+            ServiceUtils.requestSystemExit(exitCode);
+        } else if (cmd.equals("redo") && args.length >= 2) {
+            Integer i = Integer.decode(args[1]);
+            if (commandCount <= i || i < 0) { // don't allow redoing this redo
+                throw new MalformedCommandException("Command index out of range");
+            }
+            cl.parseCommand(history.get(i));
+            if (cl.getCommand().equals("redo")) {
+                throw new MalformedCommandException("No redoing redos");
+            }
+            history.put(commandCount, history.get(i));
+            processCmd(cl);
+        } else if (cmd.equals("history")) {
+            for (int i = commandCount - 10; i <= commandCount; ++i) {
+                if (i < 0) {
+                    continue;
+                }
+                System.out.println(i + " - " + history.get(i));
+            }
+        } else if (cmd.equals("printwatches")) {
+            if (args.length == 1) {
+                System.out.println("printwatches is " + (printWatches ? "on" : "off"));
+            } else {
+                printWatches = args[1].equals("on");
+            }
+        } else if (cmd.equals("connect")) {
+            if (args.length >= 2) {
+                connectToZK(args[1]);
+            } else {
+                connectToZK(host);
+            }
+        }
+
+        // Below commands all need a live connection
+        if (zk == null || !zk.getState().isAlive()) {
+            System.out.println("Not connected");
+            return false;
+        }
+
+        // execute from commandMap
+        CliCommand cliCmd = commandMapCli.get(cmd);
+        if (cliCmd != null) {
+            cliCmd.setZk(zk);
+            watch = cliCmd.parse(args).exec();
+        } else if (!commandMap.containsKey(cmd)) {
+            usage();
+        }
+        return watch;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/ZooKeeperMain, processCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z > Context: Everywhere, blocks=[BB[SSA:0..4]1 - org.apache.zookeeper.ZooKeeperMain.processCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z, BB[SSA:-1..-2]0 - org.apache.zookeeper.ZooKeeperMain.processCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z, BB[SSA:5..8]2 - org.apache.zookeeper.ZooKeeperMain.processCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z, BB[SSA:-1..-2]10 - org.apache.zookeeper.ZooKeeperMain.processCmd(Lorg/apache/zookeeper/ZooKeeperMain$MyCommandOptions;)Z], numberOfBasicBlocks=4, firstLineNumber=364, lastLineNumber=368, firstMethodNumber=364, lastMethodNumber=373, isFirstLineValid=false, methodSrcCode=
+    protected boolean processCmd(MyCommandOptions co) throws IOException, InterruptedException {
+        boolean watch = false;
+        try {
+            watch = processZKCmd(co);
+            exitCode = ExitCode.EXECUTION_FINISHED.getValue();
+        } catch (CliException ex) {
+            exitCode = ex.getExitCode();
+            System.err.println(ex.getMessage());
+        }
+        return watch;
+    }
+}

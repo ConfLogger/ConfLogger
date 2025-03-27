@@ -1,0 +1,543 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>FSNamesystem(Configuration conf, FSImage fsImage, boolean ignoreRetryCache)
+<Line#1>throws IOException {
+<Line#2>provider = DFSUtil.createKeyProviderCryptoExtension(conf);
+<Line#3>LOG.info("KeyProvider: " + provider);
+<Line#4>if (conf.getBoolean(DFS_NAMENODE_AUDIT_LOG_ASYNC_KEY,
+<Line#5>DFS_NAMENODE_AUDIT_LOG_ASYNC_DEFAULT)) {
+<Line#6>LOG.info("Enabling async auditlog");
+<Line#7>enableAsyncAuditLog(conf);
+<Line#8>}
+<Line#9>auditLogWithRemotePort =
+<Line#10>conf.getBoolean(DFS_NAMENODE_AUDIT_LOG_WITH_REMOTE_PORT_KEY,
+<Line#11>DFS_NAMENODE_AUDIT_LOG_WITH_REMOTE_PORT_DEFAULT);
+<Line#12>this.contextFieldSeparator =
+<Line#13>conf.get(HADOOP_CALLER_CONTEXT_SEPARATOR_KEY,
+<Line#14>HADOOP_CALLER_CONTEXT_SEPARATOR_DEFAULT);
+<Line#15>fsLock = new FSNamesystemLock(conf, detailedLockHoldTimeMetrics);
+<Line#16>cond = fsLock.newWriteLockCondition();
+<Line#17>cpLock = new ReentrantLock();
+<Line#18>
+<Line#19>this.fsImage = fsImage;
+<Line#20>try {
+<Line#21>resourceRecheckInterval = conf.getLong(
+<Line#22>DFS_NAMENODE_RESOURCE_CHECK_INTERVAL_KEY,
+<Line#23>DFS_NAMENODE_RESOURCE_CHECK_INTERVAL_DEFAULT);
+<Line#24>
+<Line#25>this.fsOwner = UserGroupInformation.getCurrentUser();
+<Line#26>this.supergroup = conf.get(DFS_PERMISSIONS_SUPERUSERGROUP_KEY,
+<Line#27>DFS_PERMISSIONS_SUPERUSERGROUP_DEFAULT);
+<Line#28>this.isPermissionEnabled = conf.getBoolean(DFS_PERMISSIONS_ENABLED_KEY,
+<Line#29>DFS_PERMISSIONS_ENABLED_DEFAULT);
+<Line#30>
+<Line#31>this.isStoragePolicyEnabled =
+<Line#32>conf.getBoolean(DFS_STORAGE_POLICY_ENABLED_KEY,
+<Line#33>DFS_STORAGE_POLICY_ENABLED_DEFAULT);
+<Line#34>this.isStoragePolicySuperuserOnly =
+<Line#35>conf.getBoolean(DFS_STORAGE_POLICY_PERMISSIONS_SUPERUSER_ONLY_KEY,
+<Line#36>DFS_STORAGE_POLICY_PERMISSIONS_SUPERUSER_ONLY_DEFAULT);
+<Line#37>
+<Line#38>this.snapshotDiffReportLimit =
+<Line#39>conf.getInt(DFS_NAMENODE_SNAPSHOT_DIFF_LISTING_LIMIT,
+<Line#40>DFS_NAMENODE_SNAPSHOT_DIFF_LISTING_LIMIT_DEFAULT);
+<Line#41>
+<Line#42>LOG.info("fsOwner                = " + fsOwner);
+<Line#43>LOG.info("supergroup             = " + supergroup);
+<Line#44>LOG.info("isPermissionEnabled    = " + isPermissionEnabled);
+<Line#45>LOG.info("isStoragePolicyEnabled = " + isStoragePolicyEnabled);
+<Line#46>
+<Line#47>// block allocation has to be persisted in HA using a shared edits directory
+<Line#48>// so that the standby has up-to-date namespace information
+<Line#49>nameserviceId = DFSUtil.getNamenodeNameServiceId(conf);
+<Line#50>this.haEnabled = HAUtil.isHAEnabled(conf, nameserviceId);
+<Line#51>
+<Line#52>// Sanity check the HA-related config.
+<Line#53>if (nameserviceId != null) {
+<Line#54>LOG.info("Determined nameservice ID: " + nameserviceId);
+<Line#55>}
+<Line#56>LOG.info("HA Enabled: " + haEnabled);
+<Line#57>if (!haEnabled && HAUtil.usesSharedEditsDir(conf)) {
+<Line#58>LOG.warn("Configured NNs:\n" + DFSUtil.nnAddressesAsString(conf));
+<Line#59>throw new IOException("Invalid configuration: a shared edits dir " +
+<Line#60>"must not be specified if HA is not enabled.");
+<Line#61>}
+<Line#62>
+<Line#63>// block manager needs the haEnabled initialized
+<Line#64>this.blockManager = new BlockManager(this, haEnabled, conf);
+<Line#65>this.datanodeStatistics = blockManager.getDatanodeManager().getDatanodeStatistics();
+<Line#66>
+<Line#67>// Get the checksum type from config
+<Line#68>String checksumTypeStr = conf.get(DFS_CHECKSUM_TYPE_KEY,
+<Line#69>DFS_CHECKSUM_TYPE_DEFAULT);
+<Line#70>DataChecksum.Type checksumType;
+<Line#71>try {
+<Line#72>checksumType = DataChecksum.Type.valueOf(checksumTypeStr);
+<Line#73>} catch (IllegalArgumentException iae) {
+<Line#74>throw new IOException("Invalid checksum type in "
+<Line#75>+ DFS_CHECKSUM_TYPE_KEY + ": " + checksumTypeStr);
+<Line#76>}
+<Line#77>
+<Line#78>try {
+<Line#79>digest = MessageDigest.getInstance("MD5");
+<Line#80>} catch (NoSuchAlgorithmException e) {
+<Line#81>throw new IOException("Algorithm 'MD5' not found");
+<Line#82>}
+<Line#83>
+<Line#84>this.serverDefaults = new FsServerDefaults(
+<Line#85>conf.getLongBytes(DFS_BLOCK_SIZE_KEY, DFS_BLOCK_SIZE_DEFAULT),
+<Line#86>conf.getInt(DFS_BYTES_PER_CHECKSUM_KEY, DFS_BYTES_PER_CHECKSUM_DEFAULT),
+<Line#87>conf.getInt(DFS_CLIENT_WRITE_PACKET_SIZE_KEY, DFS_CLIENT_WRITE_PACKET_SIZE_DEFAULT),
+<Line#88>(short) conf.getInt(DFS_REPLICATION_KEY, DFS_REPLICATION_DEFAULT),
+<Line#89>conf.getInt(IO_FILE_BUFFER_SIZE_KEY, IO_FILE_BUFFER_SIZE_DEFAULT),
+<Line#90>conf.getBoolean(DFS_ENCRYPT_DATA_TRANSFER_KEY, DFS_ENCRYPT_DATA_TRANSFER_DEFAULT),
+<Line#91>conf.getLong(FS_TRASH_INTERVAL_KEY, FS_TRASH_INTERVAL_DEFAULT),
+<Line#92>checksumType,
+<Line#93>conf.getTrimmed(
+<Line#94>CommonConfigurationKeysPublic.HADOOP_SECURITY_KEY_PROVIDER_PATH,
+<Line#95>""),
+<Line#96>blockManager.getStoragePolicySuite().getDefaultPolicy().getId());
+<Line#97>
+<Line#98>this.maxFsObjects = conf.getLong(DFS_NAMENODE_MAX_OBJECTS_KEY,
+<Line#99>DFS_NAMENODE_MAX_OBJECTS_DEFAULT);
+<Line#100>
+<Line#101>this.minBlockSize = conf.getLongBytes(
+<Line#102>DFSConfigKeys.DFS_NAMENODE_MIN_BLOCK_SIZE_KEY,
+<Line#103>DFSConfigKeys.DFS_NAMENODE_MIN_BLOCK_SIZE_DEFAULT);
+<Line#104>this.maxBlocksPerFile = conf.getLong(DFSConfigKeys.DFS_NAMENODE_MAX_BLOCKS_PER_FILE_KEY,
+<Line#105>DFSConfigKeys.DFS_NAMENODE_MAX_BLOCKS_PER_FILE_DEFAULT);
+<Line#106>this.batchedListingLimit = conf.getInt(
+<Line#107>DFSConfigKeys.DFS_NAMENODE_BATCHED_LISTING_LIMIT,
+<Line#108>DFSConfigKeys.DFS_NAMENODE_BATCHED_LISTING_LIMIT_DEFAULT);
+<Line#109>Preconditions.checkArgument(
+<Line#110>batchedListingLimit > 0,
+<Line#111>DFSConfigKeys.DFS_NAMENODE_BATCHED_LISTING_LIMIT +
+<Line#112>" must be greater than zero");
+<Line#113>this.numCommittedAllowed = conf.getInt(
+<Line#114>DFSConfigKeys.DFS_NAMENODE_FILE_CLOSE_NUM_COMMITTED_ALLOWED_KEY,
+<Line#115>DFSConfigKeys.DFS_NAMENODE_FILE_CLOSE_NUM_COMMITTED_ALLOWED_DEFAULT);
+<Line#116>
+<Line#117>this.maxCorruptFileBlocksReturn = conf.getInt(
+<Line#118>DFSConfigKeys.DFS_NAMENODE_MAX_CORRUPT_FILE_BLOCKS_RETURNED_KEY,
+<Line#119>DFSConfigKeys.DFS_NAMENODE_MAX_CORRUPT_FILE_BLOCKS_RETURNED_DEFAULT);
+<Line#120>
+<Line#121>this.dtpReplaceDatanodeOnFailure = ReplaceDatanodeOnFailure.get(conf);
+<Line#122>
+<Line#123>this.standbyShouldCheckpoint = conf.getBoolean(
+<Line#124>DFS_HA_STANDBY_CHECKPOINTS_KEY, DFS_HA_STANDBY_CHECKPOINTS_DEFAULT);
+<Line#125>// # edit autoroll threshold is a multiple of the checkpoint threshold
+<Line#126>this.editLogRollerThreshold = (long)
+<Line#127>(conf.getFloat(
+<Line#128>DFS_NAMENODE_EDIT_LOG_AUTOROLL_MULTIPLIER_THRESHOLD,
+<Line#129>DFS_NAMENODE_EDIT_LOG_AUTOROLL_MULTIPLIER_THRESHOLD_DEFAULT) *
+<Line#130>conf.getLong(
+<Line#131>DFS_NAMENODE_CHECKPOINT_TXNS_KEY,
+<Line#132>DFS_NAMENODE_CHECKPOINT_TXNS_DEFAULT));
+<Line#133>this.editLogRollerInterval = conf.getInt(
+<Line#134>DFS_NAMENODE_EDIT_LOG_AUTOROLL_CHECK_INTERVAL_MS,
+<Line#135>DFS_NAMENODE_EDIT_LOG_AUTOROLL_CHECK_INTERVAL_MS_DEFAULT);
+<Line#136>
+<Line#137>this.lazyPersistFileScrubIntervalSec = conf.getInt(
+<Line#138>DFS_NAMENODE_LAZY_PERSIST_FILE_SCRUB_INTERVAL_SEC,
+<Line#139>DFS_NAMENODE_LAZY_PERSIST_FILE_SCRUB_INTERVAL_SEC_DEFAULT);
+<Line#140>
+<Line#141>if (this.lazyPersistFileScrubIntervalSec < 0) {
+<Line#142>throw new IllegalArgumentException(
+<Line#143>DFS_NAMENODE_LAZY_PERSIST_FILE_SCRUB_INTERVAL_SEC
+<Line#144>+ " must be zero (for disable) or greater than zero.");
+<Line#145>}
+<Line#146>
+<Line#147>this.edekCacheLoaderDelay = conf.getInt(
+<Line#148>DFSConfigKeys.DFS_NAMENODE_EDEKCACHELOADER_INITIAL_DELAY_MS_KEY,
+<Line#149>DFSConfigKeys.DFS_NAMENODE_EDEKCACHELOADER_INITIAL_DELAY_MS_DEFAULT);
+<Line#150>this.edekCacheLoaderInterval = conf.getInt(
+<Line#151>DFSConfigKeys.DFS_NAMENODE_EDEKCACHELOADER_INTERVAL_MS_KEY,
+<Line#152>DFSConfigKeys.DFS_NAMENODE_EDEKCACHELOADER_INTERVAL_MS_DEFAULT);
+<Line#153>
+<Line#154>this.leaseRecheckIntervalMs = conf.getLong(
+<Line#155>DFS_NAMENODE_LEASE_RECHECK_INTERVAL_MS_KEY,
+<Line#156>DFS_NAMENODE_LEASE_RECHECK_INTERVAL_MS_DEFAULT);
+<Line#157>Preconditions.checkArgument(
+<Line#158>leaseRecheckIntervalMs > 0,
+<Line#159>DFSConfigKeys.DFS_NAMENODE_LEASE_RECHECK_INTERVAL_MS_KEY +
+<Line#160>" must be greater than zero");
+<Line#161>this.maxLockHoldToReleaseLeaseMs = conf.getLong(
+<Line#162>DFS_NAMENODE_MAX_LOCK_HOLD_TO_RELEASE_LEASE_MS_KEY,
+<Line#163>DFS_NAMENODE_MAX_LOCK_HOLD_TO_RELEASE_LEASE_MS_DEFAULT);
+<Line#164>
+<Line#165>// For testing purposes, allow the DT secret manager to be started regardless
+<Line#166>// of whether security is enabled.
+<Line#167>alwaysUseDelegationTokensForTests = conf.getBoolean(
+<Line#168>DFS_NAMENODE_DELEGATION_TOKEN_ALWAYS_USE_KEY,
+<Line#169>DFS_NAMENODE_DELEGATION_TOKEN_ALWAYS_USE_DEFAULT);
+<Line#170>
+<Line#171>this.dtSecretManager = createDelegationTokenSecretManager(conf);
+<Line#172>this.dir = new FSDirectory(this, conf);
+<Line#173>this.snapshotManager = new SnapshotManager(conf, dir);
+<Line#174>this.cacheManager = new CacheManager(this, conf, blockManager);
+<Line#175>// Init ErasureCodingPolicyManager instance.
+<Line#176>ErasureCodingPolicyManager.getInstance().init(conf);
+<Line#177>this.topConf = new TopConf(conf);
+<Line#178>this.auditLoggers = initAuditLoggers(conf);
+<Line#179>this.isDefaultAuditLogger = auditLoggers.size() == 1 &&
+<Line#180>auditLoggers.get(0) instanceof DefaultAuditLogger;
+<Line#181>this.retryCache = ignoreRetryCache ? null : initRetryCache(conf);
+<Line#182>Class<? extends INodeAttributeProvider> klass = conf.getClass(
+<Line#183>DFS_NAMENODE_INODE_ATTRIBUTES_PROVIDER_KEY,
+<Line#184>null, INodeAttributeProvider.class);
+<Line#185>if (klass != null) {
+<Line#186>inodeAttributeProvider = ReflectionUtils.newInstance(klass, conf);
+<Line#187>}
+<Line#188>this.maxListOpenFilesResponses = conf.getInt(
+<Line#189>DFSConfigKeys.DFS_NAMENODE_LIST_OPENFILES_NUM_RESPONSES,
+<Line#190>DFSConfigKeys.DFS_NAMENODE_LIST_OPENFILES_NUM_RESPONSES_DEFAULT
+<Line#191>);
+<Line#192>Preconditions.checkArgument(maxListOpenFilesResponses > 0,
+<Line#193>DFSConfigKeys.DFS_NAMENODE_LIST_OPENFILES_NUM_RESPONSES +
+<Line#194>" must be a positive integer."
+<Line#195>);
+<Line#196>this.allowOwnerSetQuota = conf.getBoolean(
+<Line#197>DFSConfigKeys.DFS_PERMISSIONS_ALLOW_OWNER_SET_QUOTA_KEY,
+<Line#198>DFSConfigKeys.DFS_PERMISSIONS_ALLOW_OWNER_SET_QUOTA_DEFAULT);
+<Line#199>this.blockDeletionIncrement = conf.getInt(
+<Line#200>DFSConfigKeys.DFS_NAMENODE_BLOCK_DELETION_INCREMENT_KEY,
+<Line#201>DFSConfigKeys.DFS_NAMENODE_BLOCK_DELETION_INCREMENT_DEFAULT);
+<Line#202>Preconditions.checkArgument(blockDeletionIncrement > 0,
+<Line#203>DFSConfigKeys.DFS_NAMENODE_BLOCK_DELETION_INCREMENT_KEY +
+<Line#204>" must be a positive integer.");
+<Line#205>} catch(IOException e) {
+<Line#206>LOG.error(getClass().getSimpleName() + " initialization failed.", e);
+<Line#207>close();
+<Line#208>throw e;
+<Line#209>} catch (RuntimeException re) {
+<Line#210>LOG.error(getClass().getSimpleName() + " initialization failed.", re);
+<Line#211>close();
+<Line#212>throw re;
+<Line#213>}
+<Line#214>}
+
+Example 1:
+<Line#1>{
+<Line#2>  boolean success=false;
+<Line#3>  try {
+<Line#4>    ExitUtil.disableSystemExit();
+<Line#5>    FileSystem.enableSymlinks();
+<Line#6>synchronized (MiniDFSCluster.class) {
+<Line#7>      instanceId=instanceCount++;
+<Line#8>    }
+<Line#9>    this.conf=conf;
+<Line#10>    base_dir=new File(determineDfsBaseDir());
+<Line#11>    data_dir=new File(base_dir,"data");
+<Line#12>    this.waitSafeMode=waitSafeMode;
+<Line#13>    this.checkExitOnShutdown=checkExitOnShutdown;
+<Line#14>    int replication=conf.getInt(DFS_REPLICATION_KEY,3);
+<Line#15>    conf.setInt(DFS_REPLICATION_KEY,Math.min(replication,numDataNodes));
+<Line#16>    int maintenanceMinReplication=conf.getInt(DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY,DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_DEFAULT);
+<Line#17>    if (maintenanceMinReplication == DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_DEFAULT) {
+<Line#18>      conf.setInt(DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY,Math.min(maintenanceMinReplication,numDataNodes));
+<Line#19>    }
+<Line#20>    int safemodeExtension=conf.getInt(DFS_NAMENODE_SAFEMODE_EXTENSION_TESTING_KEY,0);
+<Line#21>    conf.setInt(DFS_NAMENODE_SAFEMODE_EXTENSION_KEY,safemodeExtension);
+<Line#22>    long decommissionInterval=conf.getTimeDuration(DFS_NAMENODE_DECOMMISSION_INTERVAL_TESTING_KEY,3,TimeUnit.SECONDS);
+<Line#23>    conf.setTimeDuration(DFS_NAMENODE_DECOMMISSION_INTERVAL_KEY,decommissionInterval,TimeUnit.SECONDS);
+<Line#24>    if (!useConfiguredTopologyMappingClass) {
+<Line#25>      conf.setClass(NET_TOPOLOGY_NODE_SWITCH_MAPPING_IMPL_KEY,StaticMapping.class,DNSToSwitchMapping.class);
+<Line#26>    }
+<Line#27>    if (!nnTopology.allHttpPortsSpecified() && nnTopology.isHA()) {
+<Line#28>      LOG.info("MiniDFSCluster disabling checkpointing in the Standby node " + "since no HTTP ports have been specified.");
+<Line#29>      conf.setBoolean(DFS_HA_STANDBY_CHECKPOINTS_KEY,false);
+<Line#30>    }
+<Line#31>    if (!nnTopology.allIpcPortsSpecified() && nnTopology.isHA()) {
+<Line#32>      LOG.info("MiniDFSCluster disabling log-roll triggering in the " + "Standby node since no IPC ports have been specified.");
+<Line#33>      conf.setInt(DFS_HA_LOGROLL_PERIOD_KEY,-1);
+<Line#34>    }
+<Line#35>    EditLogFileOutputStream.setShouldSkipFsyncForTesting(skipFsyncForTesting);
+<Line#36>    federation=nnTopology.isFederated();
+<Line#37>    try {
+<Line#38>      createNameNodesAndSetConf(nnTopology,manageNameDfsDirs,manageNameDfsSharedDirs,enableManagedDfsDirsRedundancy,format,startOpt,clusterId);
+<Line#39>    }
+<Line#40> catch (    IOException ioe) {
+<Line#41>      LOG.error("IOE creating namenodes. Permissions dump:\n" + createPermissionsDiagnosisString(data_dir),ioe);
+<Line#42>      throw ioe;
+<Line#43>    }
+<Line#44>    if (format) {
+<Line#45>      if (data_dir.exists() && !FileUtil.fullyDelete(data_dir)) {
+<Line#46>        throw new IOException("Cannot remove data directory: " + data_dir + createPermissionsDiagnosisString(data_dir));
+<Line#47>      }
+<Line#48>    }
+<Line#49>    if (startOpt == StartupOption.RECOVER) {
+<Line#50>      return;
+<Line#51>    }
+<Line#52>    startDataNodes(conf,numDataNodes,storageTypes,manageDataDfsDirs,dnStartOpt != null ? dnStartOpt : startOpt,racks,hosts,storageCapacities,simulatedCapacities,setupHostsFile,checkDataNodeAddrConfig,checkDataNodeHostConfig,dnConfOverlays,dnHttpPorts,dnIpcPorts);
+<Line#53>    waitClusterUp();
+<Line#54>    ProxyUsers.refreshSuperUserGroupsConfiguration(conf);
+<Line#55>    success=true;
+<Line#56>  }
+<Line#57>  finally {
+<Line#58>    if (!success) {
+<Line#59>      shutdown();
+<Line#60>    }
+<Line#61>  }
+<Line#62>}
+Label: <Line#28> LOG.info("MiniDFSCluster disabling checkpointing in the Standby node " + "since no HTTP ports have been specified.")
+
+Example 2:
+<Line#1>{
+<Line#2>  boolean success=false;
+<Line#3>  try {
+<Line#4>    ExitUtil.disableSystemExit();
+<Line#5>    FileSystem.enableSymlinks();
+<Line#6>synchronized (MiniDFSCluster.class) {
+<Line#7>      instanceId=instanceCount++;
+<Line#8>    }
+<Line#9>    this.conf=conf;
+<Line#10>    base_dir=new File(determineDfsBaseDir());
+<Line#11>    data_dir=new File(base_dir,"data");
+<Line#12>    this.waitSafeMode=waitSafeMode;
+<Line#13>    this.checkExitOnShutdown=checkExitOnShutdown;
+<Line#14>    int replication=conf.getInt(DFS_REPLICATION_KEY,3);
+<Line#15>    conf.setInt(DFS_REPLICATION_KEY,Math.min(replication,numDataNodes));
+<Line#16>    int maintenanceMinReplication=conf.getInt(DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY,DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_DEFAULT);
+<Line#17>    if (maintenanceMinReplication == DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_DEFAULT) {
+<Line#18>      conf.setInt(DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY,Math.min(maintenanceMinReplication,numDataNodes));
+<Line#19>    }
+<Line#20>    int safemodeExtension=conf.getInt(DFS_NAMENODE_SAFEMODE_EXTENSION_TESTING_KEY,0);
+<Line#21>    conf.setInt(DFS_NAMENODE_SAFEMODE_EXTENSION_KEY,safemodeExtension);
+<Line#22>    long decommissionInterval=conf.getTimeDuration(DFS_NAMENODE_DECOMMISSION_INTERVAL_TESTING_KEY,3,TimeUnit.SECONDS);
+<Line#23>    conf.setTimeDuration(DFS_NAMENODE_DECOMMISSION_INTERVAL_KEY,decommissionInterval,TimeUnit.SECONDS);
+<Line#24>    if (!useConfiguredTopologyMappingClass) {
+<Line#25>      conf.setClass(NET_TOPOLOGY_NODE_SWITCH_MAPPING_IMPL_KEY,StaticMapping.class,DNSToSwitchMapping.class);
+<Line#26>    }
+<Line#27>    if (!nnTopology.allHttpPortsSpecified() && nnTopology.isHA()) {
+<Line#28>      LOG.info("MiniDFSCluster disabling checkpointing in the Standby node " + "since no HTTP ports have been specified.");
+<Line#29>      conf.setBoolean(DFS_HA_STANDBY_CHECKPOINTS_KEY,false);
+<Line#30>    }
+<Line#31>    if (!nnTopology.allIpcPortsSpecified() && nnTopology.isHA()) {
+<Line#32>      LOG.info("MiniDFSCluster disabling log-roll triggering in the " + "Standby node since no IPC ports have been specified.");
+<Line#33>      conf.setInt(DFS_HA_LOGROLL_PERIOD_KEY,-1);
+<Line#34>    }
+<Line#35>    EditLogFileOutputStream.setShouldSkipFsyncForTesting(skipFsyncForTesting);
+<Line#36>    federation=nnTopology.isFederated();
+<Line#37>    try {
+<Line#38>      createNameNodesAndSetConf(nnTopology,manageNameDfsDirs,manageNameDfsSharedDirs,enableManagedDfsDirsRedundancy,format,startOpt,clusterId);
+<Line#39>    }
+<Line#40> catch (    IOException ioe) {
+<Line#41>      LOG.error("IOE creating namenodes. Permissions dump:\n" + createPermissionsDiagnosisString(data_dir),ioe);
+<Line#42>      throw ioe;
+<Line#43>    }
+<Line#44>    if (format) {
+<Line#45>      if (data_dir.exists() && !FileUtil.fullyDelete(data_dir)) {
+<Line#46>        throw new IOException("Cannot remove data directory: " + data_dir + createPermissionsDiagnosisString(data_dir));
+<Line#47>      }
+<Line#48>    }
+<Line#49>    if (startOpt == StartupOption.RECOVER) {
+<Line#50>      return;
+<Line#51>    }
+<Line#52>    startDataNodes(conf,numDataNodes,storageTypes,manageDataDfsDirs,dnStartOpt != null ? dnStartOpt : startOpt,racks,hosts,storageCapacities,simulatedCapacities,setupHostsFile,checkDataNodeAddrConfig,checkDataNodeHostConfig,dnConfOverlays,dnHttpPorts,dnIpcPorts);
+<Line#53>    waitClusterUp();
+<Line#54>    ProxyUsers.refreshSuperUserGroupsConfiguration(conf);
+<Line#55>    success=true;
+<Line#56>  }
+<Line#57>  finally {
+<Line#58>    if (!success) {
+<Line#59>      shutdown();
+<Line#60>    }
+<Line#61>  }
+<Line#62>}
+Label: <Line#32> LOG.info("MiniDFSCluster disabling log-roll triggering in the " + "Standby node since no IPC ports have been specified.")
+
+Example 3:
+<Line#1>{
+<Line#2>  boolean success=false;
+<Line#3>  try {
+<Line#4>    ExitUtil.disableSystemExit();
+<Line#5>    FileSystem.enableSymlinks();
+<Line#6>synchronized (MiniDFSCluster.class) {
+<Line#7>      instanceId=instanceCount++;
+<Line#8>    }
+<Line#9>    this.conf=conf;
+<Line#10>    base_dir=new File(determineDfsBaseDir());
+<Line#11>    data_dir=new File(base_dir,"data");
+<Line#12>    this.waitSafeMode=waitSafeMode;
+<Line#13>    this.checkExitOnShutdown=checkExitOnShutdown;
+<Line#14>    int replication=conf.getInt(DFS_REPLICATION_KEY,3);
+<Line#15>    conf.setInt(DFS_REPLICATION_KEY,Math.min(replication,numDataNodes));
+<Line#16>    int maintenanceMinReplication=conf.getInt(DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY,DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_DEFAULT);
+<Line#17>    if (maintenanceMinReplication == DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_DEFAULT) {
+<Line#18>      conf.setInt(DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY,Math.min(maintenanceMinReplication,numDataNodes));
+<Line#19>    }
+<Line#20>    int safemodeExtension=conf.getInt(DFS_NAMENODE_SAFEMODE_EXTENSION_TESTING_KEY,0);
+<Line#21>    conf.setInt(DFS_NAMENODE_SAFEMODE_EXTENSION_KEY,safemodeExtension);
+<Line#22>    long decommissionInterval=conf.getTimeDuration(DFS_NAMENODE_DECOMMISSION_INTERVAL_TESTING_KEY,3,TimeUnit.SECONDS);
+<Line#23>    conf.setTimeDuration(DFS_NAMENODE_DECOMMISSION_INTERVAL_KEY,decommissionInterval,TimeUnit.SECONDS);
+<Line#24>    if (!useConfiguredTopologyMappingClass) {
+<Line#25>      conf.setClass(NET_TOPOLOGY_NODE_SWITCH_MAPPING_IMPL_KEY,StaticMapping.class,DNSToSwitchMapping.class);
+<Line#26>    }
+<Line#27>    if (!nnTopology.allHttpPortsSpecified() && nnTopology.isHA()) {
+<Line#28>      LOG.info("MiniDFSCluster disabling checkpointing in the Standby node " + "since no HTTP ports have been specified.");
+<Line#29>      conf.setBoolean(DFS_HA_STANDBY_CHECKPOINTS_KEY,false);
+<Line#30>    }
+<Line#31>    if (!nnTopology.allIpcPortsSpecified() && nnTopology.isHA()) {
+<Line#32>      LOG.info("MiniDFSCluster disabling log-roll triggering in the " + "Standby node since no IPC ports have been specified.");
+<Line#33>      conf.setInt(DFS_HA_LOGROLL_PERIOD_KEY,-1);
+<Line#34>    }
+<Line#35>    EditLogFileOutputStream.setShouldSkipFsyncForTesting(skipFsyncForTesting);
+<Line#36>    federation=nnTopology.isFederated();
+<Line#37>    try {
+<Line#38>      createNameNodesAndSetConf(nnTopology,manageNameDfsDirs,manageNameDfsSharedDirs,enableManagedDfsDirsRedundancy,format,startOpt,clusterId);
+<Line#39>    }
+<Line#40> catch (    IOException ioe) {
+<Line#41>      LOG.error("IOE creating namenodes. Permissions dump:\n" + createPermissionsDiagnosisString(data_dir),ioe);
+<Line#42>      throw ioe;
+<Line#43>    }
+<Line#44>    if (format) {
+<Line#45>      if (data_dir.exists() && !FileUtil.fullyDelete(data_dir)) {
+<Line#46>        throw new IOException("Cannot remove data directory: " + data_dir + createPermissionsDiagnosisString(data_dir));
+<Line#47>      }
+<Line#48>    }
+<Line#49>    if (startOpt == StartupOption.RECOVER) {
+<Line#50>      return;
+<Line#51>    }
+<Line#52>    startDataNodes(conf,numDataNodes,storageTypes,manageDataDfsDirs,dnStartOpt != null ? dnStartOpt : startOpt,racks,hosts,storageCapacities,simulatedCapacities,setupHostsFile,checkDataNodeAddrConfig,checkDataNodeHostConfig,dnConfOverlays,dnHttpPorts,dnIpcPorts);
+<Line#53>    waitClusterUp();
+<Line#54>    ProxyUsers.refreshSuperUserGroupsConfiguration(conf);
+<Line#55>    success=true;
+<Line#56>  }
+<Line#57>  finally {
+<Line#58>    if (!success) {
+<Line#59>      shutdown();
+<Line#60>    }
+<Line#61>  }
+<Line#62>}
+Label: <Line#41> LOG.error("IOE creating namenodes. Permissions dump:\n" + createPermissionsDiagnosisString(data_dir),ioe)
+
+Example 4:
+<Line#1>{
+<Line#2>  initCacheManipulator();
+<Line#3>  Configuration conf=new Configuration();
+<Line#4>  conf.setLong(DFS_BLOCK_SIZE_KEY,BLOCK_SIZE);
+<Line#5>  if (disableScrubber) {
+<Line#6>    conf.setInt(DFS_NAMENODE_LAZY_PERSIST_FILE_SCRUB_INTERVAL_SEC,0);
+<Line#7>  }
+<Line#8> else {
+<Line#9>    conf.setInt(DFS_NAMENODE_LAZY_PERSIST_FILE_SCRUB_INTERVAL_SEC,LAZY_WRITE_FILE_SCRUBBER_INTERVAL_SEC);
+<Line#10>  }
+<Line#11>  conf.setLong(DFS_HEARTBEAT_INTERVAL_KEY,HEARTBEAT_INTERVAL_SEC);
+<Line#12>  conf.setInt(DFS_NAMENODE_HEARTBEAT_RECHECK_INTERVAL_KEY,HEARTBEAT_RECHECK_INTERVAL_MS);
+<Line#13>  conf.setInt(DFS_DATANODE_LAZY_WRITER_INTERVAL_SEC,LAZY_WRITER_INTERVAL_SEC);
+<Line#14>  conf.setInt(DFSConfigKeys.DFS_NAMENODE_SAFEMODE_MIN_DATANODES_KEY,1);
+<Line#15>  conf.setLong(DFS_DATANODE_MAX_LOCKED_MEMORY_KEY,maxLockedMemory);
+<Line#16>  if (useSCR) {
+<Line#17>    conf.setBoolean(HdfsClientConfigKeys.Read.ShortCircuit.KEY,true);
+<Line#18>    conf.set(HdfsClientConfigKeys.DFS_CLIENT_CONTEXT,UUID.randomUUID().toString());
+<Line#19>    conf.set(DFS_BLOCK_LOCAL_PATH_ACCESS_USER_KEY,UserGroupInformation.getCurrentUser().getShortUserName());
+<Line#20>    if (useLegacyBlockReaderLocal) {
+<Line#21>      conf.setBoolean(HdfsClientConfigKeys.DFS_CLIENT_USE_LEGACY_BLOCKREADERLOCAL,true);
+<Line#22>    }
+<Line#23> else {
+<Line#24>      sockDir=new TemporarySocketDirectory();
+<Line#25>      conf.set(DFS_DOMAIN_SOCKET_PATH_KEY,new File(sockDir.getDir(),this.getClass().getSimpleName() + "._PORT.sock").getAbsolutePath());
+<Line#26>    }
+<Line#27>  }
+<Line#28>  Preconditions.checkState(ramDiskReplicaCapacity < 0 || ramDiskStorageLimit < 0,"Cannot specify non-default values for both ramDiskReplicaCapacity " + "and ramDiskStorageLimit");
+<Line#29>  long[] capacities;
+<Line#30>  if (hasTransientStorage && ramDiskReplicaCapacity >= 0) {
+<Line#31>    ramDiskStorageLimit=((long)ramDiskReplicaCapacity * BLOCK_SIZE) + (BLOCK_SIZE - 1);
+<Line#32>  }
+<Line#33>  capacities=new long[]{ramDiskStorageLimit,-1};
+<Line#34>  cluster=new MiniDFSCluster.Builder(conf).numDataNodes(numDatanodes).storageCapacities(capacities).storageTypes(storageTypes != null ? storageTypes : (hasTransientStorage ? new StorageType[]{RAM_DISK,DEFAULT} : null)).build();
+<Line#35>  cluster.waitActive();
+<Line#36>  fs=cluster.getFileSystem();
+<Line#37>  client=fs.getClient();
+<Line#38>  try {
+<Line#39>    jmx=initJMX();
+<Line#40>  }
+<Line#41> catch (  Exception e) {
+<Line#42>    fail("Failed initialize JMX for testing: " + e);
+<Line#43>  }
+<Line#44>  LOG.info("Cluster startup complete");
+<Line#45>}
+Label: <Line#44> LOG.info("Cluster startup complete")
+
+Example 5:
+<Line#1>{
+<Line#2>  this.conf=configuration;
+<Line#3>  updateRouterState(RouterServiceState.INITIALIZING);
+<Line#4>  UserGroupInformation.setConfiguration(conf);
+<Line#5>  SecurityUtil.login(conf,DFS_ROUTER_KEYTAB_FILE_KEY,DFS_ROUTER_KERBEROS_PRINCIPAL_KEY,getHostName(conf));
+<Line#6>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_STORE_ENABLE,RBFConfigKeys.DFS_ROUTER_STORE_ENABLE_DEFAULT)) {
+<Line#7>    this.stateStore=new StateStoreService();
+<Line#8>    addService(this.stateStore);
+<Line#9>  }
+<Line#10>  this.namenodeResolver=newActiveNamenodeResolver(this.conf,this.stateStore);
+<Line#11>  if (this.namenodeResolver == null) {
+<Line#12>    throw new IOException("Cannot find namenode resolver.");
+<Line#13>  }
+<Line#14>  this.subclusterResolver=newFileSubclusterResolver(this.conf,this);
+<Line#15>  if (this.subclusterResolver == null) {
+<Line#16>    throw new IOException("Cannot find subcluster resolver");
+<Line#17>  }
+<Line#18>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_RPC_ENABLE,RBFConfigKeys.DFS_ROUTER_RPC_ENABLE_DEFAULT)) {
+<Line#19>    this.rpcServer=createRpcServer();
+<Line#20>    addService(this.rpcServer);
+<Line#21>    this.setRpcServerAddress(rpcServer.getRpcAddress());
+<Line#22>  }
+<Line#23>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_ADMIN_ENABLE,RBFConfigKeys.DFS_ROUTER_ADMIN_ENABLE_DEFAULT)) {
+<Line#24>    this.adminServer=createAdminServer();
+<Line#25>    addService(this.adminServer);
+<Line#26>  }
+<Line#27>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_HTTP_ENABLE,RBFConfigKeys.DFS_ROUTER_HTTP_ENABLE_DEFAULT)) {
+<Line#28>    this.httpServer=createHttpServer();
+<Line#29>    addService(this.httpServer);
+<Line#30>  }
+<Line#31>  boolean isRouterHeartbeatEnabled=conf.getBoolean(RBFConfigKeys.DFS_ROUTER_HEARTBEAT_ENABLE,RBFConfigKeys.DFS_ROUTER_HEARTBEAT_ENABLE_DEFAULT);
+<Line#32>  boolean isNamenodeHeartbeatEnable=conf.getBoolean(RBFConfigKeys.DFS_ROUTER_NAMENODE_HEARTBEAT_ENABLE,isRouterHeartbeatEnabled);
+<Line#33>  if (isNamenodeHeartbeatEnable) {
+<Line#34>    this.namenodeHeartbeatServices=createNamenodeHeartbeatServices();
+<Line#35>    for (    NamenodeHeartbeatService heartbeatService : this.namenodeHeartbeatServices) {
+<Line#36>      addService(heartbeatService);
+<Line#37>    }
+<Line#38>    if (this.namenodeHeartbeatServices.isEmpty()) {
+<Line#39>      LOG.error("Heartbeat is enabled but there are no namenodes to monitor");
+<Line#40>    }
+<Line#41>  }
+<Line#42>  if (isRouterHeartbeatEnabled) {
+<Line#43>    this.routerHeartbeatService=new RouterHeartbeatService(this);
+<Line#44>    addService(this.routerHeartbeatService);
+<Line#45>  }
+<Line#46>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_METRICS_ENABLE,RBFConfigKeys.DFS_ROUTER_METRICS_ENABLE_DEFAULT)) {
+<Line#47>    DefaultMetricsSystem.initialize("Router");
+<Line#48>    this.metrics=new RouterMetricsService(this);
+<Line#49>    addService(this.metrics);
+<Line#50>    this.pauseMonitor=new JvmPauseMonitor();
+<Line#51>    this.pauseMonitor.init(conf);
+<Line#52>  }
+<Line#53>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_QUOTA_ENABLE,RBFConfigKeys.DFS_ROUTER_QUOTA_ENABLED_DEFAULT)) {
+<Line#54>    this.quotaManager=new RouterQuotaManager();
+<Line#55>    this.quotaUpdateService=new RouterQuotaUpdateService(this);
+<Line#56>    addService(this.quotaUpdateService);
+<Line#57>  }
+<Line#58>  if (conf.getBoolean(RBFConfigKeys.DFS_ROUTER_SAFEMODE_ENABLE,RBFConfigKeys.DFS_ROUTER_SAFEMODE_ENABLE_DEFAULT)) {
+<Line#59>    this.safemodeService=new RouterSafemodeService(this);
+<Line#60>    addService(this.safemodeService);
+<Line#61>  }
+<Line#62>  if (conf.getBoolean(RBFConfigKeys.MOUNT_TABLE_CACHE_UPDATE,RBFConfigKeys.MOUNT_TABLE_CACHE_UPDATE_DEFAULT)) {
+<Line#63>    String disabledDependentServices=getDisabledDependentServices();
+<Line#64>    if (disabledDependentServices == null) {
+<Line#65>      MountTableRefresherService refreshService=new MountTableRefresherService(this);
+<Line#66>      addService(refreshService);
+<Line#67>      LOG.info("Service {} is enabled.",MountTableRefresherService.class.getSimpleName());
+<Line#68>    }
+<Line#69> else {
+<Line#70>      LOG.warn("Service {} not enabled: dependent service(s) {} not enabled.",MountTableRefresherService.class.getSimpleName(),disabledDependentServices);
+<Line#71>    }
+<Line#72>  }
+<Line#73>  super.serviceInit(conf);
+<Line#74>  if (stateStore != null) {
+<Line#75>    MountTableStore mountstore=this.stateStore.getRegisteredRecordStore(MountTableStore.class);
+<Line#76>    mountstore.setQuotaManager(this.quotaManager);
+<Line#77>  }
+<Line#78>}
+Label: <Line#39> LOG.error("Heartbeat is enabled but there are no namenodes to monitor")
+

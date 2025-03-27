@@ -1,0 +1,67 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Task.java	methodSinagture:	org.apache.storm.daemon.Task.getOutgoingTasks(Ljava/lang/String;Ljava/util/List;)Ljava/util/List;	methodLines:	148:182
+blockLines:	156:-1
+paras:	null
+TaintedStat:	NORMAL getOutgoingTasks:conditional branch(eq, to iindex=76) 23,22 Node: < Application, Lorg/apache/storm/daemon/Task, getOutgoingTasks(Ljava/lang/String;Ljava/util/List;)Ljava/util/List; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/Task, getOutgoingTasks(Ljava/lang/String;Ljava/util/List;)Ljava/util/List; > Context: Everywhere[34]21 = invokevirtual < Application, Ljava/util/HashMap, get(Ljava/lang/Object;)Ljava/lang/Object; > 19,2 @57 exception:20
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/Task, getOutgoingTasks(Ljava/lang/String;Ljava/util/List;)Ljava/util/List; > Context: Everywhere[34]21 = invokevirtual < Application, Ljava/util/HashMap, get(Ljava/lang/Object;)Ljava/lang/Object; > 19,2 @57 exception:20
+NORMAL getOutgoingTasks:22 = checkcast <Application,Ljava/util/ArrayList>21 <Application,Ljava/util/ArrayList> Node: < Application, Lorg/apache/storm/daemon/Task, getOutgoingTasks(Ljava/lang/String;Ljava/util/List;)Ljava/util/List; > Context: Everywhere
+NORMAL getOutgoingTasks:conditional branch(eq, to iindex=76) 23,22 Node: < Application, Lorg/apache/storm/daemon/Task, getOutgoingTasks(Ljava/lang/String;Ljava/util/List;)Ljava/util/List; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public List<Integer> getOutgoingTasks(String stream, List<Object> values) {
+        if (debug) {
+            LOG.info("Emitting Tuple: taskId={} componentId={} stream={} values={}", taskId, componentId, stream, values);
+        }
+
+        ArrayList<Integer> outTasks = new ArrayList<>();
+
+        ArrayList<LoadAwareCustomStreamGrouping> groupers = streamToGroupers.get(stream);
+        if (null != groupers) {
+            for (int i = 0; i < groupers.size(); ++i) {
+                LoadAwareCustomStreamGrouping grouper = groupers.get(i);
+                if (grouper == GrouperFactory.DIRECT) {
+                    throw new IllegalArgumentException("Cannot do regular emit to direct stream");
+                }
+                List<Integer> compTasks = grouper.chooseTasks(taskId, values);
+                outTasks.addAll(compTasks);
+            }
+        } else {
+            throw new IllegalArgumentException("Unknown stream ID: " + stream);
+        }
+
+        if (!userTopologyContext.getHooks().isEmpty()) {
+            new EmitInfo(values, stream, taskId, outTasks).applyOn(userTopologyContext);
+        }
+        try {
+            if (emitSampler.getAsBoolean()) {
+                executorStats.emittedTuple(stream);
+                this.taskMetrics.emittedTuple(stream);
+                executorStats.transferredTuples(stream, outTasks.size());
+                this.taskMetrics.transferredTuples(stream, outTasks.size());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return outTasks;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/Task, sendUnanchored(Ljava/lang/String;Ljava/util/List;Lorg/apache/storm/executor/ExecutorTransfer;Ljava/util/Queue;)V > Context: Everywhere, blocks=[BB[SSA:4..8]2 - org.apache.storm.daemon.Task.sendUnanchored(Ljava/lang/String;Ljava/util/List;Lorg/apache/storm/executor/ExecutorTransfer;Ljava/util/Queue;)V, BB[SSA:0..3]1 - org.apache.storm.daemon.Task.sendUnanchored(Ljava/lang/String;Ljava/util/List;Lorg/apache/storm/executor/ExecutorTransfer;Ljava/util/Queue;)V, BB[SSA:9..11]3 - org.apache.storm.daemon.Task.sendUnanchored(Ljava/lang/String;Ljava/util/List;Lorg/apache/storm/executor/ExecutorTransfer;Ljava/util/Queue;)V, BB[SSA:-1..-2]14 - org.apache.storm.daemon.Task.sendUnanchored(Ljava/lang/String;Ljava/util/List;Lorg/apache/storm/executor/ExecutorTransfer;Ljava/util/Queue;)V], numberOfBasicBlocks=4, firstLineNumber=211, lastLineNumber=213, firstMethodNumber=210, lastMethodNumber=217, isFirstLineValid=true, methodSrcCode=
+    public void sendUnanchored(String stream, List<Object> values, ExecutorTransfer transfer, Queue<AddressedTuple> pendingEmits) {
+        Tuple tuple = getTuple(stream, values);
+        List<Integer> tasks = getOutgoingTasks(stream, values);
+        for (int i = 0; i < tasks.size(); i++) {
+            AddressedTuple addressedTuple = new AddressedTuple(tasks.get(i), tuple);
+            transfer.tryTransfer(addressedTuple, pendingEmits);
+        }
+    }
+
+}

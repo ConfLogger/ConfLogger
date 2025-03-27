@@ -1,0 +1,16 @@
+private NotRunningJob getNotRunningJob(ApplicationReport applicationReport,JobState state){
+synchronized (notRunningJobs) {
+    HashMap<String,NotRunningJob> map=notRunningJobs.get(state);
+    if (map == null) {
+      map=new HashMap<String,NotRunningJob>();
+      notRunningJobs.put(state,map);
+    }
+    String user=(applicationReport == null) ? UNKNOWN_USER : applicationReport.getUser();
+    NotRunningJob notRunningJob=map.get(user);
+    if (notRunningJob == null) {
+      notRunningJob=new NotRunningJob(applicationReport,state);
+      map.put(user,notRunningJob);
+    }
+    return notRunningJob;
+  }
+}

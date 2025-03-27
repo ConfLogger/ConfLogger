@@ -1,0 +1,29 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Utils.java	methodSinagture:	org.apache.storm.utils.Utils.validateTopologyName(Ljava/lang/String;)V	methodLines:	1837:1842
+blockLines:	1838:-1
+paras:	null
+TaintedStat:	NORMAL validateTopologyName:conditional branch(eq, to iindex=9) 1,3 Node: < Application, Lorg/apache/storm/utils/Utils, validateTopologyName(Ljava/lang/String;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/command/SetLogLevel, main([Ljava/lang/String;)V > Context: Everywhere[26]27 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 25,20 @58 exception:26
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/command/SetLogLevel, main([Ljava/lang/String;)V > Context: Everywhere[26]27 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 25,20 @58 exception:26
+NORMAL main:28 = checkcast <Application,Ljava/lang/String>27 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/command/SetLogLevel, main([Ljava/lang/String;)V > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/command/SetLogLevel, main([Ljava/lang/String;)V > Context: Everywhere[30]invokestatic < Application, Lorg/apache/storm/utils/Utils, validateTopologyName(Ljava/lang/String;)V > 28 @68 exception:29 v28
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/Utils, validateTopologyName(Ljava/lang/String;)V > Context: Everywhere v1
+NORMAL validateTopologyName:conditional branch(eq, to iindex=9) 1,3 Node: < Application, Lorg/apache/storm/utils/Utils, validateTopologyName(Ljava/lang/String;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static void validateTopologyName(String name) throws IllegalArgumentException {
+        if (name == null || !TOPOLOGY_NAME_REGEX.matcher(name).matches()) {
+            String message = "Topology name '" + name + "' is not valid. It can't be null and it must match " + TOPOLOGY_NAME_REGEX;
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+
+
+====================ctx:=======================

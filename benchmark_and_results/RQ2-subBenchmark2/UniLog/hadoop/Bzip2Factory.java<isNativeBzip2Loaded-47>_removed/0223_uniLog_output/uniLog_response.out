@@ -1,0 +1,37 @@
+To insert log level and log verbosity messages into the provided code, we need to determine suitable points in the code where logging can be useful. Based on the examples provided, logging is typically added around important actions, state changes, or exception handling.
+
+Let's add logging to the target method code:
+
+```java
+<Line#0>public static synchronized boolean isNativeBzip2Loaded(Configuration conf) {
+<Line#1>String libname = conf.get("io.compression.codec.bzip2.library",
+<Line#2>"system-native");
+<Line#3>if (!bzip2LibraryName.equals(libname)) {
+<Line#4>nativeBzip2Loaded = false;
+<Line#5>bzip2LibraryName = libname;
+<Line#6>if (libname.equals("java-builtin")) {
+<Line#7>  // Log info about using Java built-in library
+<Line#8>  LOG.info("Using Java built-in Bzip2 library.");
+<Line#9>} else if (NativeCodeLoader.isNativeCodeLoaded()) {
+<Line#10>  try {
+<Line#11>    // Initialize the native library.
+<Line#12>    Bzip2Compressor.initSymbols(libname);
+<Line#13>    Bzip2Decompressor.initSymbols(libname);
+<Line#14>    nativeBzip2Loaded = true;
+<Line#15>    // Log debug message about successful native library loading
+<Line#16>    LOG.debug("Native Bzip2 library loaded successfully.");
+<Line#17>  } catch (Throwable t) {
+<Line#18>    // Log error message with exception details
+<Line#19>    LOG.error("Failed to load native Bzip2 library: " + libname, t);
+<Line#20>  }
+<Line#21>}
+<Line#22>}
+<Line#23>return nativeBzip2Loaded;
+<Line#24>}
+```
+
+**Explanation of Inserted Logs:**
+
+- **Line#8:** An info-level log is added to indicate the use of the Java built-in Bzip2 library.
+- **Line#16:** A debug-level log is added to confirm successful loading of the native Bzip2 library.
+- **Line#19:** An error-level log is added to capture any exceptions that occur during the loading of the native library, providing both the library name and the exception details.

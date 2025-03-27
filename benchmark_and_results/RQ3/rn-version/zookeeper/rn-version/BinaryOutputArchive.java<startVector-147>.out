@@ -1,0 +1,446 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	BinaryOutputArchive.java	methodSinagture:	org.apache.jute.BinaryOutputArchive.startVector(Ljava/util/List;Ljava/lang/String;)V	methodLines:	147:153
+blockLines:	148:-1
+paras:	null
+TaintedStat:	NORMAL startVector:conditional branch(ne, to iindex=8) 2,5 Node: < Application, Lorg/apache/jute/BinaryOutputArchive, startVector(Ljava/util/List;Ljava/lang/String;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, serialize(Lorg/apache/jute/OutputArchive;)V > Context: Everywhere[43]30 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 21 @97 exception:29
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, serialize(Lorg/apache/jute/OutputArchive;)V > Context: Everywhere[43]30 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 21 @97 exception:29
+NORMAL serialize:[null]: 31 = checkcast <Application,Ljava/util/List>30 <Application,Ljava/util/List> Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, serialize(Lorg/apache/jute/OutputArchive;)V > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, serialize(Lorg/apache/jute/OutputArchive;)V > Context: Everywhere[49]invokeinterface < Application, Lorg/apache/jute/OutputArchive, startVector(Ljava/util/List;Ljava/lang/String;)V > 2,31,32 @112 exception:33 v31
+PARAM_CALLEE:Node: < Application, Lorg/apache/jute/BinaryOutputArchive, startVector(Ljava/util/List;Ljava/lang/String;)V > Context: Everywhere v2
+NORMAL startVector:conditional branch(ne, to iindex=8) 2,5 Node: < Application, Lorg/apache/jute/BinaryOutputArchive, startVector(Ljava/util/List;Ljava/lang/String;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public void startVector(List<?> v, String tag) throws IOException {
+        if (v == null) {
+            writeInt(-1, tag);
+            return;
+        }
+        writeInt(v.size(), tag);
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/txn/CloseSessionTxn, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=40, lastMethodNumber=53, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    {
+      a_.startVector(paths2Delete,"paths2Delete");
+      if (paths2Delete!= null) {          int len1 = paths2Delete.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            String e1 = (String) paths2Delete.get(vidx1);
+        a_.writeString(e1,"e1");
+          }
+      }
+      a_.endVector(paths2Delete,"paths2Delete");
+    }
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/proto/SetWatches, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=67, lastMethodNumber=101, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    a_.writeLong(relativeZxid,"relativeZxid");
+    {
+      a_.startVector(dataWatches,"dataWatches");
+      if (dataWatches!= null) {          int len1 = dataWatches.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            String e1 = (String) dataWatches.get(vidx1);
+        a_.writeString(e1,"e1");
+          }
+      }
+      a_.endVector(dataWatches,"dataWatches");
+    }
+    {
+      a_.startVector(existWatches,"existWatches");
+      if (existWatches!= null) {          int len1 = existWatches.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            String e1 = (String) existWatches.get(vidx1);
+        a_.writeString(e1,"e1");
+          }
+      }
+      a_.endVector(existWatches,"existWatches");
+    }
+    {
+      a_.startVector(childWatches,"childWatches");
+      if (childWatches!= null) {          int len1 = childWatches.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            String e1 = (String) childWatches.get(vidx1);
+        a_.writeString(e1,"e1");
+          }
+      }
+      a_.endVector(childWatches,"childWatches");
+    }
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/proto/SetWatches2, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=85, lastMethodNumber=139, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    a_.writeLong(relativeZxid,"relativeZxid");
+    {
+      a_.startVector(dataWatches,"dataWatches");
+      if (dataWatches!= null) {          int len1 = dataWatches.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            String e1 = (String) dataWatches.get(vidx1);
+        a_.writeString(e1,"e1");
+          }
+      }
+      a_.endVector(dataWatches,"dataWatches");
+    }
+    {
+      a_.startVector(existWatches,"existWatches");
+      if (existWatches!= null) {          int len1 = existWatches.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            String e1 = (String) existWatches.get(vidx1);
+        a_.writeString(e1,"e1");
+          }
+      }
+      a_.endVector(existWatches,"existWatches");
+    }
+    {
+      a_.startVector(childWatches,"childWatches");
+      if (childWatches!= null) {          int len1 = childWatches.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            String e1 = (String) childWatches.get(vidx1);
+        a_.writeString(e1,"e1");
+          }
+      }
+      a_.endVector(childWatches,"childWatches");
+    }
+    {
+      a_.startVector(persistentWatches,"persistentWatches");
+      if (persistentWatches!= null) {          int len1 = persistentWatches.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            String e1 = (String) persistentWatches.get(vidx1);
+        a_.writeString(e1,"e1");
+          }
+      }
+      a_.endVector(persistentWatches,"persistentWatches");
+    }
+    {
+      a_.startVector(persistentRecursiveWatches,"persistentRecursiveWatches");
+      if (persistentRecursiveWatches!= null) {          int len1 = persistentRecursiveWatches.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            String e1 = (String) persistentRecursiveWatches.get(vidx1);
+        a_.writeString(e1,"e1");
+          }
+      }
+      a_.endVector(persistentRecursiveWatches,"persistentRecursiveWatches");
+    }
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/proto/GetEphemeralsResponse, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=40, lastMethodNumber=53, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    {
+      a_.startVector(ephemerals,"ephemerals");
+      if (ephemerals!= null) {          int len1 = ephemerals.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            String e1 = (String) ephemerals.get(vidx1);
+        a_.writeString(e1,"e1");
+          }
+      }
+      a_.endVector(ephemerals,"ephemerals");
+    }
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/proto/GetACLResponse, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=49, lastMethodNumber=63, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    {
+      a_.startVector(acl,"acl");
+      if (acl!= null) {          int len1 = acl.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            org.apache.zookeeper.data.ACL e1 = (org.apache.zookeeper.data.ACL) acl.get(vidx1);
+    a_.writeRecord(e1,"e1");
+          }
+      }
+      a_.endVector(acl,"acl");
+    }
+    a_.writeRecord(stat,"stat");
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/txn/MultiTxn, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=40, lastMethodNumber=53, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    {
+      a_.startVector(txns,"txns");
+      if (txns!= null) {          int len1 = txns.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            org.apache.zookeeper.txn.Txn e1 = (org.apache.zookeeper.txn.Txn) txns.get(vidx1);
+    a_.writeRecord(e1,"e1");
+          }
+      }
+      a_.endVector(txns,"txns");
+    }
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/txn/CreateTxn, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=76, lastMethodNumber=93, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    a_.writeString(path,"path");
+    a_.writeBuffer(data,"data");
+    {
+      a_.startVector(acl,"acl");
+      if (acl!= null) {          int len1 = acl.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            org.apache.zookeeper.data.ACL e1 = (org.apache.zookeeper.data.ACL) acl.get(vidx1);
+    a_.writeRecord(e1,"e1");
+          }
+      }
+      a_.endVector(acl,"acl");
+    }
+    a_.writeBool(ephemeral,"ephemeral");
+    a_.writeInt(parentCVersion,"parentCVersion");
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/txn/CreateTxnV0, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=67, lastMethodNumber=83, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    a_.writeString(path,"path");
+    a_.writeBuffer(data,"data");
+    {
+      a_.startVector(acl,"acl");
+      if (acl!= null) {          int len1 = acl.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            org.apache.zookeeper.data.ACL e1 = (org.apache.zookeeper.data.ACL) acl.get(vidx1);
+    a_.writeRecord(e1,"e1");
+          }
+      }
+      a_.endVector(acl,"acl");
+    }
+    a_.writeBool(ephemeral,"ephemeral");
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/proto/CreateRequest, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=67, lastMethodNumber=83, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    a_.writeString(path,"path");
+    a_.writeBuffer(data,"data");
+    {
+      a_.startVector(acl,"acl");
+      if (acl!= null) {          int len1 = acl.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            org.apache.zookeeper.data.ACL e1 = (org.apache.zookeeper.data.ACL) acl.get(vidx1);
+    a_.writeRecord(e1,"e1");
+          }
+      }
+      a_.endVector(acl,"acl");
+    }
+    a_.writeInt(flags,"flags");
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/proto/SetACLRequest, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=58, lastMethodNumber=73, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    a_.writeString(path,"path");
+    {
+      a_.startVector(acl,"acl");
+      if (acl!= null) {          int len1 = acl.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            org.apache.zookeeper.data.ACL e1 = (org.apache.zookeeper.data.ACL) acl.get(vidx1);
+    a_.writeRecord(e1,"e1");
+          }
+      }
+      a_.endVector(acl,"acl");
+    }
+    a_.writeInt(version,"version");
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/txn/SetACLTxn, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=58, lastMethodNumber=73, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    a_.writeString(path,"path");
+    {
+      a_.startVector(acl,"acl");
+      if (acl!= null) {          int len1 = acl.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            org.apache.zookeeper.data.ACL e1 = (org.apache.zookeeper.data.ACL) acl.get(vidx1);
+    a_.writeRecord(e1,"e1");
+          }
+      }
+      a_.endVector(acl,"acl");
+    }
+    a_.writeInt(version,"version");
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/proto/CreateTTLRequest, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=76, lastMethodNumber=93, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    a_.writeString(path,"path");
+    a_.writeBuffer(data,"data");
+    {
+      a_.startVector(acl,"acl");
+      if (acl!= null) {          int len1 = acl.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            org.apache.zookeeper.data.ACL e1 = (org.apache.zookeeper.data.ACL) acl.get(vidx1);
+    a_.writeRecord(e1,"e1");
+          }
+      }
+      a_.endVector(acl,"acl");
+    }
+    a_.writeInt(flags,"flags");
+    a_.writeLong(ttl,"ttl");
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/proto/GetChildren2Response, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=49, lastMethodNumber=63, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    {
+      a_.startVector(children,"children");
+      if (children!= null) {          int len1 = children.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            String e1 = (String) children.get(vidx1);
+        a_.writeString(e1,"e1");
+          }
+      }
+      a_.endVector(children,"children");
+    }
+    a_.writeRecord(stat,"stat");
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/txn/CreateTTLTxn, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=76, lastMethodNumber=93, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    a_.writeString(path,"path");
+    a_.writeBuffer(data,"data");
+    {
+      a_.startVector(acl,"acl");
+      if (acl!= null) {          int len1 = acl.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            org.apache.zookeeper.data.ACL e1 = (org.apache.zookeeper.data.ACL) acl.get(vidx1);
+    a_.writeRecord(e1,"e1");
+          }
+      }
+      a_.endVector(acl,"acl");
+    }
+    a_.writeInt(parentCVersion,"parentCVersion");
+    a_.writeLong(ttl,"ttl");
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPacket, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=67, lastMethodNumber=83, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    a_.writeInt(type,"type");
+    a_.writeLong(zxid,"zxid");
+    a_.writeBuffer(data,"data");
+    {
+      a_.startVector(authinfo,"authinfo");
+      if (authinfo!= null) {          int len1 = authinfo.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            org.apache.zookeeper.data.Id e1 = (org.apache.zookeeper.data.Id) authinfo.get(vidx1);
+    a_.writeRecord(e1,"e1");
+          }
+      }
+      a_.endVector(authinfo,"authinfo");
+    }
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, serialize(Lorg/apache/jute/OutputArchive;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=142, lastMethodNumber=156, isFirstLineValid=true, methodSrcCode=
+        Map<Long, List<ACL>> clonedLongKeyMap;
+        synchronized (this) {
+            clonedLongKeyMap = new HashMap<>(longKeyMap);
+        }
+        oa.writeInt(clonedLongKeyMap.size(), "map");
+        for (Map.Entry<Long, List<ACL>> val : clonedLongKeyMap.entrySet()) {
+            oa.writeLong(val.getKey(), "long");
+            List<ACL> aclList = val.getValue();
+            oa.startVector(aclList, "acls");
+            for (ACL acl : aclList) {
+                acl.serialize(oa, "acl");
+            }
+            oa.endVector(aclList, "acls");
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/proto/GetChildrenResponse, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=40, lastMethodNumber=53, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    {
+      a_.startVector(children,"children");
+      if (children!= null) {          int len1 = children.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            String e1 = (String) children.get(vidx1);
+        a_.writeString(e1,"e1");
+          }
+      }
+      a_.endVector(children,"children");
+    }
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/txn/CreateContainerTxn, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=67, lastMethodNumber=83, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    a_.writeString(path,"path");
+    a_.writeBuffer(data,"data");
+    {
+      a_.startVector(acl,"acl");
+      if (acl!= null) {          int len1 = acl.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            org.apache.zookeeper.data.ACL e1 = (org.apache.zookeeper.data.ACL) acl.get(vidx1);
+    a_.writeRecord(e1,"e1");
+          }
+      }
+      a_.endVector(acl,"acl");
+    }
+    a_.writeInt(parentCVersion,"parentCVersion");
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/proto/WhoAmIResponse, serialize(Lorg/apache/jute/OutputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=40, lastMethodNumber=53, isFirstLineValid=true, methodSrcCode=
+  public void serialize(OutputArchive a_, String tag) throws java.io.IOException {
+    a_.startRecord(this,tag);
+    {
+      a_.startVector(clientInfo,"clientInfo");
+      if (clientInfo!= null) {          int len1 = clientInfo.size();
+          for(int vidx1 = 0; vidx1<len1; vidx1++) {
+            org.apache.zookeeper.data.ClientInfo e1 = (org.apache.zookeeper.data.ClientInfo) clientInfo.get(vidx1);
+    a_.writeRecord(e1,"e1");
+          }
+      }
+      a_.endVector(clientInfo,"clientInfo");
+    }
+    a_.endRecord(this,tag);
+  }
+  public void deserialize(InputArchive a_, String tag) throws java.io.IOException {
+}

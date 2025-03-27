@@ -1,0 +1,97 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ZooKeeperServer.java	methodSinagture:	org.apache.zookeeper.server.ZooKeeperServer.processTxn(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult;	methodLines:	1867:1906
+blockLines:	1895:-1
+paras:	null
+TaintedStat:	NORMAL processTxn:conditional branch(ne, to iindex=98) 55,36 Node: < Application, Lorg/apache/zookeeper/server/ZooKeeperServer, processTxn(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ZooKeeperServer, processTxn(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult; > Context: Everywhere[89]55 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 52,53 @184 exception:54
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ZooKeeperServer, processTxn(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult; > Context: Everywhere[89]55 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 52,53 @184 exception:54
+NORMAL processTxn:conditional branch(ne, to iindex=98) 55,36 Node: < Application, Lorg/apache/zookeeper/server/ZooKeeperServer, processTxn(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public ProcessTxnResult processTxn(Request request) {
+        TxnHeader hdr = request.getHdr();
+        processTxnForSessionEvents(request, hdr, request.getTxn());
+
+        final boolean writeRequest = (hdr != null);
+        final boolean quorumRequest = request.isQuorum();
+
+        // return fast w/o synchronization when we get a read
+        if (!writeRequest && !quorumRequest) {
+            return new ProcessTxnResult();
+        }
+        synchronized (outstandingChanges) {
+            ProcessTxnResult rc = processTxnInDB(hdr, request.getTxn(), request.getTxnDigest());
+
+            // request.hdr is set for write requests, which are the only ones
+            // that add to outstandingChanges.
+            if (writeRequest) {
+                long zxid = hdr.getZxid();
+                while (!outstandingChanges.isEmpty()
+                        && outstandingChanges.peek().zxid <= zxid) {
+                    ChangeRecord cr = outstandingChanges.remove();
+                    ServerMetrics.getMetrics().OUTSTANDING_CHANGES_REMOVED.add(1);
+                    if (cr.zxid < zxid) {
+                        LOG.warn(
+                            "Zxid outstanding 0x{} is less than current 0x{}",
+                            Long.toHexString(cr.zxid),
+                            Long.toHexString(zxid));
+                    }
+                    if (outstandingChangesForPath.get(cr.path) == cr) {
+                        outstandingChangesForPath.remove(cr.path);
+                    }
+                }
+            }
+
+            // do not add non quorum packets to the queue.
+            if (quorumRequest) {
+                getZKDatabase().addCommittedProposal(request);
+            }
+            return rc;
+        }
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/FinalRequestProcessor, applyRequest(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult; > Context: Everywhere, blocks=[BB[SSA:2..3]2 - org.apache.zookeeper.server.FinalRequestProcessor.applyRequest(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult;, BB[SSA:0..1]1 - org.apache.zookeeper.server.FinalRequestProcessor.applyRequest(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult;, BB[SSA:4..6]3 - org.apache.zookeeper.server.FinalRequestProcessor.applyRequest(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult;, BB[SSA:-1..-2]28 - org.apache.zookeeper.server.FinalRequestProcessor.applyRequest(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult;], numberOfBasicBlocks=4, firstLineNumber=111, lastLineNumber=118, firstMethodNumber=110, lastMethodNumber=143, isFirstLineValid=true, methodSrcCode=
+    private ProcessTxnResult applyRequest(Request request) {
+        ProcessTxnResult rc = zks.processTxn(request);
+
+        // ZOOKEEPER-558:
+        // In some cases the server does not close the connection (e.g., closeconn buffer
+        // was not being queued ??? ZOOKEEPER-558) properly. This happens, for example,
+        // when the client closes the connection. The server should still close the session, though.
+        // Calling closeSession() after losing the cnxn, results in the client close session response being dropped.
+        if (request.type == OpCode.closeSession && connClosedByClient(request)) {
+            // We need to check if we can close the session id.
+            // Sometimes the corresponding ServerCnxnFactory could be null because
+            // we are just playing diffs from the leader.
+            if (closeSession(zks.serverCnxnFactory, request.sessionId)
+                || closeSession(zks.secureServerCnxnFactory, request.sessionId)) {
+                return rc;
+            }
+        }
+
+        if (request.getHdr() != null) {
+            /*
+             * Request header is created only by the leader, so this must be
+             * a quorum request. Since we're comparing timestamps across hosts,
+             * this metric may be incorrect. However, it's still a very useful
+             * metric to track in the happy case. If there is clock drift,
+             * the latency can go negative. Note: headers use wall time, not
+             * CLOCK_MONOTONIC.
+             */
+            long propagationLatency = Time.currentWallTime() - request.getHdr().getTime();
+            if (propagationLatency >= 0) {
+                ServerMetrics.getMetrics().PROPAGATION_LATENCY.add(propagationLatency);
+            }
+        }
+
+        return rc;
+    }
+}

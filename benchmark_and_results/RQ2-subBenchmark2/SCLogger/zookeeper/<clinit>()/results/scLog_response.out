@@ -1,0 +1,1 @@
+<Line#43>:# LOG.info("Transaction log size limit set to: {}", txnLogSizeLimit);:#

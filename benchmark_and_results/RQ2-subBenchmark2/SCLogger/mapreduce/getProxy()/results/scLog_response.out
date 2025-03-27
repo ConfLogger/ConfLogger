@@ -1,0 +1,9 @@
+<Line#14>:# LOG.debug("ApplicationNotFoundException caught while getting application report");:#
+<Line#13>:# LOG.error("YarnException caught while getting application report", e2);:#
+<Line#55>:# LOG.debug("Attempting to connect to " + serviceAddr);:#
+<Line#75>:# LOG.info("Failed to connect to " + serviceAddr + ". Retrying...");:#
+<Line#79>:# LOG.error("InterruptedException caught during getProxy() call", e1);:#
+<Line#93>:# LOG.error("InterruptedException caught during getProxy() call", e);:#
+<Line#96>:# LOG.error("YarnException caught during getProxy() call", e);:#
+<Line#106>:# LOG.error("User is not set in the application report");:#
+<Line#130>:# LOG.info("Application state is completed. Redirecting to job history server");:#

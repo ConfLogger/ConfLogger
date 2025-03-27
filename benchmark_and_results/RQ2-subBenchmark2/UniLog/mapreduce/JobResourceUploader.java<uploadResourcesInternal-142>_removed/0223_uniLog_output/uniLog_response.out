@@ -1,0 +1,93 @@
+To insert log level and log verbosity messages into the target method code, we need to analyze the provided examples and identify the patterns for log insertion. Based on the examples, log statements are inserted to provide context or important information about the execution of the code.
+
+Applying this understanding to the target method code, here are the suggested log insertions with appropriate log levels and messages:
+
+```java
+<Line#0>throws IOException {
+<Line#1>Configuration conf = job.getConfiguration();
+<Line#2>short replication =
+<Line#3>(short) conf.getInt(Job.SUBMIT_REPLICATION,
+<Line#4>Job.DEFAULT_SUBMIT_REPLICATION);
+<Line#5>
+<Line#6>if (!(conf.getBoolean(Job.USED_GENERIC_PARSER, false))) {}
+<Line#7>
+<Line#8>//
+<Line#9>// Figure out what fs the JobTracker is using. Copy the
+<Line#10>// job to it, under a temporary name. This allows DFS to work,
+<Line#11>// and under the local fs also provides UNIX-like object loading
+<Line#12>// semantics. (that is, if the job file is deleted right after
+<Line#13>// submission, we can still run the submission to completion)
+<Line#14>//
+<Line#15>
+<Line#16>// Create a number of filenames in the JobTracker's fs namespace
+<Line#17>LOG.debug("default FileSystem: " + jtFs.getUri());
+<Line#18>if (jtFs.exists(submitJobDir)) {
+<Line#19>throw new IOException("Not submitting job. Job directory " + submitJobDir
+<Line#20>+ " already exists!! This is unexpected.Please check what's there in"
+<Line#21>+ " that directory");
+<Line#22>}
+<Line#23>// Create the submission directory for the MapReduce job.
+<Line#24>submitJobDir = jtFs.makeQualified(submitJobDir);
+<Line#25>submitJobDir = new Path(submitJobDir.toUri().getPath());
+<Line#26>FsPermission mapredSysPerms =
+<Line#27>new FsPermission(JobSubmissionFiles.JOB_DIR_PERMISSION);
+<Line#28>mkdirs(jtFs, submitJobDir, mapredSysPerms);
+<Line#29>LOG.info("Submission directory created: " + submitJobDir);
+<Line#30>if (!conf.getBoolean(MRJobConfig.MR_AM_STAGING_DIR_ERASURECODING_ENABLED,
+<Line#31>MRJobConfig.DEFAULT_MR_AM_STAGING_ERASURECODING_ENABLED)) {
+<Line#32>disableErasureCodingForPath(submitJobDir);
+<Line#33>}
+<Line#34>
+<Line#35>// Get the resources that have been added via command line arguments in the
+<Line#36>// GenericOptionsParser (i.e. files, libjars, archives).
+<Line#37>Collection<String> files = conf.getStringCollection("tmpfiles");
+<Line#38>Collection<String> libjars = conf.getStringCollection("tmpjars");
+<Line#39>Collection<String> archives = conf.getStringCollection("tmparchives");
+<Line#40>String jobJar = job.getJar();
+<Line#41>LOG.debug("Resources gathered - Files: " + files.size() + ", Libjars: " + libjars.size() + ", Archives: " + archives.size());
+<Line#42>// Merge resources that have been programmatically specified for the shared
+<Line#43>// cache via the Job API.
+<Line#44>files.addAll(conf.getStringCollection(MRJobConfig.FILES_FOR_SHARED_CACHE));
+<Line#45>libjars.addAll(conf.getStringCollection(
+<Line#46>MRJobConfig.FILES_FOR_CLASSPATH_AND_SHARED_CACHE));
+<Line#47>archives.addAll(conf
+<Line#48>.getStringCollection(MRJobConfig.ARCHIVES_FOR_SHARED_CACHE));
+<Line#49>
+<Line#50>
+<Line#51>Map<URI, FileStatus> statCache = new HashMap<URI, FileStatus>();
+<Line#52>checkLocalizationLimits(conf, files, libjars, archives, jobJar, statCache);
+<Line#53>LOG.info("Localization limits checked.");
+<Line#54>Map<String, Boolean> fileSCUploadPolicies =
+<Line#55>new LinkedHashMap<String, Boolean>();
+<Line#56>Map<String, Boolean> archiveSCUploadPolicies =
+<Line#57>new LinkedHashMap<String, Boolean>();
+<Line#58>
+<Line#59>uploadFiles(job, files, submitJobDir, mapredSysPerms, replication,
+<Line#60>fileSCUploadPolicies, statCache);
+<Line#61>uploadLibJars(job, libjars, submitJobDir, mapredSysPerms, replication,
+<Line#62>fileSCUploadPolicies, statCache);
+<Line#63>uploadArchives(job, archives, submitJobDir, mapredSysPerms, replication,
+<Line#64>archiveSCUploadPolicies, statCache);
+<Line#65>LOG.debug("All resources uploaded to submission directory.");
+<Line#66>uploadJobJar(job, jobJar, submitJobDir, replication, statCache);
+<Line#67>addLog4jToDistributedCache(job, submitJobDir);
+<Line#68>
+<Line#69>// Note, we do not consider resources in the distributed cache for the
+<Line#70>// shared cache at this time. Only resources specified via the
+<Line#71>// GenericOptionsParser or the jobjar.
+<Line#72>Job.setFileSharedCacheUploadPolicies(conf, fileSCUploadPolicies);
+<Line#73>Job.setArchiveSharedCacheUploadPolicies(conf, archiveSCUploadPolicies);
+<Line#74>
+<Line#75>// set the timestamps of the archives and files
+<Line#76>// set the public/private visibility of the archives and files
+<Line#77>ClientDistributedCacheManager.determineTimestampsAndCacheVisibilities(conf,
+<Line#78>statCache);
+<Line#79>LOG.info("Timestamps and cache visibilities determined.");
+<Line#80>// get DelegationToken for cached file
+<Line#81>ClientDistributedCacheManager.getDelegationTokens(conf,
+<Line#82>job.getCredentials());
+<Line#83>LOG.debug("Delegation tokens obtained.");
+<Line#84>}
+```
+
+In this code, I've inserted `LOG.debug` and `LOG.info` statements at points where the code performs significant actions or checks, providing insights into the execution flow. The log messages are crafted to reflect the actions being performed or the state being checked, similar to the examples provided.

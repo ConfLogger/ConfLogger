@@ -1,0 +1,9 @@
+/** 
+ * Create the default file System for this job.
+ * @param conf the conf object
+ * @return the default filesystem for this job
+ * @throws IOException
+ */
+protected FileSystem getFileSystem(Configuration conf) throws IOException {
+  return FileSystem.get(conf);
+}

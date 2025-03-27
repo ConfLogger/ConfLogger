@@ -1,0 +1,535 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer;	methodLines:	80:98
+blockLines:	81:-1
+paras:	null
+TaintedStat:	NORMAL getInt:conditional branch(ne, to iindex=5) 4,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Slot, <init>(Lorg/apache/storm/localizer/AsyncLocalizer;Ljava/util/Map;Lorg/apache/storm/daemon/supervisor/ContainerLauncher;Ljava/lang/String;ILorg/apache/storm/utils/LocalState;Lorg/apache/storm/cluster/IStormClusterState;Lorg/apache/storm/scheduler/ISupervisor;Ljava/util/concurrent/atomic/AtomicReference;Lorg/apache/storm/daemon/supervisor/OnlyLatestExecutor;Lorg/apache/storm/metricstore/WorkerMetricsProcessor;Lorg/apache/storm/daemon/supervisor/SlotMetrics;)V > Context: Everywhere[40]30 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,28 @83 exception:29
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Slot, <init>(Lorg/apache/storm/localizer/AsyncLocalizer;Ljava/util/Map;Lorg/apache/storm/daemon/supervisor/ContainerLauncher;Ljava/lang/String;ILorg/apache/storm/utils/LocalState;Lorg/apache/storm/cluster/IStormClusterState;Lorg/apache/storm/scheduler/ISupervisor;Ljava/util/concurrent/atomic/AtomicReference;Lorg/apache/storm/daemon/supervisor/OnlyLatestExecutor;Lorg/apache/storm/metricstore/WorkerMetricsProcessor;Lorg/apache/storm/daemon/supervisor/SlotMetrics;)V > Context: Everywhere[40]30 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,28 @83 exception:29
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Slot, <init>(Lorg/apache/storm/localizer/AsyncLocalizer;Ljava/util/Map;Lorg/apache/storm/daemon/supervisor/ContainerLauncher;Ljava/lang/String;ILorg/apache/storm/utils/LocalState;Lorg/apache/storm/cluster/IStormClusterState;Lorg/apache/storm/scheduler/ISupervisor;Ljava/util/concurrent/atomic/AtomicReference;Lorg/apache/storm/daemon/supervisor/OnlyLatestExecutor;Lorg/apache/storm/metricstore/WorkerMetricsProcessor;Lorg/apache/storm/daemon/supervisor/SlotMetrics;)V > Context: Everywhere[41]32 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > 30 @88 exception:31 v30
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere v1
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere[2]5 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > 1,3 @2 exception:4 v1
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere v1
+NORMAL getInt:conditional branch(ne, to iindex=5) 4,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer;	methodLines:	80:98
+blockLines:	91:-1
+paras:	null
+TaintedStat:	NORMAL getInt:conditional branch(gt, to iindex=44) 20,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/blobstore/LocalFsBlobStore, startSyncBlobs()V > Context: Everywhere[18]16 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 13,14 @40 exception:15
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/blobstore/LocalFsBlobStore, startSyncBlobs()V > Context: Everywhere[18]16 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 13,14 @40 exception:15
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/blobstore/LocalFsBlobStore, startSyncBlobs()V > Context: Everywhere[19]18 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > 16 @45 exception:17 v16
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere v1
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere[2]5 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > 1,3 @2 exception:4 v1
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere v1
+NORMAL getInt:9 = instanceof 1 <Application,Ljava/lang/Long> Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+NORMAL getInt:conditional branch(eq, to iindex=45) 9,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+NORMAL getInt:conditional branch(gt, to iindex=44) 20,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer;	methodLines:	80:98
+blockLines:	85:-1
+paras:	null
+TaintedStat:	NORMAL getInt:conditional branch(eq, to iindex=22) 8,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Slot, <init>(Lorg/apache/storm/localizer/AsyncLocalizer;Ljava/util/Map;Lorg/apache/storm/daemon/supervisor/ContainerLauncher;Ljava/lang/String;ILorg/apache/storm/utils/LocalState;Lorg/apache/storm/cluster/IStormClusterState;Lorg/apache/storm/scheduler/ISupervisor;Ljava/util/concurrent/atomic/AtomicReference;Lorg/apache/storm/daemon/supervisor/OnlyLatestExecutor;Lorg/apache/storm/metricstore/WorkerMetricsProcessor;Lorg/apache/storm/daemon/supervisor/SlotMetrics;)V > Context: Everywhere[64]58 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,56 @140 exception:57
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Slot, <init>(Lorg/apache/storm/localizer/AsyncLocalizer;Ljava/util/Map;Lorg/apache/storm/daemon/supervisor/ContainerLauncher;Ljava/lang/String;ILorg/apache/storm/utils/LocalState;Lorg/apache/storm/cluster/IStormClusterState;Lorg/apache/storm/scheduler/ISupervisor;Ljava/util/concurrent/atomic/AtomicReference;Lorg/apache/storm/daemon/supervisor/OnlyLatestExecutor;Lorg/apache/storm/metricstore/WorkerMetricsProcessor;Lorg/apache/storm/daemon/supervisor/SlotMetrics;)V > Context: Everywhere[64]58 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,56 @140 exception:57
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Slot, <init>(Lorg/apache/storm/localizer/AsyncLocalizer;Ljava/util/Map;Lorg/apache/storm/daemon/supervisor/ContainerLauncher;Ljava/lang/String;ILorg/apache/storm/utils/LocalState;Lorg/apache/storm/cluster/IStormClusterState;Lorg/apache/storm/scheduler/ISupervisor;Ljava/util/concurrent/atomic/AtomicReference;Lorg/apache/storm/daemon/supervisor/OnlyLatestExecutor;Lorg/apache/storm/metricstore/WorkerMetricsProcessor;Lorg/apache/storm/daemon/supervisor/SlotMetrics;)V > Context: Everywhere[65]60 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > 58 @145 exception:59 v58
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere v1
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere[2]5 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > 1,3 @2 exception:4 v1
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere v1
+NORMAL getInt:8 = instanceof 1 <Application,Ljava/lang/Byte> Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+NORMAL getInt:conditional branch(eq, to iindex=22) 8,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer;	methodLines:	80:98
+blockLines:	94:-1
+paras:	null
+TaintedStat:	NORMAL getInt:conditional branch(eq, to iindex=54) 10,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, makeZKClient(Ljava/util/Map;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework; > Context: Everywhere[7]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,7 @17 exception:8
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, makeZKClient(Ljava/util/Map;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework; > Context: Everywhere[7]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,7 @17 exception:8
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, makeZKClient(Ljava/util/Map;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework; > Context: Everywhere[31]19 = invokestatic < Application, Lorg/apache/storm/zookeeper/ClientZookeeper, mkClient(Ljava/util/Map;Ljava/util/List;Ljava/lang/Object;Ljava/lang/String;Lorg/apache/storm/callback/WatcherCallBack;Ljava/util/Map;Lorg/apache/storm/cluster/DaemonType;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework; > 1,6,9,13,15,1,17 @62 exception:18 v9
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/zookeeper/ClientZookeeper, mkClient(Ljava/util/Map;Ljava/util/List;Ljava/lang/Object;Ljava/lang/String;Lorg/apache/storm/callback/WatcherCallBack;Ljava/util/Map;Lorg/apache/storm/cluster/DaemonType;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework; > Context: Everywhere v3
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/zookeeper/ClientZookeeper, mkClient(Ljava/util/Map;Ljava/util/List;Ljava/lang/Object;Ljava/lang/String;Lorg/apache/storm/callback/WatcherCallBack;Ljava/util/Map;Lorg/apache/storm/cluster/DaemonType;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework; > Context: Everywhere[8]11 = invokevirtual < Application, Lorg/apache/storm/zookeeper/ClientZookeeper, mkClientImpl(Ljava/util/Map;Ljava/util/List;Ljava/lang/Object;Ljava/lang/String;Lorg/apache/storm/callback/WatcherCallBack;Ljava/util/Map;Lorg/apache/storm/cluster/DaemonType;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework; > 9,1,2,3,4,5,6,7 @13 exception:10 v3
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/zookeeper/ClientZookeeper, mkClientImpl(Ljava/util/Map;Ljava/util/List;Ljava/lang/Object;Ljava/lang/String;Lorg/apache/storm/callback/WatcherCallBack;Ljava/util/Map;Lorg/apache/storm/cluster/DaemonType;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework; > Context: Everywhere v4
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/zookeeper/ClientZookeeper, mkClientImpl(Ljava/util/Map;Ljava/util/List;Ljava/lang/Object;Ljava/lang/String;Lorg/apache/storm/callback/WatcherCallBack;Ljava/util/Map;Lorg/apache/storm/cluster/DaemonType;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework; > Context: Everywhere[14]20 = invokestatic < Application, Lorg/apache/storm/utils/CuratorUtils, newCurator(Ljava/util/Map;Ljava/util/List;Ljava/lang/Object;Ljava/lang/String;Lorg/apache/storm/utils/ZookeeperAuthInfo;Ljava/util/List;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework; > 2,3,4,5,15,18 @25 exception:19 v4
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/CuratorUtils, newCurator(Ljava/util/Map;Ljava/util/List;Ljava/lang/Object;Ljava/lang/String;Lorg/apache/storm/utils/ZookeeperAuthInfo;Ljava/util/List;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework; > Context: Everywhere v3
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/utils/CuratorUtils, newCurator(Ljava/util/Map;Ljava/util/List;Ljava/lang/Object;Ljava/lang/String;Lorg/apache/storm/utils/ZookeeperAuthInfo;Ljava/util/List;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework; > Context: Everywhere[18]19 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > 3 @44 exception:18 v3
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere v1
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere[2]5 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > 1,3 @2 exception:4 v1
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere v1
+NORMAL getInt:10 = instanceof 1 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+NORMAL getInt:conditional branch(eq, to iindex=54) 10,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer;	methodLines:	80:98
+blockLines:	89:-1
+paras:	null
+TaintedStat:	NORMAL getInt:conditional branch(eq, to iindex=45) 9,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/scheduler/resource/strategies/scheduling/BaseResourceAwareStrategy, getMaxStateSearchFromTopoConf(Ljava/util/Map;)I > Context: Everywhere[7]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,3 @16 exception:8
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/scheduler/resource/strategies/scheduling/BaseResourceAwareStrategy, getMaxStateSearchFromTopoConf(Ljava/util/Map;)I > Context: Everywhere[7]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,3 @16 exception:8
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/scheduler/resource/strategies/scheduling/BaseResourceAwareStrategy, getMaxStateSearchFromTopoConf(Ljava/util/Map;)I > Context: Everywhere[8]11 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > 9 @21 exception:10 v9
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere v1
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere[2]5 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > 1,3 @2 exception:4 v1
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere v1
+NORMAL getInt:9 = instanceof 1 <Application,Ljava/lang/Long> Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+NORMAL getInt:conditional branch(eq, to iindex=45) 9,6 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;Ljava/lang/Integer;)Ljava/lang/Integer; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static Integer getInt(Object o, Integer defaultValue) {
+        if (null == o) {
+            return defaultValue;
+        }
+
+        if (o instanceof Integer
+                || o instanceof Short
+                || o instanceof Byte) {
+            return ((Number) o).intValue();
+        } else if (o instanceof Long) {
+            final long l = (Long) o;
+            if (l <= Integer.MAX_VALUE && l >= Integer.MIN_VALUE) {
+                return (int) l;
+            }
+        } else if (o instanceof String) {
+            return Integer.parseInt((String) o);
+        }
+
+        throw new IllegalArgumentException("Don't know how to convert " + o + " to int");
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/blobstore/NimbusBlobStore, setClient(Ljava/util/Map;Lorg/apache/storm/utils/NimbusClient;)Z > Context: Everywhere, blocks=[BB[SSA:20..20]10 - org.apache.storm.blobstore.NimbusBlobStore.setClient(Ljava/util/Map;Lorg/apache/storm/utils/NimbusClient;)Z, BB[SSA:19..19]9 - org.apache.storm.blobstore.NimbusBlobStore.setClient(Ljava/util/Map;Lorg/apache/storm/utils/NimbusClient;)Z, BB[SSA:21..21]11 - org.apache.storm.blobstore.NimbusBlobStore.setClient(Ljava/util/Map;Lorg/apache/storm/utils/NimbusClient;)Z, BB[SSA:-1..-2]14 - org.apache.storm.blobstore.NimbusBlobStore.setClient(Ljava/util/Map;Lorg/apache/storm/utils/NimbusClient;)Z], numberOfBasicBlocks=4, firstLineNumber=196, lastLineNumber=196, firstMethodNumber=190, lastMethodNumber=198, isFirstLineValid=true, methodSrcCode=
+    public boolean setClient(Map<String, Object> conf, NimbusClient client) {
+        if (this.client != null) {
+            this.client.close();
+        }
+        this.client = client;
+        if (conf != null) {
+            this.bufferSize = ObjectReader.getInt(conf.get(Config.STORM_BLOBSTORE_INPUTSTREAM_BUFFER_SIZE_BYTES), bufferSize);
+        }
+        return true;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/executor/spout/SpoutExecutor, getSpoutRecvqCheckSkipCount()I > Context: Everywhere, blocks=[BB[SSA:12..12]7 - org.apache.storm.executor.spout.SpoutExecutor.getSpoutRecvqCheckSkipCount()I, BB[SSA:10..11]6 - org.apache.storm.executor.spout.SpoutExecutor.getSpoutRecvqCheckSkipCount()I, BB[SSA:13..13]8 - org.apache.storm.executor.spout.SpoutExecutor.getSpoutRecvqCheckSkipCount()I, BB[SSA:-1..-2]10 - org.apache.storm.executor.spout.SpoutExecutor.getSpoutRecvqCheckSkipCount()I], numberOfBasicBlocks=4, firstLineNumber=368, lastLineNumber=368, firstMethodNumber=364, lastMethodNumber=368, isFirstLineValid=true, methodSrcCode=
+    public int getSpoutRecvqCheckSkipCount() {
+        if (ackingEnabled) {
+            return 0; // always check recQ if ACKing enabled
+        }
+        return ObjectReader.getInt(conf.get(Config.TOPOLOGY_SPOUT_RECVQ_SKIPS), 0);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/metrics2/reporters/ScheduledStormReporter, getReportPeriod(Ljava/util/Map;)J > Context: Everywhere, blocks=[BB[SSA:5..5]3 - org.apache.storm.metrics2.reporters.ScheduledStormReporter.getReportPeriod(Ljava/util/Map;)J, BB[SSA:3..4]2 - org.apache.storm.metrics2.reporters.ScheduledStormReporter.getReportPeriod(Ljava/util/Map;)J, BB[SSA:6..6]4 - org.apache.storm.metrics2.reporters.ScheduledStormReporter.getReportPeriod(Ljava/util/Map;)J, BB[SSA:-1..-2]6 - org.apache.storm.metrics2.reporters.ScheduledStormReporter.getReportPeriod(Ljava/util/Map;)J], numberOfBasicBlocks=4, firstLineNumber=37, lastLineNumber=37, firstMethodNumber=36, lastMethodNumber=37, isFirstLineValid=true, methodSrcCode=
+    public static long getReportPeriod(Map<String, Object> reporterConf) {
+        return ObjectReader.getInt(reporterConf.get(REPORT_PERIOD), 10).longValue();
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/utils/ObjectReader, getInt(Ljava/lang/Object;)Ljava/lang/Integer; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.storm.utils.ObjectReader.getInt(Ljava/lang/Object;)Ljava/lang/Integer;, BB[SSA:-1..-2]0 - org.apache.storm.utils.ObjectReader.getInt(Ljava/lang/Object;)Ljava/lang/Integer;, BB[SSA:3..6]2 - org.apache.storm.utils.ObjectReader.getInt(Ljava/lang/Object;)Ljava/lang/Integer;, BB[SSA:-1..-2]7 - org.apache.storm.utils.ObjectReader.getInt(Ljava/lang/Object;)Ljava/lang/Integer;], numberOfBasicBlocks=4, firstLineNumber=72, lastLineNumber=74, firstMethodNumber=72, lastMethodNumber=77, isFirstLineValid=false, methodSrcCode=
+    public static Integer getInt(Object o) {
+        Integer result = getInt(o, null);
+        if (null == result) {
+            throw new IllegalArgumentException("Don't know how to convert null to int");
+        }
+        return result;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/nimbus/NimbusInfo, fromConf(Ljava/util/Map;)Lorg/apache/storm/nimbus/NimbusInfo; > Context: Everywhere, blocks=[BB[SSA:27..27]12 - org.apache.storm.nimbus.NimbusInfo.fromConf(Ljava/util/Map;)Lorg/apache/storm/nimbus/NimbusInfo;, BB[SSA:25..26]11 - org.apache.storm.nimbus.NimbusInfo.fromConf(Ljava/util/Map;)Lorg/apache/storm/nimbus/NimbusInfo;, BB[SSA:28..28]13 - org.apache.storm.nimbus.NimbusInfo.fromConf(Ljava/util/Map;)Lorg/apache/storm/nimbus/NimbusInfo;, BB[SSA:-1..-2]20 - org.apache.storm.nimbus.NimbusInfo.fromConf(Ljava/util/Map;)Lorg/apache/storm/nimbus/NimbusInfo;], numberOfBasicBlocks=4, firstLineNumber=64, lastLineNumber=64, firstMethodNumber=55, lastMethodNumber=68, isFirstLineValid=true, methodSrcCode=
+        try {
+            String host = InetAddress.getLocalHost().getCanonicalHostName();
+            if (conf.containsKey(Config.STORM_LOCAL_HOSTNAME)) {
+                host = (String) conf.get(Config.STORM_LOCAL_HOSTNAME);
+                LOG.info("Overriding nimbus host to storm.local.hostname -> {}", host);
+            } else {
+                LOG.info("Nimbus figures out its name to {}", host);
+            }
+
+            int port = ObjectReader.getInt(conf.get(Config.NIMBUS_THRIFT_PORT), 6627);
+            return new NimbusInfo(host, port, false);
+
+        } catch (UnknownHostException e) {
+            throw new RuntimeException("Something wrong with network/dns config, host cant figure out its name", e);
+        }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/executor/Executor, setupTicks(Z)V > Context: Everywhere, blocks=[BB[SSA:4..5]3 - org.apache.storm.executor.Executor.setupTicks(Z)V, BB[SSA:2..3]2 - org.apache.storm.executor.Executor.setupTicks(Z)V, BB[SSA:6..9]4 - org.apache.storm.executor.Executor.setupTicks(Z)V, BB[SSA:-1..-2]30 - org.apache.storm.executor.Executor.setupTicks(Z)V], numberOfBasicBlocks=4, firstLineNumber=503, lastLineNumber=504, firstMethodNumber=502, lastMethodNumber=532, isFirstLineValid=true, methodSrcCode=
+    protected void setupTicks(boolean isSpout) {
+        final Integer tickTimeSecs = ObjectReader.getInt(topoConf.get(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS), null);
+        if (tickTimeSecs != null) {
+            boolean enableMessageTimeout = (Boolean) topoConf.get(Config.TOPOLOGY_ENABLE_MESSAGE_TIMEOUTS);
+            boolean isAcker = Acker.ACKER_COMPONENT_ID.equals(componentId);
+            if ((!isAcker && Utils.isSystemId(componentId))
+                || (!enableMessageTimeout && isSpout)
+                || (!enableMessageTimeout && isAcker)) {
+                LOG.info("Timeouts disabled for executor {}:{}", componentId, executorId);
+            } else {
+                StormTimer timerTask = workerData.getUserTimer();
+                timerTask.scheduleRecurring(tickTimeSecs, tickTimeSecs,
+                    () -> {
+                        TupleImpl tuple = new TupleImpl(workerTopologyContext, new Values(tickTimeSecs),
+                                                        Constants.SYSTEM_COMPONENT_ID,
+                                                        (int) Constants.SYSTEM_TASK_ID,
+                                                        Constants.SYSTEM_TICK_STREAM_ID);
+                        AddressedTuple tickTuple = new AddressedTuple(AddressedTuple.BROADCAST_DEST, tuple);
+                        try {
+                            receiveQueue.publish(tickTuple);
+                            receiveQueue.flush(); // avoid buffering
+                        } catch (InterruptedException e) {
+                            LOG.warn("Thread interrupted when emitting tick tuple. Setting interrupt flag.");
+                            Thread.currentThread().interrupt();
+                            return;
+                        }
+                    }
+                );
+            }
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/StormCommon, metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map; > Context: Everywhere, blocks=[BB[SSA:78..78]37 - org.apache.storm.daemon.StormCommon.metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map;, BB[SSA:76..77]36 - org.apache.storm.daemon.StormCommon.metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map;, BB[SSA:79..82]38 - org.apache.storm.daemon.StormCommon.metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map;, BB[SSA:-1..-2]78 - org.apache.storm.daemon.StormCommon.metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map;, BB[SSA:85..85]40 - org.apache.storm.daemon.StormCommon.metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map;, BB[SSA:83..84]39 - org.apache.storm.daemon.StormCommon.metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map;, BB[SSA:86..87]41 - org.apache.storm.daemon.StormCommon.metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map;, BB[SSA:-1..-2]78 - org.apache.storm.daemon.StormCommon.metricsConsumerBoltSpecs(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)Ljava/util/Map;], numberOfBasicBlocks=8, firstLineNumber=384, lastLineNumber=385, firstMethodNumber=364, lastMethodNumber=416, isFirstLineValid=true, methodSrcCode=
+    public static Map<String, Bolt> metricsConsumerBoltSpecs(Map<String, Object> conf, StormTopology topology) {
+        Map<String, Bolt> metricsConsumerBolts = new HashMap<>();
+
+        Set<String> componentIdsEmitMetrics = new HashSet<>();
+        componentIdsEmitMetrics.addAll(allComponents(topology).keySet());
+        componentIdsEmitMetrics.add(Constants.SYSTEM_COMPONENT_ID);
+
+        Map<GlobalStreamId, Grouping> inputs = new HashMap<>();
+        for (String componentId : componentIdsEmitMetrics) {
+            inputs.put(Utils.getGlobalStreamId(componentId, Constants.METRICS_STREAM_ID), Thrift.prepareShuffleGrouping());
+        }
+
+        List<Map<String, Object>> registerInfo = (List<Map<String, Object>>) conf.get(Config.TOPOLOGY_METRICS_CONSUMER_REGISTER);
+        if (registerInfo != null) {
+            Map<String, Integer> classOccurrencesMap = new HashMap<>();
+            for (Map<String, Object> info : registerInfo) {
+                String className = (String) info.get(TOPOLOGY_METRICS_CONSUMER_CLASS);
+                Object argument = info.get(TOPOLOGY_METRICS_CONSUMER_ARGUMENT);
+                Integer maxRetainMetricTuples = ObjectReader.getInt(info.get(
+                    TOPOLOGY_METRICS_CONSUMER_MAX_RETAIN_METRIC_TUPLES), 100);
+                Integer phintNum = ObjectReader.getInt(info.get(TOPOLOGY_METRICS_CONSUMER_PARALLELISM_HINT), 1);
+                Map<String, Object> metricsConsumerConf = new HashMap<>();
+                metricsConsumerConf.put(Config.TOPOLOGY_TASKS, phintNum);
+                List<String> whitelist = (List<String>) info.get(
+                    TOPOLOGY_METRICS_CONSUMER_WHITELIST);
+                List<String> blacklist = (List<String>) info.get(
+                    TOPOLOGY_METRICS_CONSUMER_BLACKLIST);
+                FilterByMetricName filterPredicate = new FilterByMetricName(whitelist, blacklist);
+                Boolean expandMapType = ObjectReader.getBoolean(info.get(
+                    TOPOLOGY_METRICS_CONSUMER_EXPAND_MAP_TYPE), false);
+                String metricNameSeparator = ObjectReader.getString(info.get(
+                    TOPOLOGY_METRICS_CONSUMER_METRIC_NAME_SEPARATOR), ".");
+                DataPointExpander expander = new DataPointExpander(expandMapType, metricNameSeparator);
+                MetricsConsumerBolt boltInstance = new MetricsConsumerBolt(className, argument,
+                                                                           maxRetainMetricTuples, filterPredicate, expander);
+                Bolt metricsConsumerBolt = Thrift.prepareSerializedBoltDetails(inputs,
+                                                                               boltInstance, null, phintNum, metricsConsumerConf);
+
+                String id;
+                if (classOccurrencesMap.containsKey(className)) {
+                    // e.g. [\"a\", \"b\", \"a\"]) => [\"a\", \"b\", \"a#2\"]"
+                    int occurrenceNum = classOccurrencesMap.get(className);
+                    occurrenceNum++;
+                    classOccurrencesMap.put(className, occurrenceNum);
+                    id = Constants.METRICS_COMPONENT_ID_PREFIX + className + "#" + occurrenceNum;
+                } else {
+                    id = Constants.METRICS_COMPONENT_ID_PREFIX + className;
+                    classOccurrencesMap.put(className, 1);
+                }
+                metricsConsumerBolts.put(id, metricsConsumerBolt);
+            }
+        }
+        return metricsConsumerBolts;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, maxTopologyMessageTimeout()I > Context: Everywhere, blocks=[BB[SSA:37..40]19 - org.apache.storm.task.GeneralTopologyContext.maxTopologyMessageTimeout()I, BB[SSA:33..36]18 - org.apache.storm.task.GeneralTopologyContext.maxTopologyMessageTimeout()I, BB[SSA:41..41]20 - org.apache.storm.task.GeneralTopologyContext.maxTopologyMessageTimeout()I, BB[SSA:-1..-2]31 - org.apache.storm.task.GeneralTopologyContext.maxTopologyMessageTimeout()I], numberOfBasicBlocks=4, firstLineNumber=199, lastLineNumber=201, firstMethodNumber=192, lastMethodNumber=207, isFirstLineValid=true, methodSrcCode=
+    public int maxTopologyMessageTimeout() {
+        Integer max = ObjectReader.getInt(topoConf.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS));
+        for (String spout : getRawTopology().get_spouts().keySet()) {
+            ComponentCommon common = getComponentCommon(spout);
+            String jsonConf = common.get_json_conf();
+            if (jsonConf != null) {
+                try {
+                    Map<String, Object> conf = (Map) JSONValue.parseWithException(jsonConf);
+                    Object comp = conf.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS);
+                    max = Math.max(ObjectReader.getInt(comp, max), max);
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return max;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/executor/Executor, <init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/List;Ljava/util/Map;Ljava/lang/String;)V > Context: Everywhere, blocks=[BB[SSA:262..262]144 - org.apache.storm.executor.Executor.<init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/List;Ljava/util/Map;Ljava/lang/String;)V, BB[SSA:260..261]143 - org.apache.storm.executor.Executor.<init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/List;Ljava/util/Map;Ljava/lang/String;)V, BB[SSA:263..263]145 - org.apache.storm.executor.Executor.<init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/List;Ljava/util/Map;Ljava/lang/String;)V, BB[SSA:-1..-2]147 - org.apache.storm.executor.Executor.<init>(Lorg/apache/storm/daemon/worker/WorkerState;Ljava/util/List;Ljava/util/Map;Ljava/lang/String;)V], numberOfBasicBlocks=4, firstLineNumber=191, lastLineNumber=192, firstMethodNumber=134, lastMethodNumber=192, isFirstLineValid=true, methodSrcCode=
+
+    protected Executor(WorkerState workerData, List<Long> executorId, Map<String, String> credentials, String type) {
+        this.workerData = workerData;
+        this.executorId = executorId;
+        this.type = type;
+        this.workerTopologyContext = workerData.getWorkerTopologyContext();
+        this.taskIds = StormCommon.executorIdToTasks(executorId);
+        this.componentId = workerTopologyContext.getComponentId(taskIds.get(0));
+        this.openOrPrepareWasCalled = new AtomicBoolean(false);
+        this.topoConf = normalizedComponentConf(workerData.getTopologyConf(), workerTopologyContext, componentId);
+        this.receiveQueue = (workerData.getExecutorReceiveQueueMap().get(executorId));
+        this.stormId = workerData.getTopologyId();
+        this.conf = workerData.getConf();
+        this.sharedExecutorData = new HashMap();
+        this.workerReady = workerData.getIsWorkerActive();
+        this.stormActive = workerData.getIsTopologyActive();
+        this.stormComponentDebug = workerData.getStormComponentToDebug();
+
+        this.executorTransfer = new ExecutorTransfer(workerData, topoConf);
+
+        this.suicideFn = workerData.getSuicideCallback();
+        try {
+            this.stormClusterState = ClusterUtils.mkStormClusterState(workerData.getStateStorage(),
+                                                                      new ClusterStateContext(DaemonType.WORKER, topoConf));
+        } catch (Exception e) {
+            throw Utils.wrapInRuntime(e);
+        }
+
+        this.intervalToTaskToMetricToRegistry = new HashMap<>();
+        this.taskToComponent = workerData.getTaskToComponent();
+        this.streamToComponentToGrouper = outboundComponents(workerTopologyContext, componentId, topoConf);
+        if (this.streamToComponentToGrouper != null) {
+            this.groupers = streamToComponentToGrouper.values().stream()
+                                                      .filter(Objects::nonNull)
+                                                      .flatMap(m -> m.values().stream()).collect(Collectors.toList());
+        } else {
+            this.groupers = Collections.emptyList();
+        }
+        this.reportError = new ReportError(topoConf, stormClusterState, stormId, componentId, workerTopologyContext);
+        this.reportErrorDie = new ReportErrorAndDie(reportError, suicideFn);
+        this.sampler = ConfigUtils.mkStatsSampler(topoConf);
+        this.isDebug = ObjectReader.getBoolean(topoConf.get(Config.TOPOLOGY_DEBUG), false);
+        this.rand = new Random(Utils.secureRandomLong());
+        this.credentials = credentials;
+        this.hasEventLoggers = StormCommon.hasEventLoggers(topoConf);
+        this.ackingEnabled = StormCommon.hasAckers(topoConf);
+
+        try {
+            this.hostname = Utils.hostname();
+        } catch (UnknownHostException ignored) {
+            this.hostname = "";
+        }
+        flushTuple = AddressedTuple.createFlushTuple(workerTopologyContext);
+        this.reportedErrorCount = workerData.getMetricRegistry().rateCounter("__reported-error-count", componentId,
+                taskIds.get(0));
+
+        enableV2MetricsDataPoints = ObjectReader.getBoolean(topoConf.get(Config.TOPOLOGY_ENABLE_V2_METRICS_TICK), false);
+        v2MetricsTickInterval = ObjectReader.getInt(topoConf.get(Config.TOPOLOGY_V2_METRICS_TICK_INTERVAL_SECONDS), 60);
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/StormCommon, validateBasic(Lorg/apache/storm/generated/StormTopology;)V > Context: Everywhere, blocks=[BB[SSA:81..81]36 - org.apache.storm.daemon.StormCommon.validateBasic(Lorg/apache/storm/generated/StormTopology;)V, BB[SSA:79..80]35 - org.apache.storm.daemon.StormCommon.validateBasic(Lorg/apache/storm/generated/StormTopology;)V, BB[SSA:82..84]37 - org.apache.storm.daemon.StormCommon.validateBasic(Lorg/apache/storm/generated/StormTopology;)V, BB[SSA:-1..-2]45 - org.apache.storm.daemon.StormCommon.validateBasic(Lorg/apache/storm/generated/StormTopology;)V], numberOfBasicBlocks=4, firstLineNumber=177, lastLineNumber=178, firstMethodNumber=157, lastMethodNumber=183, isFirstLineValid=true, methodSrcCode=
+    public static void validateBasic(StormTopology topology) throws InvalidTopologyException {
+        validateIds(topology);
+
+        for (StormTopology._Fields field : Thrift.getSpoutFields()) {
+            Map<String, Object> spoutComponents = (Map<String, Object>) topology.getFieldValue(field);
+            if (spoutComponents != null) {
+                for (Object obj : spoutComponents.values()) {
+                    ComponentCommon common = getComponentCommon(obj);
+                    if (!isEmptyInputs(common)) {
+                        throw new WrappedInvalidTopologyException("May not declare inputs for a spout");
+                    }
+                }
+            }
+        }
+
+        Map<String, Object> componentMap = allComponents(topology);
+        for (Object componentObj : componentMap.values()) {
+            Map<String, Object> conf = componentConf(componentObj);
+            ComponentCommon common = getComponentCommon(componentObj);
+            int parallelismHintNum = Thrift.getParallelismHint(common);
+            Integer taskNum = ObjectReader.getInt(conf.get(Config.TOPOLOGY_TASKS), 0);
+            if (taskNum > 0 && parallelismHintNum <= 0) {
+                throw new WrappedInvalidTopologyException(
+                        "Number of executors must be greater than 0 when number of tasks is greater than 0");
+            }
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/utils/DRPCClient, getConfiguredClient(Ljava/util/Map;)Lorg/apache/storm/utils/DRPCClient; > Context: Everywhere, blocks=[BB[SSA:23..23]11 - org.apache.storm.utils.DRPCClient.getConfiguredClient(Ljava/util/Map;)Lorg/apache/storm/utils/DRPCClient;, BB[SSA:21..22]10 - org.apache.storm.utils.DRPCClient.getConfiguredClient(Ljava/util/Map;)Lorg/apache/storm/utils/DRPCClient;, BB[SSA:24..24]12 - org.apache.storm.utils.DRPCClient.getConfiguredClient(Ljava/util/Map;)Lorg/apache/storm/utils/DRPCClient;, BB[SSA:-1..-2]40 - org.apache.storm.utils.DRPCClient.getConfiguredClient(Ljava/util/Map;)Lorg/apache/storm/utils/DRPCClient;], numberOfBasicBlocks=4, firstLineNumber=93, lastLineNumber=93, firstMethodNumber=82, lastMethodNumber=114, isFirstLineValid=true, methodSrcCode=
+    public static DRPCClient getConfiguredClient(Map<String, Object> conf) throws TTransportException {
+        DistributedRPC.Iface override = localOverrideClient;
+        if (override != null) {
+            return new DRPCClient(override);
+        }
+
+        //Extend the config with defaults and the command line
+        Map<String, Object> fullConf = Utils.readStormConfig();
+        fullConf.putAll(Utils.readCommandLineOpts());
+        fullConf.putAll(conf);
+
+        int port = ObjectReader.getInt(fullConf.get(Config.DRPC_PORT), 3772);
+        List<String> servers = (List<String>) fullConf.get(Config.DRPC_SERVERS);
+        if (servers == null) {
+            throw new IllegalStateException(Config.DRPC_SERVERS + " is not set, could not find any DRPC servers to connect to.");
+        }
+        Collections.shuffle(servers);
+        RuntimeException excpt = null;
+        for (String host : servers) {
+            try {
+                return new DRPCClient(fullConf, host, port);
+            } catch (RuntimeException e) {
+                if (Utils.exceptionCauseIsInstanceOf(ConnectException.class, e)) {
+                    excpt = e;
+                } else {
+                    throw e;
+                }
+            }
+        }
+        if (excpt != null) {
+            throw excpt;
+        }
+        throw new IllegalStateException("It appears that no drpc servers were configured.");
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/blobstore/NimbusBlobStore, prepare(Ljava/util/Map;)V > Context: Everywhere, blocks=[BB[SSA:14..14]7 - org.apache.storm.blobstore.NimbusBlobStore.prepare(Ljava/util/Map;)V, BB[SSA:13..13]6 - org.apache.storm.blobstore.NimbusBlobStore.prepare(Ljava/util/Map;)V, BB[SSA:15..15]8 - org.apache.storm.blobstore.NimbusBlobStore.prepare(Ljava/util/Map;)V, BB[SSA:-1..-2]11 - org.apache.storm.blobstore.NimbusBlobStore.prepare(Ljava/util/Map;)V], numberOfBasicBlocks=4, firstLineNumber=49, lastLineNumber=49, firstMethodNumber=46, lastMethodNumber=51, isFirstLineValid=true, methodSrcCode=
+    public void prepare(Map<String, Object> conf) {
+        this.client = NimbusClient.getConfiguredClient(conf);
+        if (conf != null) {
+            this.bufferSize = ObjectReader.getInt(conf.get(Config.STORM_BLOBSTORE_INPUTSTREAM_BUFFER_SIZE_BYTES), bufferSize);
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/StormCommon, addEventLogger(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)V > Context: Everywhere, blocks=[BB[SSA:7..7]4 - org.apache.storm.daemon.StormCommon.addEventLogger(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)V, BB[SSA:6..6]3 - org.apache.storm.daemon.StormCommon.addEventLogger(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)V, BB[SSA:8..11]5 - org.apache.storm.daemon.StormCommon.addEventLogger(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)V, BB[SSA:-1..-2]33 - org.apache.storm.daemon.StormCommon.addEventLogger(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)V], numberOfBasicBlocks=4, firstLineNumber=346, lastLineNumber=347, firstMethodNumber=344, lastMethodNumber=361, isFirstLineValid=true, methodSrcCode=
+    public static void addEventLogger(Map<String, Object> conf, StormTopology topology) {
+        Integer numExecutors = ObjectReader.getInt(conf.get(Config.TOPOLOGY_EVENTLOGGER_EXECUTORS),
+                                                   ObjectReader.getInt(conf.get(Config.TOPOLOGY_WORKERS)));
+        if (numExecutors == null || numExecutors == 0) {
+            return;
+        }
+        HashMap<String, Object> componentConf = new HashMap<>();
+        componentConf.put(Config.TOPOLOGY_TASKS, numExecutors);
+        componentConf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, ObjectReader.getInt(conf.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS)));
+        Bolt eventLoggerBolt = Thrift.prepareSerializedBoltDetails(
+            eventLoggerInputs(topology), new EventLoggerBolt(), null, numExecutors, componentConf);
+
+        for (Object component : allComponents(topology).values()) {
+            ComponentCommon common = getComponentCommon(component);
+            common.put_to_streams(EVENTLOGGER_STREAM_ID, Thrift.outputFields(eventLoggerBoltFields()));
+        }
+        topology.put_to_bolts(EVENTLOGGER_COMPONENT_ID, eventLoggerBolt);
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/executor/spout/SpoutExecutor, init(Ljava/util/ArrayList;I)V > Context: Everywhere, blocks=[BB[SSA:35..35]20 - org.apache.storm.executor.spout.SpoutExecutor.init(Ljava/util/ArrayList;I)V, BB[SSA:33..34]19 - org.apache.storm.executor.spout.SpoutExecutor.init(Ljava/util/ArrayList;I)V, BB[SSA:36..36]21 - org.apache.storm.executor.spout.SpoutExecutor.init(Ljava/util/ArrayList;I)V, BB[SSA:-1..-2]88 - org.apache.storm.executor.spout.SpoutExecutor.init(Ljava/util/ArrayList;I)V], numberOfBasicBlocks=4, firstLineNumber=108, lastLineNumber=108, firstMethodNumber=97, lastMethodNumber=148, isFirstLineValid=true, methodSrcCode=
+    public void init(final ArrayList<Task> idToTask, int idToTaskBase) throws InterruptedException {
+        this.threadId = Thread.currentThread().getId();
+        executorTransfer.initLocalRecvQueues();
+        workerReady.await();
+        while (!stormActive.get()) {
+            //Topology may be deployed in deactivated mode, wait for activation
+            Utils.sleepNoSimulation(100);
+        }
+
+        LOG.info("Opening spout {}:{}", componentId, taskIds);
+        this.idToTask = idToTask;
+        this.maxSpoutPending = ObjectReader.getInt(topoConf.get(Config.TOPOLOGY_MAX_SPOUT_PENDING), 0) * idToTask.size();
+        this.spouts = new ArrayList<>();
+        for (Task task : idToTask) {
+            if (task != null) {
+                this.spouts.add((ISpout) task.getTaskObject());
+            }
+        }
+        this.pending = new RotatingMap<>(2, new RotatingMap.ExpiredCallback<Long, TupleInfo>() {
+            @Override
+            public void expire(Long key, TupleInfo tupleInfo) {
+                Long timeDelta = null;
+                if (tupleInfo.getTimestamp() != 0) {
+                    timeDelta = Time.deltaMs(tupleInfo.getTimestamp());
+                }
+                failSpoutMsg(SpoutExecutor.this, idToTask.get(tupleInfo.getTaskId() - idToTaskBase), timeDelta, tupleInfo, "TIMEOUT");
+            }
+        });
+
+        this.outputCollectors = new ArrayList<>();
+        for (int i = 0; i < idToTask.size(); ++i) {
+            Task taskData = idToTask.get(i);
+            if (taskData == null) {
+                continue;
+            }
+            ISpout spoutObject = (ISpout) taskData.getTaskObject();
+            spoutOutputCollector = new SpoutOutputCollectorImpl(
+                spoutObject, this, taskData, emittedCount,
+                hasAckers, rand, hasEventLoggers, isDebug, pending);
+            SpoutOutputCollector outputCollector = new SpoutOutputCollector(spoutOutputCollector);
+            this.outputCollectors.add(outputCollector);
+
+            if (spoutObject instanceof ICredentialsListener) {
+                ((ICredentialsListener) spoutObject).setCredentials(credentials);
+            }
+            spoutObject.open(topoConf, taskData.getUserContext(), outputCollector);
+        }
+        openOrPrepareWasCalled.set(true);
+        LOG.info("Opened spout {}:{}", componentId, taskIds);
+        setupTicks(true);
+        setupMetrics();
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/StormCommon, addAcker(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)V > Context: Everywhere, blocks=[BB[SSA:63..63]26 - org.apache.storm.daemon.StormCommon.addAcker(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)V, BB[SSA:62..62]25 - org.apache.storm.daemon.StormCommon.addAcker(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)V, BB[SSA:64..64]27 - org.apache.storm.daemon.StormCommon.addAcker(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)V, BB[SSA:-1..-2]97 - org.apache.storm.daemon.StormCommon.addAcker(Ljava/util/Map;Lorg/apache/storm/generated/StormTopology;)V], numberOfBasicBlocks=4, firstLineNumber=265, lastLineNumber=265, firstMethodNumber=257, lastMethodNumber=296, isFirstLineValid=true, methodSrcCode=
+
+        Map<String, StreamInfo> outputStreams = new HashMap<String, StreamInfo>();
+        outputStreams.put(Acker.ACKER_ACK_STREAM_ID, Thrift.directOutputFields(Arrays.asList("id", "time-delta-ms")));
+        outputStreams.put(Acker.ACKER_FAIL_STREAM_ID, Thrift.directOutputFields(Arrays.asList("id", "time-delta-ms")));
+        outputStreams.put(Acker.ACKER_RESET_TIMEOUT_STREAM_ID, Thrift.directOutputFields(Arrays.asList("id", "time-delta-ms")));
+
+        Map<String, Object> ackerConf = new HashMap<>();
+        int ackerNum =
+                ObjectReader.getInt(conf.get(Config.TOPOLOGY_ACKER_EXECUTORS), ObjectReader.getInt(conf.get(Config.TOPOLOGY_WORKERS)));
+        ackerConf.put(Config.TOPOLOGY_TASKS, ackerNum);
+        ackerConf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, ObjectReader.getInt(conf.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS)));
+
+        Map<GlobalStreamId, Grouping> inputs = ackerInputs(topology);
+        Bolt acker = Thrift.prepareSerializedBoltDetails(inputs, makeAckerBolt(), outputStreams, ackerNum, ackerConf);
+
+        for (Bolt bolt : topology.get_bolts().values()) {
+            ComponentCommon common = bolt.get_common();
+            common.put_to_streams(Acker.ACKER_ACK_STREAM_ID, Thrift.outputFields(Arrays.asList("id", "ack-val")));
+            common.put_to_streams(Acker.ACKER_FAIL_STREAM_ID, Thrift.outputFields(Arrays.asList("id")));
+            common.put_to_streams(Acker.ACKER_RESET_TIMEOUT_STREAM_ID, Thrift.outputFields(Arrays.asList("id")));
+        }
+
+        for (SpoutSpec spout : topology.get_spouts().values()) {
+            ComponentCommon common = spout.get_common();
+            Map<String, Object> spoutConf = componentConf(spout);
+            spoutConf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS,
+                          ObjectReader.getInt(conf.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS)));
+            common.set_json_conf(JSONValue.toJSONString(spoutConf));
+            common.put_to_streams(Acker.ACKER_INIT_STREAM_ID,
+                                  Thrift.outputFields(Arrays.asList("id", "init-val", "spout-task")));
+            common.put_to_inputs(Utils.getGlobalStreamId(Acker.ACKER_COMPONENT_ID, Acker.ACKER_ACK_STREAM_ID),
+                                 Thrift.prepareDirectGrouping());
+            common.put_to_inputs(Utils.getGlobalStreamId(Acker.ACKER_COMPONENT_ID, Acker.ACKER_FAIL_STREAM_ID),
+                                 Thrift.prepareDirectGrouping());
+            common.put_to_inputs(Utils.getGlobalStreamId(Acker.ACKER_COMPONENT_ID, Acker.ACKER_RESET_TIMEOUT_STREAM_ID),
+                                 Thrift.prepareDirectGrouping());
+        }
+
+        topology.put_to_bolts(Acker.ACKER_COMPONENT_ID, acker);
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/metrics2/reporters/GraphiteStormReporter, getMetricsTargetPort(Ljava/util/Map;)Ljava/lang/Integer; > Context: Everywhere, blocks=[BB[SSA:3..4]2 - org.apache.storm.metrics2.reporters.GraphiteStormReporter.getMetricsTargetPort(Ljava/util/Map;)Ljava/lang/Integer;, BB[SSA:0..2]1 - org.apache.storm.metrics2.reporters.GraphiteStormReporter.getMetricsTargetPort(Ljava/util/Map;)Ljava/lang/Integer;, BB[SSA:5..5]3 - org.apache.storm.metrics2.reporters.GraphiteStormReporter.getMetricsTargetPort(Ljava/util/Map;)Ljava/lang/Integer;, BB[SSA:-1..-2]4 - org.apache.storm.metrics2.reporters.GraphiteStormReporter.getMetricsTargetPort(Ljava/util/Map;)Ljava/lang/Integer;], numberOfBasicBlocks=4, firstLineNumber=44, lastLineNumber=44, firstMethodNumber=43, lastMethodNumber=44, isFirstLineValid=true, methodSrcCode=
+    private static Integer getMetricsTargetPort(Map<String, Object> reporterConf) {
+        return ObjectReader.getInt(reporterConf.get(GRAPHITE_PORT), null);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/dependency/DependencyUploader, <init>()V > Context: Everywhere, blocks=[BB[SSA:12..12]7 - org.apache.storm.dependency.DependencyUploader.<init>()V, BB[SSA:10..11]6 - org.apache.storm.dependency.DependencyUploader.<init>()V, BB[SSA:13..13]8 - org.apache.storm.dependency.DependencyUploader.<init>()V, BB[SSA:-1..-2]11 - org.apache.storm.dependency.DependencyUploader.<init>()V], numberOfBasicBlocks=4, firstLineNumber=55, lastLineNumber=55, firstMethodNumber=52, lastMethodNumber=56, isFirstLineValid=true, methodSrcCode=
+
+    public DependencyUploader() {
+        conf = Utils.readStormConfig();
+        this.uploadChunkSize = ObjectReader.getInt(conf.get(Config.STORM_BLOBSTORE_DEPENDENCY_JAR_UPLOAD_CHUNK_SIZE_BYTES), 1024 * 1024);
+    }
+
+}

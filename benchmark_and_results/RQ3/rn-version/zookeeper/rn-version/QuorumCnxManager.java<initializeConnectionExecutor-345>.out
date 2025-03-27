@@ -1,0 +1,64 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	QuorumCnxManager.java	methodSinagture:	org.apache.zookeeper.server.quorum.QuorumCnxManager.initializeConnectionExecutor(JI)V	methodLines:	345:356
+blockLines:	348:-1
+paras:	null
+TaintedStat:	NORMAL initializeConnectionExecutor:conditional branch(eq, to iindex=13) 9,10 Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumCnxManager, initializeConnectionExecutor(JI)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumCnxManager, initializeConnectionExecutor(JI)V > Context: Everywhere[5]9 = invokestatic < Application, Ljava/lang/System, getSecurityManager()Ljava/lang/SecurityManager; > @10 exception:8
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumCnxManager, initializeConnectionExecutor(JI)V > Context: Everywhere[5]9 = invokestatic < Application, Ljava/lang/System, getSecurityManager()Ljava/lang/SecurityManager; > @10 exception:8
+NORMAL initializeConnectionExecutor:conditional branch(eq, to iindex=13) 9,10 Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumCnxManager, initializeConnectionExecutor(JI)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private void initializeConnectionExecutor(final long mySid, final int quorumCnxnThreadsSize) {
+        final AtomicInteger threadIndex = new AtomicInteger(1);
+        SecurityManager s = System.getSecurityManager();
+        final ThreadGroup group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
+
+        final ThreadFactory daemonThFactory = runnable -> new Thread(group, runnable,
+            String.format("QuorumConnectionThread-[myid=%d]-%d", mySid, threadIndex.getAndIncrement()));
+
+        this.connectionExecutor = new ThreadPoolExecutor(3, quorumCnxnThreadsSize, 60, TimeUnit.SECONDS,
+                                                         new SynchronousQueue<>(), daemonThFactory);
+        this.connectionExecutor.allowCoreThreadTimeOut(true);
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumCnxManager, <init>(Lorg/apache/zookeeper/server/quorum/QuorumPeer;JLjava/util/Map;Lorg/apache/zookeeper/server/quorum/auth/QuorumAuthServer;Lorg/apache/zookeeper/server/quorum/auth/QuorumAuthLearner;IZIZ)V > Context: Everywhere, blocks=[BB[SSA:91..94]43 - org.apache.zookeeper.server.quorum.QuorumCnxManager.<init>(Lorg/apache/zookeeper/server/quorum/QuorumPeer;JLjava/util/Map;Lorg/apache/zookeeper/server/quorum/auth/QuorumAuthServer;Lorg/apache/zookeeper/server/quorum/auth/QuorumAuthLearner;IZIZ)V, BB[SSA:88..90]42 - org.apache.zookeeper.server.quorum.QuorumCnxManager.<init>(Lorg/apache/zookeeper/server/quorum/QuorumPeer;JLjava/util/Map;Lorg/apache/zookeeper/server/quorum/auth/QuorumAuthServer;Lorg/apache/zookeeper/server/quorum/auth/QuorumAuthLearner;IZIZ)V, BB[SSA:95..96]44 - org.apache.zookeeper.server.quorum.QuorumCnxManager.<init>(Lorg/apache/zookeeper/server/quorum/QuorumPeer;JLjava/util/Map;Lorg/apache/zookeeper/server/quorum/auth/QuorumAuthServer;Lorg/apache/zookeeper/server/quorum/auth/QuorumAuthLearner;IZIZ)V, BB[SSA:-1..-2]50 - org.apache.zookeeper.server.quorum.QuorumCnxManager.<init>(Lorg/apache/zookeeper/server/quorum/QuorumPeer;JLjava/util/Map;Lorg/apache/zookeeper/server/quorum/auth/QuorumAuthServer;Lorg/apache/zookeeper/server/quorum/auth/QuorumAuthLearner;IZIZ)V], numberOfBasicBlocks=4, firstLineNumber=333, lastLineNumber=338, firstMethodNumber=312, lastMethodNumber=340, isFirstLineValid=true, methodSrcCode=
+        QuorumAuthServer authServer, QuorumAuthLearner authLearner, int socketTimeout, boolean listenOnAllIPs,
+        int quorumCnxnThreadsSize, boolean quorumSaslAuthEnabled) {
+
+        this.recvQueue = new CircularBlockingQueue<>(RECV_CAPACITY);
+        this.queueSendMap = new ConcurrentHashMap<>();
+        this.senderWorkerMap = new ConcurrentHashMap<>();
+        this.lastMessageSent = new ConcurrentHashMap<>();
+
+        String cnxToValue = System.getProperty("zookeeper.cnxTimeout");
+        if (cnxToValue != null) {
+            this.cnxTO = Integer.parseInt(cnxToValue);
+        }
+
+        this.self = self;
+
+        this.mySid = mySid;
+        this.socketTimeout = socketTimeout;
+        this.view = view;
+        this.listenOnAllIPs = listenOnAllIPs;
+        this.authServer = authServer;
+        this.authLearner = authLearner;
+        this.quorumSaslAuthEnabled = quorumSaslAuthEnabled;
+
+        initializeConnectionExecutor(mySid, quorumCnxnThreadsSize);
+
+        // Starts listener thread that waits for connection requests
+        listener = new Listener();
+        listener.setName("QuorumPeerListener");
+    }
+
+}

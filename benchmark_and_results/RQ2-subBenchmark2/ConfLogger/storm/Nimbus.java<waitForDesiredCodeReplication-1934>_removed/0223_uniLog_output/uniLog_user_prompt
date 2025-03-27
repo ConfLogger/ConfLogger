@@ -1,0 +1,407 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>private void waitForDesiredCodeReplication(Map<String, Object> topoConf, String topoId) throws Exception {
+<Line#1>int minReplicationCount = ObjectReader.getInt(topoConf.get(Config.TOPOLOGY_MIN_REPLICATION_COUNT));
+<Line#2>int maxWaitTime = ObjectReader.getInt(topoConf.get(Config.TOPOLOGY_MAX_REPLICATION_WAIT_TIME_SEC));
+<Line#3>int jarCount = minReplicationCount;
+<Line#4>if (!ConfigUtils.isLocalMode(topoConf)) {
+<Line#5>jarCount = getBlobReplicationCount(ConfigUtils.masterStormJarKey(topoId));
+<Line#6>}
+<Line#7>int codeCount = getBlobReplicationCount(ConfigUtils.masterStormCodeKey(topoId));
+<Line#8>int confCount = getBlobReplicationCount(ConfigUtils.masterStormConfKey(topoId));
+<Line#9>long totalWaitTime = 0;
+<Line#10>//When is this ever null?
+<Line#11>if (blobStore != null) {
+<Line#12>while (jarCount < minReplicationCount
+<Line#13>&& codeCount < minReplicationCount
+<Line#14>&& confCount < minReplicationCount) {
+<Line#15>if (maxWaitTime > 0 && totalWaitTime > maxWaitTime) {
+<Line#16>return;
+<Line#17>}
+<Line#18>LOG.debug("Checking if I am still the leader");
+<Line#19>assertIsLeader();
+<Line#20>LOG.info("WAITING... storm-id {}, {} <? {} {} {}", topoId, minReplicationCount, jarCount, codeCount, confCount);
+<Line#21>LOG.info("WAITING... {} <? {}", totalWaitTime, maxWaitTime);
+<Line#22>Time.sleepSecs(1);
+<Line#23>totalWaitTime++;
+<Line#24>if (!ConfigUtils.isLocalMode(topoConf)) {
+<Line#25>jarCount = getBlobReplicationCount(ConfigUtils.masterStormJarKey(topoId));
+<Line#26>}
+<Line#27>codeCount = getBlobReplicationCount(ConfigUtils.masterStormCodeKey(topoId));
+<Line#28>confCount = getBlobReplicationCount(ConfigUtils.masterStormConfKey(topoId));
+<Line#29>}
+<Line#30>}
+<Line#31>LOG.info("desired replication count {} achieved for topology {}, current-replication-count for conf key = {},"
+<Line#32>+ " current-replication-count for code key = {}, current-replication-count for jar key = {}",
+<Line#33>minReplicationCount, topoId, confCount, codeCount, jarCount);
+<Line#34>}
+
+Example 1:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    setWorkerProfilerCalls.mark();
+<Line#4>    Map<String,Object> topoConf=tryReadTopoConf(topoId,topoCache);
+<Line#5>    topoConf=Utils.merge(conf,topoConf);
+<Line#6>    String topoName=(String)topoConf.get(Config.TOPOLOGY_NAME);
+<Line#7>    checkAuthorization(topoName,topoConf,"setWorkerProfiler");
+<Line#8>    IStormClusterState state=stormClusterState;
+<Line#9>    state.setWorkerProfileRequest(topoId,profileRequest);
+<Line#10>  }
+<Line#11> catch (  Exception e) {
+<Line#12>    LOG.warn("set worker profiler topology exception. (topology id='{}')",topoId,e);
+<Line#13>    if (e instanceof TException) {
+<Line#14>      throw (TException)e;
+<Line#15>    }
+<Line#16>    throw new RuntimeException(e);
+<Line#17>  }
+<Line#18>}
+Label: <Line#12> LOG.warn("set worker profiler topology exception. (topology id='{}')",topoId,e)
+
+Example 2:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    getTopologyPageInfoCalls.mark();
+<Line#4>    CommonTopoInfo common=getCommonTopoInfo(topoId,"getTopologyPageInfo");
+<Line#5>    String topoName=common.topoName;
+<Line#6>    IStormClusterState state=stormClusterState;
+<Line#7>    Assignment assignment=common.assignment;
+<Line#8>    Map<List<Integer>,Map<String,Object>> beats=common.beats;
+<Line#9>    Map<Integer,String> taskToComp=common.taskToComponent;
+<Line#10>    StormTopology topology=common.topology;
+<Line#11>    StormBase base=common.base;
+<Line#12>    if (base == null) {
+<Line#13>      throw new WrappedNotAliveException(topoId);
+<Line#14>    }
+<Line#15>    String owner=base.get_owner();
+<Line#16>    Map<WorkerSlot,WorkerResources> workerToResources=getWorkerResourcesForTopology(topoId);
+<Line#17>    List<WorkerSummary> workerSummaries=null;
+<Line#18>    Map<List<Long>,List<Object>> exec2NodePort=new HashMap<>();
+<Line#19>    if (assignment != null) {
+<Line#20>      Map<List<Long>,NodeInfo> execToNodeInfo=assignment.get_executor_node_port();
+<Line#21>      Map<String,String> nodeToHost=assignment.get_node_host();
+<Line#22>      for (      Entry<List<Long>,NodeInfo> entry : execToNodeInfo.entrySet()) {
+<Line#23>        NodeInfo ni=entry.getValue();
+<Line#24>        List<Object> nodePort=Arrays.asList(ni.get_node(),ni.get_port_iterator().next());
+<Line#25>        exec2NodePort.put(entry.getKey(),nodePort);
+<Line#26>      }
+<Line#27>      workerSummaries=StatsUtil.aggWorkerStats(topoId,topoName,taskToComp,beats,exec2NodePort,nodeToHost,workerToResources,includeSys,true,null,owner);
+<Line#28>    }
+<Line#29>    TopologyPageInfo topoPageInfo=StatsUtil.aggTopoExecsStats(topoId,exec2NodePort,taskToComp,beats,topology,window,includeSys,state);
+<Line#30>    if (topology.is_set_storm_version()) {
+<Line#31>      topoPageInfo.set_storm_version(topology.get_storm_version());
+<Line#32>    }
+<Line#33>    Map<String,Object> topoConf=Utils.merge(conf,common.topoConf);
+<Line#34>    addSpoutAggStats(topoPageInfo,topology,topoConf);
+<Line#35>    addBoltAggStats(topoPageInfo,topology,topoConf,includeSys);
+<Line#36>    if (workerSummaries != null) {
+<Line#37>      topoPageInfo.set_workers(workerSummaries);
+<Line#38>    }
+<Line#39>    if (base.is_set_owner()) {
+<Line#40>      topoPageInfo.set_owner(base.get_owner());
+<Line#41>    }
+<Line#42>    if (base.is_set_topology_version()) {
+<Line#43>      topoPageInfo.set_topology_version(base.get_topology_version());
+<Line#44>    }
+<Line#45>    String schedStatus=idToSchedStatus.get().get(topoId);
+<Line#46>    if (schedStatus != null) {
+<Line#47>      topoPageInfo.set_sched_status(schedStatus);
+<Line#48>    }
+<Line#49>    TopologyResources resources=getResourcesForTopology(topoId,base);
+<Line#50>    if (resources != null && underlyingScheduler instanceof ResourceAwareScheduler) {
+<Line#51>      topoPageInfo.set_requested_memonheap(resources.getRequestedMemOnHeap());
+<Line#52>      topoPageInfo.set_requested_memoffheap(resources.getRequestedMemOffHeap());
+<Line#53>      topoPageInfo.set_requested_cpu(resources.getRequestedCpu());
+<Line#54>      topoPageInfo.set_assigned_memonheap(resources.getAssignedMemOnHeap());
+<Line#55>      topoPageInfo.set_assigned_memoffheap(resources.getAssignedMemOffHeap());
+<Line#56>      topoPageInfo.set_assigned_cpu(resources.getAssignedCpu());
+<Line#57>      topoPageInfo.set_requested_shared_off_heap_memory(resources.getRequestedSharedMemOffHeap());
+<Line#58>      topoPageInfo.set_requested_regular_off_heap_memory(resources.getRequestedNonSharedMemOffHeap());
+<Line#59>      topoPageInfo.set_requested_shared_on_heap_memory(resources.getRequestedSharedMemOnHeap());
+<Line#60>      topoPageInfo.set_requested_regular_on_heap_memory(resources.getRequestedNonSharedMemOnHeap());
+<Line#61>      topoPageInfo.set_assigned_shared_off_heap_memory(resources.getAssignedSharedMemOffHeap());
+<Line#62>      topoPageInfo.set_assigned_regular_off_heap_memory(resources.getAssignedNonSharedMemOffHeap());
+<Line#63>      topoPageInfo.set_assigned_shared_on_heap_memory(resources.getAssignedSharedMemOnHeap());
+<Line#64>      topoPageInfo.set_assigned_regular_on_heap_memory(resources.getAssignedNonSharedMemOnHeap());
+<Line#65>      topoPageInfo.set_assigned_generic_resources(resources.getAssignedGenericResources());
+<Line#66>      topoPageInfo.set_requested_generic_resources(resources.getRequestedGenericResources());
+<Line#67>    }
+<Line#68>    int launchTimeSecs=common.launchTimeSecs;
+<Line#69>    topoPageInfo.set_name(topoName);
+<Line#70>    topoPageInfo.set_status(extractStatusStr(base));
+<Line#71>    topoPageInfo.set_uptime_secs(Time.deltaSecs(launchTimeSecs));
+<Line#72>    topoPageInfo.set_topology_conf(JSONValue.toJSONString(topoConf));
+<Line#73>    topoPageInfo.set_replication_count(getBlobReplicationCount(ConfigUtils.masterStormCodeKey(topoId)));
+<Line#74>    if (base.is_set_component_debug()) {
+<Line#75>      DebugOptions debug=base.get_component_debug().get(topoId);
+<Line#76>      if (debug != null) {
+<Line#77>        topoPageInfo.set_debug_options(debug);
+<Line#78>      }
+<Line#79>    }
+<Line#80>    return topoPageInfo;
+<Line#81>  }
+<Line#82> catch (  Exception e) {
+<Line#83>    LOG.warn("Get topo page info exception. (topology id='{}')",topoId,e);
+<Line#84>    if (e instanceof TException) {
+<Line#85>      throw (TException)e;
+<Line#86>    }
+<Line#87>    throw new RuntimeException(e);
+<Line#88>  }
+<Line#89>}
+Label: <Line#83> LOG.warn("Get topo page info exception. (topology id='{}')",topoId,e)
+
+Example 3:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    uploadNewCredentialsCalls.mark();
+<Line#4>    IStormClusterState state=stormClusterState;
+<Line#5>    String topoId=toTopoId(topoName);
+<Line#6>    if (topoId == null) {
+<Line#7>      throw new WrappedNotAliveException(topoName + " is not alive");
+<Line#8>    }
+<Line#9>    Map<String,Object> topoConf=tryReadTopoConf(topoId,topoCache);
+<Line#10>    topoConf=Utils.merge(conf,topoConf);
+<Line#11>    if (credentials == null) {
+<Line#12>      credentials=new Credentials(Collections.emptyMap());
+<Line#13>    }
+<Line#14>    checkAuthorization(topoName,topoConf,"uploadNewCredentials");
+<Line#15>    String realPrincipal=(String)topoConf.get(Config.TOPOLOGY_SUBMITTER_PRINCIPAL);
+<Line#16>    String realUser=(String)topoConf.get(Config.TOPOLOGY_SUBMITTER_USER);
+<Line#17>    String expectedOwner=null;
+<Line#18>    if (credentials.is_set_topoOwner()) {
+<Line#19>      expectedOwner=credentials.get_topoOwner();
+<Line#20>    }
+<Line#21> else {
+<Line#22>      Principal p=ReqContext.context().principal();
+<Line#23>      if (p != null) {
+<Line#24>        expectedOwner=p.getName();
+<Line#25>      }
+<Line#26>    }
+<Line#27>    if (expectedOwner == null) {
+<Line#28>      LOG.warn("Please check you settings. Credentials are being uploaded to {} with security disabled.",topoId);
+<Line#29>    }
+<Line#30> else     if (!realPrincipal.equals(expectedOwner) && !realUser.equals(expectedOwner)) {
+<Line#31>      throw new AuthorizationException(topoId + " is expected to be owned by " + expectedOwner+ " but is actually owned by "+ realPrincipal);
+<Line#32>    }
+<Line#33>synchronized (credUpdateLock) {
+<Line#34>      Credentials origCreds=state.credentials(topoId,null);
+<Line#35>      if (origCreds != null) {
+<Line#36>        Map<String,String> mergedCreds=origCreds.get_creds();
+<Line#37>        mergedCreds.putAll(credentials.get_creds());
+<Line#38>        credentials.set_creds(mergedCreds);
+<Line#39>      }
+<Line#40>      state.setCredentials(topoId,credentials,topoConf);
+<Line#41>    }
+<Line#42>  }
+<Line#43> catch (  Exception e) {
+<Line#44>    LOG.warn("Upload Creds topology exception. (topology name='{}')",topoName,e);
+<Line#45>    if (e instanceof TException) {
+<Line#46>      throw (TException)e;
+<Line#47>    }
+<Line#48>    throw new RuntimeException(e);
+<Line#49>  }
+<Line#50>}
+Label: <Line#28> LOG.warn("Please check you settings. Credentials are being uploaded to {} with security disabled.",topoId)
+
+Example 4:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    uploadNewCredentialsCalls.mark();
+<Line#4>    IStormClusterState state=stormClusterState;
+<Line#5>    String topoId=toTopoId(topoName);
+<Line#6>    if (topoId == null) {
+<Line#7>      throw new WrappedNotAliveException(topoName + " is not alive");
+<Line#8>    }
+<Line#9>    Map<String,Object> topoConf=tryReadTopoConf(topoId,topoCache);
+<Line#10>    topoConf=Utils.merge(conf,topoConf);
+<Line#11>    if (credentials == null) {
+<Line#12>      credentials=new Credentials(Collections.emptyMap());
+<Line#13>    }
+<Line#14>    checkAuthorization(topoName,topoConf,"uploadNewCredentials");
+<Line#15>    String realPrincipal=(String)topoConf.get(Config.TOPOLOGY_SUBMITTER_PRINCIPAL);
+<Line#16>    String realUser=(String)topoConf.get(Config.TOPOLOGY_SUBMITTER_USER);
+<Line#17>    String expectedOwner=null;
+<Line#18>    if (credentials.is_set_topoOwner()) {
+<Line#19>      expectedOwner=credentials.get_topoOwner();
+<Line#20>    }
+<Line#21> else {
+<Line#22>      Principal p=ReqContext.context().principal();
+<Line#23>      if (p != null) {
+<Line#24>        expectedOwner=p.getName();
+<Line#25>      }
+<Line#26>    }
+<Line#27>    if (expectedOwner == null) {
+<Line#28>      LOG.warn("Please check you settings. Credentials are being uploaded to {} with security disabled.",topoId);
+<Line#29>    }
+<Line#30> else     if (!realPrincipal.equals(expectedOwner) && !realUser.equals(expectedOwner)) {
+<Line#31>      throw new AuthorizationException(topoId + " is expected to be owned by " + expectedOwner+ " but is actually owned by "+ realPrincipal);
+<Line#32>    }
+<Line#33>synchronized (credUpdateLock) {
+<Line#34>      Credentials origCreds=state.credentials(topoId,null);
+<Line#35>      if (origCreds != null) {
+<Line#36>        Map<String,String> mergedCreds=origCreds.get_creds();
+<Line#37>        mergedCreds.putAll(credentials.get_creds());
+<Line#38>        credentials.set_creds(mergedCreds);
+<Line#39>      }
+<Line#40>      state.setCredentials(topoId,credentials,topoConf);
+<Line#41>    }
+<Line#42>  }
+<Line#43> catch (  Exception e) {
+<Line#44>    LOG.warn("Upload Creds topology exception. (topology name='{}')",topoName,e);
+<Line#45>    if (e instanceof TException) {
+<Line#46>      throw (TException)e;
+<Line#47>    }
+<Line#48>    throw new RuntimeException(e);
+<Line#49>  }
+<Line#50>}
+Label: <Line#44> LOG.warn("Upload Creds topology exception. (topology name='{}')",topoName,e)
+
+Example 5:
+<Line#1>{
+<Line#2>  Map<String,Integer> stringToIdCache=new HashMap<>();
+<Line#3>  Map<Integer,String> idToStringCache=new HashMap<>();
+<Line#4>  int startTopologyId=0;
+<Line#5>  int endTopologyId=0xFFFFFFFF;
+<Line#6>  String filterTopologyId=filter.getTopologyId();
+<Line#7>  if (filterTopologyId != null) {
+<Line#8>    int topologyId=lookupMetadataString(KeyType.TOPOLOGY_STRING,filterTopologyId,stringToIdCache);
+<Line#9>    if (INVALID_METADATA_STRING_ID == topologyId) {
+<Line#10>      return;
+<Line#11>    }
+<Line#12>    startTopologyId=topologyId;
+<Line#13>    endTopologyId=topologyId;
+<Line#14>  }
+<Line#15>  long startTime=filter.getStartTime();
+<Line#16>  long endTime=filter.getEndTime();
+<Line#17>  int startMetricId=0;
+<Line#18>  int endMetricId=0xFFFFFFFF;
+<Line#19>  String filterMetricName=filter.getMetricName();
+<Line#20>  if (filterMetricName != null) {
+<Line#21>    int metricId=lookupMetadataString(KeyType.METRIC_STRING,filterMetricName,stringToIdCache);
+<Line#22>    if (INVALID_METADATA_STRING_ID == metricId) {
+<Line#23>      return;
+<Line#24>    }
+<Line#25>    startMetricId=metricId;
+<Line#26>    endMetricId=metricId;
+<Line#27>  }
+<Line#28>  int startComponentId=0;
+<Line#29>  int endComponentId=0xFFFFFFFF;
+<Line#30>  String filterComponentId=filter.getComponentId();
+<Line#31>  if (filterComponentId != null) {
+<Line#32>    int componentId=lookupMetadataString(KeyType.COMPONENT_STRING,filterComponentId,stringToIdCache);
+<Line#33>    if (INVALID_METADATA_STRING_ID == componentId) {
+<Line#34>      return;
+<Line#35>    }
+<Line#36>    startComponentId=componentId;
+<Line#37>    endComponentId=componentId;
+<Line#38>  }
+<Line#39>  int startExecutorId=0;
+<Line#40>  int endExecutorId=0xFFFFFFFF;
+<Line#41>  String filterExecutorName=filter.getExecutorId();
+<Line#42>  if (filterExecutorName != null) {
+<Line#43>    int executorId=lookupMetadataString(KeyType.EXEC_ID_STRING,filterExecutorName,stringToIdCache);
+<Line#44>    if (INVALID_METADATA_STRING_ID == executorId) {
+<Line#45>      return;
+<Line#46>    }
+<Line#47>    startExecutorId=executorId;
+<Line#48>    endExecutorId=executorId;
+<Line#49>  }
+<Line#50>  int startHostId=0;
+<Line#51>  int endHostId=0xFFFFFFFF;
+<Line#52>  String filterHostId=filter.getHostId();
+<Line#53>  if (filterHostId != null) {
+<Line#54>    int hostId=lookupMetadataString(KeyType.HOST_STRING,filterHostId,stringToIdCache);
+<Line#55>    if (INVALID_METADATA_STRING_ID == hostId) {
+<Line#56>      return;
+<Line#57>    }
+<Line#58>    startHostId=hostId;
+<Line#59>    endHostId=hostId;
+<Line#60>  }
+<Line#61>  int startPort=0;
+<Line#62>  int endPort=0xFFFFFFFF;
+<Line#63>  Integer filterPort=filter.getPort();
+<Line#64>  if (filterPort != null) {
+<Line#65>    startPort=filterPort;
+<Line#66>    endPort=filterPort;
+<Line#67>  }
+<Line#68>  int startStreamId=0;
+<Line#69>  int endStreamId=0xFFFFFFFF;
+<Line#70>  String filterStreamId=filter.getStreamId();
+<Line#71>  if (filterStreamId != null) {
+<Line#72>    int streamId=lookupMetadataString(KeyType.HOST_STRING,filterStreamId,stringToIdCache);
+<Line#73>    if (INVALID_METADATA_STRING_ID == streamId) {
+<Line#74>      return;
+<Line#75>    }
+<Line#76>    startStreamId=streamId;
+<Line#77>    endStreamId=streamId;
+<Line#78>  }
+<Line#79>  try (ReadOptions ro=new ReadOptions()){
+<Line#80>    ro.setTotalOrderSeek(true);
+<Line#81>    for (    AggLevel aggLevel : filter.getAggLevels()) {
+<Line#82>      RocksDbKey startKey=RocksDbKey.createMetricKey(aggLevel,startTopologyId,startTime,startMetricId,startComponentId,startExecutorId,startHostId,startPort,startStreamId);
+<Line#83>      RocksDbKey endKey=RocksDbKey.createMetricKey(aggLevel,endTopologyId,endTime,endMetricId,endComponentId,endExecutorId,endHostId,endPort,endStreamId);
+<Line#84>      try (RocksIterator iterator=db.newIterator(ro)){
+<Line#85>        for (iterator.seek(startKey.getRaw()); iterator.isValid(); iterator.next()) {
+<Line#86>          RocksDbKey key=new RocksDbKey(iterator.key());
+<Line#87>          if (key.compareTo(endKey) > 0) {
+<Line#88>            break;
+<Line#89>          }
+<Line#90>          if (startTopologyId != 0 && key.getTopologyId() != startTopologyId) {
+<Line#91>            continue;
+<Line#92>          }
+<Line#93>          long timestamp=key.getTimestamp();
+<Line#94>          if (timestamp < startTime || timestamp > endTime) {
+<Line#95>            continue;
+<Line#96>          }
+<Line#97>          if (startMetricId != 0 && key.getMetricId() != startMetricId) {
+<Line#98>            continue;
+<Line#99>          }
+<Line#100>          if (startComponentId != 0 && key.getComponentId() != startComponentId) {
+<Line#101>            continue;
+<Line#102>          }
+<Line#103>          if (startExecutorId != 0 && key.getExecutorId() != startExecutorId) {
+<Line#104>            continue;
+<Line#105>          }
+<Line#106>          if (startHostId != 0 && key.getHostnameId() != startHostId) {
+<Line#107>            continue;
+<Line#108>          }
+<Line#109>          if (startPort != 0 && key.getPort() != startPort) {
+<Line#110>            continue;
+<Line#111>          }
+<Line#112>          if (startStreamId != 0 && key.getStreamId() != startStreamId) {
+<Line#113>            continue;
+<Line#114>          }
+<Line#115>          RocksDbValue val=new RocksDbValue(iterator.value());
+<Line#116>          if (scanCallback != null) {
+<Line#117>            try {
+<Line#118>              String metricName=metadataIdToString(KeyType.METRIC_STRING,key.getMetricId(),idToStringCache);
+<Line#119>              String topologyId=metadataIdToString(KeyType.TOPOLOGY_STRING,key.getTopologyId(),idToStringCache);
+<Line#120>              String componentId=metadataIdToString(KeyType.COMPONENT_STRING,key.getComponentId(),idToStringCache);
+<Line#121>              String executorId=metadataIdToString(KeyType.EXEC_ID_STRING,key.getExecutorId(),idToStringCache);
+<Line#122>              String hostname=metadataIdToString(KeyType.HOST_STRING,key.getHostnameId(),idToStringCache);
+<Line#123>              String streamId=metadataIdToString(KeyType.STREAM_ID_STRING,key.getStreamId(),idToStringCache);
+<Line#124>              Metric metric=new Metric(metricName,timestamp,topologyId,0.0,componentId,executorId,hostname,streamId,key.getPort(),aggLevel);
+<Line#125>              val.populateMetric(metric);
+<Line#126>              scanCallback.cb(metric);
+<Line#127>            }
+<Line#128> catch (            MetricException e) {
+<Line#129>              LOG.warn("Failed to report found metric: {}",e.getMessage());
+<Line#130>            }
+<Line#131>          }
+<Line#132> else {
+<Line#133>            try {
+<Line#134>              if (!rawCallback.cb(key,val)) {
+<Line#135>                return;
+<Line#136>              }
+<Line#137>            }
+<Line#138> catch (            RocksDBException e) {
+<Line#139>              throw new MetricException("Error reading metrics data",e);
+<Line#140>            }
+<Line#141>          }
+<Line#142>        }
+<Line#143>      }
+<Line#144>     }
+<Line#145>  }
+<Line#146> }
+Label: <Line#129> LOG.warn("Failed to report found metric: {}",e.getMessage())
+

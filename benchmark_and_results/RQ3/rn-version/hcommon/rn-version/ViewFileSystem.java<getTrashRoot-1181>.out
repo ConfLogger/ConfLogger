@@ -1,0 +1,56 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ViewFileSystem.java	methodSinagture:	org.apache.hadoop.fs.viewfs.ViewFileSystem.getTrashRoot(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path;	methodLines:	1181:1216
+blockLines:	1188:-1
+paras:	null
+TaintedStat:	NORMAL getTrashRoot:conditional branch(ne, to iindex=24) 19,17 Node: < Application, Lorg/apache/hadoop/fs/viewfs/ViewFileSystem, getTrashRoot(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/fs/viewfs/ViewFileSystem, getTrashRoot(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path; > Context: Everywhere[19]19 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getBoolean(Ljava/lang/String;Z)Z > 15,16,17 @36 exception:18
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/fs/viewfs/ViewFileSystem, getTrashRoot(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path; > Context: Everywhere[19]19 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getBoolean(Ljava/lang/String;Z)Z > 15,16,17 @36 exception:18
+NORMAL getTrashRoot:conditional branch(ne, to iindex=24) 19,17 Node: < Application, Lorg/apache/hadoop/fs/viewfs/ViewFileSystem, getTrashRoot(Lorg/apache/hadoop/fs/Path;)Lorg/apache/hadoop/fs/Path; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    try {
+      InodeTree.ResolveResult<FileSystem> res =
+          fsState.resolve(getUriPath(path), true);
+      Path targetFSTrashRoot =
+          res.targetFileSystem.getTrashRoot(res.remainingPath);
+
+      // Allow clients to use old behavior of delegating to target fs.
+      if (!config.getBoolean(CONFIG_VIEWFS_TRASH_FORCE_INSIDE_MOUNT_POINT,
+          CONFIG_VIEWFS_TRASH_FORCE_INSIDE_MOUNT_POINT_DEFAULT)) {
+        return targetFSTrashRoot;
+      }
+
+      // The trash root path from the target fs
+      String targetFSTrashRootPath = targetFSTrashRoot.toUri().getPath();
+      // The mount point path in the target fs
+      String mountTargetPath = res.targetFileSystem.getUri().getPath();
+      if (!mountTargetPath.endsWith("/")) {
+        mountTargetPath = mountTargetPath + "/";
+      }
+
+      Path targetFsUserHome = res.targetFileSystem.getHomeDirectory();
+      if (targetFSTrashRootPath.startsWith(mountTargetPath) &&
+          !(mountTargetPath.equals(ROOT_PATH.toString()) &&
+              !res.resolvedPath.equals(ROOT_PATH.toString()) &&
+              (targetFsUserHome != null && targetFSTrashRootPath.startsWith(
+                  targetFsUserHome.toUri().getPath())))) {
+        String relativeTrashRoot =
+            targetFSTrashRootPath.substring(mountTargetPath.length());
+        return makeQualified(new Path(res.resolvedPath, relativeTrashRoot));
+      } else {
+        // Return the trash root for the mount point.
+        return makeQualified(new Path(res.resolvedPath,
+            TRASH_PREFIX + "/" + ugi.getShortUserName()));
+      }
+    } catch (IOException | IllegalArgumentException e) {
+      throw new NotInMountpointException(path, "getTrashRoot");
+    }
+
+
+====================ctx:=======================

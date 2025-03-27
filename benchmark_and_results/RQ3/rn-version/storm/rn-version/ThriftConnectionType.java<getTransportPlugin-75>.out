@@ -1,0 +1,37 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ThriftConnectionType.java	methodSinagture:	org.apache.storm.security.auth.ThriftConnectionType.getTransportPlugin(Ljava/util/Map;)Ljava/lang/String;	methodLines:	75:80
+blockLines:	77:-1
+paras:	null
+TaintedStat:	NORMAL getTransportPlugin:conditional branch(ne, to iindex=14) 7,8 Node: < Application, Lorg/apache/storm/security/auth/ThriftConnectionType, getTransportPlugin(Ljava/util/Map;)Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/ThriftConnectionType, getTransportPlugin(Ljava/util/Map;)Ljava/lang/String; > Context: Everywhere[3]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,4 @5 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/ThriftConnectionType, getTransportPlugin(Ljava/util/Map;)Ljava/lang/String; > Context: Everywhere[3]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,4 @5 exception:5
+NORMAL getTransportPlugin:7 = checkcast <Application,Ljava/lang/String>6 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/security/auth/ThriftConnectionType, getTransportPlugin(Ljava/util/Map;)Ljava/lang/String; > Context: Everywhere
+NORMAL getTransportPlugin:conditional branch(ne, to iindex=14) 7,8 Node: < Application, Lorg/apache/storm/security/auth/ThriftConnectionType, getTransportPlugin(Ljava/util/Map;)Ljava/lang/String; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public String getTransportPlugin(Map<String, Object> conf) {
+        String ret = (String) conf.get(transConf);
+        if (ret == null) {
+            ret = (String) conf.get(Config.STORM_THRIFT_TRANSPORT_PLUGIN);
+        }
+        return ret;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, getTransportPlugin(Lorg/apache/storm/security/auth/ThriftConnectionType;Ljava/util/Map;)Lorg/apache/storm/security/auth/ITransportPlugin; > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.storm.security.auth.ClientAuthUtils.getTransportPlugin(Lorg/apache/storm/security/auth/ThriftConnectionType;Ljava/util/Map;)Lorg/apache/storm/security/auth/ITransportPlugin;, BB[SSA:-1..-2]0 - org.apache.storm.security.auth.ClientAuthUtils.getTransportPlugin(Lorg/apache/storm/security/auth/ThriftConnectionType;Ljava/util/Map;)Lorg/apache/storm/security/auth/ITransportPlugin;, BB[SSA:3..5]2 - org.apache.storm.security.auth.ClientAuthUtils.getTransportPlugin(Lorg/apache/storm/security/auth/ThriftConnectionType;Ljava/util/Map;)Lorg/apache/storm/security/auth/ITransportPlugin;, BB[SSA:-1..-2]9 - org.apache.storm.security.auth.ClientAuthUtils.getTransportPlugin(Lorg/apache/storm/security/auth/ThriftConnectionType;Ljava/util/Map;)Lorg/apache/storm/security/auth/ITransportPlugin;], numberOfBasicBlocks=4, firstLineNumber=478, lastLineNumber=480, firstMethodNumber=478, lastMethodNumber=484, isFirstLineValid=false, methodSrcCode=
+        try {
+            String transportPluginClassName = type.getTransportPlugin(topoConf);
+            ITransportPlugin transportPlugin = ReflectionUtils.newInstance(transportPluginClassName);
+            transportPlugin.prepare(type, topoConf);
+            return transportPlugin;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+}

@@ -1,0 +1,190 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> public boolean clientTunneledAuthenticationInProgress() {
+<Line#1> if (!isSASLConfigured) {
+<Line#2> return false;
+<Line#3> }
+<Line#4> // TODO: Rather than checking a disjunction here, should be a single member
+<Line#5> // variable or method in this class to determine whether the client is
+<Line#6> // configured to use SASL. (see also ZOOKEEPER-1455).
+<Line#7> try {
+<Line#8> if ((clientConfig.getJaasConfKey() != null)
+<Line#9> || ((Configuration.getConfiguration() != null)
+<Line#10> && (Configuration.getConfiguration().getAppConfigurationEntry(
+<Line#11> clientConfig.getProperty(
+<Line#12> ZKClientConfig.LOGIN_CONTEXT_NAME_KEY,
+<Line#13> ZKClientConfig.LOGIN_CONTEXT_NAME_KEY_DEFAULT)) != null))) {
+<Line#14> // Client is configured to use a valid login Configuration, so
+<Line#15> // authentication is either in progress, successful, or failed.
+<Line#16> 
+<Line#17> // 1. Authentication hasn't finished yet: we must wait for it to do so.
+<Line#18> if (!isComplete() && !isFailed()) {
+<Line#19> return true;
+<Line#20> }
+<Line#21> 
+<Line#22> // 2. SASL authentication has succeeded or failed..
+<Line#23> //noinspection RedundantIfStatement
+<Line#24> if (!gotLastPacket) {
+<Line#25> // ..but still in progress, because there is a final SASL
+<Line#26> // message from server which must be received.
+<Line#27> return true;
+<Line#28> }
+<Line#29> }
+<Line#30> // Either client is not configured to use a tunnelled authentication
+<Line#31> // scheme, or tunnelled authentication has completed (successfully or
+<Line#32> // not), and all server SASL messages have been received.
+<Line#33> return false;
+<Line#34> } catch (SecurityException e) {
+<Line#35> // Thrown if the caller does not have permission to retrieve the Configuration.
+<Line#36> // In this case, simply returning false is correct.
+<Line#37> 
+<Line#38> return false;
+<Line#39> }
+
+Related Context:
+Method A:
+<Line#0> public boolean isFailed(){
+<Line#1>   return (saslState == SaslState.FAILED);
+<Line#2> }
+<Line#3> 
+Method B:
+<Line#0> public boolean isComplete(){
+<Line#1>   return (saslState == SaslState.COMPLETE);
+<Line#2> }
+<Line#3> 
+
+Relevant Logging Patterns:
+Example 1:
+File: zookeeper__run-199__.json
+Code:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    currentInterval=Time.currentElapsedTime() / INTERVAL;
+<Line#4>    Thread.sleep(INTERVAL * 2);
+<Line#5>    long min=99999;
+<Line#6>    long max=0;
+<Line#7>    long total=0;
+<Line#8>    int number=0;
+<Line#9>    while (true) {
+<Line#10>      long now=Time.currentElapsedTime();
+<Line#11>      long lastInterval=currentInterval;
+<Line#12>      currentInterval+=1;
+<Line#13>      long count=remove(lastInterval);
+<Line#14>      count=count * 1000 / INTERVAL;
+<Line#15>      if (lastChange != 0 && (lastChange + INTERVAL * 3) < now) {
+<Line#16>        if (count < min) {
+<Line#17>          min=count;
+<Line#18>        }
+<Line#19>        if (count > max) {
+<Line#20>          max=count;
+<Line#21>        }
+<Line#22>        total+=count;
+<Line#23>        number++;
+<Line#24>        Calendar calendar=Calendar.getInstance();
+<Line#25>        calendar.setTimeInMillis(lastInterval * INTERVAL);
+<Line#26>        String report=lastInterval + " " + calendar.get(Calendar.HOUR_OF_DAY)+ ":"+ calendar.get(Calendar.MINUTE)+ ":"+ calendar.get(Calendar.SECOND)+ " "+ percentage+ "% "+ count+ " "+ min+ " "+ ((double)total / (double)number)+ " "+ max;
+<Line#27>        LOG.info(report);
+<Line#28>        if (sf != null) {
+<Line#29>          sf.println(report);
+<Line#30>        }
+<Line#31>      }
+<Line#32> else {
+<Line#33>        max=total=0;
+<Line#34>        min=999999999;
+<Line#35>        number=0;
+<Line#36>      }
+<Line#37>      Thread.sleep(INTERVAL);
+<Line#38>    }
+<Line#39>  }
+<Line#40> catch (  Exception e) {
+<Line#41>    e.printStackTrace();
+<Line#42>  }
+<Line#43>}
+Log: <Line#27>:# LOG.info(report):#
+
+Example 2:
+File: zookeeper__readConnectResult-129__.json
+Code:
+<Line#1>{
+<Line#2>  if (LOG.isTraceEnabled()) {
+<Line#3>    StringBuilder buf=new StringBuilder("0x[");
+<Line#4>    for (    byte b : incomingBuffer.array()) {
+<Line#5>      buf.append(Integer.toHexString(b)).append(",");
+<Line#6>    }
+<Line#7>    buf.append("]");
+<Line#8>    if (LOG.isTraceEnabled()) {
+<Line#9>      LOG.trace("readConnectResult {} {}",incomingBuffer.remaining(),buf);
+<Line#10>    }
+<Line#11>  }
+<Line#12>  ByteBufferInputStream bbis=new ByteBufferInputStream(incomingBuffer);
+<Line#13>  BinaryInputArchive bbia=BinaryInputArchive.getArchive(bbis);
+<Line#14>  ConnectResponse conRsp=protocolManager.deserializeConnectResponse(bbia);
+<Line#15>  if (!protocolManager.isReadonlyAvailable()) {
+<Line#16>    LOG.warn("Connected to an old server; r-o mode will be unavailable");
+<Line#17>  }
+<Line#18>  this.sessionId=conRsp.getSessionId();
+<Line#19>  sendThread.onConnected(conRsp.getTimeOut(),this.sessionId,conRsp.getPasswd(),conRsp.getReadOnly());
+<Line#20>}
+Log: <Line#9>:# LOG.trace("readConnectResult {} {}",incomingBuffer.remaining(),buf):#
+
+Example 3:
+File: zookeeper__readConnectResult-129__.json
+Code:
+<Line#1>{
+<Line#2>  if (LOG.isTraceEnabled()) {
+<Line#3>    StringBuilder buf=new StringBuilder("0x[");
+<Line#4>    for (    byte b : incomingBuffer.array()) {
+<Line#5>      buf.append(Integer.toHexString(b)).append(",");
+<Line#6>    }
+<Line#7>    buf.append("]");
+<Line#8>    if (LOG.isTraceEnabled()) {
+<Line#9>      LOG.trace("readConnectResult {} {}",incomingBuffer.remaining(),buf);
+<Line#10>    }
+<Line#11>  }
+<Line#12>  ByteBufferInputStream bbis=new ByteBufferInputStream(incomingBuffer);
+<Line#13>  BinaryInputArchive bbia=BinaryInputArchive.getArchive(bbis);
+<Line#14>  ConnectResponse conRsp=protocolManager.deserializeConnectResponse(bbia);
+<Line#15>  if (!protocolManager.isReadonlyAvailable()) {
+<Line#16>    LOG.warn("Connected to an old server; r-o mode will be unavailable");
+<Line#17>  }
+<Line#18>  this.sessionId=conRsp.getSessionId();
+<Line#19>  sendThread.onConnected(conRsp.getTimeOut(),this.sessionId,conRsp.getPasswd(),conRsp.getReadOnly());
+<Line#20>}
+Log: <Line#16>:# LOG.warn("Connected to an old server; r-o mode will be unavailable"):#
+
+Example 4:
+File: zookeeper__dump-190__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("JMXEnv.dump() follows");
+<Line#3>  Set<ObjectName> beans;
+<Line#4>  try {
+<Line#5>    beans=conn().queryNames(new ObjectName(MBeanRegistry.DOMAIN + ":*"),null);
+<Line#6>  }
+<Line#7> catch (  MalformedObjectNameException e) {
+<Line#8>    throw new RuntimeException(e);
+<Line#9>  }
+<Line#10>  for (  ObjectName bean : beans) {
+<Line#11>    LOG.info("bean:{}",bean.toString());
+<Line#12>  }
+<Line#13>}
+Log: <Line#2>:# LOG.info("JMXEnv.dump() follows"):#
+
+Example 5:
+File: zookeeper__dump-190__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("JMXEnv.dump() follows");
+<Line#3>  Set<ObjectName> beans;
+<Line#4>  try {
+<Line#5>    beans=conn().queryNames(new ObjectName(MBeanRegistry.DOMAIN + ":*"),null);
+<Line#6>  }
+<Line#7> catch (  MalformedObjectNameException e) {
+<Line#8>    throw new RuntimeException(e);
+<Line#9>  }
+<Line#10>  for (  ObjectName bean : beans) {
+<Line#11>    LOG.info("bean:{}",bean.toString());
+<Line#12>  }
+<Line#13>}
+Log: <Line#11>:# LOG.info("bean:{}",bean.toString()):#

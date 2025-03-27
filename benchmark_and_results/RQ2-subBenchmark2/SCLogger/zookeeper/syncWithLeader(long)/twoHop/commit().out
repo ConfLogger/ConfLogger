@@ -1,0 +1,7 @@
+/** 
+ * commit the transaction of logs
+ * @throws IOException
+ */
+public void commit() throws IOException {
+  txnLog.commit();
+}

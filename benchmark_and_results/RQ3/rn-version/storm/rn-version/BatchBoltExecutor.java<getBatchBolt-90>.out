@@ -1,0 +1,51 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	BatchBoltExecutor.java	methodSinagture:	org.apache.storm.coordination.BatchBoltExecutor.getBatchBolt(Ljava/lang/Object;)Lorg/apache/storm/coordination/IBatchBolt;	methodLines:	90:97
+blockLines:	92:-1
+paras:	null
+TaintedStat:	NORMAL getBatchBolt:conditional branch(ne, to iindex=27) 7,8 Node: < Application, Lorg/apache/storm/coordination/BatchBoltExecutor, getBatchBolt(Ljava/lang/Object;)Lorg/apache/storm/coordination/IBatchBolt; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/coordination/BatchBoltExecutor, getBatchBolt(Ljava/lang/Object;)Lorg/apache/storm/coordination/IBatchBolt; > Context: Everywhere[3]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,2 @5 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/coordination/BatchBoltExecutor, getBatchBolt(Ljava/lang/Object;)Lorg/apache/storm/coordination/IBatchBolt; > Context: Everywhere[3]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,2 @5 exception:5
+NORMAL getBatchBolt:7 = checkcast <Application,Lorg/apache/storm/coordination/IBatchBolt>6 <Application,Lorg/apache/storm/coordination/IBatchBolt> Node: < Application, Lorg/apache/storm/coordination/BatchBoltExecutor, getBatchBolt(Ljava/lang/Object;)Lorg/apache/storm/coordination/IBatchBolt; > Context: Everywhere
+NORMAL getBatchBolt:conditional branch(ne, to iindex=27) 7,8 Node: < Application, Lorg/apache/storm/coordination/BatchBoltExecutor, getBatchBolt(Ljava/lang/Object;)Lorg/apache/storm/coordination/IBatchBolt; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private IBatchBolt getBatchBolt(Object id) {
+        IBatchBolt bolt = openTransactions.get(id);
+        if (bolt == null) {
+            bolt = newTransactionalBolt();
+            bolt.prepare(conf, context, collector, id);
+            openTransactions.put(id, bolt);
+        }
+        return bolt;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/coordination/BatchBoltExecutor, execute(Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere, blocks=[BB[SSA:3..6]2 - org.apache.storm.coordination.BatchBoltExecutor.execute(Lorg/apache/storm/tuple/Tuple;)V, BB[SSA:0..2]1 - org.apache.storm.coordination.BatchBoltExecutor.execute(Lorg/apache/storm/tuple/Tuple;)V, BB[SSA:7..10]3 - org.apache.storm.coordination.BatchBoltExecutor.execute(Lorg/apache/storm/tuple/Tuple;)V, BB[SSA:-1..-2]11 - org.apache.storm.coordination.BatchBoltExecutor.execute(Lorg/apache/storm/tuple/Tuple;)V], numberOfBasicBlocks=4, firstLineNumber=52, lastLineNumber=55, firstMethodNumber=51, lastMethodNumber=61, isFirstLineValid=true, methodSrcCode=
+    public void execute(Tuple input) {
+        Object id = input.getValue(0);
+        IBatchBolt bolt = getBatchBolt(id);
+        try {
+            bolt.execute(input);
+            collector.ack(input);
+        } catch (FailedException e) {
+            LOG.error("Failed to process tuple in batch", e);
+            collector.fail(input);
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/coordination/BatchBoltExecutor, finishedId(Ljava/lang/Object;)V > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.storm.coordination.BatchBoltExecutor.finishedId(Ljava/lang/Object;)V, BB[SSA:-1..-2]0 - org.apache.storm.coordination.BatchBoltExecutor.finishedId(Ljava/lang/Object;)V, BB[SSA:3..5]2 - org.apache.storm.coordination.BatchBoltExecutor.finishedId(Ljava/lang/Object;)V, BB[SSA:-1..-2]6 - org.apache.storm.coordination.BatchBoltExecutor.finishedId(Ljava/lang/Object;)V], numberOfBasicBlocks=4, firstLineNumber=68, lastLineNumber=70, firstMethodNumber=68, lastMethodNumber=72, isFirstLineValid=false, methodSrcCode=
+    public void finishedId(Object id) {
+        IBatchBolt bolt = getBatchBolt(id);
+        openTransactions.remove(id);
+        bolt.finishBatch();
+    }
+
+}

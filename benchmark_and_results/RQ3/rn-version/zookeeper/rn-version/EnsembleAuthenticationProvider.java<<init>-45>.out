@@ -1,0 +1,28 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	EnsembleAuthenticationProvider.java	methodSinagture:	org.apache.zookeeper.server.auth.EnsembleAuthenticationProvider.<init>()V	methodLines:	45:52
+blockLines:	48:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(eq, to iindex=15) 6,7 Node: < Application, Lorg/apache/zookeeper/server/auth/EnsembleAuthenticationProvider, <init>()V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/EnsembleAuthenticationProvider, <init>()V > Context: Everywhere[3]6 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 4 @6 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/EnsembleAuthenticationProvider, <init>()V > Context: Everywhere[3]6 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 4 @6 exception:5
+NORMAL <init>:conditional branch(eq, to iindex=15) 6,7 Node: < Application, Lorg/apache/zookeeper/server/auth/EnsembleAuthenticationProvider, <init>()V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+
+    public EnsembleAuthenticationProvider() {
+        String namesCSV = System.getProperty(ENSEMBLE_PROPERTY);
+        if (namesCSV != null) {
+            LOG.info("Set expected ensemble names to {}", namesCSV);
+            setEnsembleNames(namesCSV);
+        }
+    }
+
+
+
+====================ctx:=======================

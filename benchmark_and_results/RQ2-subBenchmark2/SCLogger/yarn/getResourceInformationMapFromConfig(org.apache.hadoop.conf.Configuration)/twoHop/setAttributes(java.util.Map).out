@@ -1,0 +1,9 @@
+/** 
+ * Set a map of attributes to the resource.
+ * @param attributes resource attributes
+ */
+public void setAttributes(Map<String,String> attributes){
+  if (attributes != null) {
+    this.attributes=attributes;
+  }
+}

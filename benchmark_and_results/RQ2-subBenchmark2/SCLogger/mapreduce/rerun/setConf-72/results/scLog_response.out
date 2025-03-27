@@ -1,0 +1,2 @@
+<Line#0>:# Log.getLog().info("Setting configuration and initializing parameters."):#
+<Line#1>:# Log.getLog().debug("Configuration set with numTries: " + numTries + ", waitInterval: " + waitInterval + ", timeout: " + timeout + ", userUrl: " + userUrl + ", proxyConf: " + proxyConf + ", customJobEndNotifierClassName: " + customJobEndNotifierClassName):#

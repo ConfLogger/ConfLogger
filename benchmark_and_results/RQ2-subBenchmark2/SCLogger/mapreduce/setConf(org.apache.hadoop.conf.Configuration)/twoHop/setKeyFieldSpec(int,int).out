@@ -1,0 +1,12 @@
+/** 
+ * Required for backcompatibility with num.key.fields.for.partition in {@link KeyFieldBasedPartitioner} 
+ */
+public void setKeyFieldSpec(int start,int end){
+  if (end >= start) {
+    KeyDescription k=new KeyDescription();
+    k.beginFieldIdx=start;
+    k.endFieldIdx=end;
+    keySpecSeen=true;
+    allKeySpecs.add(k);
+  }
+}

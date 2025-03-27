@@ -1,0 +1,5 @@
+<Line#2>:# LOG.info("Processing " + splits.length + " splits");:#
+<Line#7>:# LOG.debug("Processing split: " + split.getClass().getName());:#
+<Line#13>:# LOG.warn("Number of locations for split " + split.getClass().getName() + " exceeds max block locations");:#
+<Line#19>:# LOG.debug("Offset updated to " + offset);:#
+<Line#22>:# LOG.info("Returning " + info.length + " split meta info");:#

@@ -1,0 +1,3 @@
+public void logLatency(Summary metric){
+  logLatency(metric,Time.currentWallTime());
+}

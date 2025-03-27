@@ -1,0 +1,3 @@
+public static long getEpochFromZxid(long zxid){
+  return zxid >> 32L;
+}

@@ -1,0 +1,10 @@
+Lalluxio/util/network/NettyUtils	 type:Dict-Holder
+Lalluxio/conf/AlluxioProperties	 type:Dict-Holder
+Lalluxio/conf/DeprecatedKeyChecker	 type:Dict-Holder
+Lalluxio/conf/PropertyKey	 type:Both
+Lalluxio/conf/InstancedConfiguration	 type:Dict-Holder
+Lalluxio/util/ConfigurationUtils	 type:Dict-Holder
+Lalluxio/conf/AlluxioConfiguration	 type:Dict-Holder
+Lalluxio/underfs/UnderFileSystemConfiguration	 type:Dict-Holder
+Lalluxio/conf/PropertyKey$Name	 type:Key-Holder
+Lalluxio/conf/Configuration	 type:Dict-Holder

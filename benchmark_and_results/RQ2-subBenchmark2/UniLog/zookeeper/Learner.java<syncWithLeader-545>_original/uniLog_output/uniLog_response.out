@@ -1,0 +1,32 @@
+To select a line and insert a log level and log verbosity message, let's follow the pattern shown in the examples. We'll choose a line from the provided code and add a log message after it. For this example, I will choose `<Line#81>` and insert a log message after it:
+
+```java
+<Line#80>                responseReceivedLatch.countDown();
+<Line#81>              }
+<Line#82>            }
+<Line#83>,null);
+<Line#84>          }
+<Line#85>        }
+<Line#86>      }
+<Line#87>;
+<Line#88>      clientThread.start();
+<Line#89>      LOG.info("started thread to issue {} async requests", totalRequestsNum);
+<Line#90>      assertTrue(responseReceivedLatch.await(60, TimeUnit.SECONDS));
+<Line#91>      LOG.info("received all {} responses", totalRequestsNum);
+<Line#92>      stopped.set(true);
+<Line#93>      enableDisableThread.join();
+<Line#94>      LOG.info("enable and disable recv thread exited");
+<Line#95>      LOG.info("waiting another 1s for the requests to go through");
+<Line#96>      Thread.sleep(1000);
+<Line#97>      assertEquals(successResponse.get(), totalRequestsNum);
+```
+
+Now, let's insert a log message after `<Line#81>`:
+
+```java
+<Line#81>              }
+<Line#82>              LOG.debug("Data callback processResult executed with rc: {}", rc);
+<Line#83>            }
+``` 
+
+This log message is inserted to provide debug-level verbosity, indicating that the `processResult` method in the data callback has been executed, and it logs the return code (`rc`).

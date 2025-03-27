@@ -1,0 +1,7 @@
+/** 
+ * Get the second component of the name.
+ * @return the second section of the Kerberos principal name, and may be null
+ */
+public String getHostName(){
+  return hostName;
+}

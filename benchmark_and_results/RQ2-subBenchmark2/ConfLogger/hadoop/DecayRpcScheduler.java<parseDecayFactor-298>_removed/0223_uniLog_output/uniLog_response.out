@@ -1,0 +1,28 @@
+To insert log levels and log verbosity messages in the target method code, we need to identify appropriate places for logging and choose suitable log levels (e.g., DEBUG, INFO, WARN, ERROR). Here's how you can modify the code:
+
+```java
+<Line#0>private static double parseDecayFactor(String ns, Configuration conf) {
+<Line#1>double factor = conf.getDouble(ns + "." +
+<Line#2>IPC_FCQ_DECAYSCHEDULER_FACTOR_KEY, 0.0);
+<Line#3>if (factor == 0.0) {
+<Line#4>    LOG.debug("Factor is 0.0, checking alternative configuration key."); // DEBUG level message
+<Line#5>factor = conf.getDouble(ns + "." +
+<Line#6>IPC_SCHEDULER_DECAYSCHEDULER_FACTOR_KEY,
+<Line#7>IPC_SCHEDULER_DECAYSCHEDULER_FACTOR_DEFAULT);
+<Line#8>} else if ((factor > 0.0) && (factor < 1)) {
+<Line#9>    LOG.debug("Factor is valid and within range: " + factor); // DEBUG level message
+<Line#10>}
+<Line#11>if (factor <= 0 || factor >= 1) {
+<Line#12>    LOG.error("Invalid Decay Factor: " + factor + ". Must be between 0 and 1."); // ERROR level message
+<Line#13>throw new IllegalArgumentException("Decay Factor " +
+<Line#14>"must be between 0 and 1");
+<Line#15>}
+<Line#16>LOG.info("Returning parsed decay factor: " + factor); // INFO level message
+<Line#17>return factor;
+<Line#18>}
+```
+
+Explanation:
+- **DEBUG Level**: Used for detailed information, typically of interest only when diagnosing problems. Here, debug messages are added to log the decision-making process when determining the factor.
+- **ERROR Level**: Used to log error events that might still allow the application to continue running. An error message is added before throwing an exception for an invalid factor.
+- **INFO Level**: Used to confirm that things are working as expected. An info message is added before returning the parsed decay factor to log the final result.

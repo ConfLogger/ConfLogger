@@ -1,0 +1,108 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	GeneralTopologyContext.java	methodSinagture:	org.apache.storm.task.GeneralTopologyContext.getComponentOutputFields(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/tuple/Fields;	methodLines:	117:122
+blockLines:	119:-1
+paras:	null
+TaintedStat:	NORMAL getComponentOutputFields:conditional branch(ne, to iindex=19) 11,12 Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getComponentOutputFields(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/tuple/Fields; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getComponentOutputFields(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/tuple/Fields; > Context: Everywhere[6]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,3 @14 exception:9
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getComponentOutputFields(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/tuple/Fields; > Context: Everywhere[6]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,3 @14 exception:9
+NORMAL getComponentOutputFields:11 = checkcast <Application,Lorg/apache/storm/tuple/Fields>10 <Application,Lorg/apache/storm/tuple/Fields> Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getComponentOutputFields(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/tuple/Fields; > Context: Everywhere
+NORMAL getComponentOutputFields:conditional branch(ne, to iindex=19) 11,12 Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getComponentOutputFields(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/tuple/Fields; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public Fields getComponentOutputFields(String componentId, String streamId) {
+        Fields ret = componentToStreamToFields.get(componentId).get(streamId);
+        if (ret == null) {
+            throw new IllegalArgumentException("No output fields defined for component:stream " + componentId + ":" + streamId);
+        }
+        return ret;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/tuple/TupleImpl, <init>(Lorg/apache/storm/task/GeneralTopologyContext;Ljava/util/List;Ljava/lang/String;ILjava/lang/String;Lorg/apache/storm/tuple/MessageId;)V > Context: Everywhere, blocks=[BB[SSA:37..41]17 - org.apache.storm.tuple.TupleImpl.<init>(Lorg/apache/storm/task/GeneralTopologyContext;Ljava/util/List;Ljava/lang/String;ILjava/lang/String;Lorg/apache/storm/tuple/MessageId;)V, BB[SSA:34..36]16 - org.apache.storm.tuple.TupleImpl.<init>(Lorg/apache/storm/task/GeneralTopologyContext;Ljava/util/List;Ljava/lang/String;ILjava/lang/String;Lorg/apache/storm/tuple/MessageId;)V, BB[SSA:42..44]18 - org.apache.storm.tuple.TupleImpl.<init>(Lorg/apache/storm/task/GeneralTopologyContext;Ljava/util/List;Ljava/lang/String;ILjava/lang/String;Lorg/apache/storm/tuple/MessageId;)V, BB[SSA:-1..-2]28 - org.apache.storm.tuple.TupleImpl.<init>(Lorg/apache/storm/task/GeneralTopologyContext;Ljava/util/List;Ljava/lang/String;ILjava/lang/String;Lorg/apache/storm/tuple/MessageId;)V], numberOfBasicBlocks=4, firstLineNumber=57, lastLineNumber=59, firstMethodNumber=47, lastMethodNumber=64, isFirstLineValid=true, methodSrcCode=
+
+    public TupleImpl(GeneralTopologyContext context, List<Object> values, String srcComponent, int taskId, String streamId, MessageId id) {
+        this.values = context.doSanityCheck() ? Collections.unmodifiableList(values) : values;
+        this.taskId = taskId;
+        this.streamId = streamId;
+        this.id = id;
+        this.context = context;
+        this.srcComponent = srcComponent;
+
+        if (context.doSanityCheck()) {
+            String componentId = context.getComponentId(taskId);
+            Fields schema = context.getComponentOutputFields(componentId, streamId);
+            if (values.size() != schema.size()) {
+                throw new IllegalArgumentException("Tuple created with wrong number of fields. Expected " + schema.size()
+                                                   + " fields but got " + values.size() + " fields");
+            }
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/task/TopologyContext, getThisOutputFields(Ljava/lang/String;)Lorg/apache/storm/tuple/Fields; > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=174, lastMethodNumber=175, isFirstLineValid=true, methodSrcCode=
+    public Fields getThisOutputFields(String streamId) {
+        return getComponentOutputFields(getThisComponentId(), streamId);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/executor/Executor, outboundComponents(Lorg/apache/storm/task/WorkerTopologyContext;Ljava/lang/String;Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=555, lastMethodNumber=583, isFirstLineValid=true, methodSrcCode=
+        WorkerTopologyContext workerTopologyContext, String componentId, Map<String, Object> topoConf) {
+        Map<String, Map<String, LoadAwareCustomStreamGrouping>> ret = new HashMap<>();
+
+        Map<String, Map<String, Grouping>> outputGroupings = workerTopologyContext.getTargets(componentId);
+        for (Map.Entry<String, Map<String, Grouping>> entry : outputGroupings.entrySet()) {
+            String streamId = entry.getKey();
+            Map<String, Grouping> componentGrouping = entry.getValue();
+            Fields outFields = workerTopologyContext.getComponentOutputFields(componentId, streamId);
+            Map<String, LoadAwareCustomStreamGrouping> componentGrouper = new HashMap<String, LoadAwareCustomStreamGrouping>();
+            for (Map.Entry<String, Grouping> cg : componentGrouping.entrySet()) {
+                String component = cg.getKey();
+                Grouping grouping = cg.getValue();
+                List<Integer> outTasks = workerTopologyContext.getComponentTasks(component);
+                LoadAwareCustomStreamGrouping grouper = GrouperFactory.mkGrouper(
+                    workerTopologyContext, componentId, streamId, outFields, grouping, outTasks, topoConf);
+                componentGrouper.put(component, grouper);
+            }
+            if (componentGrouper.size() > 0) {
+                ret.put(streamId, componentGrouper);
+            }
+        }
+
+        for (String stream : workerTopologyContext.getComponentCommon(componentId).get_streams().keySet()) {
+            if (!ret.containsKey(stream)) {
+                ret.put(stream, null);
+            }
+        }
+
+        return ret;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getComponentOutputFields(Lorg/apache/storm/generated/GlobalStreamId;)Lorg/apache/storm/tuple/Fields; > Context: Everywhere, blocks=[BB[SSA:5..5]3 - org.apache.storm.task.GeneralTopologyContext.getComponentOutputFields(Lorg/apache/storm/generated/GlobalStreamId;)Lorg/apache/storm/tuple/Fields;, BB[SSA:3..4]2 - org.apache.storm.task.GeneralTopologyContext.getComponentOutputFields(Lorg/apache/storm/generated/GlobalStreamId;)Lorg/apache/storm/tuple/Fields;, BB[SSA:6..6]4 - org.apache.storm.task.GeneralTopologyContext.getComponentOutputFields(Lorg/apache/storm/generated/GlobalStreamId;)Lorg/apache/storm/tuple/Fields;, BB[SSA:-1..-2]5 - org.apache.storm.task.GeneralTopologyContext.getComponentOutputFields(Lorg/apache/storm/generated/GlobalStreamId;)Lorg/apache/storm/tuple/Fields;], numberOfBasicBlocks=4, firstLineNumber=129, lastLineNumber=129, firstMethodNumber=128, lastMethodNumber=129, isFirstLineValid=true, methodSrcCode=
+    public Fields getComponentOutputFields(GlobalStreamId id) {
+        return getComponentOutputFields(id.get_componentId(), id.get_streamId());
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/task/TopologyContext, getThisInputFields()Ljava/util/Map; > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=216, lastMethodNumber=230, isFirstLineValid=true, methodSrcCode=
+    public Map<String, Map<String, List<String>>> getThisInputFields() {
+        Map<String, Map<String, List<String>>> outputMap = new HashMap<>();
+        for (Map.Entry<GlobalStreamId, Grouping> entry : this.getThisSources().entrySet()) {
+            String componentId = entry.getKey().get_componentId();
+            Set<String> streams = getComponentStreams(componentId);
+            for (String stream : streams) {
+                Map<String, List<String>> streamFieldMap = outputMap.get(componentId);
+                if (streamFieldMap == null) {
+                    streamFieldMap = new HashMap<>();
+                    outputMap.put(componentId, streamFieldMap);
+                }
+                streamFieldMap.put(stream, getComponentOutputFields(componentId, stream).toList());
+            }
+        }
+        return outputMap;
+    }
+}

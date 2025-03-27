@@ -1,0 +1,4 @@
+public void logRequest(TxnHeader hdr,Record txn,TxnDigest digest){
+  final Request request=buildRequestToProcess(hdr,txn,digest);
+  syncProcessor.processRequest(request);
+}

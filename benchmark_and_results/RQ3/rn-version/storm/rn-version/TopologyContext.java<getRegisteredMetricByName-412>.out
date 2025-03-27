@@ -1,0 +1,86 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	TopologyContext.java	methodSinagture:	org.apache.storm.task.TopologyContext.getRegisteredMetricByName(Ljava/lang/String;)Lorg/apache/storm/metric/api/IMetric;	methodLines:	412:426
+blockLines:	419:-1
+paras:	null
+TaintedStat:	NORMAL getRegisteredMetricByName:conditional branch(eq, to iindex=33) 22,4 Node: < Application, Lorg/apache/storm/task/TopologyContext, getRegisteredMetricByName(Ljava/lang/String;)Lorg/apache/storm/metric/api/IMetric; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/task/TopologyContext, getRegisteredMetricByName(Ljava/lang/String;)Lorg/apache/storm/metric/api/IMetric; > Context: Everywhere[26]21 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 19,2 @61 exception:20
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/task/TopologyContext, getRegisteredMetricByName(Ljava/lang/String;)Lorg/apache/storm/metric/api/IMetric; > Context: Everywhere[26]21 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 19,2 @61 exception:20
+NORMAL getRegisteredMetricByName:22 = checkcast <Application,Lorg/apache/storm/metric/api/IMetric>21 <Application,Lorg/apache/storm/metric/api/IMetric> Node: < Application, Lorg/apache/storm/task/TopologyContext, getRegisteredMetricByName(Ljava/lang/String;)Lorg/apache/storm/metric/api/IMetric; > Context: Everywhere
+NORMAL getRegisteredMetricByName:conditional branch(eq, to iindex=33) 22,4 Node: < Application, Lorg/apache/storm/task/TopologyContext, getRegisteredMetricByName(Ljava/lang/String;)Lorg/apache/storm/metric/api/IMetric; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	TopologyContext.java	methodSinagture:	org.apache.storm.task.TopologyContext.getRegisteredMetricByName(Ljava/lang/String;)Lorg/apache/storm/metric/api/IMetric;	methodLines:	412:426
+blockLines:	417:-1
+paras:	null
+TaintedStat:	NORMAL getRegisteredMetricByName:conditional branch(eq, to iindex=33) 19,4 Node: < Application, Lorg/apache/storm/task/TopologyContext, getRegisteredMetricByName(Ljava/lang/String;)Lorg/apache/storm/metric/api/IMetric; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/task/TopologyContext, getRegisteredMetricByName(Ljava/lang/String;)Lorg/apache/storm/metric/api/IMetric; > Context: Everywhere[18]18 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 15,16 @43 exception:17
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/task/TopologyContext, getRegisteredMetricByName(Ljava/lang/String;)Lorg/apache/storm/metric/api/IMetric; > Context: Everywhere[18]18 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 15,16 @43 exception:17
+NORMAL getRegisteredMetricByName:[null]: 19 = checkcast <Application,Ljava/util/Map>18 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/task/TopologyContext, getRegisteredMetricByName(Ljava/lang/String;)Lorg/apache/storm/metric/api/IMetric; > Context: Everywhere
+NORMAL getRegisteredMetricByName:conditional branch(eq, to iindex=33) 19,4 Node: < Application, Lorg/apache/storm/task/TopologyContext, getRegisteredMetricByName(Ljava/lang/String;)Lorg/apache/storm/metric/api/IMetric; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public IMetric getRegisteredMetricByName(String name) {
+        IMetric metric = null;
+
+        for (Map<Integer, Map<String, IMetric>> taskIdToNameToMetric : registeredMetrics.values()) {
+            Map<String, IMetric> nameToMetric = taskIdToNameToMetric.get(taskId);
+            if (nameToMetric != null) {
+                metric = nameToMetric.get(name);
+                if (metric != null) {
+                    //we just return the first metric we meet
+                    break;
+                }
+            }
+        }
+
+        return metric;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/task/TopologyContext, registerMetric(Ljava/lang/String;Lorg/apache/storm/metric/api/IMetric;I)Lorg/apache/storm/metric/api/IMetric; > Context: Everywhere, blocks=[BB[SSA:26..28]15 - org.apache.storm.task.TopologyContext.registerMetric(Ljava/lang/String;Lorg/apache/storm/metric/api/IMetric;I)Lorg/apache/storm/metric/api/IMetric;, BB[SSA:18..20]11 - org.apache.storm.task.TopologyContext.registerMetric(Ljava/lang/String;Lorg/apache/storm/metric/api/IMetric;I)Lorg/apache/storm/metric/api/IMetric;, BB[SSA:29..30]16 - org.apache.storm.task.TopologyContext.registerMetric(Ljava/lang/String;Lorg/apache/storm/metric/api/IMetric;I)Lorg/apache/storm/metric/api/IMetric;, BB[SSA:-1..-2]52 - org.apache.storm.task.TopologyContext.registerMetric(Ljava/lang/String;Lorg/apache/storm/metric/api/IMetric;I)Lorg/apache/storm/metric/api/IMetric;], numberOfBasicBlocks=4, firstLineNumber=359, lastLineNumber=364, firstMethodNumber=349, lastMethodNumber=385, isFirstLineValid=true, methodSrcCode=
+    public <T extends IMetric> T registerMetric(String name, T metric, int timeBucketSizeInSecs) {
+        if (openOrPrepareWasCalled.get()) {
+            throw new RuntimeException("TopologyContext.registerMetric can only be called from within overridden "
+                    + "IBolt::prepare() or ISpout::open() method.");
+        }
+
+        if (metric == null) {
+            throw new IllegalArgumentException("Cannot register a null metric");
+        }
+
+        if (timeBucketSizeInSecs <= 0) {
+            throw new IllegalArgumentException("TopologyContext.registerMetric can only be called with "
+                    + "timeBucketSizeInSecs greater than or equal to 1 second.");
+        }
+
+        if (getRegisteredMetricByName(name) != null) {
+            throw new RuntimeException("The same metric name `" + name + "` was registered twice.");
+        }
+
+        Map<Integer, Map<Integer, Map<String, IMetric>>> m1 = registeredMetrics;
+        if (!m1.containsKey(timeBucketSizeInSecs)) {
+            m1.put(timeBucketSizeInSecs, new HashMap<Integer, Map<String, IMetric>>());
+        }
+
+        Map<Integer, Map<String, IMetric>> m2 = m1.get(timeBucketSizeInSecs);
+        if (!m2.containsKey(taskId)) {
+            m2.put(taskId, new HashMap<String, IMetric>());
+        }
+
+        Map<String, IMetric> m3 = m2.get(taskId);
+        if (m3.containsKey(name)) {
+            throw new RuntimeException("The same metric name `" + name + "` was registered twice.");
+        } else {
+            m3.put(name, metric);
+        }
+
+        return metric;
+    }
+}

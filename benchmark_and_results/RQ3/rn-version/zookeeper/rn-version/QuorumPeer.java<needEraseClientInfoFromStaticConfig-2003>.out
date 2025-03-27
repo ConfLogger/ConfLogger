@@ -1,0 +1,70 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	QuorumPeer.java	methodSinagture:	org.apache.zookeeper.server.quorum.QuorumPeer.needEraseClientInfoFromStaticConfig()Z	methodLines:	2003:2005
+blockLines:	2005:-1
+paras:	null
+TaintedStat:	NORMAL needEraseClientInfoFromStaticConfig:conditional branch(eq, to iindex=22) 12,13 Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, needEraseClientInfoFromStaticConfig()Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, needEraseClientInfoFromStaticConfig()Z > Context: Everywhere[6]11 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,9 @16 exception:10
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, needEraseClientInfoFromStaticConfig()Z > Context: Everywhere[6]11 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,9 @16 exception:10
+NORMAL needEraseClientInfoFromStaticConfig:12 = checkcast <Application,Lorg/apache/zookeeper/server/quorum/QuorumPeer$QuorumServer>11 <Application,Lorg/apache/zookeeper/server/quorum/QuorumPeer$QuorumServer> Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, needEraseClientInfoFromStaticConfig()Z > Context: Everywhere
+NORMAL needEraseClientInfoFromStaticConfig:conditional branch(eq, to iindex=22) 12,13 Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, needEraseClientInfoFromStaticConfig()Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private boolean needEraseClientInfoFromStaticConfig() {
+        QuorumServer server = quorumVerifier.getAllMembers().get(getMyId());
+        return (server != null && server.clientAddr != null && !server.isClientAddrFromStatic);
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, setQuorumVerifier(Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;Z)Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier; > Context: Everywhere, blocks=[BB[SSA:85..87]40 - org.apache.zookeeper.server.quorum.QuorumPeer.setQuorumVerifier(Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;Z)Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;, BB[SSA:83..84]39 - org.apache.zookeeper.server.quorum.QuorumPeer.setQuorumVerifier(Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;Z)Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;, BB[SSA:88..88]41 - org.apache.zookeeper.server.quorum.QuorumPeer.setQuorumVerifier(Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;Z)Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;], numberOfBasicBlocks=3, firstLineNumber=1978, lastLineNumber=1978, firstMethodNumber=1954, lastMethodNumber=1996, isFirstLineValid=true, methodSrcCode=
+    public QuorumVerifier setQuorumVerifier(QuorumVerifier qv, boolean writeToDisk) {
+        synchronized (QV_LOCK) {
+            if ((quorumVerifier != null) && (quorumVerifier.getVersion() >= qv.getVersion())) {
+                // this is normal. For example - server found out about new config through FastLeaderElection gossiping
+                // and then got the same config in UPTODATE message so its already known
+                LOG.debug(
+                    "{} setQuorumVerifier called with known or old config {}. Current version: {}",
+                    getMyId(),
+                    qv.getVersion(),
+                    quorumVerifier.getVersion());
+                return quorumVerifier;
+            }
+            QuorumVerifier prevQV = quorumVerifier;
+            quorumVerifier = qv;
+            if (lastSeenQuorumVerifier == null || (qv.getVersion() > lastSeenQuorumVerifier.getVersion())) {
+                lastSeenQuorumVerifier = qv;
+            }
+
+            if (writeToDisk) {
+                // some tests initialize QuorumPeer without a static config file
+                if (configFilename != null) {
+                    try {
+                        String dynamicConfigFilename = makeDynamicConfigFilename(qv.getVersion());
+                        QuorumPeerConfig.writeDynamicConfig(dynamicConfigFilename, qv, false);
+                        QuorumPeerConfig.editStaticConfig(configFilename, dynamicConfigFilename, needEraseClientInfoFromStaticConfig());
+                    } catch (IOException e) {
+                        LOG.error("Error closing file", e);
+                    }
+                } else {
+                    LOG.info("writeToDisk == true but configFilename == null");
+                }
+            }
+
+            if (qv.getVersion() == lastSeenQuorumVerifier.getVersion()) {
+                QuorumPeerConfig.deleteFile(getNextDynamicConfigFilename());
+            }
+            QuorumServer qs = qv.getAllMembers().get(getMyId());
+            if (qs != null) {
+                setAddrs(qs.addr, qs.electionAddr, qs.clientAddr);
+            }
+            updateObserverMasterList();
+            return prevQV;
+        }
+    }
+}

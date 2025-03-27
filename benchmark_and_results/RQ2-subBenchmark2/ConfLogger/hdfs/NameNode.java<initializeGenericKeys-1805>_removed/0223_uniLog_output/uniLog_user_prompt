@@ -1,0 +1,273 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>String nameserviceId, String namenodeId) {
+<Line#1>if ((nameserviceId != null && !nameserviceId.isEmpty()) ||
+<Line#2>(namenodeId != null && !namenodeId.isEmpty())) {
+<Line#3>if (nameserviceId != null) {
+<Line#4>conf.set(DFS_NAMESERVICE_ID, nameserviceId);
+<Line#5>}
+<Line#6>if (namenodeId != null) {
+<Line#7>conf.set(DFS_HA_NAMENODE_ID_KEY, namenodeId);
+<Line#8>}
+<Line#9>
+<Line#10>DFSUtil.setGenericConf(conf, nameserviceId, namenodeId,
+<Line#11>NAMENODE_SPECIFIC_KEYS);
+<Line#12>DFSUtil.setGenericConf(conf, nameserviceId, null,
+<Line#13>NAMESERVICE_SPECIFIC_KEYS);
+<Line#14>}
+<Line#15>
+<Line#16>// If the RPC address is set use it to (re-)configure the default FS
+<Line#17>if (conf.get(DFS_NAMENODE_RPC_ADDRESS_KEY) != null) {
+<Line#18>URI defaultUri = URI.create(HdfsConstants.HDFS_URI_SCHEME + "://"
+<Line#19>+ conf.get(DFS_NAMENODE_RPC_ADDRESS_KEY));
+<Line#20>conf.set(FS_DEFAULT_NAME_KEY, defaultUri.toString());
+<Line#21>}
+<Line#22>}
+
+Example 1:
+<Line#1>{
+<Line#2>  String nsId=DFSUtil.getNamenodeNameServiceId(conf);
+<Line#3>  String namenodeId=HAUtil.getNameNodeId(conf,nsId);
+<Line#4>  initializeGenericKeys(conf,nsId,namenodeId);
+<Line#5>  checkAllowFormat(conf);
+<Line#6>  if (UserGroupInformation.isSecurityEnabled()) {
+<Line#7>    InetSocketAddress socAddr=DFSUtilClient.getNNAddress(conf);
+<Line#8>    SecurityUtil.login(conf,DFS_NAMENODE_KEYTAB_FILE_KEY,DFS_NAMENODE_KERBEROS_PRINCIPAL_KEY,socAddr.getHostName());
+<Line#9>  }
+<Line#10>  Collection<URI> nameDirsToFormat=FSNamesystem.getNamespaceDirs(conf);
+<Line#11>  List<URI> sharedDirs=FSNamesystem.getSharedEditsDirs(conf);
+<Line#12>  List<URI> dirsToPrompt=new ArrayList<URI>();
+<Line#13>  dirsToPrompt.addAll(nameDirsToFormat);
+<Line#14>  dirsToPrompt.addAll(sharedDirs);
+<Line#15>  List<URI> editDirsToFormat=FSNamesystem.getNamespaceEditsDirs(conf);
+<Line#16>  String clusterId=StartupOption.FORMAT.getClusterId();
+<Line#17>  if (clusterId == null || clusterId.equals("")) {
+<Line#18>    clusterId=NNStorage.newClusterID();
+<Line#19>  }
+<Line#20>  LOG.info("Formatting using clusterid: {}",clusterId);
+<Line#21>  FSImage fsImage=new FSImage(conf,nameDirsToFormat,editDirsToFormat);
+<Line#22>  FSNamesystem fsn=null;
+<Line#23>  try {
+<Line#24>    fsn=new FSNamesystem(conf,fsImage);
+<Line#25>    fsImage.getEditLog().initJournalsForWrite();
+<Line#26>    if (conf.getBoolean(DFSConfigKeys.DFS_REFORMAT_DISABLED,DFSConfigKeys.DFS_REFORMAT_DISABLED_DEFAULT)) {
+<Line#27>      force=false;
+<Line#28>      isInteractive=false;
+<Line#29>      for (      StorageDirectory sd : fsImage.storage.dirIterable(null)) {
+<Line#30>        if (sd.hasSomeData()) {
+<Line#31>          throw new NameNodeFormatException("NameNode format aborted as reformat is disabled for " + "this cluster.");
+<Line#32>        }
+<Line#33>      }
+<Line#34>    }
+<Line#35>    if (!fsImage.confirmFormat(force,isInteractive)) {
+<Line#36>      return true;
+<Line#37>    }
+<Line#38>    fsImage.format(fsn,clusterId,force);
+<Line#39>  }
+<Line#40> catch (  IOException ioe) {
+<Line#41>    LOG.warn("Encountered exception during format",ioe);
+<Line#42>    throw ioe;
+<Line#43>  }
+<Line#44> finally {
+<Line#45>    if (fsImage != null) {
+<Line#46>      fsImage.close();
+<Line#47>    }
+<Line#48>    if (fsn != null) {
+<Line#49>      fsn.close();
+<Line#50>    }
+<Line#51>  }
+<Line#52>  return false;
+<Line#53>}
+Label: <Line#20> LOG.info("Formatting using clusterid: {}",clusterId)
+
+Example 2:
+<Line#1>{
+<Line#2>  String nsId=DFSUtil.getNamenodeNameServiceId(conf);
+<Line#3>  String namenodeId=HAUtil.getNameNodeId(conf,nsId);
+<Line#4>  initializeGenericKeys(conf,nsId,namenodeId);
+<Line#5>  checkAllowFormat(conf);
+<Line#6>  if (UserGroupInformation.isSecurityEnabled()) {
+<Line#7>    InetSocketAddress socAddr=DFSUtilClient.getNNAddress(conf);
+<Line#8>    SecurityUtil.login(conf,DFS_NAMENODE_KEYTAB_FILE_KEY,DFS_NAMENODE_KERBEROS_PRINCIPAL_KEY,socAddr.getHostName());
+<Line#9>  }
+<Line#10>  Collection<URI> nameDirsToFormat=FSNamesystem.getNamespaceDirs(conf);
+<Line#11>  List<URI> sharedDirs=FSNamesystem.getSharedEditsDirs(conf);
+<Line#12>  List<URI> dirsToPrompt=new ArrayList<URI>();
+<Line#13>  dirsToPrompt.addAll(nameDirsToFormat);
+<Line#14>  dirsToPrompt.addAll(sharedDirs);
+<Line#15>  List<URI> editDirsToFormat=FSNamesystem.getNamespaceEditsDirs(conf);
+<Line#16>  String clusterId=StartupOption.FORMAT.getClusterId();
+<Line#17>  if (clusterId == null || clusterId.equals("")) {
+<Line#18>    clusterId=NNStorage.newClusterID();
+<Line#19>  }
+<Line#20>  LOG.info("Formatting using clusterid: {}",clusterId);
+<Line#21>  FSImage fsImage=new FSImage(conf,nameDirsToFormat,editDirsToFormat);
+<Line#22>  FSNamesystem fsn=null;
+<Line#23>  try {
+<Line#24>    fsn=new FSNamesystem(conf,fsImage);
+<Line#25>    fsImage.getEditLog().initJournalsForWrite();
+<Line#26>    if (conf.getBoolean(DFSConfigKeys.DFS_REFORMAT_DISABLED,DFSConfigKeys.DFS_REFORMAT_DISABLED_DEFAULT)) {
+<Line#27>      force=false;
+<Line#28>      isInteractive=false;
+<Line#29>      for (      StorageDirectory sd : fsImage.storage.dirIterable(null)) {
+<Line#30>        if (sd.hasSomeData()) {
+<Line#31>          throw new NameNodeFormatException("NameNode format aborted as reformat is disabled for " + "this cluster.");
+<Line#32>        }
+<Line#33>      }
+<Line#34>    }
+<Line#35>    if (!fsImage.confirmFormat(force,isInteractive)) {
+<Line#36>      return true;
+<Line#37>    }
+<Line#38>    fsImage.format(fsn,clusterId,force);
+<Line#39>  }
+<Line#40> catch (  IOException ioe) {
+<Line#41>    LOG.warn("Encountered exception during format",ioe);
+<Line#42>    throw ioe;
+<Line#43>  }
+<Line#44> finally {
+<Line#45>    if (fsImage != null) {
+<Line#46>      fsImage.close();
+<Line#47>    }
+<Line#48>    if (fsn != null) {
+<Line#49>      fsn.close();
+<Line#50>    }
+<Line#51>  }
+<Line#52>  return false;
+<Line#53>}
+Label: <Line#41> LOG.warn("Encountered exception during format",ioe)
+
+Example 3:
+<Line#1>{
+<Line#2>  initCacheManipulator();
+<Line#3>  Configuration conf=new Configuration();
+<Line#4>  conf.setLong(DFS_BLOCK_SIZE_KEY,BLOCK_SIZE);
+<Line#5>  if (disableScrubber) {
+<Line#6>    conf.setInt(DFS_NAMENODE_LAZY_PERSIST_FILE_SCRUB_INTERVAL_SEC,0);
+<Line#7>  }
+<Line#8> else {
+<Line#9>    conf.setInt(DFS_NAMENODE_LAZY_PERSIST_FILE_SCRUB_INTERVAL_SEC,LAZY_WRITE_FILE_SCRUBBER_INTERVAL_SEC);
+<Line#10>  }
+<Line#11>  conf.setLong(DFS_HEARTBEAT_INTERVAL_KEY,HEARTBEAT_INTERVAL_SEC);
+<Line#12>  conf.setInt(DFS_NAMENODE_HEARTBEAT_RECHECK_INTERVAL_KEY,HEARTBEAT_RECHECK_INTERVAL_MS);
+<Line#13>  conf.setInt(DFS_DATANODE_LAZY_WRITER_INTERVAL_SEC,LAZY_WRITER_INTERVAL_SEC);
+<Line#14>  conf.setInt(DFSConfigKeys.DFS_NAMENODE_SAFEMODE_MIN_DATANODES_KEY,1);
+<Line#15>  conf.setLong(DFS_DATANODE_MAX_LOCKED_MEMORY_KEY,maxLockedMemory);
+<Line#16>  if (useSCR) {
+<Line#17>    conf.setBoolean(HdfsClientConfigKeys.Read.ShortCircuit.KEY,true);
+<Line#18>    conf.set(HdfsClientConfigKeys.DFS_CLIENT_CONTEXT,UUID.randomUUID().toString());
+<Line#19>    conf.set(DFS_BLOCK_LOCAL_PATH_ACCESS_USER_KEY,UserGroupInformation.getCurrentUser().getShortUserName());
+<Line#20>    if (useLegacyBlockReaderLocal) {
+<Line#21>      conf.setBoolean(HdfsClientConfigKeys.DFS_CLIENT_USE_LEGACY_BLOCKREADERLOCAL,true);
+<Line#22>    }
+<Line#23> else {
+<Line#24>      sockDir=new TemporarySocketDirectory();
+<Line#25>      conf.set(DFS_DOMAIN_SOCKET_PATH_KEY,new File(sockDir.getDir(),this.getClass().getSimpleName() + "._PORT.sock").getAbsolutePath());
+<Line#26>    }
+<Line#27>  }
+<Line#28>  Preconditions.checkState(ramDiskReplicaCapacity < 0 || ramDiskStorageLimit < 0,"Cannot specify non-default values for both ramDiskReplicaCapacity " + "and ramDiskStorageLimit");
+<Line#29>  long[] capacities;
+<Line#30>  if (hasTransientStorage && ramDiskReplicaCapacity >= 0) {
+<Line#31>    ramDiskStorageLimit=((long)ramDiskReplicaCapacity * BLOCK_SIZE) + (BLOCK_SIZE - 1);
+<Line#32>  }
+<Line#33>  capacities=new long[]{ramDiskStorageLimit,-1};
+<Line#34>  cluster=new MiniDFSCluster.Builder(conf).numDataNodes(numDatanodes).storageCapacities(capacities).storageTypes(storageTypes != null ? storageTypes : (hasTransientStorage ? new StorageType[]{RAM_DISK,DEFAULT} : null)).build();
+<Line#35>  cluster.waitActive();
+<Line#36>  fs=cluster.getFileSystem();
+<Line#37>  client=fs.getClient();
+<Line#38>  try {
+<Line#39>    jmx=initJMX();
+<Line#40>  }
+<Line#41> catch (  Exception e) {
+<Line#42>    fail("Failed initialize JMX for testing: " + e);
+<Line#43>  }
+<Line#44>  LOG.info("Cluster startup complete");
+<Line#45>}
+Label: <Line#44> LOG.info("Cluster startup complete")
+
+Example 4:
+<Line#1>{
+<Line#2>  if (conf.get(HADOOP_USER_GROUP_METRICS_PERCENTILES_INTERVALS) == null) {
+<Line#3>    String intervals=conf.get(DFS_METRICS_PERCENTILES_INTERVALS_KEY);
+<Line#4>    if (intervals != null) {
+<Line#5>      conf.set(HADOOP_USER_GROUP_METRICS_PERCENTILES_INTERVALS,intervals);
+<Line#6>    }
+<Line#7>  }
+<Line#8>  UserGroupInformation.setConfiguration(conf);
+<Line#9>  loginAsNameNodeUser(conf);
+<Line#10>  NameNode.initMetrics(conf,this.getRole());
+<Line#11>  StartupProgressMetrics.register(startupProgress);
+<Line#12>  pauseMonitor=new JvmPauseMonitor();
+<Line#13>  pauseMonitor.init(conf);
+<Line#14>  pauseMonitor.start();
+<Line#15>  metrics.getJvmMetrics().setPauseMonitor(pauseMonitor);
+<Line#16>  if (conf.getBoolean(DFS_NAMENODE_GC_TIME_MONITOR_ENABLE,DFS_NAMENODE_GC_TIME_MONITOR_ENABLE_DEFAULT)) {
+<Line#17>    long observationWindow=conf.getTimeDuration(DFS_NAMENODE_GC_TIME_MONITOR_OBSERVATION_WINDOW_MS,DFS_NAMENODE_GC_TIME_MONITOR_OBSERVATION_WINDOW_MS_DEFAULT,TimeUnit.MILLISECONDS);
+<Line#18>    long sleepInterval=conf.getTimeDuration(DFS_NAMENODE_GC_TIME_MONITOR_SLEEP_INTERVAL_MS,DFS_NAMENODE_GC_TIME_MONITOR_SLEEP_INTERVAL_MS_DEFAULT,TimeUnit.MILLISECONDS);
+<Line#19>    gcTimeMonitor=new Builder().observationWindowMs(observationWindow).sleepIntervalMs(sleepInterval).build();
+<Line#20>    gcTimeMonitor.start();
+<Line#21>    metrics.getJvmMetrics().setGcTimeMonitor(gcTimeMonitor);
+<Line#22>  }
+<Line#23>  if (NamenodeRole.NAMENODE == role) {
+<Line#24>    startHttpServer(conf);
+<Line#25>  }
+<Line#26>  loadNamesystem(conf);
+<Line#27>  startAliasMapServerIfNecessary(conf);
+<Line#28>  rpcServer=createRpcServer(conf);
+<Line#29>  initReconfigurableBackoffKey();
+<Line#30>  if (clientNamenodeAddress == null) {
+<Line#31>    clientNamenodeAddress=NetUtils.getHostPortString(getNameNodeAddress());
+<Line#32>    LOG.info("Clients are to use " + clientNamenodeAddress + " to access"+ " this namenode/service.");
+<Line#33>  }
+<Line#34>  if (NamenodeRole.NAMENODE == role) {
+<Line#35>    httpServer.setNameNodeAddress(getNameNodeAddress());
+<Line#36>    httpServer.setFSImage(getFSImage());
+<Line#37>    if (levelDBAliasMapServer != null) {
+<Line#38>      httpServer.setAliasMap(levelDBAliasMapServer.getAliasMap());
+<Line#39>    }
+<Line#40>  }
+<Line#41>  startCommonServices(conf);
+<Line#42>  startMetricsLogger(conf);
+<Line#43>}
+Label: <Line#32> LOG.info("Clients are to use " + clientNamenodeAddress + " to access"+ " this namenode/service.")
+
+Example 5:
+<Line#1>{
+<Line#2>  super(conf);
+<Line#3>  this.tracer=new Tracer.Builder("NameNode").conf(TraceUtils.wrapHadoopConf(NAMENODE_HTRACE_PREFIX,conf)).build();
+<Line#4>  this.role=role;
+<Line#5>  String nsId=getNameServiceId(conf);
+<Line#6>  String namenodeId=HAUtil.getNameNodeId(conf,nsId);
+<Line#7>  clientNamenodeAddress=NameNodeUtils.getClientNamenodeAddress(conf,nsId);
+<Line#8>  if (clientNamenodeAddress != null) {
+<Line#9>    LOG.info("Clients should use {} to access" + " this namenode/service.",clientNamenodeAddress);
+<Line#10>  }
+<Line#11>  this.haEnabled=HAUtil.isHAEnabled(conf,nsId);
+<Line#12>  state=createHAState(getStartupOption(conf));
+<Line#13>  this.allowStaleStandbyReads=HAUtil.shouldAllowStandbyReads(conf);
+<Line#14>  this.haContext=createHAContext();
+<Line#15>  try {
+<Line#16>    initializeGenericKeys(conf,nsId,namenodeId);
+<Line#17>    initialize(getConf());
+<Line#18>    state.prepareToEnterState(haContext);
+<Line#19>    try {
+<Line#20>      haContext.writeLock();
+<Line#21>      state.enterState(haContext);
+<Line#22>    }
+<Line#23>  finally {
+<Line#24>      haContext.writeUnlock();
+<Line#25>    }
+<Line#26>  }
+<Line#27> catch (  IOException e) {
+<Line#28>    this.stopAtException(e);
+<Line#29>    throw e;
+<Line#30>  }
+<Line#31>catch (  HadoopIllegalArgumentException e) {
+<Line#32>    this.stopAtException(e);
+<Line#33>    throw e;
+<Line#34>  }
+<Line#35>  notBecomeActiveInSafemode=conf.getBoolean(DFS_HA_NN_NOT_BECOME_ACTIVE_IN_SAFEMODE,DFS_HA_NN_NOT_BECOME_ACTIVE_IN_SAFEMODE_DEFAULT);
+<Line#36>  this.started.set(true);
+<Line#37>}
+Label: <Line#9> LOG.info("Clients should use {} to access" + " this namenode/service.",clientNamenodeAddress)
+

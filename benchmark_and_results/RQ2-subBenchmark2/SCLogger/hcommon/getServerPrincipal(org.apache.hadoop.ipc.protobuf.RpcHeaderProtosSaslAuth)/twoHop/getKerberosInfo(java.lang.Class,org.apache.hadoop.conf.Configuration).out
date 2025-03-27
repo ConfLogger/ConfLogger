@@ -1,0 +1,7 @@
+/** 
+ * Get the KerberosInfo for a given protocol.
+ * @param protocol interface class
+ * @param conf configuration
+ * @return KerberosInfo
+ */
+public abstract KerberosInfo getKerberosInfo(Class<?> protocol,Configuration conf);

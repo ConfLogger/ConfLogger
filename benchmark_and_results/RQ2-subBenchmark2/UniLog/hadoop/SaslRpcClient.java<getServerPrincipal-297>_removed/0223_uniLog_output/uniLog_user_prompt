@@ -1,0 +1,415 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>String getServerPrincipal(SaslAuth authType) throws IOException {
+<Line#1>KerberosInfo krbInfo = SecurityUtil.getKerberosInfo(protocol, conf);
+<Line#2>LOG.debug("Get kerberos info proto:" + protocol + " info:" + krbInfo);
+<Line#3>if (krbInfo == null) { // protocol has no support for kerberos
+<Line#4>return null;
+<Line#5>}
+<Line#6>String serverKey = krbInfo.serverPrincipal();
+<Line#7>if (serverKey == null) {
+<Line#8>throw new IllegalArgumentException(
+<Line#9>"Can't obtain server Kerberos config key from protocol="
+<Line#10>+ protocol.getCanonicalName());
+<Line#11>}
+<Line#12>// construct server advertised principal for comparision
+<Line#13>String serverPrincipal = new KerberosPrincipal(
+<Line#14>authType.getProtocol() + "/" + authType.getServerId(),
+<Line#15>KerberosPrincipal.KRB_NT_SRV_HST).getName();
+<Line#16>
+<Line#17>// use the pattern if defined
+<Line#18>String serverKeyPattern = conf.get(serverKey + ".pattern");
+<Line#19>if (serverKeyPattern != null && !serverKeyPattern.isEmpty()) {
+<Line#20>Pattern pattern = GlobPattern.compile(serverKeyPattern);
+<Line#21>if (!pattern.matcher(serverPrincipal).matches()) {
+<Line#22>throw new IllegalArgumentException(String.format(
+<Line#23>"Server has invalid Kerberos principal: %s,"
+<Line#24>+ " doesn't match the pattern: %s",
+<Line#25>serverPrincipal, serverKeyPattern));
+<Line#26>}
+<Line#27>} else {
+<Line#28>// check that the server advertised principal matches our conf
+<Line#29>String confPrincipal = SecurityUtil.getServerPrincipal(
+<Line#30>conf.get(serverKey), serverAddr.getAddress());
+<Line#31>}
+<Line#32>if (confPrincipal == null || confPrincipal.isEmpty()) {
+<Line#33>throw new IllegalArgumentException(
+<Line#34>"Failed to specify server's Kerberos principal name");
+<Line#35>}
+<Line#36>KerberosName name = new KerberosName(confPrincipal);
+<Line#37>if (name.getHostName() == null) {
+<Line#38>throw new IllegalArgumentException(
+<Line#39>"Kerberos principal name does NOT have the expected hostname part: "
+<Line#40>+ confPrincipal);
+<Line#41>}
+<Line#42>if (!serverPrincipal.equals(confPrincipal)) {
+<Line#43>throw new IllegalArgumentException(String.format(
+<Line#44>"Server has invalid Kerberos principal: %s, expecting: %s",
+<Line#45>serverPrincipal, confPrincipal));
+<Line#46>}
+<Line#47>}
+<Line#48>return serverPrincipal;
+<Line#49>}
+
+Example 1:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    if (socket != null || shouldCloseConnection.get()) {
+<Line#4>      setFallBackToSimpleAuth(fallbackToSimpleAuth);
+<Line#5>      return;
+<Line#6>    }
+<Line#7>    UserGroupInformation ticket=remoteId.getTicket();
+<Line#8>    if (ticket != null) {
+<Line#9>      final UserGroupInformation realUser=ticket.getRealUser();
+<Line#10>      if (realUser != null) {
+<Line#11>        ticket=realUser;
+<Line#12>      }
+<Line#13>    }
+<Line#14>    connectingThread.set(Thread.currentThread());
+<Line#15>    if (LOG.isDebugEnabled()) {
+<Line#16>      LOG.debug("Connecting to " + server);
+<Line#17>    }
+<Line#18>    Span span=Tracer.getCurrentSpan();
+<Line#19>    if (span != null) {
+<Line#20>      span.addTimelineAnnotation("IPC client connecting to " + server);
+<Line#21>    }
+<Line#22>    short numRetries=0;
+<Line#23>    Random rand=null;
+<Line#24>    while (true) {
+<Line#25>      setupConnection(ticket);
+<Line#26>      ipcStreams=new IpcStreams(socket,maxResponseLength);
+<Line#27>      writeConnectionHeader(ipcStreams);
+<Line#28>      if (authProtocol == AuthProtocol.SASL) {
+<Line#29>        try {
+<Line#30>          authMethod=ticket.doAs(new PrivilegedExceptionAction<AuthMethod>(){
+<Line#31>            @Override public AuthMethod run() throws IOException, InterruptedException {
+<Line#32>              return setupSaslConnection(ipcStreams);
+<Line#33>            }
+<Line#34>          }
+<Line#35>);
+<Line#36>        }
+<Line#37> catch (        IOException ex) {
+<Line#38>          if (saslRpcClient == null) {
+<Line#39>            throw ex;
+<Line#40>          }
+<Line#41>          authMethod=saslRpcClient.getAuthMethod();
+<Line#42>          if (rand == null) {
+<Line#43>            rand=new Random();
+<Line#44>          }
+<Line#45>          handleSaslConnectionFailure(numRetries++,maxRetriesOnSasl,ex,rand,ticket);
+<Line#46>          continue;
+<Line#47>        }
+<Line#48>        if (authMethod != AuthMethod.SIMPLE) {
+<Line#49>          ipcStreams.setSaslClient(saslRpcClient);
+<Line#50>          remoteId.saslQop=(String)saslRpcClient.getNegotiatedProperty(Sasl.QOP);
+<Line#51>          LOG.debug("Negotiated QOP is :" + remoteId.saslQop);
+<Line#52>        }
+<Line#53>        setFallBackToSimpleAuth(fallbackToSimpleAuth);
+<Line#54>      }
+<Line#55>      if (doPing) {
+<Line#56>        ipcStreams.setInputStream(new PingInputStream(ipcStreams.in));
+<Line#57>      }
+<Line#58>      writeConnectionContext(remoteId,authMethod);
+<Line#59>      touch();
+<Line#60>      span=Tracer.getCurrentSpan();
+<Line#61>      if (span != null) {
+<Line#62>        span.addTimelineAnnotation("IPC client connected to " + server);
+<Line#63>      }
+<Line#64>      start();
+<Line#65>      return;
+<Line#66>    }
+<Line#67>  }
+<Line#68> catch (  Throwable t) {
+<Line#69>    if (t instanceof IOException) {
+<Line#70>      markClosed((IOException)t);
+<Line#71>    }
+<Line#72> else {
+<Line#73>      markClosed(new IOException("Couldn't set up IO streams: " + t,t));
+<Line#74>    }
+<Line#75>    close();
+<Line#76>  }
+<Line#77> finally {
+<Line#78>    connectingThread.set(null);
+<Line#79>  }
+<Line#80>}
+Label: <Line#16> LOG.debug("Connecting to " + server)
+
+Example 2:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    if (socket != null || shouldCloseConnection.get()) {
+<Line#4>      setFallBackToSimpleAuth(fallbackToSimpleAuth);
+<Line#5>      return;
+<Line#6>    }
+<Line#7>    UserGroupInformation ticket=remoteId.getTicket();
+<Line#8>    if (ticket != null) {
+<Line#9>      final UserGroupInformation realUser=ticket.getRealUser();
+<Line#10>      if (realUser != null) {
+<Line#11>        ticket=realUser;
+<Line#12>      }
+<Line#13>    }
+<Line#14>    connectingThread.set(Thread.currentThread());
+<Line#15>    if (LOG.isDebugEnabled()) {
+<Line#16>      LOG.debug("Connecting to " + server);
+<Line#17>    }
+<Line#18>    Span span=Tracer.getCurrentSpan();
+<Line#19>    if (span != null) {
+<Line#20>      span.addTimelineAnnotation("IPC client connecting to " + server);
+<Line#21>    }
+<Line#22>    short numRetries=0;
+<Line#23>    Random rand=null;
+<Line#24>    while (true) {
+<Line#25>      setupConnection(ticket);
+<Line#26>      ipcStreams=new IpcStreams(socket,maxResponseLength);
+<Line#27>      writeConnectionHeader(ipcStreams);
+<Line#28>      if (authProtocol == AuthProtocol.SASL) {
+<Line#29>        try {
+<Line#30>          authMethod=ticket.doAs(new PrivilegedExceptionAction<AuthMethod>(){
+<Line#31>            @Override public AuthMethod run() throws IOException, InterruptedException {
+<Line#32>              return setupSaslConnection(ipcStreams);
+<Line#33>            }
+<Line#34>          }
+<Line#35>);
+<Line#36>        }
+<Line#37> catch (        IOException ex) {
+<Line#38>          if (saslRpcClient == null) {
+<Line#39>            throw ex;
+<Line#40>          }
+<Line#41>          authMethod=saslRpcClient.getAuthMethod();
+<Line#42>          if (rand == null) {
+<Line#43>            rand=new Random();
+<Line#44>          }
+<Line#45>          handleSaslConnectionFailure(numRetries++,maxRetriesOnSasl,ex,rand,ticket);
+<Line#46>          continue;
+<Line#47>        }
+<Line#48>        if (authMethod != AuthMethod.SIMPLE) {
+<Line#49>          ipcStreams.setSaslClient(saslRpcClient);
+<Line#50>          remoteId.saslQop=(String)saslRpcClient.getNegotiatedProperty(Sasl.QOP);
+<Line#51>          LOG.debug("Negotiated QOP is :" + remoteId.saslQop);
+<Line#52>        }
+<Line#53>        setFallBackToSimpleAuth(fallbackToSimpleAuth);
+<Line#54>      }
+<Line#55>      if (doPing) {
+<Line#56>        ipcStreams.setInputStream(new PingInputStream(ipcStreams.in));
+<Line#57>      }
+<Line#58>      writeConnectionContext(remoteId,authMethod);
+<Line#59>      touch();
+<Line#60>      span=Tracer.getCurrentSpan();
+<Line#61>      if (span != null) {
+<Line#62>        span.addTimelineAnnotation("IPC client connected to " + server);
+<Line#63>      }
+<Line#64>      start();
+<Line#65>      return;
+<Line#66>    }
+<Line#67>  }
+<Line#68> catch (  Throwable t) {
+<Line#69>    if (t instanceof IOException) {
+<Line#70>      markClosed((IOException)t);
+<Line#71>    }
+<Line#72> else {
+<Line#73>      markClosed(new IOException("Couldn't set up IO streams: " + t,t));
+<Line#74>    }
+<Line#75>    close();
+<Line#76>  }
+<Line#77> finally {
+<Line#78>    connectingThread.set(null);
+<Line#79>  }
+<Line#80>}
+Label: <Line#51> LOG.debug("Negotiated QOP is :" + remoteId.saslQop)
+
+Example 3:
+<Line#1>{
+<Line#2>  numDisksBytesRead=0L;
+<Line#3>  numDisksBytesWritten=0L;
+<Line#4>  BufferedReader in;
+<Line#5>  try {
+<Line#6>    in=new BufferedReader(new InputStreamReader(Files.newInputStream(Paths.get(procfsDisksFile)),Charset.forName("UTF-8")));
+<Line#7>  }
+<Line#8> catch (  IOException f) {
+<Line#9>    return;
+<Line#10>  }
+<Line#11>  Matcher mat;
+<Line#12>  try {
+<Line#13>    String str=in.readLine();
+<Line#14>    while (str != null) {
+<Line#15>      mat=PROCFS_DISKSFILE_FORMAT.matcher(str);
+<Line#16>      if (mat.find()) {
+<Line#17>        String diskName=mat.group(4);
+<Line#18>        assert diskName != null;
+<Line#19>        if (diskName.contains("loop") || diskName.contains("ram")) {
+<Line#20>          str=in.readLine();
+<Line#21>          continue;
+<Line#22>        }
+<Line#23>        Integer sectorSize;
+<Line#24>synchronized (perDiskSectorSize) {
+<Line#25>          sectorSize=perDiskSectorSize.get(diskName);
+<Line#26>          if (null == sectorSize) {
+<Line#27>            sectorSize=readDiskBlockInformation(diskName,512);
+<Line#28>            perDiskSectorSize.put(diskName,sectorSize);
+<Line#29>          }
+<Line#30>        }
+<Line#31>        String sectorsRead=mat.group(7);
+<Line#32>        String sectorsWritten=mat.group(11);
+<Line#33>        if (null == sectorsRead || null == sectorsWritten) {
+<Line#34>          return;
+<Line#35>        }
+<Line#36>        numDisksBytesRead+=Long.parseLong(sectorsRead) * sectorSize;
+<Line#37>        numDisksBytesWritten+=Long.parseLong(sectorsWritten) * sectorSize;
+<Line#38>      }
+<Line#39>      str=in.readLine();
+<Line#40>    }
+<Line#41>  }
+<Line#42> catch (  IOException e) {
+<Line#43>    LOG.warn("Error reading the stream " + procfsDisksFile,e);
+<Line#44>  }
+<Line#45> finally {
+<Line#46>    try {
+<Line#47>      in.close();
+<Line#48>    }
+<Line#49> catch (    IOException e) {
+<Line#50>      LOG.warn("Error closing the stream " + procfsDisksFile,e);
+<Line#51>    }
+<Line#52>  }
+<Line#53>}
+Label: <Line#43> LOG.warn("Error reading the stream " + procfsDisksFile,e)
+
+Example 4:
+<Line#1>{
+<Line#2>  numDisksBytesRead=0L;
+<Line#3>  numDisksBytesWritten=0L;
+<Line#4>  BufferedReader in;
+<Line#5>  try {
+<Line#6>    in=new BufferedReader(new InputStreamReader(Files.newInputStream(Paths.get(procfsDisksFile)),Charset.forName("UTF-8")));
+<Line#7>  }
+<Line#8> catch (  IOException f) {
+<Line#9>    return;
+<Line#10>  }
+<Line#11>  Matcher mat;
+<Line#12>  try {
+<Line#13>    String str=in.readLine();
+<Line#14>    while (str != null) {
+<Line#15>      mat=PROCFS_DISKSFILE_FORMAT.matcher(str);
+<Line#16>      if (mat.find()) {
+<Line#17>        String diskName=mat.group(4);
+<Line#18>        assert diskName != null;
+<Line#19>        if (diskName.contains("loop") || diskName.contains("ram")) {
+<Line#20>          str=in.readLine();
+<Line#21>          continue;
+<Line#22>        }
+<Line#23>        Integer sectorSize;
+<Line#24>synchronized (perDiskSectorSize) {
+<Line#25>          sectorSize=perDiskSectorSize.get(diskName);
+<Line#26>          if (null == sectorSize) {
+<Line#27>            sectorSize=readDiskBlockInformation(diskName,512);
+<Line#28>            perDiskSectorSize.put(diskName,sectorSize);
+<Line#29>          }
+<Line#30>        }
+<Line#31>        String sectorsRead=mat.group(7);
+<Line#32>        String sectorsWritten=mat.group(11);
+<Line#33>        if (null == sectorsRead || null == sectorsWritten) {
+<Line#34>          return;
+<Line#35>        }
+<Line#36>        numDisksBytesRead+=Long.parseLong(sectorsRead) * sectorSize;
+<Line#37>        numDisksBytesWritten+=Long.parseLong(sectorsWritten) * sectorSize;
+<Line#38>      }
+<Line#39>      str=in.readLine();
+<Line#40>    }
+<Line#41>  }
+<Line#42> catch (  IOException e) {
+<Line#43>    LOG.warn("Error reading the stream " + procfsDisksFile,e);
+<Line#44>  }
+<Line#45> finally {
+<Line#46>    try {
+<Line#47>      in.close();
+<Line#48>    }
+<Line#49> catch (    IOException e) {
+<Line#50>      LOG.warn("Error closing the stream " + procfsDisksFile,e);
+<Line#51>    }
+<Line#52>  }
+<Line#53>}
+Label: <Line#50> LOG.warn("Error closing the stream " + procfsDisksFile,e)
+
+Example 5:
+<Line#1>{
+<Line#2>  title("Kerberos Diagnostics scan at %s",new Date(System.currentTimeMillis()));
+<Line#3>  println("Hostname = %s",InetAddress.getLocalHost().getCanonicalHostName());
+<Line#4>  println("%s = %d",ARG_KEYLEN,minKeyLength);
+<Line#5>  println("%s = %s",ARG_KEYTAB,keytab);
+<Line#6>  println("%s = %s",ARG_PRINCIPAL,principal);
+<Line#7>  println("%s = %s",ARG_VERIFYSHORTNAME,checkShortName);
+<Line#8>  validateKeyLength();
+<Line#9>  println("JVM Kerberos Login Module = %s",getKrb5LoginModuleName());
+<Line#10>  title("Core System Properties");
+<Line#11>  for (  String prop : new String[]{"user.name","java.version","java.vendor",JAVA_SECURITY_KRB5_CONF,JAVA_SECURITY_KRB5_REALM,JAVA_SECURITY_KRB5_KDC_ADDRESS,SUN_SECURITY_KRB5_DEBUG,SUN_SECURITY_SPNEGO_DEBUG,SUN_SECURITY_JAAS_FILE}) {
+<Line#12>    printSysprop(prop);
+<Line#13>  }
+<Line#14>  endln();
+<Line#15>  title("All System Properties");
+<Line#16>  ArrayList<String> propList=new ArrayList<>(System.getProperties().stringPropertyNames());
+<Line#17>  Collections.sort(propList,String.CASE_INSENSITIVE_ORDER);
+<Line#18>  for (  String s : propList) {
+<Line#19>    printSysprop(s);
+<Line#20>  }
+<Line#21>  endln();
+<Line#22>  title("Environment Variables");
+<Line#23>  for (  String env : new String[]{HADOOP_JAAS_DEBUG,KRB5_CCNAME,KRB5_CONFIG,HADOOP_USER_NAME,HADOOP_PROXY_USER,HADOOP_TOKEN_FILE_LOCATION,"HADOOP_SECURE_LOG","HADOOP_OPTS","HADOOP_CLIENT_OPTS"}) {
+<Line#24>    printEnv(env);
+<Line#25>  }
+<Line#26>  endln();
+<Line#27>  title("Configuration Options");
+<Line#28>  for (  String prop : new String[]{KERBEROS_KINIT_COMMAND,HADOOP_SECURITY_AUTHENTICATION,HADOOP_SECURITY_AUTHORIZATION,"hadoop.kerberos.min.seconds.before.relogin","hadoop.security.dns.interface","hadoop.security.dns.nameserver",HADOOP_RPC_PROTECTION,HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS,HADOOP_SECURITY_CRYPTO_CODEC_CLASSES_KEY_PREFIX,HADOOP_SECURITY_GROUP_MAPPING,"hadoop.security.impersonation.provider.class",DFS_DATA_TRANSFER_PROTECTION,DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS}) {
+<Line#29>    printConfOpt(prop);
+<Line#30>  }
+<Line#31>  Configuration conf=getConf();
+<Line#32>  if (isSimpleAuthentication(conf)) {
+<Line#33>    println(HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#34>    failif(securityRequired,CAT_CONFIG,HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#35>    LOG.warn("Security is not enabled for the Hadoop cluster");
+<Line#36>  }
+<Line#37> else {
+<Line#38>    if (isSimpleAuthentication(new Configuration())) {
+<Line#39>      LOG.warn("The default cluster security is insecure");
+<Line#40>      failif(securityRequired,CAT_CONFIG,HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#41>    }
+<Line#42>  }
+<Line#43>  boolean krb5Debug=getAndSet(SUN_SECURITY_KRB5_DEBUG);
+<Line#44>  boolean spnegoDebug=getAndSet(SUN_SECURITY_SPNEGO_DEBUG);
+<Line#45>  try {
+<Line#46>    UserGroupInformation.setConfiguration(conf);
+<Line#47>    validateHadoopTokenFiles(conf);
+<Line#48>    validateKrb5File();
+<Line#49>    printDefaultRealm();
+<Line#50>    validateSasl(HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS);
+<Line#51>    if (conf.get(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS) != null) {
+<Line#52>      validateSasl(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS);
+<Line#53>    }
+<Line#54>    validateKinitExecutable();
+<Line#55>    validateJAAS(jaas);
+<Line#56>    validateNTPConf();
+<Line#57>    if (checkShortName) {
+<Line#58>      validateShortName();
+<Line#59>    }
+<Line#60>    if (!nologin) {
+<Line#61>      title("Logging in");
+<Line#62>      if (keytab != null) {
+<Line#63>        dumpKeytab(keytab);
+<Line#64>        loginFromKeytab();
+<Line#65>      }
+<Line#66> else {
+<Line#67>        UserGroupInformation loginUser=getLoginUser();
+<Line#68>        dumpUGI("Log in user",loginUser);
+<Line#69>        validateUGI("Login user",loginUser);
+<Line#70>        println("Ticket based login: %b",isLoginTicketBased());
+<Line#71>        println("Keytab based login: %b",isLoginKeytabBased());
+<Line#72>      }
+<Line#73>    }
+<Line#74>    return true;
+<Line#75>  }
+<Line#76>  finally {
+<Line#77>    System.setProperty(SUN_SECURITY_KRB5_DEBUG,Boolean.toString(krb5Debug));
+<Line#78>    System.setProperty(SUN_SECURITY_SPNEGO_DEBUG,Boolean.toString(spnegoDebug));
+<Line#79>  }
+<Line#80>}
+Label: <Line#35> LOG.warn("Security is not enabled for the Hadoop cluster")
+

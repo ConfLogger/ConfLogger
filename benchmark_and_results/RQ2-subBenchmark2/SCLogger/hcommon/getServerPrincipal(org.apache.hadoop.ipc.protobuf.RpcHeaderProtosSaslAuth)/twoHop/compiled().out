@@ -1,0 +1,6 @@
+/** 
+ * @return the compiled pattern
+ */
+public Pattern compiled(){
+  return compiled;
+}

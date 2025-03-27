@@ -1,0 +1,439 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>private void setupFlushTupleTimer(final Map<String, Object> topologyConf, final List<IRunningExecutor> executors) {
+<Line#1>final Integer producerBatchSize = ObjectReader.getInt(topologyConf.get(Config.TOPOLOGY_PRODUCER_BATCH_SIZE));
+<Line#2>final Integer xferBatchSize = ObjectReader.getInt(topologyConf.get(Config.TOPOLOGY_TRANSFER_BATCH_SIZE));
+<Line#3>final Long flushIntervalMillis = ObjectReader.getLong(topologyConf.get(Config.TOPOLOGY_BATCH_FLUSH_INTERVAL_MILLIS));
+<Line#4>if ((producerBatchSize == 1 && xferBatchSize == 1) || flushIntervalMillis == 0) {
+<Line#5>return;
+<Line#6>}
+<Line#7>
+<Line#8>workerState.flushTupleTimer.scheduleRecurringMs(flushIntervalMillis, flushIntervalMillis,
+<Line#9>() -> {
+<Line#10>// send flush tuple to all local executors
+<Line#11>for (int i = 0; i < executors.size(); i++) {
+<Line#12>IRunningExecutor exec = executors.get(i);
+<Line#13>if (exec.getExecutorId().get(0) != Constants.SYSTEM_TASK_ID) {
+<Line#14>exec.publishFlushTuple();
+<Line#15>}
+<Line#16>}
+<Line#17>}
+<Line#18>);
+<Line#19>LOG.info("Flush tuple will be generated every {} millis", flushIntervalMillis);
+<Line#20>}
+
+Example 1:
+<Line#1>{
+<Line#2>  updateExecCredsIfRequired();
+<Line#3>  int receiveCount=0;
+<Line#4>  if (recvqCheckSkips++ == recvqCheckSkipCountMax) {
+<Line#5>    receiveCount=receiveQueue.consume(SpoutExecutor.this);
+<Line#6>    recvqCheckSkips=0;
+<Line#7>  }
+<Line#8>  long currCount=emittedCount.get();
+<Line#9>  boolean reachedMaxSpoutPending=(maxSpoutPending != 0) && (pending.size() >= maxSpoutPending);
+<Line#10>  boolean isActive=stormActive.get();
+<Line#11>  if (!isActive) {
+<Line#12>    inactiveExecute();
+<Line#13>    return 0L;
+<Line#14>  }
+<Line#15>  if (!lastActive.get()) {
+<Line#16>    lastActive.set(true);
+<Line#17>    activateSpouts();
+<Line#18>  }
+<Line#19>  boolean pendingEmitsIsEmpty=tryFlushPendingEmits();
+<Line#20>  boolean noEmits=true;
+<Line#21>  long emptyStretch=0;
+<Line#22>  if (!reachedMaxSpoutPending && pendingEmitsIsEmpty) {
+<Line#23>    for (int j=0; j < spouts.size(); j++) {
+<Line#24>      spouts.get(j).nextTuple();
+<Line#25>    }
+<Line#26>    noEmits=(currCount == emittedCount.get());
+<Line#27>    if (noEmits) {
+<Line#28>      emptyEmitStreak.increment();
+<Line#29>    }
+<Line#30> else {
+<Line#31>      emptyStretch=emptyEmitStreak.get();
+<Line#32>      emptyEmitStreak.set(0);
+<Line#33>    }
+<Line#34>  }
+<Line#35>  if (reachedMaxSpoutPending) {
+<Line#36>    if (rmspCount == 0) {
+<Line#37>      LOG.debug("Reached max spout pending");
+<Line#38>    }
+<Line#39>    rmspCount++;
+<Line#40>  }
+<Line#41> else {
+<Line#42>    if (rmspCount > 0) {
+<Line#43>      LOG.debug("Ended max spout pending stretch of {} iterations",rmspCount);
+<Line#44>    }
+<Line#45>    rmspCount=0;
+<Line#46>  }
+<Line#47>  if (receiveCount > 1) {
+<Line#48>    return 0L;
+<Line#49>  }
+<Line#50>  if (!pendingEmits.isEmpty()) {
+<Line#51>    backPressureWaitStrategy();
+<Line#52>    return 0L;
+<Line#53>  }
+<Line#54>  bpIdleCount=0;
+<Line#55>  if (noEmits) {
+<Line#56>    spoutWaitStrategy(reachedMaxSpoutPending,emptyStretch);
+<Line#57>    return 0L;
+<Line#58>  }
+<Line#59>  swIdleCount=0;
+<Line#60>  return 0L;
+<Line#61>}
+Label: <Line#37> LOG.debug("Reached max spout pending")
+
+Example 2:
+<Line#1>{
+<Line#2>  updateExecCredsIfRequired();
+<Line#3>  int receiveCount=0;
+<Line#4>  if (recvqCheckSkips++ == recvqCheckSkipCountMax) {
+<Line#5>    receiveCount=receiveQueue.consume(SpoutExecutor.this);
+<Line#6>    recvqCheckSkips=0;
+<Line#7>  }
+<Line#8>  long currCount=emittedCount.get();
+<Line#9>  boolean reachedMaxSpoutPending=(maxSpoutPending != 0) && (pending.size() >= maxSpoutPending);
+<Line#10>  boolean isActive=stormActive.get();
+<Line#11>  if (!isActive) {
+<Line#12>    inactiveExecute();
+<Line#13>    return 0L;
+<Line#14>  }
+<Line#15>  if (!lastActive.get()) {
+<Line#16>    lastActive.set(true);
+<Line#17>    activateSpouts();
+<Line#18>  }
+<Line#19>  boolean pendingEmitsIsEmpty=tryFlushPendingEmits();
+<Line#20>  boolean noEmits=true;
+<Line#21>  long emptyStretch=0;
+<Line#22>  if (!reachedMaxSpoutPending && pendingEmitsIsEmpty) {
+<Line#23>    for (int j=0; j < spouts.size(); j++) {
+<Line#24>      spouts.get(j).nextTuple();
+<Line#25>    }
+<Line#26>    noEmits=(currCount == emittedCount.get());
+<Line#27>    if (noEmits) {
+<Line#28>      emptyEmitStreak.increment();
+<Line#29>    }
+<Line#30> else {
+<Line#31>      emptyStretch=emptyEmitStreak.get();
+<Line#32>      emptyEmitStreak.set(0);
+<Line#33>    }
+<Line#34>  }
+<Line#35>  if (reachedMaxSpoutPending) {
+<Line#36>    if (rmspCount == 0) {
+<Line#37>      LOG.debug("Reached max spout pending");
+<Line#38>    }
+<Line#39>    rmspCount++;
+<Line#40>  }
+<Line#41> else {
+<Line#42>    if (rmspCount > 0) {
+<Line#43>      LOG.debug("Ended max spout pending stretch of {} iterations",rmspCount);
+<Line#44>    }
+<Line#45>    rmspCount=0;
+<Line#46>  }
+<Line#47>  if (receiveCount > 1) {
+<Line#48>    return 0L;
+<Line#49>  }
+<Line#50>  if (!pendingEmits.isEmpty()) {
+<Line#51>    backPressureWaitStrategy();
+<Line#52>    return 0L;
+<Line#53>  }
+<Line#54>  bpIdleCount=0;
+<Line#55>  if (noEmits) {
+<Line#56>    spoutWaitStrategy(reachedMaxSpoutPending,emptyStretch);
+<Line#57>    return 0L;
+<Line#58>  }
+<Line#59>  swIdleCount=0;
+<Line#60>  return 0L;
+<Line#61>}
+Label: <Line#43> LOG.debug("Ended max spout pending stretch of {} iterations",rmspCount)
+
+Example 3:
+<Line#1>{
+<Line#2>  Collection<Long> pids=new ArrayList<>();
+<Line#3>  int pidIndex=0;
+<Line#4>  String cmd;
+<Line#5>  if (ServerUtils.IS_ON_WINDOWS) {
+<Line#6>    cmd="tasklist";
+<Line#7>    pidIndex=1;
+<Line#8>  }
+<Line#9> else {
+<Line#10>    cmd=(user == null) ? "ps -e" : "ps -U " + user;
+<Line#11>  }
+<Line#12>  Process p=Runtime.getRuntime().exec(cmd);
+<Line#13>  try (BufferedReader input=new BufferedReader(new InputStreamReader(p.getInputStream()))){
+<Line#14>    String line;
+<Line#15>    while ((line=input.readLine()) != null) {
+<Line#16>      line=line.trim();
+<Line#17>      if (line.isEmpty()) {
+<Line#18>        continue;
+<Line#19>      }
+<Line#20>      try {
+<Line#21>        String pidStr=line.split("\\s+")[pidIndex];
+<Line#22>        if (pidStr.equalsIgnoreCase("pid")) {
+<Line#23>          continue;
+<Line#24>        }
+<Line#25>        if (!StringUtils.isNumeric(pidStr)) {
+<Line#26>          LOG.debug("Ignoring line \"{}\" while looking for PIDs in output of \"{}\"",line,cmd);
+<Line#27>          continue;
+<Line#28>        }
+<Line#29>        pids.add(Long.parseLong(pidStr));
+<Line#30>      }
+<Line#31> catch (      Exception ex) {
+<Line#32>        ex.printStackTrace();
+<Line#33>      }
+<Line#34>    }
+<Line#35>  }
+<Line#36>   return pids;
+<Line#37>}
+Label: <Line#26> LOG.debug("Ignoring line \"{}\" while looking for PIDs in output of \"{}\"",line,cmd)
+
+Example 4:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    IStormClusterState state=stormClusterState;
+<Line#4>    NimbusInfo hpi=nimbusHostPortInfo;
+<Line#5>    LOG.info("Starting Nimbus with conf {}",ConfigUtils.maskPasswords(conf));
+<Line#6>    validator.prepare(conf);
+<Line#7>    state.addNimbusHost(hpi.getHost(),new NimbusSummary(hpi.getHost(),hpi.getPort(),Time.currentTimeSecs(),false,STORM_VERSION));
+<Line#8>    leaderElector.addToLeaderLockQueue();
+<Line#9>    this.blobStore.startSyncBlobs();
+<Line#10>    for (    ClusterMetricsConsumerExecutor exec : clusterConsumerExceutors) {
+<Line#11>      exec.prepare();
+<Line#12>    }
+<Line#13>    timer.scheduleRecurring(3,5,() -> {
+<Line#14>      try {
+<Line#15>        boolean isLeader=isLeader();
+<Line#16>        if (isLeader && !wasLeader) {
+<Line#17>          for (          String topoId : state.activeStorms()) {
+<Line#18>            transition(topoId,TopologyActions.GAIN_LEADERSHIP,null);
+<Line#19>          }
+<Line#20>          clusterMetricSet.setActive(true);
+<Line#21>        }
+<Line#22>        wasLeader=isLeader;
+<Line#23>      }
+<Line#24> catch (      Exception e) {
+<Line#25>        throw new RuntimeException(e);
+<Line#26>      }
+<Line#27>    }
+<Line#28>);
+<Line#29>    final boolean doNotReassign=(Boolean)conf.getOrDefault(ServerConfigUtils.NIMBUS_DO_NOT_REASSIGN,false);
+<Line#30>    timer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_MONITOR_FREQ_SECS)),() -> {
+<Line#31>      try {
+<Line#32>        if (!doNotReassign) {
+<Line#33>          mkAssignments();
+<Line#34>        }
+<Line#35>      }
+<Line#36> catch (      Exception e) {
+<Line#37>        throw new RuntimeException(e);
+<Line#38>      }
+<Line#39>    }
+<Line#40>);
+<Line#41>    cleanupTimer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_MONITOR_FREQ_SECS)),() -> {
+<Line#42>      cleanupTimer.schedule(0,() -> doCleanup());
+<Line#43>    }
+<Line#44>);
+<Line#45>    final int jarExpSecs=ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_INBOX_JAR_EXPIRATION_SECS));
+<Line#46>    timer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_CLEANUP_INBOX_FREQ_SECS)),() -> {
+<Line#47>      try {
+<Line#48>        cleanInbox(getInbox(),jarExpSecs);
+<Line#49>      }
+<Line#50> catch (      Exception e) {
+<Line#51>        throw new RuntimeException(e);
+<Line#52>      }
+<Line#53>    }
+<Line#54>);
+<Line#55>    Integer interval=ObjectReader.getInt(conf.get(DaemonConfig.LOGVIEWER_CLEANUP_INTERVAL_SECS),null);
+<Line#56>    if (interval != null) {
+<Line#57>      final int lvCleanupAgeMins=ObjectReader.getInt(conf.get(DaemonConfig.LOGVIEWER_CLEANUP_AGE_MINS));
+<Line#58>      timer.scheduleRecurring(0,interval,() -> {
+<Line#59>        try {
+<Line#60>          cleanTopologyHistory(lvCleanupAgeMins);
+<Line#61>        }
+<Line#62> catch (        Exception e) {
+<Line#63>          throw new RuntimeException(e);
+<Line#64>        }
+<Line#65>      }
+<Line#66>);
+<Line#67>    }
+<Line#68>    timer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_CREDENTIAL_RENEW_FREQ_SECS)),() -> {
+<Line#69>      try {
+<Line#70>        renewCredentials();
+<Line#71>      }
+<Line#72> catch (      Exception e) {
+<Line#73>        throw new RuntimeException(e);
+<Line#74>      }
+<Line#75>    }
+<Line#76>);
+<Line#77>    timer.scheduleRecurring(30,ServerConfigUtils.getLocalizerUpdateBlobInterval(conf) * 5,() -> {
+<Line#78>      try {
+<Line#79>        blobStore.validateBlobUpdateTime();
+<Line#80>      }
+<Line#81> catch (      IOException e) {
+<Line#82>        throw new RuntimeException(e);
+<Line#83>      }
+<Line#84>    }
+<Line#85>);
+<Line#86>    metricsRegistry.registerGauge("nimbus:total-available-memory-non-negative",() -> nodeIdToResources.get().values().parallelStream().mapToDouble(supervisorResources -> Math.max(supervisorResources.getAvailableMem(),0)).sum());
+<Line#87>    metricsRegistry.registerGauge("nimbus:available-cpu-non-negative",() -> nodeIdToResources.get().values().parallelStream().mapToDouble(supervisorResources -> Math.max(supervisorResources.getAvailableCpu(),0)).sum());
+<Line#88>    metricsRegistry.registerGauge("nimbus:total-memory",() -> nodeIdToResources.get().values().parallelStream().mapToDouble(SupervisorResources::getTotalMem).sum());
+<Line#89>    metricsRegistry.registerGauge("nimbus:total-cpu",() -> nodeIdToResources.get().values().parallelStream().mapToDouble(SupervisorResources::getTotalCpu).sum());
+<Line#90>    metricsRegistry.registerGauge("nimbus:longest-scheduling-time-ms",() -> {
+<Line#91>      Long currTime=Time.nanoTime();
+<Line#92>      Long startTime=schedulingStartTimeNs.get();
+<Line#93>      return TimeUnit.NANOSECONDS.toMillis(startTime == null ? longestSchedulingTime.get() : Math.max(currTime - startTime,longestSchedulingTime.get()));
+<Line#94>    }
+<Line#95>);
+<Line#96>    metricsRegistry.registerMeter("nimbus:num-launched").mark();
+<Line#97>    timer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.STORM_CLUSTER_METRICS_CONSUMER_PUBLISH_INTERVAL_SECS)),() -> {
+<Line#98>      try {
+<Line#99>        if (isLeader()) {
+<Line#100>          sendClusterMetricsToExecutors();
+<Line#101>        }
+<Line#102>      }
+<Line#103> catch (      Exception e) {
+<Line#104>        throw new RuntimeException(e);
+<Line#105>      }
+<Line#106>    }
+<Line#107>);
+<Line#108>    timer.scheduleRecurring(5,5,clusterMetricSet);
+<Line#109>  }
+<Line#110> catch (  Exception e) {
+<Line#111>    if (Utils.exceptionCauseIsInstanceOf(InterruptedException.class,e)) {
+<Line#112>      throw e;
+<Line#113>    }
+<Line#114>    if (Utils.exceptionCauseIsInstanceOf(InterruptedIOException.class,e)) {
+<Line#115>      throw e;
+<Line#116>    }
+<Line#117>    LOG.error("Error on initialization of nimbus",e);
+<Line#118>    Utils.exitProcess(13,"Error on initialization of nimbus");
+<Line#119>  }
+<Line#120>}
+Label: <Line#5> LOG.info("Starting Nimbus with conf {}",ConfigUtils.maskPasswords(conf))
+
+Example 5:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    IStormClusterState state=stormClusterState;
+<Line#4>    NimbusInfo hpi=nimbusHostPortInfo;
+<Line#5>    LOG.info("Starting Nimbus with conf {}",ConfigUtils.maskPasswords(conf));
+<Line#6>    validator.prepare(conf);
+<Line#7>    state.addNimbusHost(hpi.getHost(),new NimbusSummary(hpi.getHost(),hpi.getPort(),Time.currentTimeSecs(),false,STORM_VERSION));
+<Line#8>    leaderElector.addToLeaderLockQueue();
+<Line#9>    this.blobStore.startSyncBlobs();
+<Line#10>    for (    ClusterMetricsConsumerExecutor exec : clusterConsumerExceutors) {
+<Line#11>      exec.prepare();
+<Line#12>    }
+<Line#13>    timer.scheduleRecurring(3,5,() -> {
+<Line#14>      try {
+<Line#15>        boolean isLeader=isLeader();
+<Line#16>        if (isLeader && !wasLeader) {
+<Line#17>          for (          String topoId : state.activeStorms()) {
+<Line#18>            transition(topoId,TopologyActions.GAIN_LEADERSHIP,null);
+<Line#19>          }
+<Line#20>          clusterMetricSet.setActive(true);
+<Line#21>        }
+<Line#22>        wasLeader=isLeader;
+<Line#23>      }
+<Line#24> catch (      Exception e) {
+<Line#25>        throw new RuntimeException(e);
+<Line#26>      }
+<Line#27>    }
+<Line#28>);
+<Line#29>    final boolean doNotReassign=(Boolean)conf.getOrDefault(ServerConfigUtils.NIMBUS_DO_NOT_REASSIGN,false);
+<Line#30>    timer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_MONITOR_FREQ_SECS)),() -> {
+<Line#31>      try {
+<Line#32>        if (!doNotReassign) {
+<Line#33>          mkAssignments();
+<Line#34>        }
+<Line#35>      }
+<Line#36> catch (      Exception e) {
+<Line#37>        throw new RuntimeException(e);
+<Line#38>      }
+<Line#39>    }
+<Line#40>);
+<Line#41>    cleanupTimer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_MONITOR_FREQ_SECS)),() -> {
+<Line#42>      cleanupTimer.schedule(0,() -> doCleanup());
+<Line#43>    }
+<Line#44>);
+<Line#45>    final int jarExpSecs=ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_INBOX_JAR_EXPIRATION_SECS));
+<Line#46>    timer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_CLEANUP_INBOX_FREQ_SECS)),() -> {
+<Line#47>      try {
+<Line#48>        cleanInbox(getInbox(),jarExpSecs);
+<Line#49>      }
+<Line#50> catch (      Exception e) {
+<Line#51>        throw new RuntimeException(e);
+<Line#52>      }
+<Line#53>    }
+<Line#54>);
+<Line#55>    Integer interval=ObjectReader.getInt(conf.get(DaemonConfig.LOGVIEWER_CLEANUP_INTERVAL_SECS),null);
+<Line#56>    if (interval != null) {
+<Line#57>      final int lvCleanupAgeMins=ObjectReader.getInt(conf.get(DaemonConfig.LOGVIEWER_CLEANUP_AGE_MINS));
+<Line#58>      timer.scheduleRecurring(0,interval,() -> {
+<Line#59>        try {
+<Line#60>          cleanTopologyHistory(lvCleanupAgeMins);
+<Line#61>        }
+<Line#62> catch (        Exception e) {
+<Line#63>          throw new RuntimeException(e);
+<Line#64>        }
+<Line#65>      }
+<Line#66>);
+<Line#67>    }
+<Line#68>    timer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.NIMBUS_CREDENTIAL_RENEW_FREQ_SECS)),() -> {
+<Line#69>      try {
+<Line#70>        renewCredentials();
+<Line#71>      }
+<Line#72> catch (      Exception e) {
+<Line#73>        throw new RuntimeException(e);
+<Line#74>      }
+<Line#75>    }
+<Line#76>);
+<Line#77>    timer.scheduleRecurring(30,ServerConfigUtils.getLocalizerUpdateBlobInterval(conf) * 5,() -> {
+<Line#78>      try {
+<Line#79>        blobStore.validateBlobUpdateTime();
+<Line#80>      }
+<Line#81> catch (      IOException e) {
+<Line#82>        throw new RuntimeException(e);
+<Line#83>      }
+<Line#84>    }
+<Line#85>);
+<Line#86>    metricsRegistry.registerGauge("nimbus:total-available-memory-non-negative",() -> nodeIdToResources.get().values().parallelStream().mapToDouble(supervisorResources -> Math.max(supervisorResources.getAvailableMem(),0)).sum());
+<Line#87>    metricsRegistry.registerGauge("nimbus:available-cpu-non-negative",() -> nodeIdToResources.get().values().parallelStream().mapToDouble(supervisorResources -> Math.max(supervisorResources.getAvailableCpu(),0)).sum());
+<Line#88>    metricsRegistry.registerGauge("nimbus:total-memory",() -> nodeIdToResources.get().values().parallelStream().mapToDouble(SupervisorResources::getTotalMem).sum());
+<Line#89>    metricsRegistry.registerGauge("nimbus:total-cpu",() -> nodeIdToResources.get().values().parallelStream().mapToDouble(SupervisorResources::getTotalCpu).sum());
+<Line#90>    metricsRegistry.registerGauge("nimbus:longest-scheduling-time-ms",() -> {
+<Line#91>      Long currTime=Time.nanoTime();
+<Line#92>      Long startTime=schedulingStartTimeNs.get();
+<Line#93>      return TimeUnit.NANOSECONDS.toMillis(startTime == null ? longestSchedulingTime.get() : Math.max(currTime - startTime,longestSchedulingTime.get()));
+<Line#94>    }
+<Line#95>);
+<Line#96>    metricsRegistry.registerMeter("nimbus:num-launched").mark();
+<Line#97>    timer.scheduleRecurring(0,ObjectReader.getInt(conf.get(DaemonConfig.STORM_CLUSTER_METRICS_CONSUMER_PUBLISH_INTERVAL_SECS)),() -> {
+<Line#98>      try {
+<Line#99>        if (isLeader()) {
+<Line#100>          sendClusterMetricsToExecutors();
+<Line#101>        }
+<Line#102>      }
+<Line#103> catch (      Exception e) {
+<Line#104>        throw new RuntimeException(e);
+<Line#105>      }
+<Line#106>    }
+<Line#107>);
+<Line#108>    timer.scheduleRecurring(5,5,clusterMetricSet);
+<Line#109>  }
+<Line#110> catch (  Exception e) {
+<Line#111>    if (Utils.exceptionCauseIsInstanceOf(InterruptedException.class,e)) {
+<Line#112>      throw e;
+<Line#113>    }
+<Line#114>    if (Utils.exceptionCauseIsInstanceOf(InterruptedIOException.class,e)) {
+<Line#115>      throw e;
+<Line#116>    }
+<Line#117>    LOG.error("Error on initialization of nimbus",e);
+<Line#118>    Utils.exitProcess(13,"Error on initialization of nimbus");
+<Line#119>  }
+<Line#120>}
+Label: <Line#117> LOG.error("Error on initialization of nimbus",e)
+

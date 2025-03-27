@@ -1,0 +1,67 @@
+/** 
+ * Parse a ZooKeeper configuration file
+ * @param path the patch of the configuration file
+ * @throws ConfigException error processing configuration
+ */
+public void parse(String path) throws ConfigException {
+  LOG.info("Reading configuration from: " + path);
+  try {
+    File configFile=(new VerifyingFileFactory.Builder(LOG).warnForRelativePath().failForNonExistingPath().build()).create(path);
+    Properties cfg=new Properties();
+    try (FileInputStream in=new FileInputStream(configFile)){
+      cfg.load(in);
+      configFileStr=path;
+    }
+     initialConfig=new String(Files.readAllBytes(configFile.toPath()));
+    parseProperties(cfg);
+  }
+ catch (  IOException e) {
+    throw new ConfigException("Error processing " + path,e);
+  }
+catch (  IllegalArgumentException e) {
+    throw new ConfigException("Error processing " + path,e);
+  }
+  if (dynamicConfigFileStr != null) {
+    try {
+      Properties dynamicCfg=new Properties();
+      try (FileInputStream inConfig=new FileInputStream(dynamicConfigFileStr)){
+        dynamicCfg.load(inConfig);
+        if (dynamicCfg.getProperty("version") != null) {
+          throw new ConfigException("dynamic file shouldn't have version inside");
+        }
+        String version=getVersionFromFilename(dynamicConfigFileStr);
+        if (version != null) {
+          dynamicCfg.setProperty("version",version);
+        }
+      }
+       setupQuorumPeerConfig(dynamicCfg,false);
+    }
+ catch (    IOException e) {
+      throw new ConfigException("Error processing " + dynamicConfigFileStr,e);
+    }
+catch (    IllegalArgumentException e) {
+      throw new ConfigException("Error processing " + dynamicConfigFileStr,e);
+    }
+    File nextDynamicConfigFile=new File(configFileStr + nextDynamicConfigFileSuffix);
+    if (nextDynamicConfigFile.exists()) {
+      try {
+        Properties dynamicConfigNextCfg=new Properties();
+        try (FileInputStream inConfigNext=new FileInputStream(nextDynamicConfigFile)){
+          dynamicConfigNextCfg.load(inConfigNext);
+        }
+         boolean isHierarchical=false;
+        for (        Entry<Object,Object> entry : dynamicConfigNextCfg.entrySet()) {
+          String key=entry.getKey().toString().trim();
+          if (key.startsWith("group") || key.startsWith("weight")) {
+            isHierarchical=true;
+            break;
+          }
+        }
+        lastSeenQuorumVerifier=createQuorumVerifier(dynamicConfigNextCfg,isHierarchical);
+      }
+ catch (      IOException e) {
+        LOG.warn("NextQuorumVerifier is initiated to null");
+      }
+    }
+  }
+}

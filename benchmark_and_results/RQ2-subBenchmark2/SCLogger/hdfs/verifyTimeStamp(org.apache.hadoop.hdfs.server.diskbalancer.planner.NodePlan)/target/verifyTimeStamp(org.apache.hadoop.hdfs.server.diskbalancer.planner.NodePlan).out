@@ -1,0 +1,15 @@
+private void verifyTimeStamp(NodePlan plan) throws DiskBalancerException {
+long now = Time.now();
+long planTime = plan.getTimeStamp();
+
+if ((planTime + planValidityInterval) < now) {
+String planValidity = config.get(
+DFSConfigKeys.DFS_DISK_BALANCER_PLAN_VALID_INTERVAL,
+DFSConfigKeys.DFS_DISK_BALANCER_PLAN_VALID_INTERVAL_DEFAULT);
+if (planValidity.matches("[0-9]$")) {
+planValidity += "ms";
+}
+throw new DiskBalancerException(errorString,
+DiskBalancerException.Result.OLD_PLAN_SUBMITTED);
+}
+}

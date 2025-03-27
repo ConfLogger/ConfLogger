@@ -1,0 +1,397 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> public static synchronized boolean isNativeBzip2Loaded(Configuration conf) {
+<Line#1> String libname = conf.get("io.compression.codec.bzip2.library",
+<Line#2> "system-native");
+<Line#3> if (!bzip2LibraryName.equals(libname)) {
+<Line#4> nativeBzip2Loaded = false;
+<Line#5> bzip2LibraryName = libname;
+<Line#6> if (libname.equals("java-builtin")) {
+<Line#7> ;
+<Line#8> } else if (NativeCodeLoader.isNativeCodeLoaded()) {
+<Line#9> try {
+<Line#10> // Initialize the native library.
+<Line#11> Bzip2Compressor.initSymbols(libname);
+<Line#12> Bzip2Decompressor.initSymbols(libname);
+<Line#13> nativeBzip2Loaded = true;
+<Line#14> } catch (Throwable t) {
+<Line#15> }
+<Line#16> }
+<Line#17> }
+<Line#18> return nativeBzip2Loaded;
+<Line#19> }
+
+Related Context:
+Method A:
+<Line#0> /** 
+<Line#1>  * Attempts to repeatedly expand the value  {@code expr} by replacing theleft-most substring of the form "${var}" in the following precedence order <ol> <li>by the value of the environment variable "var" if defined</li> <li>by the value of the Java system property "var" if defined</li> <li>by the value of the configuration key "var" if defined</li> </ol> If var is unbounded the current state of expansion "prefix${var}suffix" is returned. <p> This function also detects self-referential substitutions, i.e. <pre> {@code}foo.bar = ${foo.bar} } </pre> If a cycle is detected then the original expr is returned. Loops involving multiple substitutions are not detected.
+<Line#2>  * @param expr the literal value of a config key
+<Line#3>  * @return null if expr is null, otherwise the value resulting from expandingexpr using the algorithm above.
+<Line#4>  * @throws IllegalArgumentException when more than{@link Configuration#MAX_SUBST} replacements are required
+<Line#5>  */
+<Line#6> private String substituteVars(String expr){
+<Line#7>   if (expr == null) {
+<Line#8>     return null;
+<Line#9>   }
+<Line#10>   String eval=expr;
+<Line#11>   for (int s=0; s < MAX_SUBST; s++) {
+<Line#12>     final int[] varBounds=findSubVariable(eval);
+<Line#13>     if (varBounds[SUB_START_IDX] == -1) {
+<Line#14>       return eval;
+<Line#15>     }
+<Line#16>     final String var=eval.substring(varBounds[SUB_START_IDX],varBounds[SUB_END_IDX]);
+<Line#17>     String val=null;
+<Line#18>     try {
+<Line#19>       if (var.startsWith("env.") && 4 < var.length()) {
+<Line#20>         String v=var.substring(4);
+<Line#21>         int i=0;
+<Line#22>         for (; i < v.length(); i++) {
+<Line#23>           char c=v.charAt(i);
+<Line#24>           if (c == ':' && i < v.length() - 1 && v.charAt(i + 1) == '-') {
+<Line#25>             val=getenv(v.substring(0,i));
+<Line#26>             if (val == null || val.length() == 0) {
+<Line#27>               val=v.substring(i + 2);
+<Line#28>             }
+<Line#29>             break;
+<Line#30>           }
+<Line#31>  else           if (c == '-') {
+<Line#32>             val=getenv(v.substring(0,i));
+<Line#33>             if (val == null) {
+<Line#34>               val=v.substring(i + 1);
+<Line#35>             }
+<Line#36>             break;
+<Line#37>           }
+<Line#38>         }
+<Line#39>         if (i == v.length()) {
+<Line#40>           val=getenv(v);
+<Line#41>         }
+<Line#42>       }
+<Line#43>  else {
+<Line#44>         val=getProperty(var);
+<Line#45>       }
+<Line#46>     }
+<Line#47>  catch (    SecurityException se) {
+<Line#48>       LOG.warn("Unexpected SecurityException in Configuration",se);
+<Line#49>     }
+<Line#50>     if (val == null) {
+<Line#51>       val=getRaw(var);
+<Line#52>     }
+<Line#53>     if (val == null) {
+<Line#54>       return eval;
+<Line#55>     }
+<Line#56>     final int dollar=varBounds[SUB_START_IDX] - "${".length();
+<Line#57>     final int afterRightBrace=varBounds[SUB_END_IDX] + "}".length();
+<Line#58>     final String refVar=eval.substring(dollar,afterRightBrace);
+<Line#59>     if (val.contains(refVar)) {
+<Line#60>       return expr;
+<Line#61>     }
+<Line#62>     eval=eval.substring(0,dollar) + val + eval.substring(afterRightBrace);
+<Line#63>   }
+<Line#64>   throw new IllegalStateException("Variable substitution depth too large: " + MAX_SUBST + " "+ expr);
+<Line#65> }
+<Line#66> 
+Method B:
+<Line#0> /** 
+<Line#1>  * Get the value of the <code>name</code> property, <code>null</code> if no such property exists. If the key is deprecated, it returns the value of the first key which replaces the deprecated key and is not null. Values are processed for <a href="#VariableExpansion">variable expansion</a>  before being returned. As a side effect get loads the properties from the sources if called for the first time as a lazy init.
+<Line#2>  * @param name the property name, will be trimmed before get value.
+<Line#3>  * @return the value of the <code>name</code> or its replacing property, or null if no such property exists.
+<Line#4>  */
+<Line#5> public String get(String name){
+<Line#6>   String[] names=handleDeprecation(deprecationContext.get(),name);
+<Line#7>   String result=null;
+<Line#8>   for (  String n : names) {
+<Line#9>     result=substituteVars(getProps().getProperty(n));
+<Line#10>   }
+<Line#11>   return result;
+<Line#12> }
+<Line#13> 
+
+Relevant Logging Patterns:
+Example 1:
+File: hcommon__createRawDecoderWithFallback-193__.json
+Code:
+<Line#1>{
+<Line#2>  String[] coders=getRawCoderNames(conf,codecName);
+<Line#3>  for (  String rawCoderName : coders) {
+<Line#4>    try {
+<Line#5>      if (rawCoderName != null) {
+<Line#6>        RawErasureCoderFactory fact=createRawCoderFactory(rawCoderName,codecName);
+<Line#7>        return fact.createDecoder(coderOptions);
+<Line#8>      }
+<Line#9>    }
+<Line#10> catch (    LinkageError|Exception e) {
+<Line#11>      if (LOG.isDebugEnabled()) {
+<Line#12>        LOG.debug("Failed to create raw erasure decoder " + rawCoderName + ", fallback to next codec if possible",e);
+<Line#13>      }
+<Line#14>    }
+<Line#15>  }
+<Line#16>  throw new IllegalArgumentException("Fail to create raw erasure " + "decoder with given codec: " + codecName);
+<Line#17>}
+Log: <Line#12>:# LOG.debug("Failed to create raw erasure decoder " + rawCoderName + ", fallback to next codec if possible",e):#
+
+Example 2:
+File: hcommon__logUserInfo-1920__.json
+Code:
+<Line#1>{
+<Line#2>  if (log.isDebugEnabled()) {
+<Line#3>    log.debug(caption + " UGI: " + ugi);
+<Line#4>    for (    Token<?> token : ugi.getTokens()) {
+<Line#5>      log.debug("+token:" + token);
+<Line#6>    }
+<Line#7>  }
+<Line#8>}
+Log: <Line#3>:# log.debug(caption + " UGI: " + ugi):#
+
+Example 3:
+File: hcommon__logUserInfo-1920__.json
+Code:
+<Line#1>{
+<Line#2>  if (log.isDebugEnabled()) {
+<Line#3>    log.debug(caption + " UGI: " + ugi);
+<Line#4>    for (    Token<?> token : ugi.getTokens()) {
+<Line#5>      log.debug("+token:" + token);
+<Line#6>    }
+<Line#7>  }
+<Line#8>}
+Log: <Line#5>:# log.debug("+token:" + token):#
+
+Example 4:
+File: hcommon__runParallel-375__.json
+Code:
+<Line#1>{
+<Line#2>  final Queue<I> succeeded=new ConcurrentLinkedQueue<>();
+<Line#3>  final Queue<Exception> exceptions=new ConcurrentLinkedQueue<>();
+<Line#4>  final AtomicBoolean taskFailed=new AtomicBoolean(false);
+<Line#5>  final AtomicBoolean abortFailed=new AtomicBoolean(false);
+<Line#6>  final AtomicBoolean revertFailed=new AtomicBoolean(false);
+<Line#7>  List<Future<?>> futures=new ArrayList<>();
+<Line#8>  ioStatisticsContext=IOStatisticsContext.getCurrentIOStatisticsContext();
+<Line#9>  IOException iteratorIOE=null;
+<Line#10>  final RemoteIterator<I> iterator=this.items;
+<Line#11>  try {
+<Line#12>    while (iterator.hasNext()) {
+<Line#13>      final I item=iterator.next();
+<Line#14>      futures.add(service.submit(() -> {
+<Line#15>        setStatisticsContext();
+<Line#16>        try {
+<Line#17>          if (!(stopOnFailure && taskFailed.get())) {
+<Line#18>            boolean threw=true;
+<Line#19>            try {
+<Line#20>              LOG.debug("Executing task");
+<Line#21>              task.run(item);
+<Line#22>              succeeded.add(item);
+<Line#23>              LOG.debug("Task succeeded");
+<Line#24>              threw=false;
+<Line#25>            }
+<Line#26> catch (            Exception e) {
+<Line#27>              taskFailed.set(true);
+<Line#28>              exceptions.add(e);
+<Line#29>              LOG.info("Task failed {}",e.toString());
+<Line#30>              LOG.debug("Task failed",e);
+<Line#31>              if (onFailure != null) {
+<Line#32>                try {
+<Line#33>                  onFailure.run(item,e);
+<Line#34>                }
+<Line#35> catch (                Exception failException) {
+<Line#36>                  LOG.warn("Failed to clean up on failure",e);
+<Line#37>                }
+<Line#38>              }
+<Line#39>            }
+<Line#40> finally {
+<Line#41>              if (threw) {
+<Line#42>                taskFailed.set(true);
+<Line#43>              }
+<Line#44>            }
+<Line#45>          }
+<Line#46> else           if (abortTask != null) {
+<Line#47>            if (stopAbortsOnFailure && abortFailed.get()) {
+<Line#48>              return;
+<Line#49>            }
+<Line#50>            boolean failed=true;
+<Line#51>            try {
+<Line#52>              LOG.info("Aborting task");
+<Line#53>              abortTask.run(item);
+<Line#54>              failed=false;
+<Line#55>            }
+<Line#56> catch (            Exception e) {
+<Line#57>              LOG.error("Failed to abort task",e);
+<Line#58>            }
+<Line#59> finally {
+<Line#60>              if (failed) {
+<Line#61>                abortFailed.set(true);
+<Line#62>              }
+<Line#63>            }
+<Line#64>          }
+<Line#65>        }
+<Line#66>  finally {
+<Line#67>          resetStatisticsContext();
+<Line#68>        }
+<Line#69>      }
+<Line#70>));
+<Line#71>    }
+<Line#72>  }
+<Line#73> catch (  IOException e) {
+<Line#74>    LOG.debug("IOException when iterating through {}",iterator,e);
+<Line#75>    iteratorIOE=e;
+<Line#76>    taskFailed.set(true);
+<Line#77>  }
+<Line#78>  waitFor(futures,sleepInterval);
+<Line#79>  int futureCount=futures.size();
+<Line#80>  futures.clear();
+<Line#81>  if (taskFailed.get() && revertTask != null) {
+<Line#82>    LOG.info("Reverting all {} succeeded tasks from {} futures",succeeded.size(),futureCount);
+<Line#83>    for (    final I item : succeeded) {
+<Line#84>      futures.add(service.submit(() -> {
+<Line#85>        if (stopRevertsOnFailure && revertFailed.get()) {
+<Line#86>          return;
+<Line#87>        }
+<Line#88>        boolean failed=true;
+<Line#89>        setStatisticsContext();
+<Line#90>        try {
+<Line#91>          revertTask.run(item);
+<Line#92>          failed=false;
+<Line#93>        }
+<Line#94> catch (        Exception e) {
+<Line#95>          LOG.error("Failed to revert task",e);
+<Line#96>        }
+<Line#97> finally {
+<Line#98>          if (failed) {
+<Line#99>            revertFailed.set(true);
+<Line#100>          }
+<Line#101>          resetStatisticsContext();
+<Line#102>        }
+<Line#103>      }
+<Line#104>));
+<Line#105>    }
+<Line#106>    waitFor(futures,sleepInterval);
+<Line#107>  }
+<Line#108>  if (!suppressExceptions && !exceptions.isEmpty()) {
+<Line#109>    TaskPool.<E>throwOne(exceptions);
+<Line#110>  }
+<Line#111>  if (iteratorIOE != null) {
+<Line#112>    throw iteratorIOE;
+<Line#113>  }
+<Line#114>  return !taskFailed.get();
+<Line#115>}
+Log: <Line#20>:# LOG.debug("Executing task"):#
+
+Example 5:
+File: hcommon__runParallel-375__.json
+Code:
+<Line#1>{
+<Line#2>  final Queue<I> succeeded=new ConcurrentLinkedQueue<>();
+<Line#3>  final Queue<Exception> exceptions=new ConcurrentLinkedQueue<>();
+<Line#4>  final AtomicBoolean taskFailed=new AtomicBoolean(false);
+<Line#5>  final AtomicBoolean abortFailed=new AtomicBoolean(false);
+<Line#6>  final AtomicBoolean revertFailed=new AtomicBoolean(false);
+<Line#7>  List<Future<?>> futures=new ArrayList<>();
+<Line#8>  ioStatisticsContext=IOStatisticsContext.getCurrentIOStatisticsContext();
+<Line#9>  IOException iteratorIOE=null;
+<Line#10>  final RemoteIterator<I> iterator=this.items;
+<Line#11>  try {
+<Line#12>    while (iterator.hasNext()) {
+<Line#13>      final I item=iterator.next();
+<Line#14>      futures.add(service.submit(() -> {
+<Line#15>        setStatisticsContext();
+<Line#16>        try {
+<Line#17>          if (!(stopOnFailure && taskFailed.get())) {
+<Line#18>            boolean threw=true;
+<Line#19>            try {
+<Line#20>              LOG.debug("Executing task");
+<Line#21>              task.run(item);
+<Line#22>              succeeded.add(item);
+<Line#23>              LOG.debug("Task succeeded");
+<Line#24>              threw=false;
+<Line#25>            }
+<Line#26> catch (            Exception e) {
+<Line#27>              taskFailed.set(true);
+<Line#28>              exceptions.add(e);
+<Line#29>              LOG.info("Task failed {}",e.toString());
+<Line#30>              LOG.debug("Task failed",e);
+<Line#31>              if (onFailure != null) {
+<Line#32>                try {
+<Line#33>                  onFailure.run(item,e);
+<Line#34>                }
+<Line#35> catch (                Exception failException) {
+<Line#36>                  LOG.warn("Failed to clean up on failure",e);
+<Line#37>                }
+<Line#38>              }
+<Line#39>            }
+<Line#40> finally {
+<Line#41>              if (threw) {
+<Line#42>                taskFailed.set(true);
+<Line#43>              }
+<Line#44>            }
+<Line#45>          }
+<Line#46> else           if (abortTask != null) {
+<Line#47>            if (stopAbortsOnFailure && abortFailed.get()) {
+<Line#48>              return;
+<Line#49>            }
+<Line#50>            boolean failed=true;
+<Line#51>            try {
+<Line#52>              LOG.info("Aborting task");
+<Line#53>              abortTask.run(item);
+<Line#54>              failed=false;
+<Line#55>            }
+<Line#56> catch (            Exception e) {
+<Line#57>              LOG.error("Failed to abort task",e);
+<Line#58>            }
+<Line#59> finally {
+<Line#60>              if (failed) {
+<Line#61>                abortFailed.set(true);
+<Line#62>              }
+<Line#63>            }
+<Line#64>          }
+<Line#65>        }
+<Line#66>  finally {
+<Line#67>          resetStatisticsContext();
+<Line#68>        }
+<Line#69>      }
+<Line#70>));
+<Line#71>    }
+<Line#72>  }
+<Line#73> catch (  IOException e) {
+<Line#74>    LOG.debug("IOException when iterating through {}",iterator,e);
+<Line#75>    iteratorIOE=e;
+<Line#76>    taskFailed.set(true);
+<Line#77>  }
+<Line#78>  waitFor(futures,sleepInterval);
+<Line#79>  int futureCount=futures.size();
+<Line#80>  futures.clear();
+<Line#81>  if (taskFailed.get() && revertTask != null) {
+<Line#82>    LOG.info("Reverting all {} succeeded tasks from {} futures",succeeded.size(),futureCount);
+<Line#83>    for (    final I item : succeeded) {
+<Line#84>      futures.add(service.submit(() -> {
+<Line#85>        if (stopRevertsOnFailure && revertFailed.get()) {
+<Line#86>          return;
+<Line#87>        }
+<Line#88>        boolean failed=true;
+<Line#89>        setStatisticsContext();
+<Line#90>        try {
+<Line#91>          revertTask.run(item);
+<Line#92>          failed=false;
+<Line#93>        }
+<Line#94> catch (        Exception e) {
+<Line#95>          LOG.error("Failed to revert task",e);
+<Line#96>        }
+<Line#97> finally {
+<Line#98>          if (failed) {
+<Line#99>            revertFailed.set(true);
+<Line#100>          }
+<Line#101>          resetStatisticsContext();
+<Line#102>        }
+<Line#103>      }
+<Line#104>));
+<Line#105>    }
+<Line#106>    waitFor(futures,sleepInterval);
+<Line#107>  }
+<Line#108>  if (!suppressExceptions && !exceptions.isEmpty()) {
+<Line#109>    TaskPool.<E>throwOne(exceptions);
+<Line#110>  }
+<Line#111>  if (iteratorIOE != null) {
+<Line#112>    throw iteratorIOE;
+<Line#113>  }
+<Line#114>  return !taskFailed.get();
+<Line#115>}
+Log: <Line#23>:# LOG.debug("Task succeeded"):#

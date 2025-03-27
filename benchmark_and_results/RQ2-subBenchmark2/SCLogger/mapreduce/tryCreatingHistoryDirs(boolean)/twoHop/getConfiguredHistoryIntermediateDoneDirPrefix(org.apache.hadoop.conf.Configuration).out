@@ -1,0 +1,12 @@
+/** 
+ * Gets the configured directory prefix for intermediate done history files.
+ * @param conf
+ * @return A string representation of the prefix.
+ */
+public static String getConfiguredHistoryIntermediateDoneDirPrefix(Configuration conf){
+  String doneDirPrefix=conf.get(JHAdminConfig.MR_HISTORY_INTERMEDIATE_DONE_DIR);
+  if (doneDirPrefix == null) {
+    doneDirPrefix=conf.get(MRJobConfig.MR_AM_STAGING_DIR,MRJobConfig.DEFAULT_MR_AM_STAGING_DIR) + "/history/done_intermediate";
+  }
+  return ensurePathInDefaultFileSystem(doneDirPrefix,conf);
+}

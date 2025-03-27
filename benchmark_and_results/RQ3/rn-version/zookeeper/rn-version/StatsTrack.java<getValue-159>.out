@@ -1,0 +1,44 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	StatsTrack.java	methodSinagture:	org.apache.zookeeper.StatsTrack.getValue(Ljava/lang/String;)J	methodLines:	159:161
+blockLines:	161:-1
+paras:	null
+TaintedStat:	NORMAL getValue:conditional branch(ne, to iindex=11) 7,8 Node: < Application, Lorg/apache/zookeeper/StatsTrack, getValue(Ljava/lang/String;)J > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/StatsTrack, getValue(Ljava/lang/String;)J > Context: Everywhere[3]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,2 @5 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/StatsTrack, getValue(Ljava/lang/String;)J > Context: Everywhere[3]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,2 @5 exception:5
+NORMAL getValue:7 = checkcast <Application,Ljava/lang/Long>6 <Application,Ljava/lang/Long> Node: < Application, Lorg/apache/zookeeper/StatsTrack, getValue(Ljava/lang/String;)J > Context: Everywhere
+NORMAL getValue:conditional branch(ne, to iindex=11) 7,8 Node: < Application, Lorg/apache/zookeeper/StatsTrack, getValue(Ljava/lang/String;)J > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private long getValue(String key) {
+        Long val = this.stats.get(key);
+        return val == null ? -1 : val.longValue();
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/StatsTrack, getCount()J > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.zookeeper.StatsTrack.getCount()J, BB[SSA:-1..-2]0 - org.apache.zookeeper.StatsTrack.getCount()J, BB[SSA:3..3]2 - org.apache.zookeeper.StatsTrack.getCount()J, BB[SSA:-1..-2]3 - org.apache.zookeeper.StatsTrack.getCount()J], numberOfBasicBlocks=4, firstLineNumber=84, lastLineNumber=85, firstMethodNumber=84, lastMethodNumber=85, isFirstLineValid=false, methodSrcCode=
+    public long getCount() {
+        return getValue(countStr);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/StatsTrack, getBytes()J > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.zookeeper.StatsTrack.getBytes()J, BB[SSA:-1..-2]0 - org.apache.zookeeper.StatsTrack.getBytes()J, BB[SSA:3..3]2 - org.apache.zookeeper.StatsTrack.getBytes()J, BB[SSA:-1..-2]3 - org.apache.zookeeper.StatsTrack.getBytes()J], numberOfBasicBlocks=4, firstLineNumber=121, lastLineNumber=122, firstMethodNumber=121, lastMethodNumber=122, isFirstLineValid=false, methodSrcCode=
+    public long getBytes() {
+        return getValue(byteStr);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/StatsTrack, getCountHardLimit()J > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.zookeeper.StatsTrack.getCountHardLimit()J, BB[SSA:-1..-2]0 - org.apache.zookeeper.StatsTrack.getCountHardLimit()J, BB[SSA:3..3]2 - org.apache.zookeeper.StatsTrack.getCountHardLimit()J, BB[SSA:-1..-2]3 - org.apache.zookeeper.StatsTrack.getCountHardLimit()J], numberOfBasicBlocks=4, firstLineNumber=103, lastLineNumber=104, firstMethodNumber=103, lastMethodNumber=104, isFirstLineValid=false, methodSrcCode=
+    public long getCountHardLimit() {
+        return getValue(countHardLimitStr);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/StatsTrack, getByteHardLimit()J > Context: Everywhere, blocks=[BB[SSA:0..2]1 - org.apache.zookeeper.StatsTrack.getByteHardLimit()J, BB[SSA:-1..-2]0 - org.apache.zookeeper.StatsTrack.getByteHardLimit()J, BB[SSA:3..3]2 - org.apache.zookeeper.StatsTrack.getByteHardLimit()J, BB[SSA:-1..-2]3 - org.apache.zookeeper.StatsTrack.getByteHardLimit()J], numberOfBasicBlocks=4, firstLineNumber=140, lastLineNumber=141, firstMethodNumber=140, lastMethodNumber=141, isFirstLineValid=false, methodSrcCode=
+    public long getByteHardLimit() {
+        return getValue(byteHardLimitStr);
+    }
+}

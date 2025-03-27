@@ -1,0 +1,20 @@
+/** 
+ * Gets the configured directory permissions for the user directories in the directory of the intermediate done history files. The user and the group both need full permissions, this is enforced by this method.
+ * @param conf The configuration object
+ * @return FsPermission of the user directories
+ */
+public static FsPermission getConfiguredHistoryIntermediateUserDoneDirPermissions(Configuration conf) {
+String userDoneDirPermissions = conf.get(
+JHAdminConfig.MR_HISTORY_INTERMEDIATE_USER_DONE_DIR_PERMISSIONS);
+if (userDoneDirPermissions == null) {
+return new FsPermission(
+JHAdminConfig.DEFAULT_MR_HISTORY_INTERMEDIATE_USER_DONE_DIR_PERMISSIONS);
+}
+FsPermission permission = new FsPermission(userDoneDirPermissions);
+if (permission.getUserAction() != FsAction.ALL ||
+permission.getGroupAction() != FsAction.ALL) {
+permission = new FsPermission(FsAction.ALL, FsAction.ALL,
+permission.getOtherAction(), permission.getStickyBit());
+}
+return permission;
+}

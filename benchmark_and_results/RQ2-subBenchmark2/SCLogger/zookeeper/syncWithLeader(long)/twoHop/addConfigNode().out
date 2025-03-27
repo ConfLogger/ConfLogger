@@ -1,0 +1,5 @@
+/** 
+ * create a /zookeeper/config node for maintaining the configuration (membership and quorum system) info for zookeeper
+ */
+public void addConfigNode(){
+}

@@ -1,0 +1,31 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ConfigUtils.java	methodSinagture:	org.apache.storm.utils.ConfigUtils.absoluteStormBlobStoreDir(Ljava/util/Map;)Ljava/lang/String;	methodLines:	254:263
+blockLines:	256:-1
+paras:	null
+TaintedStat:	NORMAL absoluteStormBlobStoreDir:conditional branch(ne, to iindex=11) 6,7 Node: < Application, Lorg/apache/storm/utils/ConfigUtils, absoluteStormBlobStoreDir(Ljava/util/Map;)Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ConfigUtils, absoluteStormBlobStoreDir(Ljava/util/Map;)Ljava/lang/String; > Context: Everywhere[2]5 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,3 @3 exception:4
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ConfigUtils, absoluteStormBlobStoreDir(Ljava/util/Map;)Ljava/lang/String; > Context: Everywhere[2]5 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,3 @3 exception:4
+NORMAL absoluteStormBlobStoreDir:6 = checkcast <Application,Ljava/lang/String>5 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/utils/ConfigUtils, absoluteStormBlobStoreDir(Ljava/util/Map;)Ljava/lang/String; > Context: Everywhere
+NORMAL absoluteStormBlobStoreDir:conditional branch(ne, to iindex=11) 6,7 Node: < Application, Lorg/apache/storm/utils/ConfigUtils, absoluteStormBlobStoreDir(Ljava/util/Map;)Ljava/lang/String; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static String absoluteStormBlobStoreDir(Map<String, Object> conf) {
+        String blobStoreDir = (String) conf.get(Config.BLOBSTORE_DIR);
+        if (blobStoreDir == null) {
+            return ConfigUtils.absoluteStormLocalDir(conf);
+        } else {
+            if (new File(blobStoreDir).isAbsolute()) {
+                return blobStoreDir;
+            } else {
+                String stormHome = System.getProperty(STORM_HOME);
+                return (stormHome + FILE_SEPARATOR + blobStoreDir);
+            }
+
+
+====================ctx:=======================

@@ -1,0 +1,39 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	WorkerSlot.java	methodSinagture:	org.apache.storm.scheduler.WorkerSlot.<init>(Ljava/lang/String;Ljava/lang/Number;)V	methodLines:	21:31
+blockLines:	23:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(ne, to iindex=10) 3,6 Node: < Application, Lorg/apache/storm/scheduler/WorkerSlot, <init>(Ljava/lang/String;Ljava/lang/Number;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, getWorkerResourcesForTopology(Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere[5]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,2 @11 exception:8
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, getWorkerResourcesForTopology(Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere[5]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,2 @11 exception:8
+NORMAL getWorkerResourcesForTopology:10 = checkcast <Application,Ljava/util/Map>9 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, getWorkerResourcesForTopology(Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere
+NORMAL getWorkerResourcesForTopology:conditional branch(ne, to iindex=74) 10,11 Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, getWorkerResourcesForTopology(Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere
+NORMAL getWorkerResourcesForTopology:conditional branch(eq, to iindex=74) 16,11 Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, getWorkerResourcesForTopology(Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere
+NORMAL getWorkerResourcesForTopology:conditional branch(eq, to iindex=74) 18,19 Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, getWorkerResourcesForTopology(Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere
+NORMAL getWorkerResourcesForTopology:conditional branch(eq, to iindex=65) 27,19 Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, getWorkerResourcesForTopology(Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere
+NORMAL getWorkerResourcesForTopology:41 = checkcast <Application,Ljava/lang/Number>40 <Application,Ljava/lang/Number> Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, getWorkerResourcesForTopology(Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, getWorkerResourcesForTopology(Ljava/lang/String;)Ljava/util/Map; > Context: Everywhere[55]invokespecial < Application, Lorg/apache/storm/scheduler/WorkerSlot, <init>(Ljava/lang/String;Ljava/lang/Number;)V > 34,36,41 @133 exception:42 v41
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/scheduler/WorkerSlot, <init>(Ljava/lang/String;Ljava/lang/Number;)V > Context: Everywhere v3
+NORMAL <init>:conditional branch(ne, to iindex=10) 3,6 Node: < Application, Lorg/apache/storm/scheduler/WorkerSlot, <init>(Ljava/lang/String;Ljava/lang/Number;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+
+    public WorkerSlot(String nodeId, Number port) {
+        if (port == null) {
+            throw new NullPointerException("port cannot be null");
+        }
+        if (nodeId == null) {
+            throw new NullPointerException("node id cannot be null");
+        }
+        this.nodeId = nodeId;
+        this.port = port.intValue();
+    }
+
+
+
+====================ctx:=======================

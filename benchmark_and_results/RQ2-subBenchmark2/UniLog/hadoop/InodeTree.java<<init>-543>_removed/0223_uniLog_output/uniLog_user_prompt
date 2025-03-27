@@ -1,0 +1,498 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>throws UnsupportedFileSystemException, URISyntaxException,
+<Line#1>FileAlreadyExistsException, IOException {
+<Line#2>String mountTableName = viewName;
+<Line#3>if (mountTableName == null) {
+<Line#4>mountTableName = ConfigUtil.getDefaultMountTableName(config);
+<Line#5>}
+<Line#6>homedirPrefix = ConfigUtil.getHomeDirValue(config, mountTableName);
+<Line#7>
+<Line#8>boolean isMergeSlashConfigured = false;
+<Line#9>String mergeSlashTarget = null;
+<Line#10>List<LinkEntry> linkEntries = new LinkedList<>();
+<Line#11>
+<Line#12>final String mountTablePrefix =
+<Line#13>Constants.CONFIG_VIEWFS_PREFIX + "." + mountTableName + ".";
+<Line#14>final String linkPrefix = Constants.CONFIG_VIEWFS_LINK + ".";
+<Line#15>final String linkFallbackPrefix = Constants.CONFIG_VIEWFS_LINK_FALLBACK;
+<Line#16>final String linkMergePrefix = Constants.CONFIG_VIEWFS_LINK_MERGE + ".";
+<Line#17>final String linkMergeSlashPrefix =
+<Line#18>Constants.CONFIG_VIEWFS_LINK_MERGE_SLASH;
+<Line#19>boolean gotMountTableEntry = false;
+<Line#20>final UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
+<Line#21>for (Entry<String, String> si : config) {
+<Line#22>final String key = si.getKey();
+<Line#23>if (!key.startsWith(mountTablePrefix)) {
+<Line#24>continue;
+<Line#25>}
+<Line#26>
+<Line#27>gotMountTableEntry = true;
+<Line#28>LinkType linkType;
+<Line#29>String src = key.substring(mountTablePrefix.length());
+<Line#30>String settings = null;
+<Line#31>if (src.startsWith(linkPrefix)) {
+<Line#32>src = src.substring(linkPrefix.length());
+<Line#33>if (src.equals(SlashPath.toString())) {
+<Line#34>throw new UnsupportedFileSystemException("Unexpected mount table "
+<Line#35>+ "link entry '" + key + "'. Use "
+<Line#36>+ Constants.CONFIG_VIEWFS_LINK_MERGE_SLASH  + " instead!");
+<Line#37>}
+<Line#38>linkType = LinkType.SINGLE;
+<Line#39>} else if (src.startsWith(linkFallbackPrefix)) {
+<Line#40>checkMntEntryKeyEqualsTarget(src, linkFallbackPrefix);
+<Line#41>linkType = LinkType.SINGLE_FALLBACK;
+<Line#42>} else if (src.startsWith(linkMergePrefix)) { // A merge link
+<Line#43>src = src.substring(linkMergePrefix.length());
+<Line#44>linkType = LinkType.MERGE;
+<Line#45>} else if (src.startsWith(linkMergeSlashPrefix)) {
+<Line#46>// This is a LinkMergeSlash entry. This entry should
+<Line#47>// not have any additional source path.
+<Line#48>checkMntEntryKeyEqualsTarget(src, linkMergeSlashPrefix);
+<Line#49>linkType = LinkType.MERGE_SLASH;
+<Line#50>} else if (src.startsWith(Constants.CONFIG_VIEWFS_LINK_NFLY)) {
+<Line#51>// prefix.settings.src
+<Line#52>src = src.substring(Constants.CONFIG_VIEWFS_LINK_NFLY.length() + 1);
+<Line#53>// settings.src
+<Line#54>settings = src.substring(0, src.indexOf('.'));
+<Line#55>// settings
+<Line#56>
+<Line#57>// settings.src
+<Line#58>src = src.substring(settings.length() + 1);
+<Line#59>// src
+<Line#60>
+<Line#61>linkType = LinkType.NFLY;
+<Line#62>} else if (src.startsWith(Constants.CONFIG_VIEWFS_LINK_REGEX)) {
+<Line#63>linkEntries.add(
+<Line#64>buildLinkRegexEntry(config, ugi, src, si.getValue()));
+<Line#65>continue;
+<Line#66>} else if (src.startsWith(Constants.CONFIG_VIEWFS_HOMEDIR)) {
+<Line#67>// ignore - we set home dir from config
+<Line#68>continue;
+<Line#69>} else {
+<Line#70>throw new IOException("ViewFs: Cannot initialize: Invalid entry in " +
+<Line#71>"Mount table in config: " + src);
+<Line#72>}
+<Line#73>
+<Line#74>final String target = si.getValue();
+<Line#75>if (linkType != LinkType.MERGE_SLASH) {
+<Line#76>if (isMergeSlashConfigured) {
+<Line#77>throw new IOException("Mount table " + mountTableName
+<Line#78>+ " has already been configured with a merge slash link. "
+<Line#79>+ "A regular link should not be added.");
+<Line#80>}
+<Line#81>linkEntries.add(
+<Line#82>new LinkEntry(src, target, linkType, settings, ugi, config));
+<Line#83>} else {
+<Line#84>if (!linkEntries.isEmpty()) {
+<Line#85>throw new IOException("Mount table " + mountTableName
+<Line#86>+ " has already been configured with regular links. "
+<Line#87>+ "A merge slash link should not be configured.");
+<Line#88>}
+<Line#89>if (isMergeSlashConfigured) {
+<Line#90>throw new IOException("Mount table " + mountTableName
+<Line#91>+ " has already been configured with a merge slash link. "
+<Line#92>+ "Multiple merge slash links for the same mount table is "
+<Line#93>+ "not allowed.");
+<Line#94>}
+<Line#95>isMergeSlashConfigured = true;
+<Line#96>mergeSlashTarget = target;
+<Line#97>}
+<Line#98>} // End of for loop.
+<Line#99>
+<Line#100>if (isMergeSlashConfigured) {
+<Line#101>Preconditions.checkNotNull(mergeSlashTarget);
+<Line#102>root = new INodeLink<T>(mountTableName, ugi,
+<Line#103>initAndGetTargetFs(), mergeSlashTarget);
+<Line#104>mountPoints.add(new MountPoint<T>("/", (INodeLink<T>) root));
+<Line#105>rootFallbackLink = null;
+<Line#106>} else {
+<Line#107>root = new INodeDir<T>("/", UserGroupInformation.getCurrentUser());
+<Line#108>getRootDir().setInternalDirFs(getTargetFileSystem(getRootDir()));
+<Line#109>getRootDir().setRoot(true);
+<Line#110>INodeLink<T> fallbackLink = null;
+<Line#111>for (LinkEntry le : linkEntries) {
+<Line#112>switch (le.getLinkType()) {
+<Line#113>case SINGLE_FALLBACK:
+<Line#114>if (fallbackLink != null) {
+<Line#115>throw new IOException("Mount table " + mountTableName
+<Line#116>+ " has already been configured with a link fallback. "
+<Line#117>+ "Multiple fallback links for the same mount table is "
+<Line#118>+ "not allowed.");
+<Line#119>}
+<Line#120>fallbackLink = new INodeLink<T>(mountTableName, ugi,
+<Line#121>initAndGetTargetFs(), le.getTarget());
+<Line#122>continue;
+<Line#123>case REGEX:
+<Line#124>addRegexMountEntry(le);
+<Line#125>continue;
+<Line#126>default:
+<Line#127>createLink(le.getSrc(), le.getTarget(), le.getLinkType(),
+<Line#128>le.getSettings(), le.getUgi(), le.getConfig());
+<Line#129>}
+<Line#130>}
+<Line#131>rootFallbackLink = fallbackLink;
+<Line#132>getRootDir().addFallbackLink(rootFallbackLink);
+<Line#133>}
+<Line#134>
+<Line#135>if (!gotMountTableEntry) {
+<Line#136>if (!initingUriAsFallbackOnNoMounts) {
+<Line#137>throw new IOException(new StringBuilder(
+<Line#138>"ViewFs: Cannot initialize: Empty Mount table in config for ")
+<Line#139>.append(theUri.getScheme()).append("://").append(mountTableName)
+<Line#140>.append("/").toString());
+<Line#141>}
+<Line#142>rootFallbackLink = new INodeLink<T>(mountTableName, ugi,
+<Line#143>initAndGetTargetFs(), theUri.toString());
+<Line#144>getRootDir().addFallbackLink(rootFallbackLink);
+<Line#145>}
+<Line#146>}
+
+Example 1:
+<Line#1>{
+<Line#2>  int numSegments=sortedSegmentSizes.size();
+<Line#3>  int origFactor=factor;
+<Line#4>  int passNo=1;
+<Line#5>  LocalDirAllocator lDirAlloc=new LocalDirAllocator("io.seqfile.local.dir");
+<Line#6>  do {
+<Line#7>    factor=getPassFactor(passNo,numSegments);
+<Line#8>    List<SegmentDescriptor> segmentsToMerge=new ArrayList<SegmentDescriptor>();
+<Line#9>    int segmentsConsidered=0;
+<Line#10>    int numSegmentsToConsider=factor;
+<Line#11>    while (true) {
+<Line#12>      SegmentDescriptor[] mStream=getSegmentDescriptors(numSegmentsToConsider);
+<Line#13>      for (int i=0; i < mStream.length; i++) {
+<Line#14>        if (mStream[i].nextRawKey()) {
+<Line#15>          segmentsToMerge.add(mStream[i]);
+<Line#16>          segmentsConsidered++;
+<Line#17>          updateProgress(mStream[i].in.getPosition());
+<Line#18>        }
+<Line#19> else {
+<Line#20>          mStream[i].cleanup();
+<Line#21>          numSegments--;
+<Line#22>        }
+<Line#23>      }
+<Line#24>      if (segmentsConsidered == factor || sortedSegmentSizes.size() == 0) {
+<Line#25>        break;
+<Line#26>      }
+<Line#27>      numSegmentsToConsider=factor - segmentsConsidered;
+<Line#28>    }
+<Line#29>    initialize(segmentsToMerge.size());
+<Line#30>    clear();
+<Line#31>    for (int i=0; i < segmentsToMerge.size(); i++) {
+<Line#32>      put(segmentsToMerge.get(i));
+<Line#33>    }
+<Line#34>    if (numSegments <= factor) {
+<Line#35>      long totalBytes=0;
+<Line#36>      for (int i=0; i < segmentsToMerge.size(); i++) {
+<Line#37>        totalBytes+=segmentsToMerge.get(i).segmentLength;
+<Line#38>      }
+<Line#39>      if (totalBytes != 0)       progPerByte=1.0f / (float)totalBytes;
+<Line#40>      factor=origFactor;
+<Line#41>      return this;
+<Line#42>    }
+<Line#43> else {
+<Line#44>      long approxOutputSize=0;
+<Line#45>      for (      SegmentDescriptor s : segmentsToMerge) {
+<Line#46>        approxOutputSize+=s.segmentLength + ChecksumFileSystem.getApproxChkSumLength(s.segmentLength);
+<Line#47>      }
+<Line#48>      Path tmpFilename=new Path(tmpDir,"intermediate").suffix("." + passNo);
+<Line#49>      Path outputFile=lDirAlloc.getLocalPathForWrite(tmpFilename.toString(),approxOutputSize,conf);
+<Line#50>      if (LOG.isDebugEnabled()) {
+<Line#51>        LOG.debug("writing intermediate results to " + outputFile);
+<Line#52>      }
+<Line#53>      Writer writer=cloneFileAttributes(fs.makeQualified(segmentsToMerge.get(0).segmentPathName),fs.makeQualified(outputFile),null);
+<Line#54>      writer.sync=null;
+<Line#55>      writeFile(this,writer);
+<Line#56>      writer.close();
+<Line#57>      this.close();
+<Line#58>      SegmentDescriptor tempSegment=new SegmentDescriptor(0,fs.getFileStatus(outputFile).getLen(),outputFile);
+<Line#59>      sortedSegmentSizes.put(tempSegment,null);
+<Line#60>      numSegments=sortedSegmentSizes.size();
+<Line#61>      passNo++;
+<Line#62>    }
+<Line#63>    factor=origFactor;
+<Line#64>  }
+<Line#65> while (true);
+<Line#66>}
+Label: <Line#51> LOG.debug("writing intermediate results to " + outputFile)
+
+Example 2:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    if (socket != null || shouldCloseConnection.get()) {
+<Line#4>      setFallBackToSimpleAuth(fallbackToSimpleAuth);
+<Line#5>      return;
+<Line#6>    }
+<Line#7>    UserGroupInformation ticket=remoteId.getTicket();
+<Line#8>    if (ticket != null) {
+<Line#9>      final UserGroupInformation realUser=ticket.getRealUser();
+<Line#10>      if (realUser != null) {
+<Line#11>        ticket=realUser;
+<Line#12>      }
+<Line#13>    }
+<Line#14>    connectingThread.set(Thread.currentThread());
+<Line#15>    if (LOG.isDebugEnabled()) {
+<Line#16>      LOG.debug("Connecting to " + server);
+<Line#17>    }
+<Line#18>    Span span=Tracer.getCurrentSpan();
+<Line#19>    if (span != null) {
+<Line#20>      span.addTimelineAnnotation("IPC client connecting to " + server);
+<Line#21>    }
+<Line#22>    short numRetries=0;
+<Line#23>    Random rand=null;
+<Line#24>    while (true) {
+<Line#25>      setupConnection(ticket);
+<Line#26>      ipcStreams=new IpcStreams(socket,maxResponseLength);
+<Line#27>      writeConnectionHeader(ipcStreams);
+<Line#28>      if (authProtocol == AuthProtocol.SASL) {
+<Line#29>        try {
+<Line#30>          authMethod=ticket.doAs(new PrivilegedExceptionAction<AuthMethod>(){
+<Line#31>            @Override public AuthMethod run() throws IOException, InterruptedException {
+<Line#32>              return setupSaslConnection(ipcStreams);
+<Line#33>            }
+<Line#34>          }
+<Line#35>);
+<Line#36>        }
+<Line#37> catch (        IOException ex) {
+<Line#38>          if (saslRpcClient == null) {
+<Line#39>            throw ex;
+<Line#40>          }
+<Line#41>          authMethod=saslRpcClient.getAuthMethod();
+<Line#42>          if (rand == null) {
+<Line#43>            rand=new Random();
+<Line#44>          }
+<Line#45>          handleSaslConnectionFailure(numRetries++,maxRetriesOnSasl,ex,rand,ticket);
+<Line#46>          continue;
+<Line#47>        }
+<Line#48>        if (authMethod != AuthMethod.SIMPLE) {
+<Line#49>          ipcStreams.setSaslClient(saslRpcClient);
+<Line#50>          remoteId.saslQop=(String)saslRpcClient.getNegotiatedProperty(Sasl.QOP);
+<Line#51>          LOG.debug("Negotiated QOP is :" + remoteId.saslQop);
+<Line#52>        }
+<Line#53>        setFallBackToSimpleAuth(fallbackToSimpleAuth);
+<Line#54>      }
+<Line#55>      if (doPing) {
+<Line#56>        ipcStreams.setInputStream(new PingInputStream(ipcStreams.in));
+<Line#57>      }
+<Line#58>      writeConnectionContext(remoteId,authMethod);
+<Line#59>      touch();
+<Line#60>      span=Tracer.getCurrentSpan();
+<Line#61>      if (span != null) {
+<Line#62>        span.addTimelineAnnotation("IPC client connected to " + server);
+<Line#63>      }
+<Line#64>      start();
+<Line#65>      return;
+<Line#66>    }
+<Line#67>  }
+<Line#68> catch (  Throwable t) {
+<Line#69>    if (t instanceof IOException) {
+<Line#70>      markClosed((IOException)t);
+<Line#71>    }
+<Line#72> else {
+<Line#73>      markClosed(new IOException("Couldn't set up IO streams: " + t,t));
+<Line#74>    }
+<Line#75>    close();
+<Line#76>  }
+<Line#77> finally {
+<Line#78>    connectingThread.set(null);
+<Line#79>  }
+<Line#80>}
+Label: <Line#16> LOG.debug("Connecting to " + server)
+
+Example 3:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    if (socket != null || shouldCloseConnection.get()) {
+<Line#4>      setFallBackToSimpleAuth(fallbackToSimpleAuth);
+<Line#5>      return;
+<Line#6>    }
+<Line#7>    UserGroupInformation ticket=remoteId.getTicket();
+<Line#8>    if (ticket != null) {
+<Line#9>      final UserGroupInformation realUser=ticket.getRealUser();
+<Line#10>      if (realUser != null) {
+<Line#11>        ticket=realUser;
+<Line#12>      }
+<Line#13>    }
+<Line#14>    connectingThread.set(Thread.currentThread());
+<Line#15>    if (LOG.isDebugEnabled()) {
+<Line#16>      LOG.debug("Connecting to " + server);
+<Line#17>    }
+<Line#18>    Span span=Tracer.getCurrentSpan();
+<Line#19>    if (span != null) {
+<Line#20>      span.addTimelineAnnotation("IPC client connecting to " + server);
+<Line#21>    }
+<Line#22>    short numRetries=0;
+<Line#23>    Random rand=null;
+<Line#24>    while (true) {
+<Line#25>      setupConnection(ticket);
+<Line#26>      ipcStreams=new IpcStreams(socket,maxResponseLength);
+<Line#27>      writeConnectionHeader(ipcStreams);
+<Line#28>      if (authProtocol == AuthProtocol.SASL) {
+<Line#29>        try {
+<Line#30>          authMethod=ticket.doAs(new PrivilegedExceptionAction<AuthMethod>(){
+<Line#31>            @Override public AuthMethod run() throws IOException, InterruptedException {
+<Line#32>              return setupSaslConnection(ipcStreams);
+<Line#33>            }
+<Line#34>          }
+<Line#35>);
+<Line#36>        }
+<Line#37> catch (        IOException ex) {
+<Line#38>          if (saslRpcClient == null) {
+<Line#39>            throw ex;
+<Line#40>          }
+<Line#41>          authMethod=saslRpcClient.getAuthMethod();
+<Line#42>          if (rand == null) {
+<Line#43>            rand=new Random();
+<Line#44>          }
+<Line#45>          handleSaslConnectionFailure(numRetries++,maxRetriesOnSasl,ex,rand,ticket);
+<Line#46>          continue;
+<Line#47>        }
+<Line#48>        if (authMethod != AuthMethod.SIMPLE) {
+<Line#49>          ipcStreams.setSaslClient(saslRpcClient);
+<Line#50>          remoteId.saslQop=(String)saslRpcClient.getNegotiatedProperty(Sasl.QOP);
+<Line#51>          LOG.debug("Negotiated QOP is :" + remoteId.saslQop);
+<Line#52>        }
+<Line#53>        setFallBackToSimpleAuth(fallbackToSimpleAuth);
+<Line#54>      }
+<Line#55>      if (doPing) {
+<Line#56>        ipcStreams.setInputStream(new PingInputStream(ipcStreams.in));
+<Line#57>      }
+<Line#58>      writeConnectionContext(remoteId,authMethod);
+<Line#59>      touch();
+<Line#60>      span=Tracer.getCurrentSpan();
+<Line#61>      if (span != null) {
+<Line#62>        span.addTimelineAnnotation("IPC client connected to " + server);
+<Line#63>      }
+<Line#64>      start();
+<Line#65>      return;
+<Line#66>    }
+<Line#67>  }
+<Line#68> catch (  Throwable t) {
+<Line#69>    if (t instanceof IOException) {
+<Line#70>      markClosed((IOException)t);
+<Line#71>    }
+<Line#72> else {
+<Line#73>      markClosed(new IOException("Couldn't set up IO streams: " + t,t));
+<Line#74>    }
+<Line#75>    close();
+<Line#76>  }
+<Line#77> finally {
+<Line#78>    connectingThread.set(null);
+<Line#79>  }
+<Line#80>}
+Label: <Line#51> LOG.debug("Negotiated QOP is :" + remoteId.saslQop)
+
+Example 4:
+<Line#1>{
+<Line#2>  numDisksBytesRead=0L;
+<Line#3>  numDisksBytesWritten=0L;
+<Line#4>  BufferedReader in;
+<Line#5>  try {
+<Line#6>    in=new BufferedReader(new InputStreamReader(Files.newInputStream(Paths.get(procfsDisksFile)),Charset.forName("UTF-8")));
+<Line#7>  }
+<Line#8> catch (  IOException f) {
+<Line#9>    return;
+<Line#10>  }
+<Line#11>  Matcher mat;
+<Line#12>  try {
+<Line#13>    String str=in.readLine();
+<Line#14>    while (str != null) {
+<Line#15>      mat=PROCFS_DISKSFILE_FORMAT.matcher(str);
+<Line#16>      if (mat.find()) {
+<Line#17>        String diskName=mat.group(4);
+<Line#18>        assert diskName != null;
+<Line#19>        if (diskName.contains("loop") || diskName.contains("ram")) {
+<Line#20>          str=in.readLine();
+<Line#21>          continue;
+<Line#22>        }
+<Line#23>        Integer sectorSize;
+<Line#24>synchronized (perDiskSectorSize) {
+<Line#25>          sectorSize=perDiskSectorSize.get(diskName);
+<Line#26>          if (null == sectorSize) {
+<Line#27>            sectorSize=readDiskBlockInformation(diskName,512);
+<Line#28>            perDiskSectorSize.put(diskName,sectorSize);
+<Line#29>          }
+<Line#30>        }
+<Line#31>        String sectorsRead=mat.group(7);
+<Line#32>        String sectorsWritten=mat.group(11);
+<Line#33>        if (null == sectorsRead || null == sectorsWritten) {
+<Line#34>          return;
+<Line#35>        }
+<Line#36>        numDisksBytesRead+=Long.parseLong(sectorsRead) * sectorSize;
+<Line#37>        numDisksBytesWritten+=Long.parseLong(sectorsWritten) * sectorSize;
+<Line#38>      }
+<Line#39>      str=in.readLine();
+<Line#40>    }
+<Line#41>  }
+<Line#42> catch (  IOException e) {
+<Line#43>    LOG.warn("Error reading the stream " + procfsDisksFile,e);
+<Line#44>  }
+<Line#45> finally {
+<Line#46>    try {
+<Line#47>      in.close();
+<Line#48>    }
+<Line#49> catch (    IOException e) {
+<Line#50>      LOG.warn("Error closing the stream " + procfsDisksFile,e);
+<Line#51>    }
+<Line#52>  }
+<Line#53>}
+Label: <Line#43> LOG.warn("Error reading the stream " + procfsDisksFile,e)
+
+Example 5:
+<Line#1>{
+<Line#2>  numDisksBytesRead=0L;
+<Line#3>  numDisksBytesWritten=0L;
+<Line#4>  BufferedReader in;
+<Line#5>  try {
+<Line#6>    in=new BufferedReader(new InputStreamReader(Files.newInputStream(Paths.get(procfsDisksFile)),Charset.forName("UTF-8")));
+<Line#7>  }
+<Line#8> catch (  IOException f) {
+<Line#9>    return;
+<Line#10>  }
+<Line#11>  Matcher mat;
+<Line#12>  try {
+<Line#13>    String str=in.readLine();
+<Line#14>    while (str != null) {
+<Line#15>      mat=PROCFS_DISKSFILE_FORMAT.matcher(str);
+<Line#16>      if (mat.find()) {
+<Line#17>        String diskName=mat.group(4);
+<Line#18>        assert diskName != null;
+<Line#19>        if (diskName.contains("loop") || diskName.contains("ram")) {
+<Line#20>          str=in.readLine();
+<Line#21>          continue;
+<Line#22>        }
+<Line#23>        Integer sectorSize;
+<Line#24>synchronized (perDiskSectorSize) {
+<Line#25>          sectorSize=perDiskSectorSize.get(diskName);
+<Line#26>          if (null == sectorSize) {
+<Line#27>            sectorSize=readDiskBlockInformation(diskName,512);
+<Line#28>            perDiskSectorSize.put(diskName,sectorSize);
+<Line#29>          }
+<Line#30>        }
+<Line#31>        String sectorsRead=mat.group(7);
+<Line#32>        String sectorsWritten=mat.group(11);
+<Line#33>        if (null == sectorsRead || null == sectorsWritten) {
+<Line#34>          return;
+<Line#35>        }
+<Line#36>        numDisksBytesRead+=Long.parseLong(sectorsRead) * sectorSize;
+<Line#37>        numDisksBytesWritten+=Long.parseLong(sectorsWritten) * sectorSize;
+<Line#38>      }
+<Line#39>      str=in.readLine();
+<Line#40>    }
+<Line#41>  }
+<Line#42> catch (  IOException e) {
+<Line#43>    LOG.warn("Error reading the stream " + procfsDisksFile,e);
+<Line#44>  }
+<Line#45> finally {
+<Line#46>    try {
+<Line#47>      in.close();
+<Line#48>    }
+<Line#49> catch (    IOException e) {
+<Line#50>      LOG.warn("Error closing the stream " + procfsDisksFile,e);
+<Line#51>    }
+<Line#52>  }
+<Line#53>}
+Label: <Line#50> LOG.warn("Error closing the stream " + procfsDisksFile,e)
+

@@ -1,0 +1,10 @@
+/** 
+ * Set the units for the resource.
+ * @param rUnits units for the resource
+ */
+public void setUnits(String rUnits){
+  if (!UnitsConversionUtil.KNOWN_UNITS.contains(rUnits)) {
+    throw new IllegalArgumentException("Unknown unit '" + rUnits + "'. Known units are "+ UnitsConversionUtil.KNOWN_UNITS);
+  }
+  this.units=rUnits;
+}

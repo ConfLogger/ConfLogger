@@ -1,0 +1,82 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ConfigUtils.java	methodSinagture:	org.apache.zookeeper.server.util.ConfigUtils.getPropertyBackwardCompatibleWay(Ljava/lang/String;)Ljava/lang/String;	methodLines:	109:120
+blockLines:	111:-1
+paras:	null
+TaintedStat:	NORMAL getPropertyBackwardCompatibleWay:conditional branch(eq, to iindex=9) 4,5 Node: < Application, Lorg/apache/zookeeper/server/util/ConfigUtils, getPropertyBackwardCompatibleWay(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/util/ConfigUtils, getPropertyBackwardCompatibleWay(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere[1]4 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 1 @1 exception:3
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/util/ConfigUtils, getPropertyBackwardCompatibleWay(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere[1]4 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 1 @1 exception:3
+NORMAL getPropertyBackwardCompatibleWay:conditional branch(eq, to iindex=9) 4,5 Node: < Application, Lorg/apache/zookeeper/server/util/ConfigUtils, getPropertyBackwardCompatibleWay(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ConfigUtils.java	methodSinagture:	org.apache.zookeeper.server.util.ConfigUtils.getPropertyBackwardCompatibleWay(Ljava/lang/String;)Ljava/lang/String;	methodLines:	109:120
+blockLines:	117:-1
+paras:	null
+TaintedStat:	NORMAL getPropertyBackwardCompatibleWay:conditional branch(eq, to iindex=23) 11,5 Node: < Application, Lorg/apache/zookeeper/server/util/ConfigUtils, getPropertyBackwardCompatibleWay(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/util/ConfigUtils, getPropertyBackwardCompatibleWay(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere[15]11 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 9 @24 exception:10
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/util/ConfigUtils, getPropertyBackwardCompatibleWay(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere[15]11 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 9 @24 exception:10
+NORMAL getPropertyBackwardCompatibleWay:conditional branch(eq, to iindex=23) 11,5 Node: < Application, Lorg/apache/zookeeper/server/util/ConfigUtils, getPropertyBackwardCompatibleWay(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static String getPropertyBackwardCompatibleWay(String newPropertyKey) {
+        String newKeyValue = System.getProperty(newPropertyKey);
+        if (newKeyValue != null) {
+            return newKeyValue.trim();
+        }
+        String oldPropertyKey = newPropertyKey.replace("zookeeper.", "");
+        String oldKeyValue = System.getProperty(oldPropertyKey);
+
+        if (oldKeyValue != null) {
+            return oldKeyValue.trim();
+        }
+        return null;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/LearnerHandler, <clinit>()V > Context: Everywhere, blocks=[BB[SSA:2..4]3 - org.apache.zookeeper.server.quorum.LearnerHandler.<clinit>()V, BB[SSA:1..1]2 - org.apache.zookeeper.server.quorum.LearnerHandler.<clinit>()V, BB[SSA:5..5]4 - org.apache.zookeeper.server.quorum.LearnerHandler.<clinit>()V, BB[SSA:-1..-2]8 - org.apache.zookeeper.server.quorum.LearnerHandler.<clinit>()V], numberOfBasicBlocks=4, firstLineNumber=68, lastLineNumber=73, firstMethodNumber=67, lastMethodNumber=77, isFirstLineValid=true, methodSrcCode=
+
+    private static final Logger LOG = LoggerFactory.getLogger(LearnerHandler.class);
+
+    public static final String LEADER_CLOSE_SOCKET_ASYNC = "zookeeper.leader.closeSocketAsync";
+
+    public static final boolean closeSocketAsync = Boolean
+        .parseBoolean(ConfigUtils.getPropertyBackwardCompatibleWay(LEADER_CLOSE_SOCKET_ASYNC));
+
+    static {
+        LOG.info("{} = {}", LEADER_CLOSE_SOCKET_ASYNC, closeSocketAsync);
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/Learner, <clinit>()V > Context: Everywhere, blocks=[BB[SSA:13..15]7 - org.apache.zookeeper.server.quorum.Learner.<clinit>()V, BB[SSA:11..12]6 - org.apache.zookeeper.server.quorum.Learner.<clinit>()V, BB[SSA:16..16]8 - org.apache.zookeeper.server.quorum.Learner.<clinit>()V, BB[SSA:-1..-2]20 - org.apache.zookeeper.server.quorum.Learner.<clinit>()V, BB[SSA:17..19]9 - org.apache.zookeeper.server.quorum.Learner.<clinit>()V, BB[SSA:16..16]8 - org.apache.zookeeper.server.quorum.Learner.<clinit>()V, BB[SSA:20..20]10 - org.apache.zookeeper.server.quorum.Learner.<clinit>()V, BB[SSA:-1..-2]20 - org.apache.zookeeper.server.quorum.Learner.<clinit>()V], numberOfBasicBlocks=8, firstLineNumber=124, lastLineNumber=127, firstMethodNumber=111, lastMethodNumber=134, isFirstLineValid=true, methodSrcCode=
+
+    protected static final Logger LOG = LoggerFactory.getLogger(Learner.class);
+
+    /**
+     * Time to wait after connection attempt with the Leader or LearnerMaster before this
+     * Learner tries to connect again.
+     */
+    private static final int leaderConnectDelayDuringRetryMs = Integer.getInteger("zookeeper.leaderConnectDelayDuringRetryMs", 100);
+
+    private static final boolean nodelay = System.getProperty("follower.nodelay", "true").equals("true");
+
+    public static final String LEARNER_ASYNC_SENDING = "zookeeper.learner.asyncSending";
+    private static boolean asyncSending =
+        Boolean.parseBoolean(ConfigUtils.getPropertyBackwardCompatibleWay(LEARNER_ASYNC_SENDING));
+    public static final String LEARNER_CLOSE_SOCKET_ASYNC = "zookeeper.learner.closeSocketAsync";
+    public static final boolean closeSocketAsync = Boolean
+        .parseBoolean(ConfigUtils.getPropertyBackwardCompatibleWay(LEARNER_CLOSE_SOCKET_ASYNC));
+
+    static {
+        LOG.info("leaderConnectDelayDuringRetryMs: {}", leaderConnectDelayDuringRetryMs);
+        LOG.info("TCP NoDelay set to: {}", nodelay);
+        LOG.info("{} = {}", LEARNER_ASYNC_SENDING, asyncSending);
+        LOG.info("{} = {}", LEARNER_CLOSE_SOCKET_ASYNC, closeSocketAsync);
+    }
+
+}

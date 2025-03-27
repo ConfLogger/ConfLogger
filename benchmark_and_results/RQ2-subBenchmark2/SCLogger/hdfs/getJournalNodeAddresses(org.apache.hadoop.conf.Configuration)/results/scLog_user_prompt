@@ -1,0 +1,218 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> /** 
+<Line#1>  * Returns list of Journalnode addresses from the configuration.
+<Line#2>  * @param conf configuration
+<Line#3>  * @return list of journalnode host names
+<Line#4>  * @throws URISyntaxException
+<Line#5>  * @throws IOException
+<Line#6>  */
+<Line#7> public static Set<String> getJournalNodeAddresses(Configuration conf) throws URISyntaxException, IOException {
+<Line#8> Set<String> journalNodeList = new HashSet<>();
+<Line#9> String journalsUri = "";
+<Line#10> try {
+<Line#11> journalsUri = conf.get(DFS_NAMENODE_SHARED_EDITS_DIR_KEY);
+<Line#12> if (journalsUri == null) {
+<Line#13> Collection<String> nameserviceIds = DFSUtilClient.
+<Line#14> getNameServiceIds(conf);
+<Line#15> for (String nsId : nameserviceIds) {
+<Line#16> journalsUri = DFSUtilClient.getConfValue(
+<Line#17> null, nsId, conf, DFS_NAMENODE_SHARED_EDITS_DIR_KEY);
+<Line#18> if (journalsUri == null) {
+<Line#19> Collection<String> nnIds = DFSUtilClient.getNameNodeIds(conf, nsId);
+<Line#20> for (String nnId : nnIds) {
+<Line#21> String suffix = DFSUtilClient.concatSuffixes(nsId, nnId);
+<Line#22> journalsUri = DFSUtilClient.getConfValue(
+<Line#23> null, suffix, conf, DFS_NAMENODE_SHARED_EDITS_DIR_KEY);
+<Line#24> if (journalsUri == null ||
+<Line#25> !journalsUri.startsWith("qjournal://")) {
+<Line#26> return journalNodeList;
+<Line#27> } else {
+<Line#28> URI uri = new URI(journalsUri);
+<Line#29> List<InetSocketAddress> socketAddresses = Util.
+<Line#30> getAddressesList(uri);
+<Line#31> for (InetSocketAddress is : socketAddresses) {
+<Line#32> journalNodeList.add(is.getHostName());
+<Line#33> }
+<Line#34> }
+<Line#35> }
+<Line#36> } else if (!journalsUri.startsWith("qjournal://")) {
+<Line#37> return journalNodeList;
+<Line#38> } else {
+<Line#39> URI uri = new URI(journalsUri);
+<Line#40> List<InetSocketAddress> socketAddresses = Util.
+<Line#41> getAddressesList(uri);
+<Line#42> for (InetSocketAddress is : socketAddresses) {
+<Line#43> journalNodeList.add(is.getHostName());
+<Line#44> }
+<Line#45> }
+<Line#46> }
+<Line#47> } else {
+<Line#48> if (!journalsUri.startsWith("qjournal://")) {
+<Line#49> return journalNodeList;
+<Line#50> } else {
+<Line#51> URI uri = new URI(journalsUri);
+<Line#52> List<InetSocketAddress> socketAddresses = Util.getAddressesList(uri);
+<Line#53> for (InetSocketAddress is : socketAddresses) {
+<Line#54> journalNodeList.add(is.getHostName());
+<Line#55> }
+<Line#56> }
+<Line#57> }
+<Line#58> } catch(UnknownHostException e) {
+<Line#59> throw new UnknownHostException(journalsUri);
+<Line#60> } catch(URISyntaxException e)  {
+<Line#61> throw new URISyntaxException(journalsUri, "The conf property " +
+<Line#62> DFS_NAMENODE_SHARED_EDITS_DIR_KEY + "is not" +
+<Line#63> " properly set with correct journal node uri");
+<Line#64> }
+<Line#65> 
+<Line#66> return journalNodeList;
+<Line#67> }
+
+Related Context:
+Method A:
+<Line#0> public static List<InetSocketAddress> getAddressesList(URI uri) throws IOException {
+<Line#1>   String authority=uri.getAuthority();
+<Line#2>   Preconditions.checkArgument(authority != null && !authority.isEmpty(),"URI has no authority: " + uri);
+<Line#3>   String[] parts=StringUtils.split(authority,';');
+<Line#4>   for (int i=0; i < parts.length; i++) {
+<Line#5>     parts[i]=parts[i].trim();
+<Line#6>   }
+<Line#7>   List<InetSocketAddress> addrs=Lists.newArrayList();
+<Line#8>   for (  String addr : parts) {
+<Line#9>     InetSocketAddress isa=NetUtils.createSocketAddr(addr,DFSConfigKeys.DFS_JOURNALNODE_RPC_PORT_DEFAULT);
+<Line#10>     if (isa.isUnresolved()) {
+<Line#11>       throw new UnknownHostException(addr);
+<Line#12>     }
+<Line#13>     addrs.add(isa);
+<Line#14>   }
+<Line#15>   return addrs;
+<Line#16> }
+<Line#17> 
+Method B:
+<Line#0> /** 
+<Line#1>  * Add non empty and non null suffix to a key 
+<Line#2>  */
+<Line#3> static String addSuffix(String key,String suffix){
+<Line#4> }
+<Line#5> 
+
+Relevant Logging Patterns:
+Example 1:
+File: hdfs__breakHardlinks-183__.json
+Code:
+<Line#1>{
+<Line#2>  final FileIoProvider fileIoProvider=getFileIoProvider();
+<Line#3>  final File tmpFile=DatanodeUtil.createFileWithExistsCheck(getVolume(),b,DatanodeUtil.getUnlinkTmpFile(file),fileIoProvider);
+<Line#4>  try {
+<Line#5>    try (FileInputStream in=fileIoProvider.getFileInputStream(getVolume(),file)){
+<Line#6>      try (FileOutputStream out=fileIoProvider.getFileOutputStream(getVolume(),tmpFile)){
+<Line#7>        IOUtils.copyBytes(in,out,16 * 1024);
+<Line#8>      }
+<Line#9>     }
+<Line#10>     if (file.length() != tmpFile.length()) {
+<Line#11>      throw new IOException("Copy of file " + file + " size "+ file.length()+ " into file "+ tmpFile+ " resulted in a size of "+ tmpFile.length());
+<Line#12>    }
+<Line#13>    fileIoProvider.replaceFile(getVolume(),tmpFile,file);
+<Line#14>  }
+<Line#15> catch (  IOException e) {
+<Line#16>    if (!fileIoProvider.delete(getVolume(),tmpFile)) {
+<Line#17>      DataNode.LOG.info("detachFile failed to delete temporary file " + tmpFile);
+<Line#18>    }
+<Line#19>    throw e;
+<Line#20>  }
+<Line#21>}
+Log: <Line#17>:# DataNode.LOG.info("detachFile failed to delete temporary file " + tmpFile):#
+
+Example 2:
+File: hdfs__cancelDelegationToken-766__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("Cancelling " + DelegationTokenIdentifier.stringifyToken(token));
+<Line#3>  try {
+<Line#4>    token.cancel(conf);
+<Line#5>  }
+<Line#6> catch (  InterruptedException ie) {
+<Line#7>    throw new RuntimeException("caught interrupted",ie);
+<Line#8>  }
+<Line#9>catch (  RemoteException re) {
+<Line#10>    throw re.unwrapRemoteException(InvalidToken.class,AccessControlException.class);
+<Line#11>  }
+<Line#12>}
+Log: <Line#2>:# LOG.info("Cancelling " + DelegationTokenIdentifier.stringifyToken(token)):#
+
+Example 3:
+File: hdfs__verifyChunks-484__.json
+Code:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    clientChecksum.verifyChunkedSums(dataBuf,checksumBuf,clientname,0);
+<Line#4>  }
+<Line#5> catch (  ChecksumException ce) {
+<Line#6>    PacketHeader header=packetReceiver.getHeader();
+<Line#7>    String specificOffset="specific offsets are:" + " offsetInBlock = " + header.getOffsetInBlock() + " offsetInPacket = "+ ce.getPos();
+<Line#8>    LOG.warn("Checksum error in block " + block + " from "+ inAddr+ ", "+ specificOffset,ce);
+<Line#9>    if (srcDataNode != null && isDatanode) {
+<Line#10>      try {
+<Line#11>        LOG.info("report corrupt " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#12>        datanode.reportRemoteBadBlock(srcDataNode,block);
+<Line#13>      }
+<Line#14> catch (      IOException e) {
+<Line#15>        LOG.warn("Failed to report bad " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#16>      }
+<Line#17>    }
+<Line#18>    throw new IOException("Unexpected checksum mismatch while writing " + block + " from "+ inAddr);
+<Line#19>  }
+<Line#20>}
+Log: <Line#8>:# LOG.warn("Checksum error in block " + block + " from "+ inAddr+ ", "+ specificOffset,ce):#
+
+Example 4:
+File: hdfs__verifyChunks-484__.json
+Code:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    clientChecksum.verifyChunkedSums(dataBuf,checksumBuf,clientname,0);
+<Line#4>  }
+<Line#5> catch (  ChecksumException ce) {
+<Line#6>    PacketHeader header=packetReceiver.getHeader();
+<Line#7>    String specificOffset="specific offsets are:" + " offsetInBlock = " + header.getOffsetInBlock() + " offsetInPacket = "+ ce.getPos();
+<Line#8>    LOG.warn("Checksum error in block " + block + " from "+ inAddr+ ", "+ specificOffset,ce);
+<Line#9>    if (srcDataNode != null && isDatanode) {
+<Line#10>      try {
+<Line#11>        LOG.info("report corrupt " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#12>        datanode.reportRemoteBadBlock(srcDataNode,block);
+<Line#13>      }
+<Line#14> catch (      IOException e) {
+<Line#15>        LOG.warn("Failed to report bad " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#16>      }
+<Line#17>    }
+<Line#18>    throw new IOException("Unexpected checksum mismatch while writing " + block + " from "+ inAddr);
+<Line#19>  }
+<Line#20>}
+Log: <Line#11>:# LOG.info("report corrupt " + block + " from datanode "+ srcDataNode+ " to namenode"):#
+
+Example 5:
+File: hdfs__verifyChunks-484__.json
+Code:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    clientChecksum.verifyChunkedSums(dataBuf,checksumBuf,clientname,0);
+<Line#4>  }
+<Line#5> catch (  ChecksumException ce) {
+<Line#6>    PacketHeader header=packetReceiver.getHeader();
+<Line#7>    String specificOffset="specific offsets are:" + " offsetInBlock = " + header.getOffsetInBlock() + " offsetInPacket = "+ ce.getPos();
+<Line#8>    LOG.warn("Checksum error in block " + block + " from "+ inAddr+ ", "+ specificOffset,ce);
+<Line#9>    if (srcDataNode != null && isDatanode) {
+<Line#10>      try {
+<Line#11>        LOG.info("report corrupt " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#12>        datanode.reportRemoteBadBlock(srcDataNode,block);
+<Line#13>      }
+<Line#14> catch (      IOException e) {
+<Line#15>        LOG.warn("Failed to report bad " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#16>      }
+<Line#17>    }
+<Line#18>    throw new IOException("Unexpected checksum mismatch while writing " + block + " from "+ inAddr);
+<Line#19>  }
+<Line#20>}
+Log: <Line#15>:# LOG.warn("Failed to report bad " + block + " from datanode "+ srcDataNode+ " to namenode"):#

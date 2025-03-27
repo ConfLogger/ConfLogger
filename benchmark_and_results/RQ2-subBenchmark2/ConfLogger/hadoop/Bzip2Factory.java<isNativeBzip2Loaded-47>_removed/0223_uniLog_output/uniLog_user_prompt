@@ -1,0 +1,250 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>public static synchronized boolean isNativeBzip2Loaded(Configuration conf) {
+<Line#1>String libname = conf.get("io.compression.codec.bzip2.library",
+<Line#2>"system-native");
+<Line#3>if (!bzip2LibraryName.equals(libname)) {
+<Line#4>nativeBzip2Loaded = false;
+<Line#5>bzip2LibraryName = libname;
+<Line#6>if (libname.equals("java-builtin")) {
+<Line#7>;
+<Line#8>} else if (NativeCodeLoader.isNativeCodeLoaded()) {
+<Line#9>try {
+<Line#10>// Initialize the native library.
+<Line#11>Bzip2Compressor.initSymbols(libname);
+<Line#12>Bzip2Decompressor.initSymbols(libname);
+<Line#13>nativeBzip2Loaded = true;
+<Line#14>} catch (Throwable t) {
+<Line#15>}
+<Line#16>}
+<Line#17>}
+<Line#18>return nativeBzip2Loaded;
+<Line#19>}
+
+Example 1:
+<Line#1>{
+<Line#2>  for (  java.io.Closeable c : closeables) {
+<Line#3>    if (c != null) {
+<Line#4>      try {
+<Line#5>        c.close();
+<Line#6>      }
+<Line#7> catch (      Throwable e) {
+<Line#8>        if (log != null && log.isDebugEnabled()) {
+<Line#9>          log.debug("Exception in closing " + c,e);
+<Line#10>        }
+<Line#11>      }
+<Line#12>    }
+<Line#13>  }
+<Line#14>}
+Label: <Line#9> log.debug("Exception in closing " + c,e)
+
+Example 2:
+<Line#1>{
+<Line#2>  title("Kerberos Diagnostics scan at %s",new Date(System.currentTimeMillis()));
+<Line#3>  println("Hostname = %s",InetAddress.getLocalHost().getCanonicalHostName());
+<Line#4>  println("%s = %d",ARG_KEYLEN,minKeyLength);
+<Line#5>  println("%s = %s",ARG_KEYTAB,keytab);
+<Line#6>  println("%s = %s",ARG_PRINCIPAL,principal);
+<Line#7>  println("%s = %s",ARG_VERIFYSHORTNAME,checkShortName);
+<Line#8>  validateKeyLength();
+<Line#9>  println("JVM Kerberos Login Module = %s",getKrb5LoginModuleName());
+<Line#10>  title("Core System Properties");
+<Line#11>  for (  String prop : new String[]{"user.name","java.version","java.vendor",JAVA_SECURITY_KRB5_CONF,JAVA_SECURITY_KRB5_REALM,JAVA_SECURITY_KRB5_KDC_ADDRESS,SUN_SECURITY_KRB5_DEBUG,SUN_SECURITY_SPNEGO_DEBUG,SUN_SECURITY_JAAS_FILE}) {
+<Line#12>    printSysprop(prop);
+<Line#13>  }
+<Line#14>  endln();
+<Line#15>  title("All System Properties");
+<Line#16>  ArrayList<String> propList=new ArrayList<>(System.getProperties().stringPropertyNames());
+<Line#17>  Collections.sort(propList,String.CASE_INSENSITIVE_ORDER);
+<Line#18>  for (  String s : propList) {
+<Line#19>    printSysprop(s);
+<Line#20>  }
+<Line#21>  endln();
+<Line#22>  title("Environment Variables");
+<Line#23>  for (  String env : new String[]{HADOOP_JAAS_DEBUG,KRB5_CCNAME,KRB5_CONFIG,HADOOP_USER_NAME,HADOOP_PROXY_USER,HADOOP_TOKEN_FILE_LOCATION,"HADOOP_SECURE_LOG","HADOOP_OPTS","HADOOP_CLIENT_OPTS"}) {
+<Line#24>    printEnv(env);
+<Line#25>  }
+<Line#26>  endln();
+<Line#27>  title("Configuration Options");
+<Line#28>  for (  String prop : new String[]{KERBEROS_KINIT_COMMAND,HADOOP_SECURITY_AUTHENTICATION,HADOOP_SECURITY_AUTHORIZATION,"hadoop.kerberos.min.seconds.before.relogin","hadoop.security.dns.interface","hadoop.security.dns.nameserver",HADOOP_RPC_PROTECTION,HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS,HADOOP_SECURITY_CRYPTO_CODEC_CLASSES_KEY_PREFIX,HADOOP_SECURITY_GROUP_MAPPING,"hadoop.security.impersonation.provider.class",DFS_DATA_TRANSFER_PROTECTION,DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS}) {
+<Line#29>    printConfOpt(prop);
+<Line#30>  }
+<Line#31>  Configuration conf=getConf();
+<Line#32>  if (isSimpleAuthentication(conf)) {
+<Line#33>    println(HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#34>    failif(securityRequired,CAT_CONFIG,HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#35>    LOG.warn("Security is not enabled for the Hadoop cluster");
+<Line#36>  }
+<Line#37> else {
+<Line#38>    if (isSimpleAuthentication(new Configuration())) {
+<Line#39>      LOG.warn("The default cluster security is insecure");
+<Line#40>      failif(securityRequired,CAT_CONFIG,HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#41>    }
+<Line#42>  }
+<Line#43>  boolean krb5Debug=getAndSet(SUN_SECURITY_KRB5_DEBUG);
+<Line#44>  boolean spnegoDebug=getAndSet(SUN_SECURITY_SPNEGO_DEBUG);
+<Line#45>  try {
+<Line#46>    UserGroupInformation.setConfiguration(conf);
+<Line#47>    validateHadoopTokenFiles(conf);
+<Line#48>    validateKrb5File();
+<Line#49>    printDefaultRealm();
+<Line#50>    validateSasl(HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS);
+<Line#51>    if (conf.get(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS) != null) {
+<Line#52>      validateSasl(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS);
+<Line#53>    }
+<Line#54>    validateKinitExecutable();
+<Line#55>    validateJAAS(jaas);
+<Line#56>    validateNTPConf();
+<Line#57>    if (checkShortName) {
+<Line#58>      validateShortName();
+<Line#59>    }
+<Line#60>    if (!nologin) {
+<Line#61>      title("Logging in");
+<Line#62>      if (keytab != null) {
+<Line#63>        dumpKeytab(keytab);
+<Line#64>        loginFromKeytab();
+<Line#65>      }
+<Line#66> else {
+<Line#67>        UserGroupInformation loginUser=getLoginUser();
+<Line#68>        dumpUGI("Log in user",loginUser);
+<Line#69>        validateUGI("Login user",loginUser);
+<Line#70>        println("Ticket based login: %b",isLoginTicketBased());
+<Line#71>        println("Keytab based login: %b",isLoginKeytabBased());
+<Line#72>      }
+<Line#73>    }
+<Line#74>    return true;
+<Line#75>  }
+<Line#76>  finally {
+<Line#77>    System.setProperty(SUN_SECURITY_KRB5_DEBUG,Boolean.toString(krb5Debug));
+<Line#78>    System.setProperty(SUN_SECURITY_SPNEGO_DEBUG,Boolean.toString(spnegoDebug));
+<Line#79>  }
+<Line#80>}
+Label: <Line#35> LOG.warn("Security is not enabled for the Hadoop cluster")
+
+Example 3:
+<Line#1>{
+<Line#2>  title("Kerberos Diagnostics scan at %s",new Date(System.currentTimeMillis()));
+<Line#3>  println("Hostname = %s",InetAddress.getLocalHost().getCanonicalHostName());
+<Line#4>  println("%s = %d",ARG_KEYLEN,minKeyLength);
+<Line#5>  println("%s = %s",ARG_KEYTAB,keytab);
+<Line#6>  println("%s = %s",ARG_PRINCIPAL,principal);
+<Line#7>  println("%s = %s",ARG_VERIFYSHORTNAME,checkShortName);
+<Line#8>  validateKeyLength();
+<Line#9>  println("JVM Kerberos Login Module = %s",getKrb5LoginModuleName());
+<Line#10>  title("Core System Properties");
+<Line#11>  for (  String prop : new String[]{"user.name","java.version","java.vendor",JAVA_SECURITY_KRB5_CONF,JAVA_SECURITY_KRB5_REALM,JAVA_SECURITY_KRB5_KDC_ADDRESS,SUN_SECURITY_KRB5_DEBUG,SUN_SECURITY_SPNEGO_DEBUG,SUN_SECURITY_JAAS_FILE}) {
+<Line#12>    printSysprop(prop);
+<Line#13>  }
+<Line#14>  endln();
+<Line#15>  title("All System Properties");
+<Line#16>  ArrayList<String> propList=new ArrayList<>(System.getProperties().stringPropertyNames());
+<Line#17>  Collections.sort(propList,String.CASE_INSENSITIVE_ORDER);
+<Line#18>  for (  String s : propList) {
+<Line#19>    printSysprop(s);
+<Line#20>  }
+<Line#21>  endln();
+<Line#22>  title("Environment Variables");
+<Line#23>  for (  String env : new String[]{HADOOP_JAAS_DEBUG,KRB5_CCNAME,KRB5_CONFIG,HADOOP_USER_NAME,HADOOP_PROXY_USER,HADOOP_TOKEN_FILE_LOCATION,"HADOOP_SECURE_LOG","HADOOP_OPTS","HADOOP_CLIENT_OPTS"}) {
+<Line#24>    printEnv(env);
+<Line#25>  }
+<Line#26>  endln();
+<Line#27>  title("Configuration Options");
+<Line#28>  for (  String prop : new String[]{KERBEROS_KINIT_COMMAND,HADOOP_SECURITY_AUTHENTICATION,HADOOP_SECURITY_AUTHORIZATION,"hadoop.kerberos.min.seconds.before.relogin","hadoop.security.dns.interface","hadoop.security.dns.nameserver",HADOOP_RPC_PROTECTION,HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS,HADOOP_SECURITY_CRYPTO_CODEC_CLASSES_KEY_PREFIX,HADOOP_SECURITY_GROUP_MAPPING,"hadoop.security.impersonation.provider.class",DFS_DATA_TRANSFER_PROTECTION,DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS}) {
+<Line#29>    printConfOpt(prop);
+<Line#30>  }
+<Line#31>  Configuration conf=getConf();
+<Line#32>  if (isSimpleAuthentication(conf)) {
+<Line#33>    println(HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#34>    failif(securityRequired,CAT_CONFIG,HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#35>    LOG.warn("Security is not enabled for the Hadoop cluster");
+<Line#36>  }
+<Line#37> else {
+<Line#38>    if (isSimpleAuthentication(new Configuration())) {
+<Line#39>      LOG.warn("The default cluster security is insecure");
+<Line#40>      failif(securityRequired,CAT_CONFIG,HADOOP_AUTHENTICATION_IS_DISABLED);
+<Line#41>    }
+<Line#42>  }
+<Line#43>  boolean krb5Debug=getAndSet(SUN_SECURITY_KRB5_DEBUG);
+<Line#44>  boolean spnegoDebug=getAndSet(SUN_SECURITY_SPNEGO_DEBUG);
+<Line#45>  try {
+<Line#46>    UserGroupInformation.setConfiguration(conf);
+<Line#47>    validateHadoopTokenFiles(conf);
+<Line#48>    validateKrb5File();
+<Line#49>    printDefaultRealm();
+<Line#50>    validateSasl(HADOOP_SECURITY_SASL_PROPS_RESOLVER_CLASS);
+<Line#51>    if (conf.get(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS) != null) {
+<Line#52>      validateSasl(DFS_DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS);
+<Line#53>    }
+<Line#54>    validateKinitExecutable();
+<Line#55>    validateJAAS(jaas);
+<Line#56>    validateNTPConf();
+<Line#57>    if (checkShortName) {
+<Line#58>      validateShortName();
+<Line#59>    }
+<Line#60>    if (!nologin) {
+<Line#61>      title("Logging in");
+<Line#62>      if (keytab != null) {
+<Line#63>        dumpKeytab(keytab);
+<Line#64>        loginFromKeytab();
+<Line#65>      }
+<Line#66> else {
+<Line#67>        UserGroupInformation loginUser=getLoginUser();
+<Line#68>        dumpUGI("Log in user",loginUser);
+<Line#69>        validateUGI("Login user",loginUser);
+<Line#70>        println("Ticket based login: %b",isLoginTicketBased());
+<Line#71>        println("Keytab based login: %b",isLoginKeytabBased());
+<Line#72>      }
+<Line#73>    }
+<Line#74>    return true;
+<Line#75>  }
+<Line#76>  finally {
+<Line#77>    System.setProperty(SUN_SECURITY_KRB5_DEBUG,Boolean.toString(krb5Debug));
+<Line#78>    System.setProperty(SUN_SECURITY_SPNEGO_DEBUG,Boolean.toString(spnegoDebug));
+<Line#79>  }
+<Line#80>}
+Label: <Line#39> LOG.warn("The default cluster security is insecure")
+
+Example 4:
+<Line#1>{
+<Line#2>  if (simpleKdc != null) {
+<Line#3>    try {
+<Line#4>      simpleKdc.stop();
+<Line#5>    }
+<Line#6> catch (    KrbException e) {
+<Line#7>      e.printStackTrace();
+<Line#8>    }
+<Line#9> finally {
+<Line#10>      if (conf.getProperty(DEBUG) != null) {
+<Line#11>        System.setProperty(SUN_SECURITY_KRB5_DEBUG,Boolean.toString(krb5Debug));
+<Line#12>      }
+<Line#13>    }
+<Line#14>  }
+<Line#15>  delete(workDir);
+<Line#16>  try {
+<Line#17>    Thread.sleep(1000);
+<Line#18>  }
+<Line#19> catch (  InterruptedException e) {
+<Line#20>    e.printStackTrace();
+<Line#21>  }
+<Line#22>  LOG.info("MiniKdc stopped.");
+<Line#23>}
+Label: <Line#22> LOG.info("MiniKdc stopped.")
+
+Example 5:
+<Line#1>{
+<Line#2>  if (!running) {
+<Line#3>    return;
+<Line#4>  }
+<Line#5>  if (LOG.isDebugEnabled()) {
+<Line#6>    LOG.debug(Thread.currentThread().getName() + ": task running");
+<Line#7>  }
+<Line#8>  try {
+<Line#9>    closeIdle(false);
+<Line#10>  }
+<Line#11>  finally {
+<Line#12>    scheduleIdleScanTask();
+<Line#13>  }
+<Line#14>}
+Label: <Line#6> LOG.debug(Thread.currentThread().getName() + ": task running")
+

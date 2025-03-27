@@ -1,0 +1,138 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> static RetryCache initRetryCache(Configuration conf) {
+<Line#1> boolean enable = conf.getBoolean(DFS_NAMENODE_ENABLE_RETRY_CACHE_KEY,
+<Line#2> DFS_NAMENODE_ENABLE_RETRY_CACHE_DEFAULT);
+<Line#3> if (enable) {
+<Line#4> float heapPercent = conf.getFloat(
+<Line#5> DFS_NAMENODE_RETRY_CACHE_HEAP_PERCENT_KEY,
+<Line#6> DFS_NAMENODE_RETRY_CACHE_HEAP_PERCENT_DEFAULT);
+<Line#7> long entryExpiryMillis = conf.getLong(
+<Line#8> DFS_NAMENODE_RETRY_CACHE_EXPIRYTIME_MILLIS_KEY,
+<Line#9> DFS_NAMENODE_RETRY_CACHE_EXPIRYTIME_MILLIS_DEFAULT);
+<Line#10> long entryExpiryNanos = entryExpiryMillis * 1000 * 1000;
+<Line#11> return new RetryCache("NameNodeRetryCache", heapPercent,
+<Line#12> entryExpiryNanos);
+<Line#13> }
+<Line#14> return null;
+<Line#15> }
+
+Relevant Logging Patterns:
+Example 1:
+File: hdfs__breakHardlinks-183__.json
+Code:
+<Line#1>{
+<Line#2>  final FileIoProvider fileIoProvider=getFileIoProvider();
+<Line#3>  final File tmpFile=DatanodeUtil.createFileWithExistsCheck(getVolume(),b,DatanodeUtil.getUnlinkTmpFile(file),fileIoProvider);
+<Line#4>  try {
+<Line#5>    try (FileInputStream in=fileIoProvider.getFileInputStream(getVolume(),file)){
+<Line#6>      try (FileOutputStream out=fileIoProvider.getFileOutputStream(getVolume(),tmpFile)){
+<Line#7>        IOUtils.copyBytes(in,out,16 * 1024);
+<Line#8>      }
+<Line#9>     }
+<Line#10>     if (file.length() != tmpFile.length()) {
+<Line#11>      throw new IOException("Copy of file " + file + " size "+ file.length()+ " into file "+ tmpFile+ " resulted in a size of "+ tmpFile.length());
+<Line#12>    }
+<Line#13>    fileIoProvider.replaceFile(getVolume(),tmpFile,file);
+<Line#14>  }
+<Line#15> catch (  IOException e) {
+<Line#16>    if (!fileIoProvider.delete(getVolume(),tmpFile)) {
+<Line#17>      DataNode.LOG.info("detachFile failed to delete temporary file " + tmpFile);
+<Line#18>    }
+<Line#19>    throw e;
+<Line#20>  }
+<Line#21>}
+Log: <Line#17>:# DataNode.LOG.info("detachFile failed to delete temporary file " + tmpFile):#
+
+Example 2:
+File: hdfs__cancelDelegationToken-766__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("Cancelling " + DelegationTokenIdentifier.stringifyToken(token));
+<Line#3>  try {
+<Line#4>    token.cancel(conf);
+<Line#5>  }
+<Line#6> catch (  InterruptedException ie) {
+<Line#7>    throw new RuntimeException("caught interrupted",ie);
+<Line#8>  }
+<Line#9>catch (  RemoteException re) {
+<Line#10>    throw re.unwrapRemoteException(InvalidToken.class,AccessControlException.class);
+<Line#11>  }
+<Line#12>}
+Log: <Line#2>:# LOG.info("Cancelling " + DelegationTokenIdentifier.stringifyToken(token)):#
+
+Example 3:
+File: hdfs__verifyChunks-484__.json
+Code:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    clientChecksum.verifyChunkedSums(dataBuf,checksumBuf,clientname,0);
+<Line#4>  }
+<Line#5> catch (  ChecksumException ce) {
+<Line#6>    PacketHeader header=packetReceiver.getHeader();
+<Line#7>    String specificOffset="specific offsets are:" + " offsetInBlock = " + header.getOffsetInBlock() + " offsetInPacket = "+ ce.getPos();
+<Line#8>    LOG.warn("Checksum error in block " + block + " from "+ inAddr+ ", "+ specificOffset,ce);
+<Line#9>    if (srcDataNode != null && isDatanode) {
+<Line#10>      try {
+<Line#11>        LOG.info("report corrupt " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#12>        datanode.reportRemoteBadBlock(srcDataNode,block);
+<Line#13>      }
+<Line#14> catch (      IOException e) {
+<Line#15>        LOG.warn("Failed to report bad " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#16>      }
+<Line#17>    }
+<Line#18>    throw new IOException("Unexpected checksum mismatch while writing " + block + " from "+ inAddr);
+<Line#19>  }
+<Line#20>}
+Log: <Line#8>:# LOG.warn("Checksum error in block " + block + " from "+ inAddr+ ", "+ specificOffset,ce):#
+
+Example 4:
+File: hdfs__verifyChunks-484__.json
+Code:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    clientChecksum.verifyChunkedSums(dataBuf,checksumBuf,clientname,0);
+<Line#4>  }
+<Line#5> catch (  ChecksumException ce) {
+<Line#6>    PacketHeader header=packetReceiver.getHeader();
+<Line#7>    String specificOffset="specific offsets are:" + " offsetInBlock = " + header.getOffsetInBlock() + " offsetInPacket = "+ ce.getPos();
+<Line#8>    LOG.warn("Checksum error in block " + block + " from "+ inAddr+ ", "+ specificOffset,ce);
+<Line#9>    if (srcDataNode != null && isDatanode) {
+<Line#10>      try {
+<Line#11>        LOG.info("report corrupt " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#12>        datanode.reportRemoteBadBlock(srcDataNode,block);
+<Line#13>      }
+<Line#14> catch (      IOException e) {
+<Line#15>        LOG.warn("Failed to report bad " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#16>      }
+<Line#17>    }
+<Line#18>    throw new IOException("Unexpected checksum mismatch while writing " + block + " from "+ inAddr);
+<Line#19>  }
+<Line#20>}
+Log: <Line#11>:# LOG.info("report corrupt " + block + " from datanode "+ srcDataNode+ " to namenode"):#
+
+Example 5:
+File: hdfs__verifyChunks-484__.json
+Code:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    clientChecksum.verifyChunkedSums(dataBuf,checksumBuf,clientname,0);
+<Line#4>  }
+<Line#5> catch (  ChecksumException ce) {
+<Line#6>    PacketHeader header=packetReceiver.getHeader();
+<Line#7>    String specificOffset="specific offsets are:" + " offsetInBlock = " + header.getOffsetInBlock() + " offsetInPacket = "+ ce.getPos();
+<Line#8>    LOG.warn("Checksum error in block " + block + " from "+ inAddr+ ", "+ specificOffset,ce);
+<Line#9>    if (srcDataNode != null && isDatanode) {
+<Line#10>      try {
+<Line#11>        LOG.info("report corrupt " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#12>        datanode.reportRemoteBadBlock(srcDataNode,block);
+<Line#13>      }
+<Line#14> catch (      IOException e) {
+<Line#15>        LOG.warn("Failed to report bad " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#16>      }
+<Line#17>    }
+<Line#18>    throw new IOException("Unexpected checksum mismatch while writing " + block + " from "+ inAddr);
+<Line#19>  }
+<Line#20>}
+Log: <Line#15>:# LOG.warn("Failed to report bad " + block + " from datanode "+ srcDataNode+ " to namenode"):#

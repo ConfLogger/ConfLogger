@@ -1,0 +1,142 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ThriftTopologyUtils.java	methodSinagture:	org.apache.storm.utils.ThriftTopologyUtils.getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon;	methodLines:	40:53
+blockLines:	50:-1
+paras:	null
+TaintedStat:	NORMAL getComponentCommon:conditional branch(eq, to iindex=36) 19,9 Node: < Application, Lorg/apache/storm/utils/ThriftTopologyUtils, getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ThriftTopologyUtils, getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere[27]18 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 16,2 @51 exception:17
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ThriftTopologyUtils, getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere[27]18 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 16,2 @51 exception:17
+NORMAL getComponentCommon:19 = checkcast <Application,Lorg/apache/storm/generated/StateSpoutSpec>18 <Application,Lorg/apache/storm/generated/StateSpoutSpec> Node: < Application, Lorg/apache/storm/utils/ThriftTopologyUtils, getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere
+NORMAL getComponentCommon:conditional branch(eq, to iindex=36) 19,9 Node: < Application, Lorg/apache/storm/utils/ThriftTopologyUtils, getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ThriftTopologyUtils.java	methodSinagture:	org.apache.storm.utils.ThriftTopologyUtils.getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon;	methodLines:	40:53
+blockLines:	46:-1
+paras:	null
+TaintedStat:	NORMAL getComponentCommon:conditional branch(eq, to iindex=24) 14,9 Node: < Application, Lorg/apache/storm/utils/ThriftTopologyUtils, getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ThriftTopologyUtils, getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere[15]13 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 11,2 @28 exception:12
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ThriftTopologyUtils, getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere[15]13 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 11,2 @28 exception:12
+NORMAL getComponentCommon:14 = checkcast <Application,Lorg/apache/storm/generated/SpoutSpec>13 <Application,Lorg/apache/storm/generated/SpoutSpec> Node: < Application, Lorg/apache/storm/utils/ThriftTopologyUtils, getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere
+NORMAL getComponentCommon:conditional branch(eq, to iindex=24) 14,9 Node: < Application, Lorg/apache/storm/utils/ThriftTopologyUtils, getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ThriftTopologyUtils.java	methodSinagture:	org.apache.storm.utils.ThriftTopologyUtils.getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon;	methodLines:	40:53
+blockLines:	42:-1
+paras:	null
+TaintedStat:	NORMAL getComponentCommon:conditional branch(eq, to iindex=12) 8,9 Node: < Application, Lorg/apache/storm/utils/ThriftTopologyUtils, getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ThriftTopologyUtils, getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere[3]7 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,2 @5 exception:6
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ThriftTopologyUtils, getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere[3]7 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,2 @5 exception:6
+NORMAL getComponentCommon:8 = checkcast <Application,Lorg/apache/storm/generated/Bolt>7 <Application,Lorg/apache/storm/generated/Bolt> Node: < Application, Lorg/apache/storm/utils/ThriftTopologyUtils, getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere
+NORMAL getComponentCommon:conditional branch(eq, to iindex=12) 8,9 Node: < Application, Lorg/apache/storm/utils/ThriftTopologyUtils, getComponentCommon(Lorg/apache/storm/generated/StormTopology;Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static ComponentCommon getComponentCommon(StormTopology topology, String componentId) {
+        Bolt b = topology.get_bolts().get(componentId);
+        if (b != null) {
+            return b.get_common();
+        }
+        SpoutSpec s = topology.get_spouts().get(componentId);
+        if (s != null) {
+            return s.get_common();
+        }
+        StateSpoutSpec ss = topology.get_state_spouts().get(componentId);
+        if (ss != null) {
+            return ss.get_common();
+        }
+        throw new IllegalArgumentException("Could not find component common for " + componentId);
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/task/GeneralTopologyContext, getComponentCommon(Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon; > Context: Everywhere, blocks=[BB[SSA:2..3]2 - org.apache.storm.task.GeneralTopologyContext.getComponentCommon(Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon;, BB[SSA:0..1]1 - org.apache.storm.task.GeneralTopologyContext.getComponentCommon(Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon;, BB[SSA:4..4]3 - org.apache.storm.task.GeneralTopologyContext.getComponentCommon(Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon;, BB[SSA:-1..-2]4 - org.apache.storm.task.GeneralTopologyContext.getComponentCommon(Ljava/lang/String;)Lorg/apache/storm/generated/ComponentCommon;], numberOfBasicBlocks=4, firstLineNumber=189, lastLineNumber=189, firstMethodNumber=188, lastMethodNumber=189, isFirstLineValid=true, methodSrcCode=
+    public ComponentCommon getComponentCommon(String componentId) {
+        return ThriftTopologyUtils.getComponentCommon(getRawTopology(), componentId);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/worker/WorkerState, <init>(Ljava/util/Map;Lorg/apache/storm/messaging/IContext;Ljava/lang/String;Ljava/lang/String;Ljava/util/function/Supplier;ILjava/lang/String;Ljava/util/Map;Lorg/apache/storm/cluster/IStateStorage;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Collection;Lorg/apache/storm/metrics2/StormMetricRegistry;Lorg/apache/storm/generated/Credentials;)V > Context: Everywhere, blocks=[BB[SSA:262..263]126 - org.apache.storm.daemon.worker.WorkerState.<init>(Ljava/util/Map;Lorg/apache/storm/messaging/IContext;Ljava/lang/String;Ljava/lang/String;Ljava/util/function/Supplier;ILjava/lang/String;Ljava/util/Map;Lorg/apache/storm/cluster/IStateStorage;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Collection;Lorg/apache/storm/metrics2/StormMetricRegistry;Lorg/apache/storm/generated/Credentials;)V, BB[SSA:259..261]125 - org.apache.storm.daemon.worker.WorkerState.<init>(Ljava/util/Map;Lorg/apache/storm/messaging/IContext;Ljava/lang/String;Ljava/lang/String;Ljava/util/function/Supplier;ILjava/lang/String;Ljava/util/Map;Lorg/apache/storm/cluster/IStateStorage;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Collection;Lorg/apache/storm/metrics2/StormMetricRegistry;Lorg/apache/storm/generated/Credentials;)V, BB[SSA:264..264]127 - org.apache.storm.daemon.worker.WorkerState.<init>(Ljava/util/Map;Lorg/apache/storm/messaging/IContext;Ljava/lang/String;Ljava/lang/String;Ljava/util/function/Supplier;ILjava/lang/String;Ljava/util/Map;Lorg/apache/storm/cluster/IStateStorage;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Collection;Lorg/apache/storm/metrics2/StormMetricRegistry;Lorg/apache/storm/generated/Credentials;)V, BB[SSA:-1..-2]225 - org.apache.storm.daemon.worker.WorkerState.<init>(Ljava/util/Map;Lorg/apache/storm/messaging/IContext;Ljava/lang/String;Ljava/lang/String;Ljava/util/function/Supplier;ILjava/lang/String;Ljava/util/Map;Lorg/apache/storm/cluster/IStateStorage;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Collection;Lorg/apache/storm/metrics2/StormMetricRegistry;Lorg/apache/storm/generated/Credentials;)V], numberOfBasicBlocks=4, firstLineNumber=209, lastLineNumber=249, firstMethodNumber=171, lastMethodNumber=249, isFirstLineValid=true, methodSrcCode=
+            Credentials initialCredentials) throws IOException,
+            InvalidTopologyException {
+        this.metricRegistry = metricRegistry;
+        this.autoCredentials = autoCredentials;
+        this.credentialsAtom = new AtomicReference(initialCredentials);
+        this.conf = conf;
+        this.supervisorIfaceSupplier = supervisorIfaceSupplier;
+        this.mqContext = (null != mqContext) ? mqContext :
+                TransportFactory.makeContext(topologyConf, metricRegistry);
+        this.topologyId = topologyId;
+        this.assignmentId = assignmentId;
+        this.port = port;
+        this.workerId = workerId;
+        this.stateStorage = stateStorage;
+        this.stormClusterState = stormClusterState;
+        this.localExecutors =
+            new HashSet<>(readWorkerExecutors(assignmentId, port, getLocalAssignment(this.stormClusterState, topologyId)));
+        this.isWorkerActive = new CountDownLatch(1);
+        this.isTopologyActive = new AtomicBoolean(false);
+        this.stormComponentToDebug = new AtomicReference<>();
+        this.topology = ConfigUtils.readSupervisorTopology(conf, topologyId, AdvancedFSOps.make(conf));
+        this.taskToComponent = StormCommon.stormTaskInfo(topology, topologyConf);
+        this.executorReceiveQueueMap = mkReceiveQueueMap(topologyConf, localExecutors, taskToComponent);
+        this.localTaskIds = new ArrayList<>();
+        this.taskToExecutorQueue = new HashMap<>();
+        this.blobToLastKnownVersion = new ConcurrentHashMap<>();
+        for (Map.Entry<List<Long>, JCQueue> entry : executorReceiveQueueMap.entrySet()) {
+            List<Integer> taskIds = StormCommon.executorIdToTasks(entry.getKey());
+            for (Integer taskId : taskIds) {
+                this.taskToExecutorQueue.put(taskId, entry.getValue());
+            }
+            this.localTaskIds.addAll(taskIds);
+        }
+        Collections.sort(localTaskIds);
+        this.topologyConf = topologyConf;
+        this.systemTopology = StormCommon.systemTopology(topologyConf, topology);
+        this.componentToStreamToFields = new HashMap<>();
+        for (String c : ThriftTopologyUtils.getComponentIds(systemTopology)) {
+            Map<String, Fields> streamToFields = new HashMap<>();
+            for (Map.Entry<String, StreamInfo> stream :
+                ThriftTopologyUtils.getComponentCommon(systemTopology, c).get_streams().entrySet()) {
+                streamToFields.put(stream.getKey(), new Fields(stream.getValue().get_output_fields()));
+            }
+            componentToStreamToFields.put(c, streamToFields);
+        }
+        this.componentToSortedTasks = Utils.reverseMap(taskToComponent);
+        this.componentToSortedTasks.values().forEach(Collections::sort);
+        this.endpointSocketLock = new ReentrantReadWriteLock();
+        this.cachedNodeToPortSocket = new AtomicReference<>(new HashMap<>());
+        this.cachedTaskToNodePort = new AtomicReference<>(new HashMap<>());
+        this.cachedNodeToHost = new AtomicReference<>(new HashMap<>());
+        this.suicideCallback = Utils.mkSuicideFn();
+        this.uptime = Utils.makeUptimeComputer();
+        this.defaultSharedResources = makeDefaultResources();
+        this.userSharedResources = makeUserResources();
+        this.loadMapping = new LoadMapping();
+        this.assignmentVersions = new AtomicReference<>(new HashMap<>());
+        this.outboundTasks = workerOutboundTasks();
+        this.trySerializeLocal = topologyConf.containsKey(Config.TOPOLOGY_TESTING_ALWAYS_TRY_SERIALIZE)
+                                 && (Boolean) topologyConf.get(Config.TOPOLOGY_TESTING_ALWAYS_TRY_SERIALIZE);
+        if (trySerializeLocal) {
+            LOG.warn("WILL TRY TO SERIALIZE ALL TUPLES (Turn off {} for production", Config.TOPOLOGY_TESTING_ALWAYS_TRY_SERIALIZE);
+        }
+        int maxTaskId = getMaxTaskId(componentToSortedTasks);
+        this.workerTransfer = new WorkerTransfer(this, topologyConf, maxTaskId);
+
+        this.bpTracker = new BackPressureTracker(workerId, taskToExecutorQueue, metricRegistry, taskToComponent);
+        this.deserializedWorkerHooks = deserializeWorkerHooks();
+        LOG.info("Registering IConnectionCallbacks for {}:{}", assignmentId, port);
+        IConnectionCallback cb = new DeserializingConnectionCallback(topologyConf,
+            getWorkerTopologyContext(),
+            this::transferLocalBatch);
+        Supplier<Object> newConnectionResponse = () -> {
+            BackPressureStatus bpStatus = bpTracker.getCurrStatus();
+            LOG.info("Sending BackPressure status to new client. BPStatus: {}", bpStatus);
+            return bpStatus;
+        };
+        this.receiver = this.mqContext.bind(topologyId, port, cb, newConnectionResponse);
+    }
+
+}

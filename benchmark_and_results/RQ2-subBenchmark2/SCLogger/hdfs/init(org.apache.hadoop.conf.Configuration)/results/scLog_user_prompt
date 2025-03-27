@@ -1,0 +1,193 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> public static Collection<InMemoryAliasMapProtocol> init(Configuration conf) {
+<Line#1> Collection<InMemoryAliasMapProtocol> aliasMaps = new ArrayList<>();
+<Line#2> // Try to connect to all configured nameservices as it is not known which
+<Line#3> // nameservice supports the AliasMap.
+<Line#4> for (String nsId : getNameServiceIds(conf)) {
+<Line#5> try {
+<Line#6> URI namenodeURI = null;
+<Line#7> Configuration newConf = new Configuration(conf);
+<Line#8> if (HAUtil.isHAEnabled(conf, nsId)) {
+<Line#9> // set the failover-proxy provider if HA is enabled.
+<Line#10> newConf.setClass(
+<Line#11> addKeySuffixes(PROXY_PROVIDER_KEY_PREFIX, nsId),
+<Line#12> InMemoryAliasMapFailoverProxyProvider.class,
+<Line#13> AbstractNNFailoverProxyProvider.class);
+<Line#14> namenodeURI = new URI(HdfsConstants.HDFS_URI_SCHEME + "://" + nsId);
+<Line#15> } else {
+<Line#16> String key =
+<Line#17> addKeySuffixes(DFS_PROVIDED_ALIASMAP_INMEMORY_RPC_ADDRESS, nsId);
+<Line#18> String addr = conf.get(key);
+<Line#19> if (addr != null) {
+<Line#20> namenodeURI = createUri(HdfsConstants.HDFS_URI_SCHEME,
+<Line#21> NetUtils.createSocketAddr(addr));
+<Line#22> }
+<Line#23> }
+<Line#24> if (namenodeURI != null) {
+<Line#25> aliasMaps.add(NameNodeProxies
+<Line#26> .createProxy(newConf, namenodeURI, InMemoryAliasMapProtocol.class)
+<Line#27> .getProxy());
+<Line#28> }
+<Line#29> } catch (IOException | URISyntaxException e) {
+<Line#30> LOG.warn("Exception in connecting to InMemoryAliasMap for nameservice "
+<Line#31> + "{}: {}", nsId, e);
+<Line#32> }
+<Line#33> }
+<Line#34> // if a separate AliasMap is configured using
+<Line#35> // DFS_PROVIDED_ALIASMAP_INMEMORY_RPC_ADDRESS, try to connect it.
+<Line#36> if (conf.get(DFS_PROVIDED_ALIASMAP_INMEMORY_RPC_ADDRESS) != null) {
+<Line#37> URI uri = createUri("hdfs", NetUtils.createSocketAddr(
+<Line#38> conf.get(DFS_PROVIDED_ALIASMAP_INMEMORY_RPC_ADDRESS)));
+<Line#39> try {
+<Line#40> aliasMaps.add(NameNodeProxies
+<Line#41> .createProxy(conf, uri, InMemoryAliasMapProtocol.class).getProxy());
+<Line#42> LOG.info("Connected to InMemoryAliasMap at {}", uri);
+<Line#43> } catch (IOException e) {
+<Line#44> LOG.warn("Exception in connecting to InMemoryAliasMap at {}: {}", uri,
+<Line#45> e);
+<Line#46> }
+<Line#47> }
+<Line#48> return aliasMaps;
+<Line#49> }
+
+Related Context:
+Method A:
+<Line#0> /** 
+<Line#1>  * Concatenate list of suffix strings '.' separated 
+<Line#2>  */
+<Line#3> static String concatSuffixes(String... suffixes){
+<Line#4>   if (suffixes == null) {
+<Line#5>     return null;
+<Line#6>   }
+<Line#7>   return Joiner.on(".").skipNulls().join(suffixes);
+<Line#8> }
+<Line#9> 
+Method B:
+<Line#0> /** 
+<Line#1>  * Create an URI from scheme and address. 
+<Line#2>  */
+<Line#3> public static URI createUri(String scheme,InetSocketAddress address){
+<Line#4>   return createUri(scheme,address.getHostName(),address.getPort());
+<Line#5> }
+<Line#6> 
+
+Relevant Logging Patterns:
+Example 1:
+File: hdfs__breakHardlinks-183__.json
+Code:
+<Line#1>{
+<Line#2>  final FileIoProvider fileIoProvider=getFileIoProvider();
+<Line#3>  final File tmpFile=DatanodeUtil.createFileWithExistsCheck(getVolume(),b,DatanodeUtil.getUnlinkTmpFile(file),fileIoProvider);
+<Line#4>  try {
+<Line#5>    try (FileInputStream in=fileIoProvider.getFileInputStream(getVolume(),file)){
+<Line#6>      try (FileOutputStream out=fileIoProvider.getFileOutputStream(getVolume(),tmpFile)){
+<Line#7>        IOUtils.copyBytes(in,out,16 * 1024);
+<Line#8>      }
+<Line#9>     }
+<Line#10>     if (file.length() != tmpFile.length()) {
+<Line#11>      throw new IOException("Copy of file " + file + " size "+ file.length()+ " into file "+ tmpFile+ " resulted in a size of "+ tmpFile.length());
+<Line#12>    }
+<Line#13>    fileIoProvider.replaceFile(getVolume(),tmpFile,file);
+<Line#14>  }
+<Line#15> catch (  IOException e) {
+<Line#16>    if (!fileIoProvider.delete(getVolume(),tmpFile)) {
+<Line#17>      DataNode.LOG.info("detachFile failed to delete temporary file " + tmpFile);
+<Line#18>    }
+<Line#19>    throw e;
+<Line#20>  }
+<Line#21>}
+Log: <Line#17>:# DataNode.LOG.info("detachFile failed to delete temporary file " + tmpFile):#
+
+Example 2:
+File: hdfs__cancelDelegationToken-766__.json
+Code:
+<Line#1>{
+<Line#2>  LOG.info("Cancelling " + DelegationTokenIdentifier.stringifyToken(token));
+<Line#3>  try {
+<Line#4>    token.cancel(conf);
+<Line#5>  }
+<Line#6> catch (  InterruptedException ie) {
+<Line#7>    throw new RuntimeException("caught interrupted",ie);
+<Line#8>  }
+<Line#9>catch (  RemoteException re) {
+<Line#10>    throw re.unwrapRemoteException(InvalidToken.class,AccessControlException.class);
+<Line#11>  }
+<Line#12>}
+Log: <Line#2>:# LOG.info("Cancelling " + DelegationTokenIdentifier.stringifyToken(token)):#
+
+Example 3:
+File: hdfs__verifyChunks-484__.json
+Code:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    clientChecksum.verifyChunkedSums(dataBuf,checksumBuf,clientname,0);
+<Line#4>  }
+<Line#5> catch (  ChecksumException ce) {
+<Line#6>    PacketHeader header=packetReceiver.getHeader();
+<Line#7>    String specificOffset="specific offsets are:" + " offsetInBlock = " + header.getOffsetInBlock() + " offsetInPacket = "+ ce.getPos();
+<Line#8>    LOG.warn("Checksum error in block " + block + " from "+ inAddr+ ", "+ specificOffset,ce);
+<Line#9>    if (srcDataNode != null && isDatanode) {
+<Line#10>      try {
+<Line#11>        LOG.info("report corrupt " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#12>        datanode.reportRemoteBadBlock(srcDataNode,block);
+<Line#13>      }
+<Line#14> catch (      IOException e) {
+<Line#15>        LOG.warn("Failed to report bad " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#16>      }
+<Line#17>    }
+<Line#18>    throw new IOException("Unexpected checksum mismatch while writing " + block + " from "+ inAddr);
+<Line#19>  }
+<Line#20>}
+Log: <Line#8>:# LOG.warn("Checksum error in block " + block + " from "+ inAddr+ ", "+ specificOffset,ce):#
+
+Example 4:
+File: hdfs__verifyChunks-484__.json
+Code:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    clientChecksum.verifyChunkedSums(dataBuf,checksumBuf,clientname,0);
+<Line#4>  }
+<Line#5> catch (  ChecksumException ce) {
+<Line#6>    PacketHeader header=packetReceiver.getHeader();
+<Line#7>    String specificOffset="specific offsets are:" + " offsetInBlock = " + header.getOffsetInBlock() + " offsetInPacket = "+ ce.getPos();
+<Line#8>    LOG.warn("Checksum error in block " + block + " from "+ inAddr+ ", "+ specificOffset,ce);
+<Line#9>    if (srcDataNode != null && isDatanode) {
+<Line#10>      try {
+<Line#11>        LOG.info("report corrupt " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#12>        datanode.reportRemoteBadBlock(srcDataNode,block);
+<Line#13>      }
+<Line#14> catch (      IOException e) {
+<Line#15>        LOG.warn("Failed to report bad " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#16>      }
+<Line#17>    }
+<Line#18>    throw new IOException("Unexpected checksum mismatch while writing " + block + " from "+ inAddr);
+<Line#19>  }
+<Line#20>}
+Log: <Line#11>:# LOG.info("report corrupt " + block + " from datanode "+ srcDataNode+ " to namenode"):#
+
+Example 5:
+File: hdfs__verifyChunks-484__.json
+Code:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    clientChecksum.verifyChunkedSums(dataBuf,checksumBuf,clientname,0);
+<Line#4>  }
+<Line#5> catch (  ChecksumException ce) {
+<Line#6>    PacketHeader header=packetReceiver.getHeader();
+<Line#7>    String specificOffset="specific offsets are:" + " offsetInBlock = " + header.getOffsetInBlock() + " offsetInPacket = "+ ce.getPos();
+<Line#8>    LOG.warn("Checksum error in block " + block + " from "+ inAddr+ ", "+ specificOffset,ce);
+<Line#9>    if (srcDataNode != null && isDatanode) {
+<Line#10>      try {
+<Line#11>        LOG.info("report corrupt " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#12>        datanode.reportRemoteBadBlock(srcDataNode,block);
+<Line#13>      }
+<Line#14> catch (      IOException e) {
+<Line#15>        LOG.warn("Failed to report bad " + block + " from datanode "+ srcDataNode+ " to namenode");
+<Line#16>      }
+<Line#17>    }
+<Line#18>    throw new IOException("Unexpected checksum mismatch while writing " + block + " from "+ inAddr);
+<Line#19>  }
+<Line#20>}
+Log: <Line#15>:# LOG.warn("Failed to report bad " + block + " from datanode "+ srcDataNode+ " to namenode"):#

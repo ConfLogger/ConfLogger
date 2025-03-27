@@ -1,0 +1,12 @@
+<Line#7>:# LOG.debug("Entering excludeIncompatibleCredentialProviders method with Configuration: " + config + " and FileSystemClass: " + fileSystemClass);#
+<Line#11>:# LOG.debug("Provider path is null, returning original configuration");#
+<Line#14>:# LOG.debug("Creating new provider path");#
+<Line#18>:# LOG.debug("Processing provider: " + provider);#
+<Line#24>:# LOG.debug("IOException caught, appending provider to newProviderPath");#
+<Line#34>:# LOG.debug("FileSystemClass is assignable from clazz, skipping provider");#
+<Line#40>:# LOG.debug("Appending provider to newProviderPath");#
+<Line#44>:# LOG.warn("Credential Provider URI is invalid: " + provider, e);#
+<Line#49>:# LOG.debug("Effective path equals provider path, returning original configuration");#
+<Line#54>:# LOG.debug("Effective path is empty, unsetting CREDENTIAL_PROVIDER_PATH in configuration");#
+<Line#57>:# LOG.debug("Setting CREDENTIAL_PROVIDER_PATH in configuration to effective path");#
+<Line#60>:# LOG.debug("Returning modified configuration");#

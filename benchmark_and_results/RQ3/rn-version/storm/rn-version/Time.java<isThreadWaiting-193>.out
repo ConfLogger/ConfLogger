@@ -1,0 +1,32 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Time.java	methodSinagture:	org.apache.storm.utils.Time.isThreadWaiting(Ljava/lang/Thread;)Z	methodLines:	193:198
+blockLines:	198:-1
+paras:	null
+TaintedStat:	NORMAL isThreadWaiting:conditional branch(eq, to iindex=29) 10,13 Node: < Application, Lorg/apache/storm/utils/Time, isThreadWaiting(Ljava/lang/Thread;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/Time, isThreadWaiting(Ljava/lang/Thread;)Z > Context: Everywhere[11]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,1 @23 exception:8
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/Time, isThreadWaiting(Ljava/lang/Thread;)Z > Context: Everywhere[11]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,1 @23 exception:8
+NORMAL isThreadWaiting:10 = checkcast <Application,Ljava/util/concurrent/atomic/AtomicLong>9 <Application,Ljava/util/concurrent/atomic/AtomicLong> Node: < Application, Lorg/apache/storm/utils/Time, isThreadWaiting(Ljava/lang/Thread;)Z > Context: Everywhere
+NORMAL isThreadWaiting:conditional branch(eq, to iindex=29) 10,13 Node: < Application, Lorg/apache/storm/utils/Time, isThreadWaiting(Ljava/lang/Thread;)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static boolean isThreadWaiting(Thread t) {
+        if (!SIMULATING.get()) {
+            throw new IllegalStateException("Must be in simulation mode");
+        }
+        AtomicLong time = THREAD_SLEEP_TIMES_NANOS.get(t);
+        return !t.isAlive() || time != null && nanoTime() < time.longValue();
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/StormTimer, isTimerWaiting()Z > Context: Everywhere, blocks=[BB[SSA:2..2]2 - org.apache.storm.StormTimer.isTimerWaiting()Z, BB[SSA:0..1]1 - org.apache.storm.StormTimer.isTimerWaiting()Z, BB[SSA:3..3]3 - org.apache.storm.StormTimer.isTimerWaiting()Z, BB[SSA:-1..-2]4 - org.apache.storm.StormTimer.isTimerWaiting()Z], numberOfBasicBlocks=4, firstLineNumber=180, lastLineNumber=180, firstMethodNumber=179, lastMethodNumber=180, isFirstLineValid=true, methodSrcCode=
+    public boolean isTimerWaiting() {
+        return Time.isThreadWaiting(task);
+    }
+}

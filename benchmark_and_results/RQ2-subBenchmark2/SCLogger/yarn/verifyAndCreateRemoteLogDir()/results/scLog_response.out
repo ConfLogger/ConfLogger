@@ -1,0 +1,13 @@
+<Line#2>:# LOG.info("Initializing FileSystem instance for remote operations.");:#
+<Line#7>:# LOG.info("Successfully obtained Remote FileSystem instance.");:#
+<Line#9>:# LOG.info("Checking if remote root log directory exists.");:#
+<Line#16>:# LOG.warn("Remote root log directory does not exist.");:#
+<Line#20>:# LOG.error("Failed to check permissions for remote root log directory.", e);:#
+<Line#27>:# LOG.warn("Attempting to create remote root log directory.");:#
+<Line#39>:# LOG.info("Unable to set permissions for configured filesystem. Falling back to default permissions.");:#
+<Line#50>:# LOG.warn("No primary group found. Defaulting to HDFS superuser.");:#
+<Line#59>:# LOG.debug("Group of remote root log directory set to " + primaryGroupName);:#
+<Line#69>:# LOG.info("File System does not support setting user/group. Falling back to default user/group.");:#
+<Line#75>:# LOG.error("Failed to create remoteLogDir.", e);:#
+<Line#86>:# LOG.info("Unable to set permissions for configured filesystem. Falling back to default permissions.");:#
+<Line#90>:# LOG.warn("Failed to check if FileSystem supports permissions on remoteLogDir.", e);:#

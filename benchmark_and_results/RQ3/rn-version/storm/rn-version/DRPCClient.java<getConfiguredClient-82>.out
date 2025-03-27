@@ -1,0 +1,54 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	DRPCClient.java	methodSinagture:	org.apache.storm.utils.DRPCClient.getConfiguredClient(Ljava/util/Map;)Lorg/apache/storm/utils/DRPCClient;	methodLines:	82:114
+blockLines:	95:-1
+paras:	null
+TaintedStat:	NORMAL getConfiguredClient:conditional branch(ne, to iindex=39) 24,4 Node: < Application, Lorg/apache/storm/utils/DRPCClient, getConfiguredClient(Ljava/util/Map;)Lorg/apache/storm/utils/DRPCClient; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/DRPCClient, getConfiguredClient(Ljava/util/Map;)Lorg/apache/storm/utils/DRPCClient; > Context: Everywhere[28]23 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 6,21 @61 exception:22
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/DRPCClient, getConfiguredClient(Ljava/util/Map;)Lorg/apache/storm/utils/DRPCClient; > Context: Everywhere[28]23 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 6,21 @61 exception:22
+NORMAL getConfiguredClient:24 = checkcast <Application,Ljava/util/List>23 <Application,Ljava/util/List> Node: < Application, Lorg/apache/storm/utils/DRPCClient, getConfiguredClient(Ljava/util/Map;)Lorg/apache/storm/utils/DRPCClient; > Context: Everywhere
+NORMAL getConfiguredClient:conditional branch(ne, to iindex=39) 24,4 Node: < Application, Lorg/apache/storm/utils/DRPCClient, getConfiguredClient(Ljava/util/Map;)Lorg/apache/storm/utils/DRPCClient; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static DRPCClient getConfiguredClient(Map<String, Object> conf) throws TTransportException {
+        DistributedRPC.Iface override = localOverrideClient;
+        if (override != null) {
+            return new DRPCClient(override);
+        }
+
+        //Extend the config with defaults and the command line
+        Map<String, Object> fullConf = Utils.readStormConfig();
+        fullConf.putAll(Utils.readCommandLineOpts());
+        fullConf.putAll(conf);
+
+        int port = ObjectReader.getInt(fullConf.get(Config.DRPC_PORT), 3772);
+        List<String> servers = (List<String>) fullConf.get(Config.DRPC_SERVERS);
+        if (servers == null) {
+            throw new IllegalStateException(Config.DRPC_SERVERS + " is not set, could not find any DRPC servers to connect to.");
+        }
+        Collections.shuffle(servers);
+        RuntimeException excpt = null;
+        for (String host : servers) {
+            try {
+                return new DRPCClient(fullConf, host, port);
+            } catch (RuntimeException e) {
+                if (Utils.exceptionCauseIsInstanceOf(ConnectException.class, e)) {
+                    excpt = e;
+                } else {
+                    throw e;
+                }
+            }
+        }
+        if (excpt != null) {
+            throw excpt;
+        }
+        throw new IllegalStateException("It appears that no drpc servers were configured.");
+    }
+
+
+====================ctx:=======================

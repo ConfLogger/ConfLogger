@@ -1,0 +1,27 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Fields.java	methodSinagture:	org.apache.storm.tuple.Fields.fieldIndex(Ljava/lang/String;)I	methodLines:	95:100
+blockLines:	97:-1
+paras:	null
+TaintedStat:	NORMAL fieldIndex:conditional branch(ne, to iindex=15) 7,8 Node: < Application, Lorg/apache/storm/tuple/Fields, fieldIndex(Ljava/lang/String;)I > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/tuple/Fields, fieldIndex(Ljava/lang/String;)I > Context: Everywhere[3]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,2 @5 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/tuple/Fields, fieldIndex(Ljava/lang/String;)I > Context: Everywhere[3]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,2 @5 exception:5
+NORMAL fieldIndex:7 = checkcast <Application,Ljava/lang/Integer>6 <Application,Ljava/lang/Integer> Node: < Application, Lorg/apache/storm/tuple/Fields, fieldIndex(Ljava/lang/String;)I > Context: Everywhere
+NORMAL fieldIndex:conditional branch(ne, to iindex=15) 7,8 Node: < Application, Lorg/apache/storm/tuple/Fields, fieldIndex(Ljava/lang/String;)I > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public int fieldIndex(String field) {
+        Integer ret = index.get(field);
+        if (ret == null) {
+            throw new IllegalArgumentException(field + " does not exist");
+        }
+        return ret;
+    }
+
+
+====================ctx:=======================

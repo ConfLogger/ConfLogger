@@ -1,0 +1,52 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	FsPermission.java	methodSinagture:	org.apache.hadoop.fs.permission.FsPermission.fromShort(S)V	methodLines:	174:177
+blockLines:	176:-1
+paras:	null
+TaintedStat:	NORMAL fromShort:conditional branch(ne, to iindex=31) 19,18 Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, fromShort(S)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, getUMask(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/permission/FsPermission; > Context: Everywhere[7]7 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 1,5 @10 exception:6
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, getUMask(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/permission/FsPermission; > Context: Everywhere[7]7 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, get(Ljava/lang/String;)Ljava/lang/String; > 1,5 @10 exception:6
+NORMAL getUMask:conditional branch(eq, to iindex=18) 7,4 Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, getUMask(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/permission/FsPermission; > Context: Everywhere
+PHI Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, getUMask(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/permission/FsPermission; > Context: Everywhere:39 = phi  3,11
+PHI Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, getUMask(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/permission/FsPermission; > Context: Everywhere:40 = phi  3,39
+NORMAL getUMask:42 = conversion(S) 40 Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, getUMask(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/permission/FsPermission; > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, getUMask(Lorg/apache/hadoop/conf/Configuration;)Lorg/apache/hadoop/fs/permission/FsPermission; > Context: Everywhere[55]invokespecial < Application, Lorg/apache/hadoop/fs/permission/FsPermission, <init>(S)V > 41,42 @112 exception:43 v42
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, <init>(S)V > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, <init>(S)V > Context: Everywhere[17]invokevirtual < Application, Lorg/apache/hadoop/fs/permission/FsPermission, fromShort(S)V > 1,2 @29 exception:9 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, fromShort(S)V > Context: Everywhere v2
+NORMAL fromShort:17 = binaryop(USHR) 2 , 16 Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, fromShort(S)V > Context: Everywhere
+NORMAL fromShort:19 = binaryop(and) 17 , 18 Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, fromShort(S)V > Context: Everywhere
+NORMAL fromShort:conditional branch(ne, to iindex=31) 19,18 Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, fromShort(S)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  public void fromShort(short n) {
+    FsAction[] v = FSACTION_VALUES;
+    set(v[(n >>> 6) & 7], v[(n >>> 3) & 7], v[n & 7], (((n >>> 9) & 1) == 1) );
+  }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, read(Ljava/io/DataInput;)Lorg/apache/hadoop/fs/permission/FsPermission; > Context: Everywhere, blocks=[BB[SSA:7..7]4 - org.apache.hadoop.fs.permission.FsPermission.read(Ljava/io/DataInput;)Lorg/apache/hadoop/fs/permission/FsPermission;, BB[SSA:3..6]3 - org.apache.hadoop.fs.permission.FsPermission.read(Ljava/io/DataInput;)Lorg/apache/hadoop/fs/permission/FsPermission;, BB[SSA:8..9]5 - org.apache.hadoop.fs.permission.FsPermission.read(Ljava/io/DataInput;)Lorg/apache/hadoop/fs/permission/FsPermission;, BB[SSA:-1..-2]6 - org.apache.hadoop.fs.permission.FsPermission.read(Ljava/io/DataInput;)Lorg/apache/hadoop/fs/permission/FsPermission;], numberOfBasicBlocks=4, firstLineNumber=215, lastLineNumber=217, firstMethodNumber=214, lastMethodNumber=217, isFirstLineValid=true, methodSrcCode=
+  public static FsPermission read(DataInput in) throws IOException {
+    FsPermission p = new FsPermission();
+    p.fromShort(in.readShort());
+    return p;
+  }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, readFields(Ljava/io/DataInput;)V > Context: Everywhere, blocks=[BB[SSA:3..3]2 - org.apache.hadoop.fs.permission.FsPermission.readFields(Ljava/io/DataInput;)V, BB[SSA:0..2]1 - org.apache.hadoop.fs.permission.FsPermission.readFields(Ljava/io/DataInput;)V, BB[SSA:4..4]3 - org.apache.hadoop.fs.permission.FsPermission.readFields(Ljava/io/DataInput;)V, BB[SSA:-1..-2]4 - org.apache.hadoop.fs.permission.FsPermission.readFields(Ljava/io/DataInput;)V], numberOfBasicBlocks=4, firstLineNumber=188, lastLineNumber=189, firstMethodNumber=187, lastMethodNumber=189, isFirstLineValid=true, methodSrcCode=
+  public void readFields(DataInput in) throws IOException {
+    fromShort(in.readShort());
+  }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/hadoop/fs/permission/FsPermission, <init>(S)V > Context: Everywhere, blocks=[BB[SSA:15..17]7 - org.apache.hadoop.fs.permission.FsPermission.<init>(S)V, BB[SSA:14..14]6 - org.apache.hadoop.fs.permission.FsPermission.<init>(S)V, BB[SSA:18..18]8 - org.apache.hadoop.fs.permission.FsPermission.<init>(S)V, BB[SSA:-1..-2]9 - org.apache.hadoop.fs.permission.FsPermission.<init>(S)V], numberOfBasicBlocks=4, firstLineNumber=94, lastLineNumber=95, firstMethodNumber=94, lastMethodNumber=95, isFirstLineValid=false, methodSrcCode=
+   */
+  public FsPermission(short mode) { fromShort(mode); }
+
+}

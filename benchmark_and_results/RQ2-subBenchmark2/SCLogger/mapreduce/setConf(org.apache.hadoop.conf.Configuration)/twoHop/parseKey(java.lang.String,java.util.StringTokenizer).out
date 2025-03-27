@@ -1,0 +1,88 @@
+private KeyDescription parseKey(String arg,StringTokenizer args){
+  String keyArgs=null;
+  if (arg.length() == 2) {
+    if (args.hasMoreTokens()) {
+      keyArgs=args.nextToken();
+    }
+  }
+ else {
+    keyArgs=arg.substring(2);
+  }
+  if (keyArgs == null || keyArgs.length() == 0) {
+    return null;
+  }
+  StringTokenizer st=new StringTokenizer(keyArgs,"nr.,",true);
+  KeyDescription key=new KeyDescription();
+  String token;
+  if (st.hasMoreTokens()) {
+    token=st.nextToken();
+    key.beginFieldIdx=Integer.parseInt(token);
+  }
+  if (st.hasMoreTokens()) {
+    token=st.nextToken();
+    if (token.equals(".")) {
+      token=st.nextToken();
+      key.beginChar=Integer.parseInt(token);
+      if (st.hasMoreTokens()) {
+        token=st.nextToken();
+      }
+ else {
+        return key;
+      }
+    }
+    do {
+      if (token.equals("n")) {
+        key.numeric=true;
+      }
+ else       if (token.equals("r")) {
+        key.reverse=true;
+      }
+ else       break;
+      if (st.hasMoreTokens()) {
+        token=st.nextToken();
+      }
+ else {
+        return key;
+      }
+    }
+ while (true);
+    if (token.equals(",")) {
+      token=st.nextToken();
+      key.endFieldIdx=Integer.parseInt(token);
+      if (st.hasMoreTokens()) {
+        token=st.nextToken();
+        if (token.equals(".")) {
+          token=st.nextToken();
+          key.endChar=Integer.parseInt(token);
+          if (st.hasMoreTokens()) {
+            token=st.nextToken();
+          }
+ else {
+            return key;
+          }
+        }
+        do {
+          if (token.equals("n")) {
+            key.numeric=true;
+          }
+ else           if (token.equals("r")) {
+            key.reverse=true;
+          }
+ else {
+            throw new IllegalArgumentException("Invalid -k argument. " + "Must be of the form -k pos1,[pos2], where pos is of the form " + "f[.c]nr");
+          }
+          if (st.hasMoreTokens()) {
+            token=st.nextToken();
+          }
+ else {
+            break;
+          }
+        }
+ while (true);
+      }
+      return key;
+    }
+    throw new IllegalArgumentException("Invalid -k argument. " + "Must be of the form -k pos1,[pos2], where pos is of the form " + "f[.c]nr");
+  }
+  return key;
+}

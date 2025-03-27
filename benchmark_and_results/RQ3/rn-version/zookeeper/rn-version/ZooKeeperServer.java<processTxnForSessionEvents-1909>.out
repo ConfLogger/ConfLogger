@@ -1,0 +1,99 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ZooKeeperServer.java	methodSinagture:	org.apache.zookeeper.server.ZooKeeperServer.processTxnForSessionEvents(Lorg/apache/zookeeper/server/Request;Lorg/apache/zookeeper/txn/TxnHeader;Lorg/apache/jute/Record;)V	methodLines:	1909:1923
+blockLines:	1910:-1
+paras:	null
+TaintedStat:	NORMAL processTxnForSessionEvents:conditional branch(ne, to iindex=6) 2,6 Node: < Application, Lorg/apache/zookeeper/server/ZooKeeperServer, processTxnForSessionEvents(Lorg/apache/zookeeper/server/Request;Lorg/apache/zookeeper/txn/TxnHeader;Lorg/apache/jute/Record;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/CommitProcessor, run()V > Context: Everywhere[265]157 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 152,155 @544 exception:156
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/CommitProcessor, run()V > Context: Everywhere[265]157 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 152,155 @544 exception:156
+NORMAL run:158 = checkcast <Application,Ljava/util/Deque>157 <Application,Ljava/util/Deque> Node: < Application, Lorg/apache/zookeeper/server/quorum/CommitProcessor, run()V > Context: Everywhere
+NORMAL run:conditional branch(eq, to iindex=372) 158,58 Node: < Application, Lorg/apache/zookeeper/server/quorum/CommitProcessor, run()V > Context: Everywhere
+NORMAL run:conditional branch(ne, to iindex=372) 168,3 Node: < Application, Lorg/apache/zookeeper/server/quorum/CommitProcessor, run()V > Context: Everywhere
+NORMAL run:conditional branch(ne, to iindex=290) 173,3 Node: < Application, Lorg/apache/zookeeper/server/quorum/CommitProcessor, run()V > Context: Everywhere
+PHI Node: < Application, Lorg/apache/zookeeper/server/quorum/CommitProcessor, run()V > Context: Everywhere:215 = phi  126,126,126,183
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/CommitProcessor, run()V > Context: Everywhere[361]invokespecial < Application, Lorg/apache/zookeeper/server/quorum/CommitProcessor, processWrite(Lorg/apache/zookeeper/server/Request;)V > 1,215 @773 exception:221 v215
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/server/quorum/CommitProcessor, processWrite(Lorg/apache/zookeeper/server/Request;)V > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/CommitProcessor, processWrite(Lorg/apache/zookeeper/server/Request;)V > Context: Everywhere[8]invokeinterface < Application, Lorg/apache/zookeeper/server/RequestProcessor, processRequest(Lorg/apache/zookeeper/server/Request;)V > 8,2 @14 exception:9 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/server/FinalRequestProcessor, processRequest(Lorg/apache/zookeeper/server/Request;)V > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/server/FinalRequestProcessor, processRequest(Lorg/apache/zookeeper/server/Request;)V > Context: Everywhere[30]24 = invokespecial < Application, Lorg/apache/zookeeper/server/FinalRequestProcessor, applyRequest(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult; > 1,2 @62 exception:23 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/server/FinalRequestProcessor, applyRequest(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult; > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/server/FinalRequestProcessor, applyRequest(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult; > Context: Everywhere[3]6 = invokevirtual < Application, Lorg/apache/zookeeper/server/ZooKeeperServer, processTxn(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult; > 4,2 @5 exception:5 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/server/ZooKeeperServer, processTxn(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult; > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ZooKeeperServer, processTxn(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult; > Context: Everywhere[8]invokespecial < Application, Lorg/apache/zookeeper/server/ZooKeeperServer, processTxnForSessionEvents(Lorg/apache/zookeeper/server/Request;Lorg/apache/zookeeper/txn/TxnHeader;Lorg/apache/jute/Record;)V > 1,2,5,7 @12 exception:8 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/server/ZooKeeperServer, processTxnForSessionEvents(Lorg/apache/zookeeper/server/Request;Lorg/apache/zookeeper/txn/TxnHeader;Lorg/apache/jute/Record;)V > Context: Everywhere v2
+NORMAL processTxnForSessionEvents:conditional branch(ne, to iindex=6) 2,6 Node: < Application, Lorg/apache/zookeeper/server/ZooKeeperServer, processTxnForSessionEvents(Lorg/apache/zookeeper/server/Request;Lorg/apache/zookeeper/txn/TxnHeader;Lorg/apache/jute/Record;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private void processTxnForSessionEvents(Request request, TxnHeader hdr, Record txn) {
+        int opCode = (request == null) ? hdr.getType() : request.type;
+        long sessionId = (request == null) ? hdr.getClientId() : request.sessionId;
+
+        if (opCode == OpCode.createSession) {
+            if (hdr != null && txn instanceof CreateSessionTxn) {
+                CreateSessionTxn cst = (CreateSessionTxn) txn;
+                sessionTracker.commitSession(sessionId, cst.getTimeOut());
+            } else if (request == null || !request.isLocalSession()) {
+                LOG.warn("*****>>>>> Got {} {}",  txn.getClass(), txn.toString());
+            }
+        } else if (opCode == OpCode.closeSession) {
+            sessionTracker.removeSession(sessionId);
+        }
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/ZooKeeperServer, processTxn(Lorg/apache/zookeeper/txn/TxnHeader;Lorg/apache/jute/Record;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult; > Context: Everywhere, blocks=[BB[SSA:0..4]1 - org.apache.zookeeper.server.ZooKeeperServer.processTxn(Lorg/apache/zookeeper/txn/TxnHeader;Lorg/apache/jute/Record;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult;, BB[SSA:-1..-2]0 - org.apache.zookeeper.server.ZooKeeperServer.processTxn(Lorg/apache/zookeeper/txn/TxnHeader;Lorg/apache/jute/Record;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult;, BB[SSA:5..9]2 - org.apache.zookeeper.server.ZooKeeperServer.processTxn(Lorg/apache/zookeeper/txn/TxnHeader;Lorg/apache/jute/Record;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult;, BB[SSA:-1..-2]4 - org.apache.zookeeper.server.ZooKeeperServer.processTxn(Lorg/apache/zookeeper/txn/TxnHeader;Lorg/apache/jute/Record;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult;], numberOfBasicBlocks=4, firstLineNumber=1861, lastLineNumber=1863, firstMethodNumber=1861, lastMethodNumber=1863, isFirstLineValid=false, methodSrcCode=
+    public ProcessTxnResult processTxn(TxnHeader hdr, Record txn) {
+        processTxnForSessionEvents(null, hdr, txn);
+        return processTxnInDB(hdr, txn, null);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/ZooKeeperServer, processTxn(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult; > Context: Everywhere, blocks=[BB[SSA:8..8]3 - org.apache.zookeeper.server.ZooKeeperServer.processTxn(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult;, BB[SSA:2..7]2 - org.apache.zookeeper.server.ZooKeeperServer.processTxn(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult;, BB[SSA:9..11]4 - org.apache.zookeeper.server.ZooKeeperServer.processTxn(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult;, BB[SSA:-1..-2]57 - org.apache.zookeeper.server.ZooKeeperServer.processTxn(Lorg/apache/zookeeper/server/Request;)Lorg/apache/zookeeper/server/DataTree$ProcessTxnResult;], numberOfBasicBlocks=4, firstLineNumber=1868, lastLineNumber=1871, firstMethodNumber=1867, lastMethodNumber=1906, isFirstLineValid=true, methodSrcCode=
+    public ProcessTxnResult processTxn(Request request) {
+        TxnHeader hdr = request.getHdr();
+        processTxnForSessionEvents(request, hdr, request.getTxn());
+
+        final boolean writeRequest = (hdr != null);
+        final boolean quorumRequest = request.isQuorum();
+
+        // return fast w/o synchronization when we get a read
+        if (!writeRequest && !quorumRequest) {
+            return new ProcessTxnResult();
+        }
+        synchronized (outstandingChanges) {
+            ProcessTxnResult rc = processTxnInDB(hdr, request.getTxn(), request.getTxnDigest());
+
+            // request.hdr is set for write requests, which are the only ones
+            // that add to outstandingChanges.
+            if (writeRequest) {
+                long zxid = hdr.getZxid();
+                while (!outstandingChanges.isEmpty()
+                        && outstandingChanges.peek().zxid <= zxid) {
+                    ChangeRecord cr = outstandingChanges.remove();
+                    ServerMetrics.getMetrics().OUTSTANDING_CHANGES_REMOVED.add(1);
+                    if (cr.zxid < zxid) {
+                        LOG.warn(
+                            "Zxid outstanding 0x{} is less than current 0x{}",
+                            Long.toHexString(cr.zxid),
+                            Long.toHexString(zxid));
+                    }
+                    if (outstandingChangesForPath.get(cr.path) == cr) {
+                        outstandingChangesForPath.remove(cr.path);
+                    }
+                }
+            }
+
+            // do not add non quorum packets to the queue.
+            if (quorumRequest) {
+                getZKDatabase().addCommittedProposal(request);
+            }
+            return rc;
+        }
+    }
+}

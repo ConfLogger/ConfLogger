@@ -1,0 +1,53 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	QuorumPeerConfig.java	methodSinagture:	org.apache.zookeeper.server.quorum.QuorumPeerConfig.setupClientPort()V	methodLines:	745:766
+blockLines:	750:-1
+paras:	null
+TaintedStat:	NORMAL setupClientPort:conditional branch(eq, to iindex=76) 15,17 Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig, setupClientPort()V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig, setupClientPort()V > Context: Everywhere[13]14 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 9,12 @28 exception:13
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig, setupClientPort()V > Context: Everywhere[13]14 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 9,12 @28 exception:13
+NORMAL setupClientPort:15 = checkcast <Application,Lorg/apache/zookeeper/server/quorum/QuorumPeer$QuorumServer>14 <Application,Lorg/apache/zookeeper/server/quorum/QuorumPeer$QuorumServer> Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig, setupClientPort()V > Context: Everywhere
+NORMAL setupClientPort:conditional branch(eq, to iindex=76) 15,17 Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig, setupClientPort()V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private void setupClientPort() throws ConfigException {
+        if (serverId == UNSET_SERVERID) {
+            return;
+        }
+        QuorumServer qs = quorumVerifier.getAllMembers().get(serverId);
+        if (clientPortAddress != null && qs != null && qs.clientAddr != null) {
+            if ((!clientPortAddress.getAddress().isAnyLocalAddress() && !clientPortAddress.equals(qs.clientAddr)) || (
+                clientPortAddress.getAddress().isAnyLocalAddress()
+                && clientPortAddress.getPort() != qs.clientAddr.getPort())) {
+                throw new ConfigException("client address for this server (id = " + serverId
+                                          + ") in static config file is " + clientPortAddress
+                                          + " is different from client address found in dynamic file: " + qs.clientAddr);
+            }
+        }
+        if (qs != null && qs.clientAddr != null) {
+            clientPortAddress = qs.clientAddr;
+        }
+        if (qs != null && qs.clientAddr == null) {
+            qs.clientAddr = clientPortAddress;
+            qs.isClientAddrFromStatic = true;
+        }
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig, setupQuorumPeerConfig(Ljava/util/Properties;Z)V > Context: Everywhere, blocks=[BB[SSA:12..13]6 - org.apache.zookeeper.server.quorum.QuorumPeerConfig.setupQuorumPeerConfig(Ljava/util/Properties;Z)V, BB[SSA:10..11]5 - org.apache.zookeeper.server.quorum.QuorumPeerConfig.setupQuorumPeerConfig(Ljava/util/Properties;Z)V, BB[SSA:14..15]7 - org.apache.zookeeper.server.quorum.QuorumPeerConfig.setupQuorumPeerConfig(Ljava/util/Properties;Z)V, BB[SSA:-1..-2]10 - org.apache.zookeeper.server.quorum.QuorumPeerConfig.setupQuorumPeerConfig(Ljava/util/Properties;Z)V], numberOfBasicBlocks=4, firstLineNumber=660, lastLineNumber=662, firstMethodNumber=658, lastMethodNumber=664, isFirstLineValid=true, methodSrcCode=
+    void setupQuorumPeerConfig(Properties prop, boolean configBackwardCompatibilityMode) throws IOException, ConfigException {
+        quorumVerifier = parseDynamicConfig(prop, electionAlg, true, configBackwardCompatibilityMode, oraclePath);
+        setupMyId();
+        setupClientPort();
+        setupPeerType();
+        checkValidity();
+    }
+
+}

@@ -1,0 +1,148 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Executor.java	methodSinagture:	org.apache.storm.executor.Executor.metricsTick(Lorg/apache/storm/daemon/Task;Lorg/apache/storm/tuple/TupleImpl;)V	methodLines:	327:361
+blockLines:	332:-1
+paras:	null
+TaintedStat:	NORMAL metricsTick:conditional branch(eq, to iindex=25) 15,16 Node: < Application, Lorg/apache/storm/executor/Executor, metricsTick(Lorg/apache/storm/daemon/Task;Lorg/apache/storm/tuple/TupleImpl;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/executor/Executor, metricsTick(Lorg/apache/storm/daemon/Task;Lorg/apache/storm/tuple/TupleImpl;)V > Context: Everywhere[11]14 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 12,7 @20 exception:13
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/executor/Executor, metricsTick(Lorg/apache/storm/daemon/Task;Lorg/apache/storm/tuple/TupleImpl;)V > Context: Everywhere[11]14 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 12,7 @20 exception:13
+NORMAL metricsTick:15 = checkcast <Application,Ljava/util/Map>14 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/executor/Executor, metricsTick(Lorg/apache/storm/daemon/Task;Lorg/apache/storm/tuple/TupleImpl;)V > Context: Everywhere
+NORMAL metricsTick:conditional branch(eq, to iindex=25) 15,16 Node: < Application, Lorg/apache/storm/executor/Executor, metricsTick(Lorg/apache/storm/daemon/Task;Lorg/apache/storm/tuple/TupleImpl;)V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	Executor.java	methodSinagture:	org.apache.storm.executor.Executor.metricsTick(Lorg/apache/storm/daemon/Task;Lorg/apache/storm/tuple/TupleImpl;)V	methodLines:	327:361
+blockLines:	336:-1
+paras:	null
+TaintedStat:	NORMAL metricsTick:conditional branch(eq, to iindex=73) 22,16 Node: < Application, Lorg/apache/storm/executor/Executor, metricsTick(Lorg/apache/storm/daemon/Task;Lorg/apache/storm/tuple/TupleImpl;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/executor/Executor, metricsTick(Lorg/apache/storm/daemon/Task;Lorg/apache/storm/tuple/TupleImpl;)V > Context: Everywhere[22]20 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 15,18 @45 exception:19
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/executor/Executor, metricsTick(Lorg/apache/storm/daemon/Task;Lorg/apache/storm/tuple/TupleImpl;)V > Context: Everywhere[22]20 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 15,18 @45 exception:19
+NORMAL metricsTick:21 = checkcast <Application,Ljava/util/Map>20 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/executor/Executor, metricsTick(Lorg/apache/storm/daemon/Task;Lorg/apache/storm/tuple/TupleImpl;)V > Context: Everywhere
+PHI Node: < Application, Lorg/apache/storm/executor/Executor, metricsTick(Lorg/apache/storm/daemon/Task;Lorg/apache/storm/tuple/TupleImpl;)V > Context: Everywhere:22 = phi  16,21
+NORMAL metricsTick:conditional branch(eq, to iindex=73) 22,16 Node: < Application, Lorg/apache/storm/executor/Executor, metricsTick(Lorg/apache/storm/daemon/Task;Lorg/apache/storm/tuple/TupleImpl;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+        try {
+            Integer interval = tuple.getInteger(0);
+            int taskId = task.getTaskId();
+            Map<Integer, Map<String, IMetric>> taskToMetricToRegistry = intervalToTaskToMetricToRegistry.get(interval);
+            Map<String, IMetric> nameToRegistry = null;
+            if (taskToMetricToRegistry != null) {
+                nameToRegistry = taskToMetricToRegistry.get(taskId);
+            }
+            List<IMetricsConsumer.DataPoint> dataPoints = new ArrayList<>();
+            if (nameToRegistry != null) {
+                for (Map.Entry<String, IMetric> entry : nameToRegistry.entrySet()) {
+                    String name = entry.getKey();
+                    IMetric metric = entry.getValue();
+                    Object value = metric.getValueAndReset();
+                    Map<String, String> dimensions = metric.getDimensions();
+                    if (value != null) {
+                        IMetricsConsumer.DataPoint dataPoint = new IMetricsConsumer.DataPoint(name, value, dimensions);
+                        dataPoints.add(dataPoint);
+                    }
+                }
+            }
+            addV2Metrics(taskId, dataPoints, interval);
+
+            if (!dataPoints.isEmpty()) {
+                IMetricsConsumer.TaskInfo taskInfo = new IMetricsConsumer.TaskInfo(
+                        hostname, workerTopologyContext.getThisWorkerPort(),
+                        componentId, taskId, Time.currentTimeSecs(), interval);
+                task.sendUnanchored(Constants.METRICS_STREAM_ID,
+                        new Values(taskInfo, dataPoints), executorTransfer, pendingEmits);
+                executorTransfer.flush();
+            }
+        } catch (Exception e) {
+            throw Utils.wrapInRuntime(e);
+        }
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/executor/bolt/BoltExecutor, tupleActionFn(ILorg/apache/storm/tuple/TupleImpl;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=195, lastMethodNumber=232, isFirstLineValid=true, methodSrcCode=
+    public void tupleActionFn(int taskId, TupleImpl tuple) throws Exception {
+        String streamId = tuple.getSourceStreamId();
+        if (Constants.SYSTEM_FLUSH_STREAM_ID.equals(streamId)) {
+            outputCollector.flush();
+        } else if (Constants.METRICS_TICK_STREAM_ID.equals(streamId)) {
+            metricsTick(idToTask.get(taskId - idToTaskBase), tuple);
+        } else {
+            IBolt boltObject = (IBolt) idToTask.get(taskId - idToTaskBase).getTaskObject();
+            boolean isSampled = sampler.getAsBoolean();
+            boolean isExecuteSampler = executeSampler.getAsBoolean();
+            Long now = (isSampled || isExecuteSampler) ? Time.currentTimeMillis() : null;
+            if (isSampled) {
+                tuple.setProcessSampleStartTime(now);
+            }
+            if (isExecuteSampler) {
+                tuple.setExecuteSampleStartTime(now);
+            }
+            boltObject.execute(tuple);
+
+            Long ms = tuple.getExecuteSampleStartTime();
+            long delta = (ms != null) ? Time.deltaMs(ms) : -1;
+            if (isDebug) {
+                LOG.info("Execute done TUPLE {} TASK: {} DELTA: {}", tuple, taskId, delta);
+            }
+            TopologyContext topologyContext = idToTask.get(taskId - idToTaskBase).getUserContext();
+            if (!topologyContext.getHooks().isEmpty()) {
+                // perf critical check to avoid unnecessary allocation
+                new BoltExecuteInfo(tuple, taskId, delta).applyOn(topologyContext);
+            }
+            if (delta >= 0) {
+                Task firstTask = idToTask.get(taskIds.get(0) - idToTaskBase);
+                stats.boltExecuteTuple(tuple.getSourceComponent(), tuple.getSourceStreamId(), delta,
+                        workerData.getUptime().upTime(), firstTask);
+                Task currentTask = idToTask.get(taskId - idToTaskBase);
+                currentTask.getTaskMetrics().boltExecuteTuple(tuple.getSourceComponent(), tuple.getSourceStreamId(), delta);
+            }
+        }
+    }
+}
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/executor/spout/SpoutExecutor, tupleActionFn(ILorg/apache/storm/tuple/TupleImpl;)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=287, lastMethodNumber=323, isFirstLineValid=true, methodSrcCode=
+    public void tupleActionFn(int taskId, TupleImpl tuple) throws Exception {
+        String streamId = tuple.getSourceStreamId();
+        if (Constants.SYSTEM_FLUSH_STREAM_ID.equals(streamId)) {
+            spoutOutputCollector.flush();
+        } else if (streamId.equals(Constants.SYSTEM_TICK_STREAM_ID)) {
+            pending.rotate();
+        } else if (streamId.equals(Constants.METRICS_TICK_STREAM_ID)) {
+            metricsTick(idToTask.get(taskId - idToTaskBase), tuple);
+        } else if (streamId.equals(Acker.ACKER_RESET_TIMEOUT_STREAM_ID)) {
+            Long id = (Long) tuple.getValue(0);
+            TupleInfo pendingForId = pending.get(id);
+            if (pendingForId != null) {
+                pending.put(id, pendingForId);
+            }
+        } else {
+            Long id = (Long) tuple.getValue(0);
+            Long timeDeltaMs = (Long) tuple.getValue(1);
+            TupleInfo tupleInfo = pending.remove(id);
+            if (tupleInfo != null && tupleInfo.getMessageId() != null) {
+                if (taskId != tupleInfo.getTaskId()) {
+                    throw new RuntimeException("Fatal error, mismatched task ids: " + taskId + " " + tupleInfo.getTaskId());
+                }
+                Long timeDelta = null;
+                if (hasAckers) {
+                    long startTimeMs = tupleInfo.getTimestamp();
+                    if (startTimeMs != 0) {
+                        timeDelta = timeDeltaMs;
+                    }
+                }
+                if (streamId.equals(Acker.ACKER_ACK_STREAM_ID)) {
+                    ackSpoutMsg(this, idToTask.get(taskId - idToTaskBase), timeDelta, tupleInfo);
+                } else if (streamId.equals(Acker.ACKER_FAIL_STREAM_ID)) {
+                    failSpoutMsg(this, idToTask.get(taskId - idToTaskBase), timeDelta, tupleInfo, "FAIL-STREAM");
+                }
+            }
+        }
+    }
+
+}

@@ -1,0 +1,7 @@
+Lorg/apache/hadoop/hbase/client/ConnectionConfiguration	 type:Both
+Lorg/apache/hadoop/hbase/ipc/RpcClientFactory	 type:Both
+Lorg/apache/hadoop/hbase/security/visibility/VisibilityConstants	 type:Key-Holder
+Lorg/apache/hadoop/hbase/client/RegionInfoDisplay	 type:Both
+Lorg/apache/hadoop/hbase/client/ClusterStatusListener$DeadServerHandler	 type:Key-Holder
+Lorg/apache/hadoop/hbase/ipc/RpcClient	 type:Key-Holder
+Lorg/apache/hadoop/hbase/security/access/AccessControlConstants	 type:Key-Holder

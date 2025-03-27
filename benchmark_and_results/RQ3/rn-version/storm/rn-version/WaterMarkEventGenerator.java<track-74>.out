@@ -1,0 +1,28 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	WaterMarkEventGenerator.java	methodSinagture:	org.apache.storm.windowing.WaterMarkEventGenerator.track(Lorg/apache/storm/generated/GlobalStreamId;J)Z	methodLines:	74:80
+blockLines:	76:-1
+paras:	null
+TaintedStat:	NORMAL track:conditional branch(eq, to iindex=15) 8,9 Node: < Application, Lorg/apache/storm/windowing/WaterMarkEventGenerator, track(Lorg/apache/storm/generated/GlobalStreamId;J)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/windowing/WaterMarkEventGenerator, track(Lorg/apache/storm/generated/GlobalStreamId;J)Z > Context: Everywhere[3]7 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,2 @5 exception:6
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/windowing/WaterMarkEventGenerator, track(Lorg/apache/storm/generated/GlobalStreamId;J)Z > Context: Everywhere[3]7 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 5,2 @5 exception:6
+NORMAL track:8 = checkcast <Application,Ljava/lang/Long>7 <Application,Ljava/lang/Long> Node: < Application, Lorg/apache/storm/windowing/WaterMarkEventGenerator, track(Lorg/apache/storm/generated/GlobalStreamId;J)Z > Context: Everywhere
+NORMAL track:conditional branch(eq, to iindex=15) 8,9 Node: < Application, Lorg/apache/storm/windowing/WaterMarkEventGenerator, track(Lorg/apache/storm/generated/GlobalStreamId;J)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public boolean track(GlobalStreamId stream, long ts) {
+        Long currentVal = streamToTs.get(stream);
+        if (currentVal == null || ts > currentVal) {
+            streamToTs.put(stream, ts);
+        }
+        checkFailures();
+        return ts >= lastWaterMarkTs;
+    }
+
+
+====================ctx:=======================

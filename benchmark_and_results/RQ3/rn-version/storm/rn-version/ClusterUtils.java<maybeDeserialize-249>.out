@@ -1,0 +1,214 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ClusterUtils.java	methodSinagture:	org.apache.storm.cluster.ClusterUtils.maybeDeserialize([BLjava/lang/Class;)Ljava/lang/Object;	methodLines:	249:253
+blockLines:	250:-1
+paras:	null
+TaintedStat:	NORMAL maybeDeserialize:conditional branch(eq, to iindex=7) 1,4 Node: < Application, Lorg/apache/storm/cluster/ClusterUtils, maybeDeserialize([BLjava/lang/Class;)Ljava/lang/Object; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/assignments/InMemoryAssignmentBackend, syncRemoteAssignments(Ljava/util/Map;)V > Context: Everywhere[21]20 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 15 @53 exception:19
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/assignments/InMemoryAssignmentBackend, syncRemoteAssignments(Ljava/util/Map;)V > Context: Everywhere[21]20 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 15 @53 exception:19
+NORMAL syncRemoteAssignments:21 = checkcast <Primordial,[B>20 <Primordial,[B> Node: < Application, Lorg/apache/storm/assignments/InMemoryAssignmentBackend, syncRemoteAssignments(Ljava/util/Map;)V > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/assignments/InMemoryAssignmentBackend, syncRemoteAssignments(Ljava/util/Map;)V > Context: Everywhere[24]24 = invokestatic < Application, Lorg/apache/storm/cluster/ClusterUtils, maybeDeserialize([BLjava/lang/Class;)Ljava/lang/Object; > 21,22 @63 exception:23 v21
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/cluster/ClusterUtils, maybeDeserialize([BLjava/lang/Class;)Ljava/lang/Object; > Context: Everywhere v1
+NORMAL maybeDeserialize:conditional branch(eq, to iindex=7) 1,4 Node: < Application, Lorg/apache/storm/cluster/ClusterUtils, maybeDeserialize([BLjava/lang/Class;)Ljava/lang/Object; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static <T> T maybeDeserialize(byte[] serialized, Class<T> clazz) {
+        if (serialized != null) {
+            return Utils.deserialize(serialized, clazz);
+        }
+        return null;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/assignments/InMemoryAssignmentBackend, syncRemoteAssignments(Ljava/util/Map;)V > Context: Everywhere, blocks=[BB[SSA:24..24]15 - org.apache.storm.assignments.InMemoryAssignmentBackend.syncRemoteAssignments(Ljava/util/Map;)V, BB[SSA:23..23]14 - org.apache.storm.assignments.InMemoryAssignmentBackend.syncRemoteAssignments(Ljava/util/Map;)V, BB[SSA:25..25]16 - org.apache.storm.assignments.InMemoryAssignmentBackend.syncRemoteAssignments(Ljava/util/Map;)V, BB[SSA:-1..-2]21 - org.apache.storm.assignments.InMemoryAssignmentBackend.syncRemoteAssignments(Ljava/util/Map;)V], numberOfBasicBlocks=4, firstLineNumber=99, lastLineNumber=99, firstMethodNumber=96, lastMethodNumber=102, isFirstLineValid=true, methodSrcCode=
+    public void syncRemoteAssignments(Map<String, byte[]> remote) {
+        Map<String, Assignment> tmp = new ConcurrentHashMap<>();
+        for (Map.Entry<String, byte[]> entry : remote.entrySet()) {
+            tmp.put(entry.getKey(), ClusterUtils.maybeDeserialize(entry.getValue(), Assignment.class));
+        }
+        this.idToAssignment = tmp;
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/cluster/StormClusterStateImpl, getTopologyProfileRequests(Ljava/lang/String;)Ljava/util/List; > Context: Everywhere, blocks=[BB[SSA:43..43]19 - org.apache.storm.cluster.StormClusterStateImpl.getTopologyProfileRequests(Ljava/lang/String;)Ljava/util/List;, BB[SSA:40..42]18 - org.apache.storm.cluster.StormClusterStateImpl.getTopologyProfileRequests(Ljava/lang/String;)Ljava/util/List;, BB[SSA:44..44]20 - org.apache.storm.cluster.StormClusterStateImpl.getTopologyProfileRequests(Ljava/lang/String;)Ljava/util/List;, BB[SSA:-1..-2]26 - org.apache.storm.cluster.StormClusterStateImpl.getTopologyProfileRequests(Ljava/lang/String;)Ljava/util/List;], numberOfBasicBlocks=4, firstLineNumber=369, lastLineNumber=370, firstMethodNumber=362, lastMethodNumber=376, isFirstLineValid=true, methodSrcCode=
+    public List<ProfileRequest> getTopologyProfileRequests(String stormId) {
+        List<ProfileRequest> profileRequests = new ArrayList<>();
+        String path = ClusterUtils.profilerConfigPath(stormId);
+        if (stateStorage.node_exists(path, false)) {
+            List<String> strs = stateStorage.get_children(path, false);
+            for (String str : strs) {
+                String childPath = path + ClusterUtils.ZK_SEPERATOR + str;
+                byte[] raw = stateStorage.get_data(childPath, false);
+                ProfileRequest request = ClusterUtils.maybeDeserialize(raw, ProfileRequest.class);
+                if (request != null) {
+                    profileRequests.add(request);
+                }
+            }
+        }
+        return profileRequests;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/cluster/StormClusterStateImpl, assignmentInfoWithVersion(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/cluster/VersionedData; > Context: Everywhere, blocks=[BB[SSA:33..33]16 - org.apache.storm.cluster.StormClusterStateImpl.assignmentInfoWithVersion(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/cluster/VersionedData;, BB[SSA:32..32]15 - org.apache.storm.cluster.StormClusterStateImpl.assignmentInfoWithVersion(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/cluster/VersionedData;, BB[SSA:34..34]17 - org.apache.storm.cluster.StormClusterStateImpl.assignmentInfoWithVersion(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/cluster/VersionedData;, BB[SSA:-1..-2]25 - org.apache.storm.cluster.StormClusterStateImpl.assignmentInfoWithVersion(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/cluster/VersionedData;], numberOfBasicBlocks=4, firstLineNumber=254, lastLineNumber=254, firstMethodNumber=246, lastMethodNumber=257, isFirstLineValid=true, methodSrcCode=
+    public VersionedData<Assignment> assignmentInfoWithVersion(String stormId, Runnable callback) {
+        if (callback != null) {
+            assignmentInfoWithVersionCallback.put(stormId, callback);
+        }
+        Assignment assignment = null;
+        Integer version = 0;
+        VersionedData<byte[]> dataWithVersion = stateStorage.get_data_with_version(ClusterUtils.assignmentPath(stormId), callback != null);
+        if (dataWithVersion != null) {
+            assignment = ClusterUtils.maybeDeserialize(dataWithVersion.getData(), Assignment.class);
+            version = dataWithVersion.getVersion();
+        }
+        return new VersionedData<Assignment>(version, assignment);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/cluster/StormClusterStateImpl, supervisorInfo(Ljava/lang/String;)Lorg/apache/storm/generated/SupervisorInfo; > Context: Everywhere, blocks=[BB[SSA:9..9]5 - org.apache.storm.cluster.StormClusterStateImpl.supervisorInfo(Ljava/lang/String;)Lorg/apache/storm/generated/SupervisorInfo;, BB[SSA:8..8]4 - org.apache.storm.cluster.StormClusterStateImpl.supervisorInfo(Ljava/lang/String;)Lorg/apache/storm/generated/SupervisorInfo;, BB[SSA:10..10]6 - org.apache.storm.cluster.StormClusterStateImpl.supervisorInfo(Ljava/lang/String;)Lorg/apache/storm/generated/SupervisorInfo;, BB[SSA:-1..-2]8 - org.apache.storm.cluster.StormClusterStateImpl.supervisorInfo(Ljava/lang/String;)Lorg/apache/storm/generated/SupervisorInfo;], numberOfBasicBlocks=4, firstLineNumber=439, lastLineNumber=439, firstMethodNumber=437, lastMethodNumber=439, isFirstLineValid=true, methodSrcCode=
+    public SupervisorInfo supervisorInfo(String supervisorId) {
+        String path = ClusterUtils.supervisorPath(supervisorId);
+        return ClusterUtils.maybeDeserialize(stateStorage.get_data(path, false), SupervisorInfo.class);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/cluster/StormClusterStateImpl, stormBase(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/StormBase; > Context: Everywhere, blocks=[BB[SSA:21..21]12 - org.apache.storm.cluster.StormClusterStateImpl.stormBase(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/StormBase;, BB[SSA:20..20]11 - org.apache.storm.cluster.StormClusterStateImpl.stormBase(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/StormBase;, BB[SSA:22..22]13 - org.apache.storm.cluster.StormClusterStateImpl.stormBase(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/StormBase;, BB[SSA:-1..-2]15 - org.apache.storm.cluster.StormClusterStateImpl.stormBase(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/StormBase;], numberOfBasicBlocks=4, firstLineNumber=319, lastLineNumber=319, firstMethodNumber=315, lastMethodNumber=319, isFirstLineValid=true, methodSrcCode=
+    public StormBase stormBase(String stormId, Runnable callback) {
+        if (callback != null) {
+            stormBaseCallback.put(stormId, callback);
+        }
+        return ClusterUtils.maybeDeserialize(stateStorage.get_data(ClusterUtils.stormPath(stormId), callback != null), StormBase.class);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/cluster/StormClusterStateImpl, getPrivateWorkerKey(Lorg/apache/storm/generated/WorkerTokenServiceType;Ljava/lang/String;J)Lorg/apache/storm/generated/PrivateWorkerKey; > Context: Everywhere, blocks=[BB[SSA:30..30]12 - org.apache.storm.cluster.StormClusterStateImpl.getPrivateWorkerKey(Lorg/apache/storm/generated/WorkerTokenServiceType;Ljava/lang/String;J)Lorg/apache/storm/generated/PrivateWorkerKey;, BB[SSA:28..29]11 - org.apache.storm.cluster.StormClusterStateImpl.getPrivateWorkerKey(Lorg/apache/storm/generated/WorkerTokenServiceType;Ljava/lang/String;J)Lorg/apache/storm/generated/PrivateWorkerKey;, BB[SSA:31..31]13 - org.apache.storm.cluster.StormClusterStateImpl.getPrivateWorkerKey(Lorg/apache/storm/generated/WorkerTokenServiceType;Ljava/lang/String;J)Lorg/apache/storm/generated/PrivateWorkerKey;, BB[SSA:-1..-2]15 - org.apache.storm.cluster.StormClusterStateImpl.getPrivateWorkerKey(Lorg/apache/storm/generated/WorkerTokenServiceType;Ljava/lang/String;J)Lorg/apache/storm/generated/PrivateWorkerKey;], numberOfBasicBlocks=4, firstLineNumber=858, lastLineNumber=858, firstMethodNumber=849, lastMethodNumber=858, isFirstLineValid=true, methodSrcCode=
+    public PrivateWorkerKey getPrivateWorkerKey(WorkerTokenServiceType type, String topologyId, long keyVersion) {
+        String path = ClusterUtils.secretKeysPath(type, topologyId, keyVersion);
+        byte[] data = stateStorage.get_data(path, false);
+        if (data == null) {
+            LOG.debug("Could not find entry at {} will sync to see if that fixes it", path);
+            //We didn't find it, but there are races, so we want to check again after a sync
+            stateStorage.sync_path(path);
+            data = stateStorage.get_data(path, false);
+        }
+        return ClusterUtils.maybeDeserialize(data, PrivateWorkerKey.class);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/cluster/StormClusterStateImpl, nimbuses()Ljava/util/List; > Context: Everywhere, blocks=[BB[SSA:33..33]16 - org.apache.storm.cluster.StormClusterStateImpl.nimbuses()Ljava/util/List;, BB[SSA:31..32]15 - org.apache.storm.cluster.StormClusterStateImpl.nimbuses()Ljava/util/List;, BB[SSA:34..34]17 - org.apache.storm.cluster.StormClusterStateImpl.nimbuses()Ljava/util/List;, BB[SSA:-1..-2]22 - org.apache.storm.cluster.StormClusterStateImpl.nimbuses()Ljava/util/List;], numberOfBasicBlocks=4, firstLineNumber=285, lastLineNumber=285, firstMethodNumber=277, lastMethodNumber=289, isFirstLineValid=true, methodSrcCode=
+    public List<NimbusSummary> nimbuses() {
+        List<NimbusSummary> nimbusSummaries = new ArrayList<>();
+        List<String> nimbusIds = stateStorage.get_children(ClusterUtils.NIMBUSES_SUBTREE, false);
+        for (String nimbusId : nimbusIds) {
+            byte[] serialized = stateStorage.get_data(ClusterUtils.nimbusPath(nimbusId), false);
+            // check for null which can exist because of a race condition in which nimbus nodes in zk may have been
+            // removed when connections are reconnected after getting children in the above line
+            if (serialized != null) {
+                NimbusSummary nimbusSummary = ClusterUtils.maybeDeserialize(serialized, NimbusSummary.class);
+                nimbusSummaries.add(nimbusSummary);
+            }
+        }
+        return nimbusSummaries;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/cluster/StormClusterStateImpl, lastError(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/generated/ErrorInfo; > Context: Everywhere, blocks=[BB[SSA:17..17]8 - org.apache.storm.cluster.StormClusterStateImpl.lastError(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/generated/ErrorInfo;, BB[SSA:16..16]7 - org.apache.storm.cluster.StormClusterStateImpl.lastError(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/generated/ErrorInfo;, BB[SSA:18..18]9 - org.apache.storm.cluster.StormClusterStateImpl.lastError(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/generated/ErrorInfo;, BB[SSA:-1..-2]12 - org.apache.storm.cluster.StormClusterStateImpl.lastError(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/storm/generated/ErrorInfo;], numberOfBasicBlocks=4, firstLineNumber=815, lastLineNumber=815, firstMethodNumber=812, lastMethodNumber=819, isFirstLineValid=true, methodSrcCode=
+    public ErrorInfo lastError(String stormId, String componentId) {
+        String path = ClusterUtils.lastErrorPath(stormId, componentId);
+        if (stateStorage.node_exists(path, false)) {
+            ErrorInfo errorInfo = ClusterUtils.maybeDeserialize(stateStorage.get_data(path, false), ErrorInfo.class);
+            return errorInfo;
+        }
+
+        return null;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/cluster/StormClusterStateImpl, topologyLogConfig(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/LogConfig; > Context: Everywhere, blocks=[BB[SSA:23..23]12 - org.apache.storm.cluster.StormClusterStateImpl.topologyLogConfig(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/LogConfig;, BB[SSA:22..22]11 - org.apache.storm.cluster.StormClusterStateImpl.topologyLogConfig(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/LogConfig;, BB[SSA:24..24]13 - org.apache.storm.cluster.StormClusterStateImpl.topologyLogConfig(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/LogConfig;, BB[SSA:-1..-2]15 - org.apache.storm.cluster.StormClusterStateImpl.topologyLogConfig(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/LogConfig;], numberOfBasicBlocks=4, firstLineNumber=511, lastLineNumber=511, firstMethodNumber=506, lastMethodNumber=511, isFirstLineValid=true, methodSrcCode=
+    public LogConfig topologyLogConfig(String stormId, Runnable cb) {
+        if (cb != null) {
+            logConfigCallback.put(stormId, cb);
+        }
+        String path = ClusterUtils.logConfigPath(stormId);
+        return ClusterUtils.maybeDeserialize(stateStorage.get_data(path, cb != null), LogConfig.class);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/cluster/StormClusterStateImpl, getWorkerHeartbeat(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat; > Context: Everywhere, blocks=[BB[SSA:11..11]5 - org.apache.storm.cluster.StormClusterStateImpl.getWorkerHeartbeat(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat;, BB[SSA:8..10]4 - org.apache.storm.cluster.StormClusterStateImpl.getWorkerHeartbeat(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat;, BB[SSA:12..12]6 - org.apache.storm.cluster.StormClusterStateImpl.getWorkerHeartbeat(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat;, BB[SSA:-1..-2]8 - org.apache.storm.cluster.StormClusterStateImpl.getWorkerHeartbeat(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;)Lorg/apache/storm/generated/ClusterWorkerHeartbeat;], numberOfBasicBlocks=4, firstLineNumber=343, lastLineNumber=344, firstMethodNumber=342, lastMethodNumber=344, isFirstLineValid=true, methodSrcCode=
+    public ClusterWorkerHeartbeat getWorkerHeartbeat(String stormId, String node, Long port) {
+        byte[] bytes = stateStorage.get_worker_hb(ClusterUtils.workerbeatPath(stormId, node, port), false);
+        return ClusterUtils.maybeDeserialize(bytes, ClusterWorkerHeartbeat.class);
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/cluster/StormClusterStateImpl, remoteAssignmentInfo(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/Assignment; > Context: Everywhere, blocks=[BB[SSA:23..23]12 - org.apache.storm.cluster.StormClusterStateImpl.remoteAssignmentInfo(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/Assignment;, BB[SSA:20..22]11 - org.apache.storm.cluster.StormClusterStateImpl.remoteAssignmentInfo(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/Assignment;, BB[SSA:24..24]13 - org.apache.storm.cluster.StormClusterStateImpl.remoteAssignmentInfo(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/Assignment;, BB[SSA:-1..-2]15 - org.apache.storm.cluster.StormClusterStateImpl.remoteAssignmentInfo(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/Assignment;], numberOfBasicBlocks=4, firstLineNumber=203, lastLineNumber=204, firstMethodNumber=199, lastMethodNumber=204, isFirstLineValid=true, methodSrcCode=
+    public Assignment remoteAssignmentInfo(String stormId, Runnable callback) {
+        if (callback != null) {
+            assignmentInfoCallback.put(stormId, callback);
+        }
+        byte[] serialized = stateStorage.get_data(ClusterUtils.assignmentPath(stormId), callback != null);
+        return ClusterUtils.maybeDeserialize(serialized, Assignment.class);
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/cluster/StormClusterStateImpl, removeExpiredPrivateWorkerKeys(Ljava/lang/String;)V > Context: Everywhere, blocks=[BB[SSA:43..43]19 - org.apache.storm.cluster.StormClusterStateImpl.removeExpiredPrivateWorkerKeys(Ljava/lang/String;)V, BB[SSA:42..42]18 - org.apache.storm.cluster.StormClusterStateImpl.removeExpiredPrivateWorkerKeys(Ljava/lang/String;)V, BB[SSA:44..44]20 - org.apache.storm.cluster.StormClusterStateImpl.removeExpiredPrivateWorkerKeys(Ljava/lang/String;)V, BB[SSA:-1..-2]40 - org.apache.storm.cluster.StormClusterStateImpl.removeExpiredPrivateWorkerKeys(Ljava/lang/String;)V], numberOfBasicBlocks=4, firstLineNumber=895, lastLineNumber=895, firstMethodNumber=887, lastMethodNumber=915, isFirstLineValid=true, methodSrcCode=
+    public void removeExpiredPrivateWorkerKeys(String topologyId) {
+        for (WorkerTokenServiceType type : WorkerTokenServiceType.values()) {
+            String basePath = ClusterUtils.secretKeysPath(type, topologyId);
+            try {
+                for (String version : stateStorage.get_children(basePath, false)) {
+                    String fullPath = basePath + ClusterUtils.ZK_SEPERATOR + version;
+                    try {
+                        PrivateWorkerKey key =
+                            ClusterUtils.maybeDeserialize(stateStorage.get_data(fullPath, false), PrivateWorkerKey.class);
+                        if (Time.currentTimeMillis() > key.get_expirationTimeMillis()) {
+                            LOG.info("Removing expired worker key {}", fullPath);
+                            stateStorage.delete_node(fullPath);
+                        }
+                    } catch (RuntimeException e) {
+                        //This should never happen because only the primary nimbus is active, but just in case
+                        // declare the race safe, even if we lose it.
+                        if (!Utils.exceptionCauseIsInstanceOf(KeeperException.NoNodeException.class, e)) {
+                            throw e;
+                        }
+                    }
+                }
+            } catch (RuntimeException e) {
+                //No node for basePath is OK, nothing to remove
+                if (!Utils.exceptionCauseIsInstanceOf(KeeperException.NoNodeException.class, e)) {
+                    throw e;
+                }
+            }
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/cluster/StormClusterStateImpl, errors(Ljava/lang/String;Ljava/lang/String;)Ljava/util/List; > Context: Everywhere, blocks=[BB[SSA:42..42]19 - org.apache.storm.cluster.StormClusterStateImpl.errors(Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;, BB[SSA:41..41]18 - org.apache.storm.cluster.StormClusterStateImpl.errors(Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;, BB[SSA:43..43]20 - org.apache.storm.cluster.StormClusterStateImpl.errors(Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;, BB[SSA:-1..-2]29 - org.apache.storm.cluster.StormClusterStateImpl.errors(Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;], numberOfBasicBlocks=4, firstLineNumber=795, lastLineNumber=795, firstMethodNumber=788, lastMethodNumber=808, isFirstLineValid=true, methodSrcCode=
+    public List<ErrorInfo> errors(String stormId, String componentId) {
+        List<ErrorInfo> errorInfos = new ArrayList<>();
+        String path = ClusterUtils.errorPath(stormId, componentId);
+        if (stateStorage.node_exists(path, false)) {
+            List<String> childrens = stateStorage.get_children(path, false);
+            for (String child : childrens) {
+                String childPath = path + ClusterUtils.ZK_SEPERATOR + child;
+                ErrorInfo errorInfo = ClusterUtils.maybeDeserialize(stateStorage.get_data(childPath, false), ErrorInfo.class);
+                if (errorInfo != null) {
+                    errorInfos.add(errorInfo);
+                }
+            }
+        }
+        Collections.sort(errorInfos, new Comparator<ErrorInfo>() {
+            @Override
+            public int compare(ErrorInfo arg0, ErrorInfo arg1) {
+                return Integer.compare(arg1.get_error_time_secs(), arg0.get_error_time_secs());
+            }
+        });
+
+        return errorInfos;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/cluster/StormClusterStateImpl, credentials(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/Credentials; > Context: Everywhere, blocks=[BB[SSA:23..23]12 - org.apache.storm.cluster.StormClusterStateImpl.credentials(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/Credentials;, BB[SSA:22..22]11 - org.apache.storm.cluster.StormClusterStateImpl.credentials(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/Credentials;, BB[SSA:24..24]13 - org.apache.storm.cluster.StormClusterStateImpl.credentials(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/Credentials;, BB[SSA:-1..-2]15 - org.apache.storm.cluster.StormClusterStateImpl.credentials(Ljava/lang/String;Ljava/lang/Runnable;)Lorg/apache/storm/generated/Credentials;], numberOfBasicBlocks=4, firstLineNumber=835, lastLineNumber=835, firstMethodNumber=830, lastMethodNumber=835, isFirstLineValid=true, methodSrcCode=
+    public Credentials credentials(String stormId, Runnable callback) {
+        if (callback != null) {
+            credentialsCallback.put(stormId, callback);
+        }
+        String path = ClusterUtils.credentialsPath(stormId);
+        return ClusterUtils.maybeDeserialize(stateStorage.get_data(path, callback != null), Credentials.class);
+
+}

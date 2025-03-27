@@ -1,0 +1,151 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ServerCnxnFactory.java	methodSinagture:	org.apache.zookeeper.server.ServerCnxnFactory.configureSaslLogin()V	methodLines:	236:281
+blockLines:	258:-1
+paras:	null
+TaintedStat:	NORMAL configureSaslLogin:conditional branch(eq, to iindex=61) 45,7 Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, configureSaslLogin()V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, configureSaslLogin()V > Context: Everywhere[2]6 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 3,4 @4 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, configureSaslLogin()V > Context: Everywhere[2]6 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 3,4 @4 exception:5
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, configureSaslLogin()V > Context: Everywhere[97]invokespecial < Application, Lorg/apache/zookeeper/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Lorg/apache/zookeeper/common/ZKConfig;)V > 20,6,21,22 @202 exception:24 v6
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Lorg/apache/zookeeper/common/ZKConfig;)V > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/Login, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;Lorg/apache/zookeeper/common/ZKConfig;)V > Context: Everywhere[37]14 = invokespecial < Application, Lorg/apache/zookeeper/Login, login(Ljava/lang/String;)Ljavax/security/auth/login/LoginContext; > 1,2 @63 exception:13 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/Login, login(Ljava/lang/String;)Ljavax/security/auth/login/LoginContext; > Context: Everywhere v2
+NORMAL login:invokespecial < Application, Ljavax/security/auth/login/LoginContext, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;)V > 5,2,6 @56 exception:7 Node: < Application, Lorg/apache/zookeeper/Login, login(Ljava/lang/String;)Ljavax/security/auth/login/LoginContext; > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljavax/security/auth/login/LoginContext, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;)V > Context: Everywhere
+NORMAL <init>:invokevirtual < Primordial, Ljavax/security/auth/login/LoginContext, init(Ljava/lang/String;)V > 1,2 @62 exception:10 Node: < Primordial, Ljavax/security/auth/login/LoginContext, <init>(Ljava/lang/String;Ljavax/security/auth/callback/CallbackHandler;)V > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljavax/security/auth/login/LoginContext, init(Ljava/lang/String;)V > Context: Everywhere
+NORMAL init:63 = invokestatic < Primordial, Ljava/security/AccessController, doPrivileged(Ljava/security/PrivilegedAction;)Ljava/lang/Object; > 60 @254 exception:62 Node: < Primordial, Ljavax/security/auth/login/LoginContext, init(Ljava/lang/String;)V > Context: Everywhere
+METHOD_ENTRY:Node: synthetic < Primordial, Ljava/security/AccessController, doPrivileged(Ljava/security/PrivilegedAction;)Ljava/lang/Object; > Context: Everywhere
+NORMAL doPrivileged:3 = invokeinterface < Primordial, Ljava/security/PrivilegedAction, run()Ljava/lang/Object; > 1 @0 exception:2 Node: synthetic < Primordial, Ljava/security/AccessController, doPrivileged(Ljava/security/PrivilegedAction;)Ljava/lang/Object; > Context: Everywhere
+METHOD_ENTRY:Node: synthetic < Primordial, Lwala/lambda$java$lang$ProcessHandleImpl$5, run()Ljava/lang/Object; > Context: Everywhere
+NORMAL run:2 = invokestatic < Application, Ljava/lang/ProcessHandleImpl, lambda$static$1()Ljava/util/concurrent/Executor; > @1 exception:3 Node: synthetic < Primordial, Lwala/lambda$java$lang$ProcessHandleImpl$5, run()Ljava/lang/Object; > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/ProcessHandleImpl, lambda$static$1()Ljava/util/concurrent/Executor; > Context: Everywhere
+NORMAL lambda$static$1:15 = invokestatic < Primordial, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 13 @28 exception:14 Node: < Primordial, Ljava/lang/ProcessHandleImpl, lambda$static$1()Ljava/util/concurrent/Executor; > Context: Everywhere
+METHOD_ENTRY:Node: synthetic < Primordial, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL getProperty:return 2 Node: synthetic < Primordial, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL_RET_CALLEE:Node: synthetic < Primordial, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, configureSaslLogin()V > Context: Everywhere[20]45 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 43 @34 exception:44
+NORMAL configureSaslLogin:conditional branch(eq, to iindex=61) 45,7 Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, configureSaslLogin()V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ServerCnxnFactory.java	methodSinagture:	org.apache.zookeeper.server.ServerCnxnFactory.configureSaslLogin()V	methodLines:	236:281
+blockLines:	256:-1
+paras:	null
+TaintedStat:	NORMAL configureSaslLogin:conditional branch(ne, to iindex=34) 47,7 Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, configureSaslLogin()V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, configureSaslLogin()V > Context: Everywhere[23]47 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 3 @41 exception:46
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, configureSaslLogin()V > Context: Everywhere[23]47 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 3 @41 exception:46
+NORMAL configureSaslLogin:conditional branch(ne, to iindex=34) 47,7 Node: < Application, Lorg/apache/zookeeper/server/ServerCnxnFactory, configureSaslLogin()V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    protected void configureSaslLogin() throws IOException {
+        String serverSection = System.getProperty(ZooKeeperSaslServer.LOGIN_CONTEXT_NAME_KEY, ZooKeeperSaslServer.DEFAULT_LOGIN_CONTEXT_NAME);
+
+        // Note that 'Configuration' here refers to javax.security.auth.login.Configuration.
+        AppConfigurationEntry[] entries = null;
+        SecurityException securityException = null;
+        try {
+            entries = Configuration.getConfiguration().getAppConfigurationEntry(serverSection);
+        } catch (SecurityException e) {
+            // handle below: might be harmless if the user doesn't intend to use JAAS authentication.
+            securityException = e;
+        }
+
+        // No entries in jaas.conf
+        // If there's a configuration exception fetching the jaas section and
+        // the user has required sasl by specifying a LOGIN_CONTEXT_NAME_KEY or a jaas file
+        // we throw an exception otherwise we continue without authentication.
+        if (entries == null) {
+            String jaasFile = System.getProperty(Environment.JAAS_CONF_KEY);
+            String loginContextName = System.getProperty(ZooKeeperSaslServer.LOGIN_CONTEXT_NAME_KEY);
+            if (securityException != null && (loginContextName != null || jaasFile != null)) {
+                String errorMessage = "No JAAS configuration section named '" + serverSection + "' was found";
+                if (jaasFile != null) {
+                    errorMessage += " in '" + jaasFile + "'.";
+                }
+                if (loginContextName != null) {
+                    errorMessage += " But " + ZooKeeperSaslServer.LOGIN_CONTEXT_NAME_KEY + " was set.";
+                }
+                LOG.error(errorMessage);
+                throw new IOException(errorMessage);
+            }
+            return;
+        }
+
+        // jaas.conf entry available
+        try {
+            saslServerCallbackHandler = new SaslServerCallbackHandler(Configuration.getConfiguration());
+            login = new Login(serverSection, saslServerCallbackHandler, new ZKConfig());
+            setLoginUser(login.getUserName());
+            login.startThreadIfNeeded();
+        } catch (LoginException e) {
+            throw new IOException("Could not configure server because SASL configuration did not allow the "
+                                  + " ZooKeeper server to authenticate itself properly: "
+                                  + e);
+        }
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/NIOServerCnxnFactory, configure(Ljava/net/InetSocketAddress;IIZ)V > Context: Everywhere, blocks=null, numberOfBasicBlocks=0, firstLineNumber=0, lastLineNumber=0, firstMethodNumber=619, lastMethodNumber=672, isFirstLineValid=true, methodSrcCode=
+    public void configure(InetSocketAddress addr, int maxcc, int backlog, boolean secure) throws IOException {
+        if (secure) {
+            throw new UnsupportedOperationException("SSL isn't supported in NIOServerCnxn");
+        }
+        configureSaslLogin();
+
+        maxClientCnxns = maxcc;
+        initMaxCnxns();
+        sessionlessCnxnTimeout = Integer.getInteger(ZOOKEEPER_NIO_SESSIONLESS_CNXN_TIMEOUT, 10000);
+        // We also use the sessionlessCnxnTimeout as expiring interval for
+        // cnxnExpiryQueue. These don't need to be the same, but the expiring
+        // interval passed into the ExpiryQueue() constructor below should be
+        // less than or equal to the timeout.
+        cnxnExpiryQueue = new ExpiryQueue<>(sessionlessCnxnTimeout);
+        expirerThread = new ConnectionExpirerThread();
+
+        int numCores = Runtime.getRuntime().availableProcessors();
+        // 32 cores sweet spot seems to be 4 selector threads
+        numSelectorThreads = Integer.getInteger(
+            ZOOKEEPER_NIO_NUM_SELECTOR_THREADS,
+            Math.max((int) Math.sqrt((float) numCores / 2), 1));
+        if (numSelectorThreads < 1) {
+            throw new IOException("numSelectorThreads must be at least 1");
+        }
+
+        numWorkerThreads = Integer.getInteger(ZOOKEEPER_NIO_NUM_WORKER_THREADS, 2 * numCores);
+        workerShutdownTimeoutMS = Long.getLong(ZOOKEEPER_NIO_SHUTDOWN_TIMEOUT, 5000);
+
+        String logMsg = "Configuring NIO connection handler with "
+            + (sessionlessCnxnTimeout / 1000) + "s sessionless connection timeout, "
+            + numSelectorThreads + " selector thread(s), "
+            + (numWorkerThreads > 0 ? numWorkerThreads : "no") + " worker threads, and "
+            + (directBufferBytes == 0 ? "gathered writes." : ("" + (directBufferBytes / 1024) + " kB direct buffers."));
+        LOG.info(logMsg);
+        for (int i = 0; i < numSelectorThreads; ++i) {
+            selectorThreads.add(new SelectorThread(i));
+        }
+
+        listenBacklog = backlog;
+        this.ss = ServerSocketChannel.open();
+        ss.socket().setReuseAddress(true);
+        LOG.info("binding to port {}", addr);
+        if (listenBacklog == -1) {
+            ss.socket().bind(addr);
+        } else {
+            ss.socket().bind(addr, listenBacklog);
+        }
+        if (addr.getPort() == 0) {
+            // We're likely bound to a different port than was requested, so log that too
+            LOG.info("bound to port {}", ss.getLocalAddress());
+        }
+        ss.configureBlocking(false);
+        acceptThread = new AcceptThread(ss, addr, selectorThreads);
+    }
+
+}

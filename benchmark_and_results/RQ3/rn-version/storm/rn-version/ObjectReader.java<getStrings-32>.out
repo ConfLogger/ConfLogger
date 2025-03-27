@@ -1,0 +1,92 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getStrings(Ljava/lang/Object;)Ljava/util/List;	methodLines:	32:50
+blockLines:	43:-1
+paras:	null
+TaintedStat:	NORMAL getStrings:conditional branch(eq, to iindex=44) 16,5 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Container, writeLogMetadata(Ljava/lang/String;)V > Context: Everywhere[73]52 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 50,47 @177 exception:51
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Container, writeLogMetadata(Ljava/lang/String;)V > Context: Everywhere[73]52 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 50,47 @177 exception:51
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Container, writeLogMetadata(Ljava/lang/String;)V > Context: Everywhere[74]54 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > 52 @182 exception:53 v52
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere v1
+NORMAL getStrings:conditional branch(ne, to iindex=7) 1,3 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+NORMAL getStrings:conditional branch(eq, to iindex=16) 4,5 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+NORMAL getStrings:conditional branch(eq, to iindex=44) 16,5 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getStrings(Ljava/lang/Object;)Ljava/util/List;	methodLines:	32:50
+blockLines:	33:-1
+paras:	null
+TaintedStat:	NORMAL getStrings:conditional branch(ne, to iindex=7) 1,3 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Container, writeLogMetadata(Ljava/lang/String;)V > Context: Everywhere[31]24 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 22,18 @70 exception:23
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Container, writeLogMetadata(Ljava/lang/String;)V > Context: Everywhere[31]24 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 22,18 @70 exception:23
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Container, writeLogMetadata(Ljava/lang/String;)V > Context: Everywhere[32]26 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > 24 @75 exception:25 v24
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere v1
+NORMAL getStrings:conditional branch(ne, to iindex=7) 1,3 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getStrings(Ljava/lang/Object;)Ljava/util/List;	methodLines:	32:50
+blockLines:	41:-1
+paras:	null
+TaintedStat:	NORMAL getStrings:conditional branch(eq, to iindex=46) 6,5 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Container, writeLogMetadata(Ljava/lang/String;)V > Context: Everywhere[89]63 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 61,58 @219 exception:62
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Container, writeLogMetadata(Ljava/lang/String;)V > Context: Everywhere[89]63 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 61,58 @219 exception:62
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Container, writeLogMetadata(Ljava/lang/String;)V > Context: Everywhere[90]65 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > 63 @224 exception:64 v63
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere v1
+NORMAL getStrings:6 = instanceof 1 <Application,Ljava/util/Collection> Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+NORMAL getStrings:conditional branch(eq, to iindex=46) 6,5 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getStrings(Ljava/lang/Object;)Ljava/util/List;	methodLines:	32:50
+blockLines:	44:-1
+paras:	null
+TaintedStat:	NORMAL getStrings:conditional branch(eq, to iindex=43) 18,3 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/container/oci/OciContainerManager, prepare(Ljava/util/Map;)V > Context: Everywhere[12]11 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,9 @26 exception:10
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/container/oci/OciContainerManager, prepare(Ljava/util/Map;)V > Context: Everywhere[12]11 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,9 @26 exception:10
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/container/oci/OciContainerManager, prepare(Ljava/util/Map;)V > Context: Everywhere[13]13 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > 11 @31 exception:12 v11
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere v1
+NORMAL getStrings:conditional branch(ne, to iindex=7) 1,3 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+NORMAL getStrings:conditional branch(eq, to iindex=16) 4,5 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+NORMAL getStrings:conditional branch(eq, to iindex=44) 16,5 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+NORMAL getStrings:conditional branch(eq, to iindex=43) 18,3 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getStrings(Ljava/lang/Object;)Ljava/util/List;	methodLines:	32:50
+blockLines:	35:-1
+paras:	null
+TaintedStat:	NORMAL getStrings:conditional branch(eq, to iindex=16) 4,5 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Container, writeLogMetadata(Ljava/lang/String;)V > Context: Everywhere[47]35 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 33,30 @111 exception:34
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Container, writeLogMetadata(Ljava/lang/String;)V > Context: Everywhere[47]35 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 33,30 @111 exception:34
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/supervisor/Container, writeLogMetadata(Ljava/lang/String;)V > Context: Everywhere[48]37 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > 35 @116 exception:36 v35
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere v1
+NORMAL getStrings:conditional branch(ne, to iindex=7) 1,3 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+NORMAL getStrings:conditional branch(eq, to iindex=16) 4,5 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getStrings(Ljava/lang/Object;)Ljava/util/List; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static List<String> getStrings(final Object o) {
+        if (o == null) {
+            return new ArrayList<>();
+        } else if (o instanceof String) {
+            return new ArrayList<String>() {
+                {
+                    add((String) o);
+                }
+            };
+        } else if (o instanceof Collection) {
+            List<String> answer = new ArrayList<>();
+            for (Object v : (Collection) o) {
+                if (v != null) {
+                    answer.add(v.toString());
+                }
+            }
+            return answer;
+        } else {
+            throw new IllegalArgumentException("Don't know how to convert to string list");
+        }
+
+
+====================ctx:=======================

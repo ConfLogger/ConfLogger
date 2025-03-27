@@ -1,0 +1,5 @@
+public static List<InetSocketAddress> getLoggerAddresses(URI uri,Set<InetSocketAddress> addrsToExclude) throws IOException {
+  List<InetSocketAddress> addrsList=getAddressesList(uri);
+  addrsList.removeAll(addrsToExclude);
+  return addrsList;
+}

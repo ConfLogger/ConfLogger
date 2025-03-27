@@ -1,0 +1,7 @@
+/** 
+ * Check if the NameNode is still not started yet as indicated by the exception type and message. DistributedFileSystem returns a RemoteException with a message stating SafeModeException in it. So this is only way to check it is because of being in safe mode. In addition, Name Node may have not started yet, in which case, the message contains "NameNode still not started".
+ */
+private boolean isNameNodeStillNotStarted(Exception ex){
+  String nameNodeNotStartedMsg=NameNode.composeNotStartedMessage(HdfsServerConstants.NamenodeRole.NAMENODE);
+  return ex.toString().contains("SafeModeException") || (ex instanceof RetriableException && ex.getMessage().contains(nameNodeNotStartedMsg));
+}

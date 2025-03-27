@@ -1,0 +1,38 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	PathUtils.java	methodSinagture:	org.apache.zookeeper.common.PathUtils.normalizeFileSystemPath(Ljava/lang/String;)Ljava/lang/String;	methodLines:	102:109
+blockLines:	105:-1
+paras:	null
+TaintedStat:	NORMAL normalizeFileSystemPath:conditional branch(eq, to iindex=17) 11,12 Node: < Application, Lorg/apache/zookeeper/common/PathUtils, normalizeFileSystemPath(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/common/PathUtils, normalizeFileSystemPath(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere[4]6 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 4 @6 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/common/PathUtils, normalizeFileSystemPath(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere[4]6 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 4 @6 exception:5
+NORMAL normalizeFileSystemPath:8 = invokevirtual < Application, Ljava/lang/String, toLowerCase()Ljava/lang/String; > 6 @11 exception:7 Node: < Application, Lorg/apache/zookeeper/common/PathUtils, normalizeFileSystemPath(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, toLowerCase()Ljava/lang/String; > Context: Everywhere
+NORMAL toLowerCase:return 6 Node: < Primordial, Ljava/lang/String, toLowerCase()Ljava/lang/String; > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, toLowerCase()Ljava/lang/String; > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/common/PathUtils, normalizeFileSystemPath(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere[7]8 = invokevirtual < Application, Ljava/lang/String, toLowerCase()Ljava/lang/String; > 6 @11 exception:7
+NORMAL normalizeFileSystemPath:11 = invokevirtual < Application, Ljava/lang/String, contains(Ljava/lang/CharSequence;)Z > 8,9 @16 exception:10 Node: < Application, Lorg/apache/zookeeper/common/PathUtils, normalizeFileSystemPath(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, contains(Ljava/lang/CharSequence;)Z > Context: Everywhere
+NORMAL contains:return 10 Node: < Primordial, Ljava/lang/String, contains(Ljava/lang/CharSequence;)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, contains(Ljava/lang/CharSequence;)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/common/PathUtils, normalizeFileSystemPath(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere[9]11 = invokevirtual < Application, Ljava/lang/String, contains(Ljava/lang/CharSequence;)Z > 8,9 @16 exception:10
+NORMAL normalizeFileSystemPath:conditional branch(eq, to iindex=17) 11,12 Node: < Application, Lorg/apache/zookeeper/common/PathUtils, normalizeFileSystemPath(Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+     public static String normalizeFileSystemPath(String path) {
+         if (path != null) {
+             String osname = java.lang.System.getProperty("os.name");
+             if (osname.toLowerCase().contains("windows")) {
+                 return path.replace('\\', '/');
+             }
+         }
+         return path;
+     }
+
+
+====================ctx:=======================

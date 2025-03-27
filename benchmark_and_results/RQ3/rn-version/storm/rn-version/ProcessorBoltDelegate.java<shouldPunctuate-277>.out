@@ -1,0 +1,58 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ProcessorBoltDelegate.java	methodSinagture:	org.apache.storm.streams.ProcessorBoltDelegate.shouldPunctuate(Lorg/apache/storm/streams/ProcessorNode;Ljava/lang/String;)Z	methodLines:	277:300
+blockLines:	291:-1
+paras:	null
+TaintedStat:	NORMAL shouldPunctuate:conditional branch(ne, to iindex=66) 39,40 Node: < Application, Lorg/apache/storm/streams/ProcessorBoltDelegate, shouldPunctuate(Lorg/apache/storm/streams/ProcessorNode;Ljava/lang/String;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/streams/ProcessorBoltDelegate, shouldPunctuate(Lorg/apache/storm/streams/ProcessorNode;Ljava/lang/String;)Z > Context: Everywhere[54]38 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 36,35 @130 exception:37
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/streams/ProcessorBoltDelegate, shouldPunctuate(Lorg/apache/storm/streams/ProcessorNode;Ljava/lang/String;)Z > Context: Everywhere[54]38 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 36,35 @130 exception:37
+NORMAL shouldPunctuate:[null]: 39 = checkcast <Application,Ljava/lang/Integer>38 <Application,Ljava/lang/Integer> Node: < Application, Lorg/apache/storm/streams/ProcessorBoltDelegate, shouldPunctuate(Lorg/apache/storm/streams/ProcessorNode;Ljava/lang/String;)Z > Context: Everywhere
+NORMAL shouldPunctuate:conditional branch(ne, to iindex=66) 39,40 Node: < Application, Lorg/apache/storm/streams/ProcessorBoltDelegate, shouldPunctuate(Lorg/apache/storm/streams/ProcessorNode;Ljava/lang/String;)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private boolean shouldPunctuate(ProcessorNode processorNode, String sourceStreamId) {
+        if (!processorNode.getWindowedParentStreams().isEmpty()) {
+            updateCount(processorNode, sourceStreamId);
+            if (punctuationState.row(processorNode).size() != processorNode.getWindowedParentStreams().size()) {
+                return false;
+            }
+            // size matches, check if the streams are expected
+            Set<String> receivedStreams = punctuationState.row(processorNode).keySet();
+            if (!receivedStreams.equals(processorNode.getWindowedParentStreams())) {
+                throw new IllegalStateException("Received punctuation from streams " + receivedStreams + " expected "
+                                                + processorNode.getWindowedParentStreams());
+            }
+            for (String receivedStream : receivedStreams) {
+                Integer expected = streamToInputTaskCount.get(receivedStream);
+                if (expected == null) {
+                    throw new IllegalStateException("Punctuation received on unexpected stream '" + receivedStream
+                            + "' for which input task count is not set.");
+                }
+                if (punctuationState.get(processorNode, receivedStream) < streamToInputTaskCount.get(receivedStream)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/streams/ProcessorBoltDelegate, punctuateInitialProcessors(Ljava/lang/String;)V > Context: Everywhere, blocks=[BB[SSA:18..22]10 - org.apache.storm.streams.ProcessorBoltDelegate.punctuateInitialProcessors(Ljava/lang/String;)V, BB[SSA:17..17]9 - org.apache.storm.streams.ProcessorBoltDelegate.punctuateInitialProcessors(Ljava/lang/String;)V, BB[SSA:23..24]11 - org.apache.storm.streams.ProcessorBoltDelegate.punctuateInitialProcessors(Ljava/lang/String;)V, BB[SSA:-1..-2]17 - org.apache.storm.streams.ProcessorBoltDelegate.punctuateInitialProcessors(Ljava/lang/String;)V], numberOfBasicBlocks=4, firstLineNumber=188, lastLineNumber=189, firstMethodNumber=185, lastMethodNumber=194, isFirstLineValid=true, methodSrcCode=
+    private void punctuateInitialProcessors(String punctuationStreamId) {
+        String sourceStreamId = StreamUtil.getSourceStream(punctuationStreamId);
+        Collection<ProcessorNode> initialProcessors = streamToInitialProcessors.get(sourceStreamId);
+        for (ProcessorNode processorNode : initialProcessors) {
+            if (shouldPunctuate(processorNode, sourceStreamId)) {
+                processorNode.getProcessor().punctuate(null);
+                clearPunctuationState(processorNode);
+            }
+        }
+    }
+
+}

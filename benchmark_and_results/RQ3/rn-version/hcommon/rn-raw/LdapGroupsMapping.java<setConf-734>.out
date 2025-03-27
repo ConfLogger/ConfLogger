@@ -1,0 +1,111 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	LdapGroupsMapping.java	methodSinagture:	org.apache.hadoop.security.LdapGroupsMapping.setConf(Lorg/apache/hadoop/conf/Configuration;)V	methodLines:	734:815
+blockLines:	803:-1
+paras:	null
+TaintedStat:	NORMAL setConf:conditional branch(eq, to iindex=224) 113,11 Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, setConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, setConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[214]113 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getClass(Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Class;)Ljava/lang/Class; > 2,110,11,111 @406 exception:112
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, setConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[214]113 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getClass(Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Class;)Ljava/lang/Class; > 2,110,11,111 @406 exception:112
+NORMAL setConf:conditional branch(eq, to iindex=224) 113,11 Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, setConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	LdapGroupsMapping.java	methodSinagture:	org.apache.hadoop.security.LdapGroupsMapping.setConf(Lorg/apache/hadoop/conf/Configuration;)V	methodLines:	734:815
+blockLines:	737:-1
+paras:	null
+TaintedStat:	NORMAL setConf:conditional branch(eq, to iindex=20) 10,11 Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, setConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, setConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[11]10 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getStrings(Ljava/lang/String;[Ljava/lang/String;)[Ljava/lang/String; > 2,4,6 @17 exception:9
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, setConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere[11]10 = invokevirtual < Application, Lorg/apache/hadoop/conf/Configuration, getStrings(Ljava/lang/String;[Ljava/lang/String;)[Ljava/lang/String; > 2,4,6 @17 exception:9
+NORMAL setConf:conditional branch(eq, to iindex=20) 10,11 Node: < Application, Lorg/apache/hadoop/security/LdapGroupsMapping, setConf(Lorg/apache/hadoop/conf/Configuration;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  public synchronized void setConf(Configuration conf) {
+    this.conf = conf;
+    String[] urls = conf.getStrings(LDAP_URL_KEY, LDAP_URL_DEFAULT);
+    if (urls == null || urls.length == 0) {
+      throw new RuntimeException("LDAP URL(s) are not configured");
+    }
+    ldapUrls = Iterators.cycle(urls);
+    currentLdapUrl = ldapUrls.next();
+
+    useSsl = conf.getBoolean(LDAP_USE_SSL_KEY, LDAP_USE_SSL_DEFAULT);
+    if (useSsl) {
+      loadSslConf(conf);
+    }
+
+    initializeBindUsers();
+
+    String baseDN = conf.getTrimmed(BASE_DN_KEY, BASE_DN_DEFAULT);
+
+    // User search base which defaults to base dn.
+    userbaseDN = conf.getTrimmed(USER_BASE_DN_KEY, baseDN);
+    LOG.debug("Usersearch baseDN: {}", userbaseDN);
+
+    // Group search base which defaults to base dn.
+    groupbaseDN = conf.getTrimmed(GROUP_BASE_DN_KEY, baseDN);
+    LOG.debug("Groupsearch baseDN: {}", groupbaseDN);
+
+    groupSearchFilter =
+        conf.get(GROUP_SEARCH_FILTER_KEY, GROUP_SEARCH_FILTER_DEFAULT);
+    userSearchFilter =
+        conf.get(USER_SEARCH_FILTER_KEY, USER_SEARCH_FILTER_DEFAULT);
+    isPosix = groupSearchFilter.contains(POSIX_GROUP) && userSearchFilter
+        .contains(POSIX_ACCOUNT);
+    memberOfAttr =
+        conf.get(MEMBEROF_ATTR_KEY, MEMBEROF_ATTR_DEFAULT);
+    // if memberOf attribute is set, resolve group names from the attribute
+    // of user objects.
+    useOneQuery = !memberOfAttr.isEmpty();
+    groupMemberAttr =
+        conf.get(GROUP_MEMBERSHIP_ATTR_KEY, GROUP_MEMBERSHIP_ATTR_DEFAULT);
+    groupNameAttr =
+        conf.get(GROUP_NAME_ATTR_KEY, GROUP_NAME_ATTR_DEFAULT);
+    groupHierarchyLevels =
+        conf.getInt(GROUP_HIERARCHY_LEVELS_KEY, GROUP_HIERARCHY_LEVELS_DEFAULT);
+    posixUidAttr =
+        conf.get(POSIX_UID_ATTR_KEY, POSIX_UID_ATTR_DEFAULT);
+    posixGidAttr =
+        conf.get(POSIX_GID_ATTR_KEY, POSIX_GID_ATTR_DEFAULT);
+
+    int dirSearchTimeout = conf.getInt(DIRECTORY_SEARCH_TIMEOUT,
+        DIRECTORY_SEARCH_TIMEOUT_DEFAULT);
+    SEARCH_CONTROLS.setTimeLimit(dirSearchTimeout);
+    // Limit the attributes returned to only those required to speed up the search.
+    // See HADOOP-10626 and HADOOP-12001 for more details.
+    String[] returningAttributes;
+    if (useOneQuery) {
+      returningAttributes = new String[] {
+          groupNameAttr, posixUidAttr, posixGidAttr, memberOfAttr};
+    } else {
+      returningAttributes = new String[] {
+          groupNameAttr, posixUidAttr, posixGidAttr};
+    }
+    SEARCH_CONTROLS.setReturningAttributes(returningAttributes);
+
+    // LDAP_CTX_FACTORY_CLASS_DEFAULT is not open to unnamed modules
+    // in Java 11+, so the default value is set to null to avoid
+    // creating the instance for now.
+    Class<? extends InitialContextFactory> ldapCtxFactoryClass =
+        conf.getClass(LDAP_CTX_FACTORY_CLASS_KEY, null,
+        InitialContextFactory.class);
+    if (ldapCtxFactoryClass != null) {
+      ldapCtxFactoryClassName = ldapCtxFactoryClass.getName();
+    } else {
+      // The default value is set afterwards.
+      ldapCtxFactoryClassName = LDAP_CTX_FACTORY_CLASS_DEFAULT;
+    }
+
+    this.numAttempts = conf.getInt(LDAP_NUM_ATTEMPTS_KEY,
+        LDAP_NUM_ATTEMPTS_DEFAULT);
+    this.numAttemptsBeforeFailover = conf.getInt(
+        LDAP_NUM_ATTEMPTS_BEFORE_FAILOVER_KEY,
+        LDAP_NUM_ATTEMPTS_BEFORE_FAILOVER_DEFAULT);
+  }
+
+
+
+====================ctx:=======================

@@ -1,0 +1,89 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	NimbusClient.java	methodSinagture:	org.apache.storm.utils.NimbusClient.getConfiguredClientAs(Ljava/util/Map;Ljava/lang/String;Ljava/lang/Integer;)Lorg/apache/storm/utils/NimbusClient;	methodLines:	189:250
+blockLines:	206:-1
+paras:	null
+TaintedStat:	NORMAL getConfiguredClientAs:conditional branch(eq, to iindex=51) 27,6 Node: < Application, Lorg/apache/storm/utils/NimbusClient, getConfiguredClientAs(Ljava/util/Map;Ljava/lang/String;Ljava/lang/Integer;)Lorg/apache/storm/utils/NimbusClient; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/NimbusClient, getConfiguredClientAs(Ljava/util/Map;Ljava/lang/String;Ljava/lang/Integer;)Lorg/apache/storm/utils/NimbusClient; > Context: Everywhere[41]25 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,13 @87 exception:24
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/NimbusClient, getConfiguredClientAs(Ljava/util/Map;Ljava/lang/String;Ljava/lang/Integer;)Lorg/apache/storm/utils/NimbusClient; > Context: Everywhere[41]25 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,13 @87 exception:24
+NORMAL getConfiguredClientAs:26 = checkcast <Application,Ljava/lang/String>25 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/utils/NimbusClient, getConfiguredClientAs(Ljava/util/Map;Ljava/lang/String;Ljava/lang/Integer;)Lorg/apache/storm/utils/NimbusClient; > Context: Everywhere
+PHI Node: < Application, Lorg/apache/storm/utils/NimbusClient, getConfiguredClientAs(Ljava/util/Map;Ljava/lang/String;Ljava/lang/Integer;)Lorg/apache/storm/utils/NimbusClient; > Context: Everywhere:27 = phi  2,26
+NORMAL getConfiguredClientAs:conditional branch(eq, to iindex=51) 27,6 Node: < Application, Lorg/apache/storm/utils/NimbusClient, getConfiguredClientAs(Ljava/util/Map;Ljava/lang/String;Ljava/lang/Integer;)Lorg/apache/storm/utils/NimbusClient; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static NimbusClient getConfiguredClientAs(Map<String, Object> conf, String asUser, Integer timeout) {
+        Nimbus.Iface override = _localOverrideClient;
+        if (override != null) {
+            return new NimbusClient(override);
+        }
+        Map<String, Object> fullConf = Utils.readStormConfig();
+        fullConf.putAll(Utils.readCommandLineOpts());
+        fullConf.putAll(conf);
+        conf = fullConf;
+        if (conf.containsKey(Config.STORM_DO_AS_USER)) {
+            if (asUser != null && !asUser.isEmpty()) {
+                LOG.warn("You have specified a doAsUser as param {} and a doAsParam as config, config will take precedence.",
+                         asUser, conf.get(Config.STORM_DO_AS_USER));
+            }
+            asUser = (String) conf.get(Config.STORM_DO_AS_USER);
+        }
+
+        if (asUser == null || asUser.isEmpty()) {
+            //The user is not set so lets see what the request context is.
+            ReqContext context = ReqContext.context();
+            Principal principal = context.principal();
+            asUser = principal == null ? null : principal.getName();
+            LOG.debug("Will impersonate {} based off of request context.", asUser);
+        }
+
+        List<String> seeds = (List<String>) conf.get(Config.NIMBUS_SEEDS);
+
+        for (String host : seeds) {
+            int port = Integer.parseInt(conf.get(Config.NIMBUS_THRIFT_PORT).toString());
+            NimbusSummary nimbusSummary;
+            NimbusClient client = null;
+            try {
+                client = new NimbusClient(conf, host, port, timeout, asUser);
+                nimbusSummary = client.getClient().getLeader();
+                if (nimbusSummary != null) {
+                    String leaderNimbus = nimbusSummary.get_host() + ":" + nimbusSummary.get_port();
+                    if (shouldLogLeader(leaderNimbus)) {
+                        LOG.info("Found leader nimbus : {}", leaderNimbus);
+                    }
+                    if (nimbusSummary.get_host().equals(host) && nimbusSummary.get_port() == port) {
+                        NimbusClient ret = client;
+                        client = null;
+                        return ret;
+                    }
+                    try {
+                        return new NimbusClient(conf, nimbusSummary.get_host(), nimbusSummary.get_port(), timeout, asUser);
+                    } catch (TTransportException e) {
+                        throw new RuntimeException("Failed to create a nimbus client for the leader " + leaderNimbus, e);
+                    }
+                }
+            } catch (Exception e) {
+                LOG.warn("Ignoring exception while trying to get leader nimbus info from " + host
+                         + ". will retry with a different seed host.", e);
+                continue;
+            } finally {
+                if (client != null) {
+                    client.close();
+                }
+            }
+            throw new NimbusLeaderNotFoundException("Could not find a nimbus leader, please try again after some time.");
+        }
+        throw new NimbusLeaderNotFoundException(
+            "Could not find leader nimbus from seed hosts " + seeds + ". "
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/utils/NimbusClient, getConfiguredClientAs(Ljava/util/Map;Ljava/lang/String;)Lorg/apache/storm/utils/NimbusClient; > Context: Everywhere, blocks=[BB[SSA:0..3]1 - org.apache.storm.utils.NimbusClient.getConfiguredClientAs(Ljava/util/Map;Ljava/lang/String;)Lorg/apache/storm/utils/NimbusClient;, BB[SSA:-1..-2]0 - org.apache.storm.utils.NimbusClient.getConfiguredClientAs(Ljava/util/Map;Ljava/lang/String;)Lorg/apache/storm/utils/NimbusClient;, BB[SSA:4..4]2 - org.apache.storm.utils.NimbusClient.getConfiguredClientAs(Ljava/util/Map;Ljava/lang/String;)Lorg/apache/storm/utils/NimbusClient;, BB[SSA:-1..-2]3 - org.apache.storm.utils.NimbusClient.getConfiguredClientAs(Ljava/util/Map;Ljava/lang/String;)Lorg/apache/storm/utils/NimbusClient;], numberOfBasicBlocks=4, firstLineNumber=178, lastLineNumber=179, firstMethodNumber=178, lastMethodNumber=179, isFirstLineValid=false, methodSrcCode=
+    public static NimbusClient getConfiguredClientAs(Map<String, Object> conf, String asUser) {
+        return getConfiguredClientAs(conf, asUser, null);
+    }
+}

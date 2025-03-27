@@ -1,0 +1,54 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	BitMap.java	methodSinagture:	org.apache.zookeeper.server.util.BitMap.remove(I)Ljava/lang/Object;	methodLines:	114:127
+blockLines:	118:-1
+paras:	null
+TaintedStat:	NORMAL remove:conditional branch(ne, to iindex=21) 12,13 Node: < Application, Lorg/apache/zookeeper/server/util/BitMap, remove(I)Ljava/lang/Object; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/util/BitMap, remove(I)Ljava/lang/Object; > Context: Everywhere[8]12 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,10 @18 exception:11
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/util/BitMap, remove(I)Ljava/lang/Object; > Context: Everywhere[8]12 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,10 @18 exception:11
+NORMAL remove:conditional branch(ne, to iindex=21) 12,13 Node: < Application, Lorg/apache/zookeeper/server/util/BitMap, remove(I)Ljava/lang/Object; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public T remove(int bit) {
+        rwLock.writeLock().lock();
+        try {
+            T value = bit2Value.get(bit);
+            if (value == null) {
+                return null;
+            }
+            value2Bit.remove(value);
+            bit2Value.remove(bit);
+            freedBitSet.set(bit);
+            return value;
+        } finally {
+            rwLock.writeLock().unlock();
+        }
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManagerOptimized, processDeadWatchers(Ljava/util/Set;)V > Context: Everywhere, blocks=[BB[SSA:54..54]30 - org.apache.zookeeper.server.watch.WatchManagerOptimized.processDeadWatchers(Ljava/util/Set;)V, BB[SSA:52..53]29 - org.apache.zookeeper.server.watch.WatchManagerOptimized.processDeadWatchers(Ljava/util/Set;)V, BB[SSA:55..56]31 - org.apache.zookeeper.server.watch.WatchManagerOptimized.processDeadWatchers(Ljava/util/Set;)V, BB[SSA:-1..-2]33 - org.apache.zookeeper.server.watch.WatchManagerOptimized.processDeadWatchers(Ljava/util/Set;)V], numberOfBasicBlocks=4, firstLineNumber=203, lastLineNumber=204, firstMethodNumber=189, lastMethodNumber=205, isFirstLineValid=true, methodSrcCode=
+        // don't need to have addRemovePathRWLock here.
+        BitSet bits = new BitSet();
+        for (int dw : deadWatchers) {
+            bits.set(dw);
+        }
+        // The value iterator will reflect the state when it was
+        // created, don't need to synchronize.
+        for (BitHashSet watchers : pathWatches.values()) {
+            watchers.remove(deadWatchers, bits);
+        }
+        // Better to remove the empty path from pathWatches, but it will add
+        // lot of lock contention and affect the throughput of addWatch,
+        // let's rely on the triggerWatch to delete it.
+        for (Integer wbit : deadWatchers) {
+            watcherBitIdMap.remove(wbit);
+        }
+    }
+
+}

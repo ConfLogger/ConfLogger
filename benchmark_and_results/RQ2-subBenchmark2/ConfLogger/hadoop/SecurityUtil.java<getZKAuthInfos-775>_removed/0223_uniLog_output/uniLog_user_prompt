@@ -1,0 +1,316 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>String configKey) throws IOException {
+<Line#1>char[] zkAuthChars = conf.getPassword(configKey);
+<Line#2>String zkAuthConf =
+<Line#3>zkAuthChars != null ? String.valueOf(zkAuthChars) : null;
+<Line#4>try {
+<Line#5>zkAuthConf = ZKUtil.resolveConfIndirection(zkAuthConf);
+<Line#6>if (zkAuthConf != null) {
+<Line#7>return ZKUtil.parseAuth(zkAuthConf);
+<Line#8>} else {
+<Line#9>return Collections.emptyList();
+<Line#10>}
+<Line#11>} catch (IOException | ZKUtil.BadAuthFormatException e) {
+<Line#12>throw e;
+<Line#13>}
+
+Example 1:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    if (socket != null || shouldCloseConnection.get()) {
+<Line#4>      setFallBackToSimpleAuth(fallbackToSimpleAuth);
+<Line#5>      return;
+<Line#6>    }
+<Line#7>    UserGroupInformation ticket=remoteId.getTicket();
+<Line#8>    if (ticket != null) {
+<Line#9>      final UserGroupInformation realUser=ticket.getRealUser();
+<Line#10>      if (realUser != null) {
+<Line#11>        ticket=realUser;
+<Line#12>      }
+<Line#13>    }
+<Line#14>    connectingThread.set(Thread.currentThread());
+<Line#15>    if (LOG.isDebugEnabled()) {
+<Line#16>      LOG.debug("Connecting to " + server);
+<Line#17>    }
+<Line#18>    Span span=Tracer.getCurrentSpan();
+<Line#19>    if (span != null) {
+<Line#20>      span.addTimelineAnnotation("IPC client connecting to " + server);
+<Line#21>    }
+<Line#22>    short numRetries=0;
+<Line#23>    Random rand=null;
+<Line#24>    while (true) {
+<Line#25>      setupConnection(ticket);
+<Line#26>      ipcStreams=new IpcStreams(socket,maxResponseLength);
+<Line#27>      writeConnectionHeader(ipcStreams);
+<Line#28>      if (authProtocol == AuthProtocol.SASL) {
+<Line#29>        try {
+<Line#30>          authMethod=ticket.doAs(new PrivilegedExceptionAction<AuthMethod>(){
+<Line#31>            @Override public AuthMethod run() throws IOException, InterruptedException {
+<Line#32>              return setupSaslConnection(ipcStreams);
+<Line#33>            }
+<Line#34>          }
+<Line#35>);
+<Line#36>        }
+<Line#37> catch (        IOException ex) {
+<Line#38>          if (saslRpcClient == null) {
+<Line#39>            throw ex;
+<Line#40>          }
+<Line#41>          authMethod=saslRpcClient.getAuthMethod();
+<Line#42>          if (rand == null) {
+<Line#43>            rand=new Random();
+<Line#44>          }
+<Line#45>          handleSaslConnectionFailure(numRetries++,maxRetriesOnSasl,ex,rand,ticket);
+<Line#46>          continue;
+<Line#47>        }
+<Line#48>        if (authMethod != AuthMethod.SIMPLE) {
+<Line#49>          ipcStreams.setSaslClient(saslRpcClient);
+<Line#50>          remoteId.saslQop=(String)saslRpcClient.getNegotiatedProperty(Sasl.QOP);
+<Line#51>          LOG.debug("Negotiated QOP is :" + remoteId.saslQop);
+<Line#52>        }
+<Line#53>        setFallBackToSimpleAuth(fallbackToSimpleAuth);
+<Line#54>      }
+<Line#55>      if (doPing) {
+<Line#56>        ipcStreams.setInputStream(new PingInputStream(ipcStreams.in));
+<Line#57>      }
+<Line#58>      writeConnectionContext(remoteId,authMethod);
+<Line#59>      touch();
+<Line#60>      span=Tracer.getCurrentSpan();
+<Line#61>      if (span != null) {
+<Line#62>        span.addTimelineAnnotation("IPC client connected to " + server);
+<Line#63>      }
+<Line#64>      start();
+<Line#65>      return;
+<Line#66>    }
+<Line#67>  }
+<Line#68> catch (  Throwable t) {
+<Line#69>    if (t instanceof IOException) {
+<Line#70>      markClosed((IOException)t);
+<Line#71>    }
+<Line#72> else {
+<Line#73>      markClosed(new IOException("Couldn't set up IO streams: " + t,t));
+<Line#74>    }
+<Line#75>    close();
+<Line#76>  }
+<Line#77> finally {
+<Line#78>    connectingThread.set(null);
+<Line#79>  }
+<Line#80>}
+Label: <Line#16> LOG.debug("Connecting to " + server)
+
+Example 2:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    if (socket != null || shouldCloseConnection.get()) {
+<Line#4>      setFallBackToSimpleAuth(fallbackToSimpleAuth);
+<Line#5>      return;
+<Line#6>    }
+<Line#7>    UserGroupInformation ticket=remoteId.getTicket();
+<Line#8>    if (ticket != null) {
+<Line#9>      final UserGroupInformation realUser=ticket.getRealUser();
+<Line#10>      if (realUser != null) {
+<Line#11>        ticket=realUser;
+<Line#12>      }
+<Line#13>    }
+<Line#14>    connectingThread.set(Thread.currentThread());
+<Line#15>    if (LOG.isDebugEnabled()) {
+<Line#16>      LOG.debug("Connecting to " + server);
+<Line#17>    }
+<Line#18>    Span span=Tracer.getCurrentSpan();
+<Line#19>    if (span != null) {
+<Line#20>      span.addTimelineAnnotation("IPC client connecting to " + server);
+<Line#21>    }
+<Line#22>    short numRetries=0;
+<Line#23>    Random rand=null;
+<Line#24>    while (true) {
+<Line#25>      setupConnection(ticket);
+<Line#26>      ipcStreams=new IpcStreams(socket,maxResponseLength);
+<Line#27>      writeConnectionHeader(ipcStreams);
+<Line#28>      if (authProtocol == AuthProtocol.SASL) {
+<Line#29>        try {
+<Line#30>          authMethod=ticket.doAs(new PrivilegedExceptionAction<AuthMethod>(){
+<Line#31>            @Override public AuthMethod run() throws IOException, InterruptedException {
+<Line#32>              return setupSaslConnection(ipcStreams);
+<Line#33>            }
+<Line#34>          }
+<Line#35>);
+<Line#36>        }
+<Line#37> catch (        IOException ex) {
+<Line#38>          if (saslRpcClient == null) {
+<Line#39>            throw ex;
+<Line#40>          }
+<Line#41>          authMethod=saslRpcClient.getAuthMethod();
+<Line#42>          if (rand == null) {
+<Line#43>            rand=new Random();
+<Line#44>          }
+<Line#45>          handleSaslConnectionFailure(numRetries++,maxRetriesOnSasl,ex,rand,ticket);
+<Line#46>          continue;
+<Line#47>        }
+<Line#48>        if (authMethod != AuthMethod.SIMPLE) {
+<Line#49>          ipcStreams.setSaslClient(saslRpcClient);
+<Line#50>          remoteId.saslQop=(String)saslRpcClient.getNegotiatedProperty(Sasl.QOP);
+<Line#51>          LOG.debug("Negotiated QOP is :" + remoteId.saslQop);
+<Line#52>        }
+<Line#53>        setFallBackToSimpleAuth(fallbackToSimpleAuth);
+<Line#54>      }
+<Line#55>      if (doPing) {
+<Line#56>        ipcStreams.setInputStream(new PingInputStream(ipcStreams.in));
+<Line#57>      }
+<Line#58>      writeConnectionContext(remoteId,authMethod);
+<Line#59>      touch();
+<Line#60>      span=Tracer.getCurrentSpan();
+<Line#61>      if (span != null) {
+<Line#62>        span.addTimelineAnnotation("IPC client connected to " + server);
+<Line#63>      }
+<Line#64>      start();
+<Line#65>      return;
+<Line#66>    }
+<Line#67>  }
+<Line#68> catch (  Throwable t) {
+<Line#69>    if (t instanceof IOException) {
+<Line#70>      markClosed((IOException)t);
+<Line#71>    }
+<Line#72> else {
+<Line#73>      markClosed(new IOException("Couldn't set up IO streams: " + t,t));
+<Line#74>    }
+<Line#75>    close();
+<Line#76>  }
+<Line#77> finally {
+<Line#78>    connectingThread.set(null);
+<Line#79>  }
+<Line#80>}
+Label: <Line#51> LOG.debug("Negotiated QOP is :" + remoteId.saslQop)
+
+Example 3:
+<Line#1>{
+<Line#2>  numDisksBytesRead=0L;
+<Line#3>  numDisksBytesWritten=0L;
+<Line#4>  BufferedReader in;
+<Line#5>  try {
+<Line#6>    in=new BufferedReader(new InputStreamReader(Files.newInputStream(Paths.get(procfsDisksFile)),Charset.forName("UTF-8")));
+<Line#7>  }
+<Line#8> catch (  IOException f) {
+<Line#9>    return;
+<Line#10>  }
+<Line#11>  Matcher mat;
+<Line#12>  try {
+<Line#13>    String str=in.readLine();
+<Line#14>    while (str != null) {
+<Line#15>      mat=PROCFS_DISKSFILE_FORMAT.matcher(str);
+<Line#16>      if (mat.find()) {
+<Line#17>        String diskName=mat.group(4);
+<Line#18>        assert diskName != null;
+<Line#19>        if (diskName.contains("loop") || diskName.contains("ram")) {
+<Line#20>          str=in.readLine();
+<Line#21>          continue;
+<Line#22>        }
+<Line#23>        Integer sectorSize;
+<Line#24>synchronized (perDiskSectorSize) {
+<Line#25>          sectorSize=perDiskSectorSize.get(diskName);
+<Line#26>          if (null == sectorSize) {
+<Line#27>            sectorSize=readDiskBlockInformation(diskName,512);
+<Line#28>            perDiskSectorSize.put(diskName,sectorSize);
+<Line#29>          }
+<Line#30>        }
+<Line#31>        String sectorsRead=mat.group(7);
+<Line#32>        String sectorsWritten=mat.group(11);
+<Line#33>        if (null == sectorsRead || null == sectorsWritten) {
+<Line#34>          return;
+<Line#35>        }
+<Line#36>        numDisksBytesRead+=Long.parseLong(sectorsRead) * sectorSize;
+<Line#37>        numDisksBytesWritten+=Long.parseLong(sectorsWritten) * sectorSize;
+<Line#38>      }
+<Line#39>      str=in.readLine();
+<Line#40>    }
+<Line#41>  }
+<Line#42> catch (  IOException e) {
+<Line#43>    LOG.warn("Error reading the stream " + procfsDisksFile,e);
+<Line#44>  }
+<Line#45> finally {
+<Line#46>    try {
+<Line#47>      in.close();
+<Line#48>    }
+<Line#49> catch (    IOException e) {
+<Line#50>      LOG.warn("Error closing the stream " + procfsDisksFile,e);
+<Line#51>    }
+<Line#52>  }
+<Line#53>}
+Label: <Line#43> LOG.warn("Error reading the stream " + procfsDisksFile,e)
+
+Example 4:
+<Line#1>{
+<Line#2>  numDisksBytesRead=0L;
+<Line#3>  numDisksBytesWritten=0L;
+<Line#4>  BufferedReader in;
+<Line#5>  try {
+<Line#6>    in=new BufferedReader(new InputStreamReader(Files.newInputStream(Paths.get(procfsDisksFile)),Charset.forName("UTF-8")));
+<Line#7>  }
+<Line#8> catch (  IOException f) {
+<Line#9>    return;
+<Line#10>  }
+<Line#11>  Matcher mat;
+<Line#12>  try {
+<Line#13>    String str=in.readLine();
+<Line#14>    while (str != null) {
+<Line#15>      mat=PROCFS_DISKSFILE_FORMAT.matcher(str);
+<Line#16>      if (mat.find()) {
+<Line#17>        String diskName=mat.group(4);
+<Line#18>        assert diskName != null;
+<Line#19>        if (diskName.contains("loop") || diskName.contains("ram")) {
+<Line#20>          str=in.readLine();
+<Line#21>          continue;
+<Line#22>        }
+<Line#23>        Integer sectorSize;
+<Line#24>synchronized (perDiskSectorSize) {
+<Line#25>          sectorSize=perDiskSectorSize.get(diskName);
+<Line#26>          if (null == sectorSize) {
+<Line#27>            sectorSize=readDiskBlockInformation(diskName,512);
+<Line#28>            perDiskSectorSize.put(diskName,sectorSize);
+<Line#29>          }
+<Line#30>        }
+<Line#31>        String sectorsRead=mat.group(7);
+<Line#32>        String sectorsWritten=mat.group(11);
+<Line#33>        if (null == sectorsRead || null == sectorsWritten) {
+<Line#34>          return;
+<Line#35>        }
+<Line#36>        numDisksBytesRead+=Long.parseLong(sectorsRead) * sectorSize;
+<Line#37>        numDisksBytesWritten+=Long.parseLong(sectorsWritten) * sectorSize;
+<Line#38>      }
+<Line#39>      str=in.readLine();
+<Line#40>    }
+<Line#41>  }
+<Line#42> catch (  IOException e) {
+<Line#43>    LOG.warn("Error reading the stream " + procfsDisksFile,e);
+<Line#44>  }
+<Line#45> finally {
+<Line#46>    try {
+<Line#47>      in.close();
+<Line#48>    }
+<Line#49> catch (    IOException e) {
+<Line#50>      LOG.warn("Error closing the stream " + procfsDisksFile,e);
+<Line#51>    }
+<Line#52>  }
+<Line#53>}
+Label: <Line#50> LOG.warn("Error closing the stream " + procfsDisksFile,e)
+
+Example 5:
+<Line#1>{
+<Line#2>  if (o == null) {
+<Line#3>    return NULL_RESULT;
+<Line#4>  }
+<Line#5> else {
+<Line#6>    if (o instanceof String) {
+<Line#7>      return '"' + (String)o + '"';
+<Line#8>    }
+<Line#9>    try {
+<Line#10>      return o.toString();
+<Line#11>    }
+<Line#12> catch (    Exception e) {
+<Line#13>      LOG.info("Exception calling toString()",e);
+<Line#14>      return o.getClass().toString();
+<Line#15>    }
+<Line#16>  }
+<Line#17>}
+Label: <Line#13> LOG.info("Exception calling toString()",e)
+

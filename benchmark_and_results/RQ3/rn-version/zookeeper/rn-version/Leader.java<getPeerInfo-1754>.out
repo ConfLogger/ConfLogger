@@ -1,0 +1,24 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Leader.java	methodSinagture:	org.apache.zookeeper.server.quorum.Leader.getPeerInfo(J)Ljava/lang/String;	methodLines:	1754:1756
+blockLines:	1756:-1
+paras:	null
+TaintedStat:	NORMAL getPeerInfo:conditional branch(ne, to iindex=13) 11,12 Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, getPeerInfo(J)Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, getPeerInfo(J)Ljava/lang/String; > Context: Everywhere[5]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 6,8 @11 exception:9
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, getPeerInfo(J)Ljava/lang/String; > Context: Everywhere[5]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 6,8 @11 exception:9
+NORMAL getPeerInfo:11 = checkcast <Application,Lorg/apache/zookeeper/server/quorum/QuorumPeer$QuorumServer>10 <Application,Lorg/apache/zookeeper/server/quorum/QuorumPeer$QuorumServer> Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, getPeerInfo(J)Ljava/lang/String; > Context: Everywhere
+NORMAL getPeerInfo:conditional branch(ne, to iindex=13) 11,12 Node: < Application, Lorg/apache/zookeeper/server/quorum/Leader, getPeerInfo(J)Ljava/lang/String; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public String getPeerInfo(long sid) {
+        QuorumPeer.QuorumServer server = self.getView().get(sid);
+        return server == null ? "" : server.toString();
+    }
+
+
+====================ctx:=======================

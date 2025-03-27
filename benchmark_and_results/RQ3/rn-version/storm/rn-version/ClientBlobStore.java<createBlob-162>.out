@@ -1,0 +1,79 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ClientBlobStore.java	methodSinagture:	org.apache.storm.blobstore.ClientBlobStore.createBlob(Ljava/lang/String;Lorg/apache/storm/generated/SettableBlobMeta;)Lorg/apache/storm/blobstore/AtomicOutputStream;	methodLines:	162:166
+blockLines:	163:-1
+paras:	null
+TaintedStat:	NORMAL createBlob:conditional branch(eq, to iindex=11) 3,5 Node: < Application, Lorg/apache/storm/blobstore/ClientBlobStore, createBlob(Ljava/lang/String;Lorg/apache/storm/generated/SettableBlobMeta;)Lorg/apache/storm/blobstore/AtomicOutputStream; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/command/Blobstore, setAclCli([Ljava/lang/String;)V > Context: Everywhere[20]21 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 16,3 @45 exception:20
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/command/Blobstore, setAclCli([Ljava/lang/String;)V > Context: Everywhere[20]21 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 16,3 @45 exception:20
+NORMAL setAclCli:22 = checkcast <Application,Ljava/util/List>21 <Application,Ljava/util/List> Node: < Application, Lorg/apache/storm/command/Blobstore, setAclCli([Ljava/lang/String;)V > Context: Everywhere
+NORMAL setAclCli:[invokedynamic] 24 = invokestatic < Application, Ljava/lang/invoke/LambdaMetafactory, run(Ljava/lang/String;Ljava/util/List;)Lorg/apache/storm/blobstore/ClientBlobStore$WithBlobstore; > 19,22 @56 exception:23 Node: < Application, Lorg/apache/storm/command/Blobstore, setAclCli([Ljava/lang/String;)V > Context: Everywhere
+METHOD_ENTRY:Node: synthetic < Application, Ljava/lang/invoke/LambdaMetafactory, run$org$apache$storm$command$Blobstore$3(Ljava/lang/String;Ljava/util/List;)Lorg/apache/storm/blobstore/ClientBlobStore$WithBlobstore; > Context: Everywhere
+NORMAL run$org$apache$storm$command$Blobstore$3:return 4 Node: synthetic < Application, Ljava/lang/invoke/LambdaMetafactory, run$org$apache$storm$command$Blobstore$3(Ljava/lang/String;Ljava/util/List;)Lorg/apache/storm/blobstore/ClientBlobStore$WithBlobstore; > Context: Everywhere
+NORMAL_RET_CALLEE:Node: synthetic < Application, Ljava/lang/invoke/LambdaMetafactory, run$org$apache$storm$command$Blobstore$3(Ljava/lang/String;Ljava/util/List;)Lorg/apache/storm/blobstore/ClientBlobStore$WithBlobstore; > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/command/Blobstore, setAclCli([Ljava/lang/String;)V > Context: Everywhere[25][invokedynamic] 24 = invokestatic < Application, Ljava/lang/invoke/LambdaMetafactory, run(Ljava/lang/String;Ljava/util/List;)Lorg/apache/storm/blobstore/ClientBlobStore$WithBlobstore; > 19,22 @56 exception:23
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/command/Blobstore, setAclCli([Ljava/lang/String;)V > Context: Everywhere[26]invokestatic < Application, Lorg/apache/storm/blobstore/ClientBlobStore, withConfiguredClient(Lorg/apache/storm/blobstore/ClientBlobStore$WithBlobstore;)V > 24 @61 exception:25 v24
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/blobstore/ClientBlobStore, withConfiguredClient(Lorg/apache/storm/blobstore/ClientBlobStore$WithBlobstore;)V > Context: Everywhere v1
+NORMAL withConfiguredClient:invokeinterface < Application, Lorg/apache/storm/blobstore/ClientBlobStore$WithBlobstore, run(Lorg/apache/storm/blobstore/ClientBlobStore;)V > 1,6 @11 exception:7 Node: < Application, Lorg/apache/storm/blobstore/ClientBlobStore, withConfiguredClient(Lorg/apache/storm/blobstore/ClientBlobStore$WithBlobstore;)V > Context: Everywhere
+METHOD_ENTRY:Node: synthetic < Primordial, Lwala/lambda$org$apache$storm$command$Blobstore$BlobStoreSupport$1, run(Lorg/apache/storm/blobstore/ClientBlobStore;)V > Context: Everywhere
+NORMAL run:4 = getfield < Primordial, Lwala/lambda$org$apache$storm$command$Blobstore$BlobStoreSupport$1, c1, <Application,Lorg/apache/storm/generated/SettableBlobMeta> > 1 Node: synthetic < Primordial, Lwala/lambda$org$apache$storm$command$Blobstore$BlobStoreSupport$1, run(Lorg/apache/storm/blobstore/ClientBlobStore;)V > Context: Everywhere
+PARAM_CALLER:Node: synthetic < Primordial, Lwala/lambda$org$apache$storm$command$Blobstore$BlobStoreSupport$1, run(Lorg/apache/storm/blobstore/ClientBlobStore;)V > Context: Everywhere[3]invokestatic < Application, Lorg/apache/storm/command/Blobstore$BlobStoreSupport, lambda$createBlobFromStream$1(Ljava/lang/String;Lorg/apache/storm/generated/SettableBlobMeta;Ljava/io/InputStream;Lorg/apache/storm/blobstore/ClientBlobStore;)V > 3,4,5,2 @4 exception:6 v4
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/command/Blobstore$BlobStoreSupport, lambda$createBlobFromStream$1(Ljava/lang/String;Lorg/apache/storm/generated/SettableBlobMeta;Ljava/io/InputStream;Lorg/apache/storm/blobstore/ClientBlobStore;)V > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/command/Blobstore$BlobStoreSupport, lambda$createBlobFromStream$1(Ljava/lang/String;Lorg/apache/storm/generated/SettableBlobMeta;Ljava/io/InputStream;Lorg/apache/storm/blobstore/ClientBlobStore;)V > Context: Everywhere[3]7 = invokevirtual < Application, Lorg/apache/storm/blobstore/ClientBlobStore, createBlob(Ljava/lang/String;Lorg/apache/storm/generated/SettableBlobMeta;)Lorg/apache/storm/blobstore/AtomicOutputStream; > 4,1,2 @3 exception:6 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/blobstore/ClientBlobStore, createBlob(Ljava/lang/String;Lorg/apache/storm/generated/SettableBlobMeta;)Lorg/apache/storm/blobstore/AtomicOutputStream; > Context: Everywhere v3
+NORMAL createBlob:conditional branch(eq, to iindex=11) 3,5 Node: < Application, Lorg/apache/storm/blobstore/ClientBlobStore, createBlob(Ljava/lang/String;Lorg/apache/storm/generated/SettableBlobMeta;)Lorg/apache/storm/blobstore/AtomicOutputStream; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public final AtomicOutputStream createBlob(String key, SettableBlobMeta meta) throws AuthorizationException, KeyAlreadyExistsException {
+        if (meta != null && meta.is_set_acl()) {
+            BlobStoreAclHandler.validateSettableACLs(key, meta.get_acl());
+        }
+        return createBlobToExtend(key, meta);
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/dependency/DependencyUploader, uploadDependencyToBlobStore(Ljava/lang/String;Ljava/io/File;)Z > Context: Everywhere, blocks=[BB[SSA:38..38]15 - org.apache.storm.dependency.DependencyUploader.uploadDependencyToBlobStore(Ljava/lang/String;Ljava/io/File;)Z, BB[SSA:35..37]14 - org.apache.storm.dependency.DependencyUploader.uploadDependencyToBlobStore(Ljava/lang/String;Ljava/io/File;)Z, BB[SSA:39..41]16 - org.apache.storm.dependency.DependencyUploader.uploadDependencyToBlobStore(Ljava/lang/String;Ljava/io/File;)Z], numberOfBasicBlocks=3, firstLineNumber=165, lastLineNumber=166, firstMethodNumber=149, lastMethodNumber=184, isFirstLineValid=true, methodSrcCode=
+
+        boolean uploadNew = false;
+        try {
+            // FIXME: we can filter by listKeys() with local blobstore when STORM-1986 is going to be resolved
+            // as a workaround, we call getBlobMeta() for all keys
+            getBlobStore().getBlobMeta(key);
+        } catch (KeyNotFoundException e) {
+            // set acl to below so that it can be shared by other users as well, but allows only read
+            List<AccessControl> acls = new ArrayList<>();
+            acls.add(new AccessControl(AccessControlType.USER,
+                                       BlobStoreAclHandler.READ | BlobStoreAclHandler.WRITE | BlobStoreAclHandler.ADMIN));
+            acls.add(new AccessControl(AccessControlType.OTHER,
+                                       BlobStoreAclHandler.READ));
+
+            AtomicOutputStream blob = null;
+            try {
+                blob = getBlobStore().createBlob(key, new SettableBlobMeta(acls));
+                try (InputStream in = Files.newInputStream(dependency.toPath())) {
+                    IOUtils.copy(in, blob, this.uploadChunkSize);
+                }
+                blob.close();
+                blob = null;
+
+                uploadNew = true;
+            } finally {
+                try {
+                    if (blob != null) {
+                        blob.cancel();
+                    }
+                } catch (IOException throwaway) {
+                    // Ignore.
+                }
+            }
+        }
+
+        return uploadNew;
+    }
+}

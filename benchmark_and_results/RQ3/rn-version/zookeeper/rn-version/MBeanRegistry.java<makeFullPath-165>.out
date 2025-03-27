@@ -1,0 +1,56 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	MBeanRegistry.java	methodSinagture:	org.apache.zookeeper.jmx.MBeanRegistry.makeFullPath(Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/String;	methodLines:	165:179
+blockLines:	166:-1
+paras:	null
+TaintedStat:	NORMAL makeFullPath:conditional branch(ne, to iindex=7) 2,6 Node: < Application, Lorg/apache/zookeeper/jmx/MBeanRegistry, makeFullPath(Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/jmx/MBeanRegistry, register(Lorg/apache/zookeeper/jmx/ZKMBeanInfo;Lorg/apache/zookeeper/jmx/ZKMBeanInfo;)V > Context: Everywhere[18]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,3 @29 exception:9
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/jmx/MBeanRegistry, register(Lorg/apache/zookeeper/jmx/ZKMBeanInfo;Lorg/apache/zookeeper/jmx/ZKMBeanInfo;)V > Context: Everywhere[18]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,3 @29 exception:9
+NORMAL register:11 = checkcast <Application,Ljava/lang/String>10 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/zookeeper/jmx/MBeanRegistry, register(Lorg/apache/zookeeper/jmx/ZKMBeanInfo;Lorg/apache/zookeeper/jmx/ZKMBeanInfo;)V > Context: Everywhere
+PHI Node: < Application, Lorg/apache/zookeeper/jmx/MBeanRegistry, register(Lorg/apache/zookeeper/jmx/ZKMBeanInfo;Lorg/apache/zookeeper/jmx/ZKMBeanInfo;)V > Context: Everywhere:13 = phi  7,11,11
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/jmx/MBeanRegistry, register(Lorg/apache/zookeeper/jmx/ZKMBeanInfo;Lorg/apache/zookeeper/jmx/ZKMBeanInfo;)V > Context: Everywhere[34]15 = invokevirtual < Application, Lorg/apache/zookeeper/jmx/MBeanRegistry, makeFullPath(Ljava/lang/String;Lorg/apache/zookeeper/jmx/ZKMBeanInfo;)Ljava/lang/String; > 1,13,3 @59 exception:14 v13
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/jmx/MBeanRegistry, makeFullPath(Ljava/lang/String;Lorg/apache/zookeeper/jmx/ZKMBeanInfo;)Ljava/lang/String; > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/jmx/MBeanRegistry, makeFullPath(Ljava/lang/String;Lorg/apache/zookeeper/jmx/ZKMBeanInfo;)Ljava/lang/String; > Context: Everywhere[14]13 = invokevirtual < Application, Lorg/apache/zookeeper/jmx/MBeanRegistry, makeFullPath(Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/String; > 1,2,6 @23 exception:12 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/zookeeper/jmx/MBeanRegistry, makeFullPath(Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere v2
+NORMAL makeFullPath:conditional branch(ne, to iindex=7) 2,6 Node: < Application, Lorg/apache/zookeeper/jmx/MBeanRegistry, makeFullPath(Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/String; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public String makeFullPath(String prefix, String... name) {
+        StringBuilder sb = new StringBuilder(prefix == null ? "/" : (prefix.equals("/") ? prefix : prefix + "/"));
+        boolean first = true;
+        for (String s : name) {
+            if (s == null) {
+                continue;
+            }
+            if (!first) {
+                sb.append("/");
+            } else {
+                first = false;
+            }
+            sb.append(s);
+        }
+        return sb.toString();
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/ConnectionBean, getName()Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:14..14]7 - org.apache.zookeeper.server.ConnectionBean.getName()Ljava/lang/String;, BB[SSA:13..13]6 - org.apache.zookeeper.server.ConnectionBean.getName()Ljava/lang/String;, BB[SSA:15..15]8 - org.apache.zookeeper.server.ConnectionBean.getName()Ljava/lang/String;, BB[SSA:-1..-2]9 - org.apache.zookeeper.server.ConnectionBean.getName()Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=79, lastLineNumber=79, firstMethodNumber=78, lastMethodNumber=79, isFirstLineValid=true, methodSrcCode=
+    public String getName() {
+        return MBeanRegistry.getInstance().makeFullPath("Connections", remoteIP, getSessionId());
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/jmx/MBeanRegistry, makeFullPath(Ljava/lang/String;Lorg/apache/zookeeper/jmx/ZKMBeanInfo;)Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:14..14]6 - org.apache.zookeeper.jmx.MBeanRegistry.makeFullPath(Ljava/lang/String;Lorg/apache/zookeeper/jmx/ZKMBeanInfo;)Ljava/lang/String;, BB[SSA:13..13]5 - org.apache.zookeeper.jmx.MBeanRegistry.makeFullPath(Ljava/lang/String;Lorg/apache/zookeeper/jmx/ZKMBeanInfo;)Ljava/lang/String;, BB[SSA:15..15]7 - org.apache.zookeeper.jmx.MBeanRegistry.makeFullPath(Ljava/lang/String;Lorg/apache/zookeeper/jmx/ZKMBeanInfo;)Ljava/lang/String;, BB[SSA:-1..-2]8 - org.apache.zookeeper.jmx.MBeanRegistry.makeFullPath(Ljava/lang/String;Lorg/apache/zookeeper/jmx/ZKMBeanInfo;)Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=183, lastLineNumber=183, firstMethodNumber=182, lastMethodNumber=183, isFirstLineValid=true, methodSrcCode=
+    protected String makeFullPath(String prefix, ZKMBeanInfo bean) {
+        return makeFullPath(prefix, bean == null ? null : bean.getName());
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/LearnerHandlerBean, getName()Ljava/lang/String; > Context: Everywhere, blocks=[BB[SSA:24..24]13 - org.apache.zookeeper.server.quorum.LearnerHandlerBean.getName()Ljava/lang/String;, BB[SSA:23..23]12 - org.apache.zookeeper.server.quorum.LearnerHandlerBean.getName()Ljava/lang/String;, BB[SSA:25..25]14 - org.apache.zookeeper.server.quorum.LearnerHandlerBean.getName()Ljava/lang/String;, BB[SSA:-1..-2]15 - org.apache.zookeeper.server.quorum.LearnerHandlerBean.getName()Ljava/lang/String;], numberOfBasicBlocks=4, firstLineNumber=52, lastLineNumber=48, firstMethodNumber=47, lastMethodNumber=48, isFirstLineValid=true, methodSrcCode=
+    public String getName() {
+        return MBeanRegistry.getInstance()
+                            .makeFullPath(
+}

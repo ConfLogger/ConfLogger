@@ -1,0 +1,260 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>HeartbeatManager(final Namesystem namesystem,
+<Line#1>final BlockManager blockManager, final Configuration conf) {
+<Line#2>this.namesystem = namesystem;
+<Line#3>this.blockManager = blockManager;
+<Line#4>boolean avoidStaleDataNodesForWrite = conf.getBoolean(
+<Line#5>DFSConfigKeys.DFS_NAMENODE_AVOID_STALE_DATANODE_FOR_WRITE_KEY,
+<Line#6>DFSConfigKeys.DFS_NAMENODE_AVOID_STALE_DATANODE_FOR_WRITE_DEFAULT);
+<Line#7>long recheckInterval = conf.getInt(
+<Line#8>DFSConfigKeys.DFS_NAMENODE_HEARTBEAT_RECHECK_INTERVAL_KEY,
+<Line#9>DFSConfigKeys.DFS_NAMENODE_HEARTBEAT_RECHECK_INTERVAL_DEFAULT); // 5 min
+<Line#10>long staleInterval = conf.getLong(
+<Line#11>DFSConfigKeys.DFS_NAMENODE_STALE_DATANODE_INTERVAL_KEY,
+<Line#12>DFSConfigKeys.DFS_NAMENODE_STALE_DATANODE_INTERVAL_DEFAULT);// 30s
+<Line#13>enableLogStaleNodes = conf.getBoolean(
+<Line#14>DFSConfigKeys.DFS_NAMENODE_ENABLE_LOG_STALE_DATANODE_KEY,
+<Line#15>DFSConfigKeys.DFS_NAMENODE_ENABLE_LOG_STALE_DATANODE_DEFAULT);
+<Line#16>
+<Line#17>if (avoidStaleDataNodesForWrite && staleInterval < recheckInterval) {
+<Line#18>this.heartbeatRecheckInterval = staleInterval;
+<Line#19>} else {
+<Line#20>this.heartbeatRecheckInterval = recheckInterval;
+<Line#21>}
+<Line#22>}
+
+Example 1:
+<Line#1>{
+<Line#2>  final InetSocketAddress httpAddr=getHttpAddress(conf);
+<Line#3>  final String httpsAddrString=conf.getTrimmed(DFSConfigKeys.DFS_NAMENODE_SECONDARY_HTTPS_ADDRESS_KEY,DFSConfigKeys.DFS_NAMENODE_SECONDARY_HTTPS_ADDRESS_DEFAULT);
+<Line#4>  InetSocketAddress httpsAddr=NetUtils.createSocketAddr(httpsAddrString);
+<Line#5>  HttpServer2.Builder builder=DFSUtil.httpServerTemplateForNNAndJN(conf,httpAddr,httpsAddr,"secondary",DFSConfigKeys.DFS_SECONDARY_NAMENODE_KERBEROS_INTERNAL_SPNEGO_PRINCIPAL_KEY,DFSConfigKeys.DFS_SECONDARY_NAMENODE_KEYTAB_FILE_KEY);
+<Line#6>  final boolean xFrameEnabled=conf.getBoolean(DFSConfigKeys.DFS_XFRAME_OPTION_ENABLED,DFSConfigKeys.DFS_XFRAME_OPTION_ENABLED_DEFAULT);
+<Line#7>  final String xFrameOptionValue=conf.getTrimmed(DFSConfigKeys.DFS_XFRAME_OPTION_VALUE,DFSConfigKeys.DFS_XFRAME_OPTION_VALUE_DEFAULT);
+<Line#8>  builder.configureXFrame(xFrameEnabled).setXFrameOption(xFrameOptionValue);
+<Line#9>  infoServer=builder.build();
+<Line#10>  infoServer.setAttribute("secondary.name.node",this);
+<Line#11>  infoServer.setAttribute("name.system.image",checkpointImage);
+<Line#12>  infoServer.setAttribute(JspHelper.CURRENT_CONF,conf);
+<Line#13>  infoServer.addInternalServlet("imagetransfer",ImageServlet.PATH_SPEC,ImageServlet.class,true);
+<Line#14>  infoServer.start();
+<Line#15>  LOG.info("Web server init done");
+<Line#16>  HttpConfig.Policy policy=DFSUtil.getHttpPolicy(conf);
+<Line#17>  int connIdx=0;
+<Line#18>  if (policy.isHttpEnabled()) {
+<Line#19>    InetSocketAddress httpAddress=infoServer.getConnectorAddress(connIdx++);
+<Line#20>    conf.set(DFSConfigKeys.DFS_NAMENODE_SECONDARY_HTTP_ADDRESS_KEY,NetUtils.getHostPortString(httpAddress));
+<Line#21>  }
+<Line#22>  if (policy.isHttpsEnabled()) {
+<Line#23>    InetSocketAddress httpsAddress=infoServer.getConnectorAddress(connIdx);
+<Line#24>    conf.set(DFSConfigKeys.DFS_NAMENODE_SECONDARY_HTTPS_ADDRESS_KEY,NetUtils.getHostPortString(httpsAddress));
+<Line#25>  }
+<Line#26>}
+Label: <Line#15> LOG.info("Web server init done")
+
+Example 2:
+<Line#1>{
+<Line#2>  this.tailerThread=new EditLogTailerThread();
+<Line#3>  this.conf=conf;
+<Line#4>  this.namesystem=namesystem;
+<Line#5>  this.editLog=namesystem.getEditLog();
+<Line#6>  lastLoadTimeMs=monotonicNow();
+<Line#7>  lastRollTimeMs=monotonicNow();
+<Line#8>  logRollPeriodMs=conf.getTimeDuration(DFSConfigKeys.DFS_HA_LOGROLL_PERIOD_KEY,DFSConfigKeys.DFS_HA_LOGROLL_PERIOD_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#9>  List<RemoteNameNodeInfo> nns=Collections.emptyList();
+<Line#10>  if (logRollPeriodMs >= 0) {
+<Line#11>    try {
+<Line#12>      nns=RemoteNameNodeInfo.getRemoteNameNodes(conf);
+<Line#13>    }
+<Line#14> catch (    IOException e) {
+<Line#15>      throw new IllegalArgumentException("Remote NameNodes not correctly configured!",e);
+<Line#16>    }
+<Line#17>    for (    RemoteNameNodeInfo info : nns) {
+<Line#18>      InetSocketAddress ipc=NameNode.getServiceAddress(info.getConfiguration(),true);
+<Line#19>      Preconditions.checkArgument(ipc.getPort() > 0,"Active NameNode must have an IPC port configured. " + "Got address '%s'",ipc);
+<Line#20>      info.setIpcAddress(ipc);
+<Line#21>    }
+<Line#22>    LOG.info("Will roll logs on active node every " + (logRollPeriodMs / 1000) + " seconds.");
+<Line#23>  }
+<Line#24> else {
+<Line#25>    LOG.info("Not going to trigger log rolls on active node because " + DFSConfigKeys.DFS_HA_LOGROLL_PERIOD_KEY + " is negative.");
+<Line#26>  }
+<Line#27>  sleepTimeMs=conf.getTimeDuration(DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#28>  long maxSleepTimeMsTemp=conf.getTimeDuration(DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_BACKOFF_MAX_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_BACKOFF_MAX_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#29>  if (maxSleepTimeMsTemp > 0 && maxSleepTimeMsTemp < sleepTimeMs) {
+<Line#30>    LOG.warn("{} was configured to be {} ms, but this is less than {}." + "Disabling backoff when tailing edit logs.",DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_BACKOFF_MAX_KEY,maxSleepTimeMsTemp,DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_KEY);
+<Line#31>    maxSleepTimeMs=0;
+<Line#32>  }
+<Line#33> else {
+<Line#34>    maxSleepTimeMs=maxSleepTimeMsTemp;
+<Line#35>  }
+<Line#36>  rollEditsTimeoutMs=conf.getTimeDuration(DFSConfigKeys.DFS_HA_TAILEDITS_ROLLEDITS_TIMEOUT_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_ROLLEDITS_TIMEOUT_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#37>  rollEditsRpcExecutor=Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
+<Line#38>  maxRetries=conf.getInt(DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_DEFAULT);
+<Line#39>  if (maxRetries <= 0) {
+<Line#40>    LOG.error("Specified a non-positive number of retries for the number of retries for the " + "namenode connection when manipulating the edit log (" + DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_KEY + "), setting to default: "+ DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_DEFAULT);
+<Line#41>    maxRetries=DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_DEFAULT;
+<Line#42>  }
+<Line#43>  inProgressOk=conf.getBoolean(DFSConfigKeys.DFS_HA_TAILEDITS_INPROGRESS_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_INPROGRESS_DEFAULT);
+<Line#44>  this.maxTxnsPerLock=conf.getLong(DFS_HA_TAILEDITS_MAX_TXNS_PER_LOCK_KEY,DFS_HA_TAILEDITS_MAX_TXNS_PER_LOCK_DEFAULT);
+<Line#45>  nnCount=nns.size();
+<Line#46>  this.nnLookup=Iterators.cycle(nns);
+<Line#47>  LOG.debug("logRollPeriodMs=" + logRollPeriodMs + " sleepTime="+ sleepTimeMs);
+<Line#48>}
+Label: <Line#22> LOG.info("Will roll logs on active node every " + (logRollPeriodMs / 1000) + " seconds.")
+
+Example 3:
+<Line#1>{
+<Line#2>  this.tailerThread=new EditLogTailerThread();
+<Line#3>  this.conf=conf;
+<Line#4>  this.namesystem=namesystem;
+<Line#5>  this.editLog=namesystem.getEditLog();
+<Line#6>  lastLoadTimeMs=monotonicNow();
+<Line#7>  lastRollTimeMs=monotonicNow();
+<Line#8>  logRollPeriodMs=conf.getTimeDuration(DFSConfigKeys.DFS_HA_LOGROLL_PERIOD_KEY,DFSConfigKeys.DFS_HA_LOGROLL_PERIOD_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#9>  List<RemoteNameNodeInfo> nns=Collections.emptyList();
+<Line#10>  if (logRollPeriodMs >= 0) {
+<Line#11>    try {
+<Line#12>      nns=RemoteNameNodeInfo.getRemoteNameNodes(conf);
+<Line#13>    }
+<Line#14> catch (    IOException e) {
+<Line#15>      throw new IllegalArgumentException("Remote NameNodes not correctly configured!",e);
+<Line#16>    }
+<Line#17>    for (    RemoteNameNodeInfo info : nns) {
+<Line#18>      InetSocketAddress ipc=NameNode.getServiceAddress(info.getConfiguration(),true);
+<Line#19>      Preconditions.checkArgument(ipc.getPort() > 0,"Active NameNode must have an IPC port configured. " + "Got address '%s'",ipc);
+<Line#20>      info.setIpcAddress(ipc);
+<Line#21>    }
+<Line#22>    LOG.info("Will roll logs on active node every " + (logRollPeriodMs / 1000) + " seconds.");
+<Line#23>  }
+<Line#24> else {
+<Line#25>    LOG.info("Not going to trigger log rolls on active node because " + DFSConfigKeys.DFS_HA_LOGROLL_PERIOD_KEY + " is negative.");
+<Line#26>  }
+<Line#27>  sleepTimeMs=conf.getTimeDuration(DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#28>  long maxSleepTimeMsTemp=conf.getTimeDuration(DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_BACKOFF_MAX_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_BACKOFF_MAX_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#29>  if (maxSleepTimeMsTemp > 0 && maxSleepTimeMsTemp < sleepTimeMs) {
+<Line#30>    LOG.warn("{} was configured to be {} ms, but this is less than {}." + "Disabling backoff when tailing edit logs.",DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_BACKOFF_MAX_KEY,maxSleepTimeMsTemp,DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_KEY);
+<Line#31>    maxSleepTimeMs=0;
+<Line#32>  }
+<Line#33> else {
+<Line#34>    maxSleepTimeMs=maxSleepTimeMsTemp;
+<Line#35>  }
+<Line#36>  rollEditsTimeoutMs=conf.getTimeDuration(DFSConfigKeys.DFS_HA_TAILEDITS_ROLLEDITS_TIMEOUT_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_ROLLEDITS_TIMEOUT_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#37>  rollEditsRpcExecutor=Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
+<Line#38>  maxRetries=conf.getInt(DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_DEFAULT);
+<Line#39>  if (maxRetries <= 0) {
+<Line#40>    LOG.error("Specified a non-positive number of retries for the number of retries for the " + "namenode connection when manipulating the edit log (" + DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_KEY + "), setting to default: "+ DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_DEFAULT);
+<Line#41>    maxRetries=DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_DEFAULT;
+<Line#42>  }
+<Line#43>  inProgressOk=conf.getBoolean(DFSConfigKeys.DFS_HA_TAILEDITS_INPROGRESS_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_INPROGRESS_DEFAULT);
+<Line#44>  this.maxTxnsPerLock=conf.getLong(DFS_HA_TAILEDITS_MAX_TXNS_PER_LOCK_KEY,DFS_HA_TAILEDITS_MAX_TXNS_PER_LOCK_DEFAULT);
+<Line#45>  nnCount=nns.size();
+<Line#46>  this.nnLookup=Iterators.cycle(nns);
+<Line#47>  LOG.debug("logRollPeriodMs=" + logRollPeriodMs + " sleepTime="+ sleepTimeMs);
+<Line#48>}
+Label: <Line#25> LOG.info("Not going to trigger log rolls on active node because " + DFSConfigKeys.DFS_HA_LOGROLL_PERIOD_KEY + " is negative.")
+
+Example 4:
+<Line#1>{
+<Line#2>  this.tailerThread=new EditLogTailerThread();
+<Line#3>  this.conf=conf;
+<Line#4>  this.namesystem=namesystem;
+<Line#5>  this.editLog=namesystem.getEditLog();
+<Line#6>  lastLoadTimeMs=monotonicNow();
+<Line#7>  lastRollTimeMs=monotonicNow();
+<Line#8>  logRollPeriodMs=conf.getTimeDuration(DFSConfigKeys.DFS_HA_LOGROLL_PERIOD_KEY,DFSConfigKeys.DFS_HA_LOGROLL_PERIOD_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#9>  List<RemoteNameNodeInfo> nns=Collections.emptyList();
+<Line#10>  if (logRollPeriodMs >= 0) {
+<Line#11>    try {
+<Line#12>      nns=RemoteNameNodeInfo.getRemoteNameNodes(conf);
+<Line#13>    }
+<Line#14> catch (    IOException e) {
+<Line#15>      throw new IllegalArgumentException("Remote NameNodes not correctly configured!",e);
+<Line#16>    }
+<Line#17>    for (    RemoteNameNodeInfo info : nns) {
+<Line#18>      InetSocketAddress ipc=NameNode.getServiceAddress(info.getConfiguration(),true);
+<Line#19>      Preconditions.checkArgument(ipc.getPort() > 0,"Active NameNode must have an IPC port configured. " + "Got address '%s'",ipc);
+<Line#20>      info.setIpcAddress(ipc);
+<Line#21>    }
+<Line#22>    LOG.info("Will roll logs on active node every " + (logRollPeriodMs / 1000) + " seconds.");
+<Line#23>  }
+<Line#24> else {
+<Line#25>    LOG.info("Not going to trigger log rolls on active node because " + DFSConfigKeys.DFS_HA_LOGROLL_PERIOD_KEY + " is negative.");
+<Line#26>  }
+<Line#27>  sleepTimeMs=conf.getTimeDuration(DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#28>  long maxSleepTimeMsTemp=conf.getTimeDuration(DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_BACKOFF_MAX_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_BACKOFF_MAX_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#29>  if (maxSleepTimeMsTemp > 0 && maxSleepTimeMsTemp < sleepTimeMs) {
+<Line#30>    LOG.warn("{} was configured to be {} ms, but this is less than {}." + "Disabling backoff when tailing edit logs.",DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_BACKOFF_MAX_KEY,maxSleepTimeMsTemp,DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_KEY);
+<Line#31>    maxSleepTimeMs=0;
+<Line#32>  }
+<Line#33> else {
+<Line#34>    maxSleepTimeMs=maxSleepTimeMsTemp;
+<Line#35>  }
+<Line#36>  rollEditsTimeoutMs=conf.getTimeDuration(DFSConfigKeys.DFS_HA_TAILEDITS_ROLLEDITS_TIMEOUT_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_ROLLEDITS_TIMEOUT_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#37>  rollEditsRpcExecutor=Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
+<Line#38>  maxRetries=conf.getInt(DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_DEFAULT);
+<Line#39>  if (maxRetries <= 0) {
+<Line#40>    LOG.error("Specified a non-positive number of retries for the number of retries for the " + "namenode connection when manipulating the edit log (" + DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_KEY + "), setting to default: "+ DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_DEFAULT);
+<Line#41>    maxRetries=DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_DEFAULT;
+<Line#42>  }
+<Line#43>  inProgressOk=conf.getBoolean(DFSConfigKeys.DFS_HA_TAILEDITS_INPROGRESS_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_INPROGRESS_DEFAULT);
+<Line#44>  this.maxTxnsPerLock=conf.getLong(DFS_HA_TAILEDITS_MAX_TXNS_PER_LOCK_KEY,DFS_HA_TAILEDITS_MAX_TXNS_PER_LOCK_DEFAULT);
+<Line#45>  nnCount=nns.size();
+<Line#46>  this.nnLookup=Iterators.cycle(nns);
+<Line#47>  LOG.debug("logRollPeriodMs=" + logRollPeriodMs + " sleepTime="+ sleepTimeMs);
+<Line#48>}
+Label: <Line#30> LOG.warn("{} was configured to be {} ms, but this is less than {}." + "Disabling backoff when tailing edit logs.",DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_BACKOFF_MAX_KEY,maxSleepTimeMsTemp,DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_KEY)
+
+Example 5:
+<Line#1>{
+<Line#2>  this.tailerThread=new EditLogTailerThread();
+<Line#3>  this.conf=conf;
+<Line#4>  this.namesystem=namesystem;
+<Line#5>  this.editLog=namesystem.getEditLog();
+<Line#6>  lastLoadTimeMs=monotonicNow();
+<Line#7>  lastRollTimeMs=monotonicNow();
+<Line#8>  logRollPeriodMs=conf.getTimeDuration(DFSConfigKeys.DFS_HA_LOGROLL_PERIOD_KEY,DFSConfigKeys.DFS_HA_LOGROLL_PERIOD_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#9>  List<RemoteNameNodeInfo> nns=Collections.emptyList();
+<Line#10>  if (logRollPeriodMs >= 0) {
+<Line#11>    try {
+<Line#12>      nns=RemoteNameNodeInfo.getRemoteNameNodes(conf);
+<Line#13>    }
+<Line#14> catch (    IOException e) {
+<Line#15>      throw new IllegalArgumentException("Remote NameNodes not correctly configured!",e);
+<Line#16>    }
+<Line#17>    for (    RemoteNameNodeInfo info : nns) {
+<Line#18>      InetSocketAddress ipc=NameNode.getServiceAddress(info.getConfiguration(),true);
+<Line#19>      Preconditions.checkArgument(ipc.getPort() > 0,"Active NameNode must have an IPC port configured. " + "Got address '%s'",ipc);
+<Line#20>      info.setIpcAddress(ipc);
+<Line#21>    }
+<Line#22>    LOG.info("Will roll logs on active node every " + (logRollPeriodMs / 1000) + " seconds.");
+<Line#23>  }
+<Line#24> else {
+<Line#25>    LOG.info("Not going to trigger log rolls on active node because " + DFSConfigKeys.DFS_HA_LOGROLL_PERIOD_KEY + " is negative.");
+<Line#26>  }
+<Line#27>  sleepTimeMs=conf.getTimeDuration(DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#28>  long maxSleepTimeMsTemp=conf.getTimeDuration(DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_BACKOFF_MAX_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_BACKOFF_MAX_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#29>  if (maxSleepTimeMsTemp > 0 && maxSleepTimeMsTemp < sleepTimeMs) {
+<Line#30>    LOG.warn("{} was configured to be {} ms, but this is less than {}." + "Disabling backoff when tailing edit logs.",DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_BACKOFF_MAX_KEY,maxSleepTimeMsTemp,DFSConfigKeys.DFS_HA_TAILEDITS_PERIOD_KEY);
+<Line#31>    maxSleepTimeMs=0;
+<Line#32>  }
+<Line#33> else {
+<Line#34>    maxSleepTimeMs=maxSleepTimeMsTemp;
+<Line#35>  }
+<Line#36>  rollEditsTimeoutMs=conf.getTimeDuration(DFSConfigKeys.DFS_HA_TAILEDITS_ROLLEDITS_TIMEOUT_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_ROLLEDITS_TIMEOUT_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#37>  rollEditsRpcExecutor=Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
+<Line#38>  maxRetries=conf.getInt(DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_DEFAULT);
+<Line#39>  if (maxRetries <= 0) {
+<Line#40>    LOG.error("Specified a non-positive number of retries for the number of retries for the " + "namenode connection when manipulating the edit log (" + DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_KEY + "), setting to default: "+ DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_DEFAULT);
+<Line#41>    maxRetries=DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_DEFAULT;
+<Line#42>  }
+<Line#43>  inProgressOk=conf.getBoolean(DFSConfigKeys.DFS_HA_TAILEDITS_INPROGRESS_KEY,DFSConfigKeys.DFS_HA_TAILEDITS_INPROGRESS_DEFAULT);
+<Line#44>  this.maxTxnsPerLock=conf.getLong(DFS_HA_TAILEDITS_MAX_TXNS_PER_LOCK_KEY,DFS_HA_TAILEDITS_MAX_TXNS_PER_LOCK_DEFAULT);
+<Line#45>  nnCount=nns.size();
+<Line#46>  this.nnLookup=Iterators.cycle(nns);
+<Line#47>  LOG.debug("logRollPeriodMs=" + logRollPeriodMs + " sleepTime="+ sleepTimeMs);
+<Line#48>}
+Label: <Line#40> LOG.error("Specified a non-positive number of retries for the number of retries for the " + "namenode connection when manipulating the edit log (" + DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_KEY + "), setting to default: "+ DFSConfigKeys.DFS_HA_TAILEDITS_ALL_NAMESNODES_RETRY_DEFAULT)
+

@@ -1,0 +1,353 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>// Checking the existence of the TLD
+<Line#1>FileSystem remoteFS = null;
+<Line#2>try {
+<Line#3>remoteFS = getFileSystem(conf);
+<Line#4>} catch (IOException e) {
+<Line#5>throw new YarnRuntimeException(
+<Line#6>"Unable to get Remote FileSystem instance", e);
+<Line#7>}
+<Line#8>boolean remoteExists = true;
+<Line#9>Path remoteRootLogDir = getRemoteRootLogDir();
+<Line#10>try {
+<Line#11>FsPermission perms =
+<Line#12>remoteFS.getFileStatus(remoteRootLogDir).getPermission();
+<Line#13>if (!perms.equals(TLDIR_PERMISSIONS)) {
+<Line#14>;
+<Line#15>
+<Line#16>
+<Line#17>
+<Line#18>
+<Line#19>}
+<Line#20>} catch (FileNotFoundException e) {
+<Line#21>remoteExists = false;
+<Line#22>} catch (IOException e) {
+<Line#23>throw new YarnRuntimeException(
+<Line#24>"Failed to check permissions for dir ["
+<Line#25>+ remoteRootLogDir + "]", e);
+<Line#26>}
+<Line#27>
+<Line#28>Path qualified =
+<Line#29>remoteRootLogDir.makeQualified(remoteFS.getUri(),
+<Line#30>remoteFS.getWorkingDirectory());
+<Line#31>if (!remoteExists) {
+<Line#32>LOG.warn("Remote Root Log Dir [" + remoteRootLogDir
+<Line#33>+ "] does not exist. Attempting to create it.");
+<Line#34>try {
+<Line#35>remoteFS.mkdirs(qualified, new FsPermission(TLDIR_PERMISSIONS));
+<Line#36>
+<Line#37>// Not possible to query FileSystem API to check if it supports
+<Line#38>// chmod, chown etc. Hence resorting to catching exceptions here.
+<Line#39>// Remove when FS APi is ready
+<Line#40>try {
+<Line#41>remoteFS.setPermission(qualified, new FsPermission(TLDIR_PERMISSIONS));
+<Line#42>} catch ( UnsupportedOperationException use) {
+<Line#43>LOG.info("Unable to set permissions for configured filesystem since"
+<Line#44>+ " it does not support this", remoteFS.getScheme());
+<Line#45>fsSupportsChmod = false;
+<Line#46>}
+<Line#47>
+<Line#48>UserGroupInformation loginUser = UserGroupInformation.getLoginUser();
+<Line#49>String primaryGroupName = conf.get(
+<Line#50>YarnConfiguration.NM_REMOTE_APP_LOG_DIR_GROUPNAME);
+<Line#51>if (primaryGroupName == null || primaryGroupName.isEmpty()) {
+<Line#52>try {
+<Line#53>primaryGroupName = loginUser.getPrimaryGroupName();
+<Line#54>} catch (IOException e) {
+<Line#55>LOG.warn("No primary group found. The remote root log directory" +
+<Line#56>" will be created with the HDFS superuser being its " +
+<Line#57>"group owner. JobHistoryServer may be unable to read " +
+<Line#58>"the directory.");
+<Line#59>}
+<Line#60>} else {
+<Line#61>if (LOG.isDebugEnabled()) {
+<Line#62>LOG.debug("The group of remote root log directory has been " +
+<Line#63>"determined by the configuration and set to " +
+<Line#64>primaryGroupName);
+<Line#65>}
+<Line#66>}
+<Line#67>// set owner on the remote directory only if the primary group exists
+<Line#68>if (primaryGroupName != null) {
+<Line#69>try {
+<Line#70>remoteFS.setOwner(qualified, loginUser.getShortUserName(),
+<Line#71>primaryGroupName);
+<Line#72>} catch (UnsupportedOperationException use) {
+<Line#73>LOG.info(
+<Line#74>"File System does not support setting user/group" + remoteFS
+<Line#75>.getScheme(), use);
+<Line#76>}
+<Line#77>}
+<Line#78>} catch (IOException e) {
+<Line#79>throw new YarnRuntimeException("Failed to create remoteLogDir ["
+<Line#80>+ remoteRootLogDir + "]", e);
+<Line#81>}
+<Line#82>} else {
+<Line#83>//Check if FS has capability to set/modify permissions
+<Line#84>Path permissionCheckFile = new Path(qualified, String.format("%s.permission_check",
+<Line#85>RandomStringUtils.randomAlphanumeric(8)));
+<Line#86>try {
+<Line#87>remoteFS.createNewFile(permissionCheckFile);
+<Line#88>remoteFS.setPermission(permissionCheckFile, new FsPermission(TLDIR_PERMISSIONS));
+<Line#89>} catch (UnsupportedOperationException use) {
+<Line#90>LOG.info("Unable to set permissions for configured filesystem since"
+<Line#91>+ " it does not support this", remoteFS.getScheme());
+<Line#92>fsSupportsChmod = false;
+<Line#93>} catch (IOException e) {
+<Line#94>LOG.warn("Failed to check if FileSystem suppports permissions on "
+<Line#95>+ "remoteLogDir [" + remoteRootLogDir + "]", e);
+<Line#96>} finally {
+<Line#97>try {
+<Line#98>remoteFS.delete(permissionCheckFile, false);
+<Line#99>} catch (IOException ignored) {
+<Line#100>}
+<Line#101>}
+<Line#102>}
+<Line#103>}
+
+Example 1:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    parseOptions(args);
+<Line#4>    if (cliParser.hasOption("help")) {
+<Line#5>      printUsage();
+<Line#6>      return 0;
+<Line#7>    }
+<Line#8>  }
+<Line#9> catch (  Exception e) {
+<Line#10>    LOG.error("Unable to parse options",e);
+<Line#11>    return 1;
+<Line#12>  }
+<Line#13>  createAndStartYarnClient();
+<Line#14>  setAppsHeader();
+<Line#15>  Thread keyboardMonitor=new KeyboardMonitor();
+<Line#16>  keyboardMonitor.start();
+<Line#17>  rmStartTime=getRMStartTime();
+<Line#18>  clearScreen();
+<Line#19>  while (runMainLoop.get()) {
+<Line#20>    if (displayScreen == DisplayScreen.TOP) {
+<Line#21>      showTopScreen();
+<Line#22>      try {
+<Line#23>        Thread.sleep(refreshPeriod);
+<Line#24>      }
+<Line#25> catch (      InterruptedException ie) {
+<Line#26>        break;
+<Line#27>      }
+<Line#28>    }
+<Line#29> else     if (displayScreen == DisplayScreen.SORT) {
+<Line#30>      showSortScreen();
+<Line#31>      Thread.sleep(100);
+<Line#32>    }
+<Line#33> else     if (displayScreen == DisplayScreen.FIELDS) {
+<Line#34>      showFieldsScreen();
+<Line#35>      Thread.sleep(100);
+<Line#36>    }
+<Line#37>    if (rmStartTime == -1) {
+<Line#38>      rmStartTime=getRMStartTime();
+<Line#39>    }
+<Line#40>  }
+<Line#41>  clearScreen();
+<Line#42>  return 0;
+<Line#43>}
+Label: <Line#10> LOG.error("Unable to parse options",e)
+
+Example 2:
+<Line#1>{
+<Line#2>  Connection conn=null;
+<Line#3>  try {
+<Line#4>    conn=ConnectionFactory.createConnection(hbaseConf);
+<Line#5>    Admin admin=conn.getAdmin();
+<Line#6>    if (admin == null) {
+<Line#7>      throw new IOException("Cannot create table since admin is null");
+<Line#8>    }
+<Line#9>    try {
+<Line#10>      new EntityTableRW().createTable(admin,hbaseConf);
+<Line#11>    }
+<Line#12> catch (    IOException e) {
+<Line#13>      if (skipExisting) {
+<Line#14>        LOG.warn("Skip and continue on: " + e.getMessage());
+<Line#15>      }
+<Line#16> else {
+<Line#17>        throw e;
+<Line#18>      }
+<Line#19>    }
+<Line#20>    try {
+<Line#21>      new AppToFlowTableRW().createTable(admin,hbaseConf);
+<Line#22>    }
+<Line#23> catch (    IOException e) {
+<Line#24>      if (skipExisting) {
+<Line#25>        LOG.warn("Skip and continue on: " + e.getMessage());
+<Line#26>      }
+<Line#27> else {
+<Line#28>        throw e;
+<Line#29>      }
+<Line#30>    }
+<Line#31>    try {
+<Line#32>      new ApplicationTableRW().createTable(admin,hbaseConf);
+<Line#33>    }
+<Line#34> catch (    IOException e) {
+<Line#35>      if (skipExisting) {
+<Line#36>        LOG.warn("Skip and continue on: " + e.getMessage());
+<Line#37>      }
+<Line#38> else {
+<Line#39>        throw e;
+<Line#40>      }
+<Line#41>    }
+<Line#42>    try {
+<Line#43>      new FlowRunTableRW().createTable(admin,hbaseConf);
+<Line#44>    }
+<Line#45> catch (    IOException e) {
+<Line#46>      if (skipExisting) {
+<Line#47>        LOG.warn("Skip and continue on: " + e.getMessage());
+<Line#48>      }
+<Line#49> else {
+<Line#50>        throw e;
+<Line#51>      }
+<Line#52>    }
+<Line#53>    try {
+<Line#54>      new FlowActivityTableRW().createTable(admin,hbaseConf);
+<Line#55>    }
+<Line#56> catch (    IOException e) {
+<Line#57>      if (skipExisting) {
+<Line#58>        LOG.warn("Skip and continue on: " + e.getMessage());
+<Line#59>      }
+<Line#60> else {
+<Line#61>        throw e;
+<Line#62>      }
+<Line#63>    }
+<Line#64>    try {
+<Line#65>      new SubApplicationTableRW().createTable(admin,hbaseConf);
+<Line#66>    }
+<Line#67> catch (    IOException e) {
+<Line#68>      if (skipExisting) {
+<Line#69>        LOG.warn("Skip and continue on: " + e.getMessage());
+<Line#70>      }
+<Line#71> else {
+<Line#72>        throw e;
+<Line#73>      }
+<Line#74>    }
+<Line#75>    try {
+<Line#76>      new DomainTableRW().createTable(admin,hbaseConf);
+<Line#77>    }
+<Line#78> catch (    IOException e) {
+<Line#79>      if (skipExisting) {
+<Line#80>        LOG.warn("Skip and continue on: " + e.getMessage());
+<Line#81>      }
+<Line#82> else {
+<Line#83>        throw e;
+<Line#84>      }
+<Line#85>    }
+<Line#86>  }
+<Line#87>  finally {
+<Line#88>    if (conn != null) {
+<Line#89>      conn.close();
+<Line#90>    }
+<Line#91>  }
+<Line#92>}
+Label: <Line#14> LOG.warn("Skip and continue on: " + e.getMessage())
+
+Example 3:
+<Line#1>{
+<Line#2>  String redirectUrl=$(REDIRECT_URL);
+<Line#3>  if (redirectUrl != null && redirectUrl.equals("false")) {
+<Line#4>    html.h1("Failed while trying to construct the redirect url to the log" + " server. Log Server url may not be configured");
+<Line#5>  }
+<Line#6>  ContainerId containerId;
+<Line#7>  ApplicationId appId;
+<Line#8>  try {
+<Line#9>    containerId=ContainerId.fromString($(CONTAINER_ID));
+<Line#10>    appId=containerId.getApplicationAttemptId().getApplicationId();
+<Line#11>  }
+<Line#12> catch (  IllegalArgumentException ex) {
+<Line#13>    html.h1("Invalid container ID: " + $(CONTAINER_ID));
+<Line#14>    return;
+<Line#15>  }
+<Line#16>  LogAggregationFileController fileController=null;
+<Line#17>  boolean foundAggregatedLogs=false;
+<Line#18>  try {
+<Line#19>    fileController=this.factory.getFileControllerForRead(appId,$(APP_OWNER));
+<Line#20>    foundAggregatedLogs=true;
+<Line#21>  }
+<Line#22> catch (  IOException fnf) {
+<Line#23>  }
+<Line#24>  try {
+<Line#25>    if ($(CONTAINER_LOG_TYPE).isEmpty()) {
+<Line#26>      html.h2("Local Logs:");
+<Line#27>      List<File> logFiles=ContainerLogsUtils.getContainerLogDirs(containerId,request().getRemoteUser(),nmContext);
+<Line#28>      printLocalLogFileDirectory(html,logFiles);
+<Line#29>      if (foundAggregatedLogs) {
+<Line#30>        try {
+<Line#31>          ContainerLogsRequest logRequest=new ContainerLogsRequest();
+<Line#32>          logRequest.setAppId(appId);
+<Line#33>          logRequest.setAppOwner($(APP_OWNER));
+<Line#34>          logRequest.setContainerId($(CONTAINER_ID));
+<Line#35>          logRequest.setNodeId(this.nmContext.getNodeId().toString());
+<Line#36>          List<ContainerLogMeta> containersLogMeta=fileController.readAggregatedLogsMeta(logRequest);
+<Line#37>          if (containersLogMeta != null && !containersLogMeta.isEmpty()) {
+<Line#38>            html.h2("Aggregated Logs:");
+<Line#39>            printAggregatedLogFileDirectory(html,containersLogMeta);
+<Line#40>          }
+<Line#41>        }
+<Line#42> catch (        Exception ex) {
+<Line#43>          LOG.debug("{}",ex);
+<Line#44>        }
+<Line#45>      }
+<Line#46>    }
+<Line#47> else {
+<Line#48>      String aggregationType=$(LOG_AGGREGATION_TYPE);
+<Line#49>      if (aggregationType == null || aggregationType.isEmpty() || aggregationType.trim().toLowerCase().equals(LOG_AGGREGATION_LOCAL_TYPE)) {
+<Line#50>        File logFile=ContainerLogsUtils.getContainerLogFile(containerId,$(CONTAINER_LOG_TYPE),request().getRemoteUser(),nmContext);
+<Line#51>        printLocalLogFile(html,logFile);
+<Line#52>      }
+<Line#53> else       if (!LOG_AGGREGATION_LOCAL_TYPE.trim().toLowerCase().equals(aggregationType) && !LOG_AGGREGATION_REMOTE_TYPE.trim().toLowerCase().equals(aggregationType)) {
+<Line#54>        html.h1("Invalid value for query parameter: " + LOG_AGGREGATION_TYPE + ". "+ "The valid value could be either "+ LOG_AGGREGATION_LOCAL_TYPE+ " or "+ LOG_AGGREGATION_REMOTE_TYPE+ ".");
+<Line#55>      }
+<Line#56>    }
+<Line#57>  }
+<Line#58> catch (  YarnException ex) {
+<Line#59>    html.h1(ex.getMessage());
+<Line#60>  }
+<Line#61>catch (  NotFoundException ex) {
+<Line#62>    html.h1(ex.getMessage());
+<Line#63>  }
+<Line#64>}
+Label: <Line#43> LOG.debug("{}",ex)
+
+Example 4:
+<Line#1>{
+<Line#2>  final GpuDeviceInformation gpuDeviceInformation;
+<Line#3>  if (gpuDiscoverer.isAutoDiscoveryEnabled()) {
+<Line#4>    checkGpuResourceHandler();
+<Line#5>    checkErrorCount();
+<Line#6>    try {
+<Line#7>      gpuDeviceInformation=gpuDiscoverer.getGpuDeviceInformation();
+<Line#8>      numOfErrorExecutionSinceLastSucceed=0;
+<Line#9>    }
+<Line#10> catch (    YarnException e) {
+<Line#11>      LOG.error(e.getMessage(),e);
+<Line#12>      numOfErrorExecutionSinceLastSucceed++;
+<Line#13>      throw e;
+<Line#14>    }
+<Line#15>  }
+<Line#16> else {
+<Line#17>    gpuDeviceInformation=null;
+<Line#18>  }
+<Line#19>  GpuResourceAllocator gpuResourceAllocator=gpuResourceHandler.getGpuAllocator();
+<Line#20>  List<GpuDevice> totalGpus=gpuResourceAllocator.getAllowedGpus();
+<Line#21>  List<AssignedGpuDevice> assignedGpuDevices=gpuResourceAllocator.getAssignedGpus();
+<Line#22>  return new NMGpuResourceInfo(gpuDeviceInformation,totalGpus,assignedGpuDevices);
+<Line#23>}
+Label: <Line#11> LOG.error(e.getMessage(),e)
+
+Example 5:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    cleanInActiveFDs();
+<Line#4>  }
+<Line#5> catch (  Exception e) {
+<Line#6>    LOG.warn(e.toString());
+<Line#7>  }
+<Line#8>}
+Label: <Line#6> LOG.warn(e.toString())
+

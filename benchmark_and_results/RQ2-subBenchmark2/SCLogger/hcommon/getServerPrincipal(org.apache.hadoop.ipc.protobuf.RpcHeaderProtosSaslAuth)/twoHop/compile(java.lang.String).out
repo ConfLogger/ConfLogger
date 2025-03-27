@@ -1,0 +1,8 @@
+/** 
+ * Compile glob pattern string
+ * @param globPattern the glob pattern
+ * @return the pattern object
+ */
+public static Pattern compile(String globPattern){
+  return new GlobPattern(globPattern).compiled();
+}

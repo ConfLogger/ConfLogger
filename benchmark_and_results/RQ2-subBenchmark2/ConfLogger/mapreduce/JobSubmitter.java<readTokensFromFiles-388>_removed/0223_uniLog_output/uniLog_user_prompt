@@ -1,0 +1,448 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>// add tokens and secrets coming from a token storage file
+<Line#1>String binaryTokenFilename =
+<Line#2>conf.get(MRJobConfig.MAPREDUCE_JOB_CREDENTIALS_BINARY);
+<Line#3>if (binaryTokenFilename != null) {
+<Line#4>Credentials binary = Credentials.readTokenStorageFile(
+<Line#5>FileSystem.getLocal(conf).makeQualified(
+<Line#6>new Path(binaryTokenFilename)),
+<Line#7>conf);
+<Line#8>credentials.addAll(binary);
+<Line#9>}
+<Line#10>// add secret keys coming from a json file
+<Line#11>String tokensFileName = conf.get("mapreduce.job.credentials.json");
+<Line#12>if(tokensFileName != null) {
+<Line#13>LOG.info("loading user's secret keys from " + tokensFileName);
+<Line#14>String localFileName = new Path(tokensFileName).toUri().getPath();
+<Line#15>
+<Line#16>try {
+<Line#17>// read JSON
+<Line#18>Map<String, String> nm = JsonSerialization.mapReader().readValue(
+<Line#19>new File(localFileName));
+<Line#20>
+<Line#21>for(Map.Entry<String, String> ent: nm.entrySet()) {
+<Line#22>credentials.addSecretKey(new Text(ent.getKey()), ent.getValue()
+<Line#23>.getBytes(Charsets.UTF_8));
+<Line#24>}
+<Line#25>} catch (JsonMappingException | JsonParseException e) {
+<Line#26>;
+<Line#27>}
+<Line#28>}
+<Line#29>}
+
+Example 1:
+<Line#1>{
+<Line#2>  UserGroupInformation.setConfiguration(conf);
+<Line#3>  SecurityUtil.setConfiguration(conf);
+<Line#4>  Credentials credentials=UserGroupInformation.getCurrentUser().getCredentials();
+<Line#5>  LOG.info("Executing with tokens: {}",credentials.getAllTokens());
+<Line#6>  UserGroupInformation appMasterUgi=UserGroupInformation.createRemoteUser(jobUserName);
+<Line#7>  appMasterUgi.addCredentials(credentials);
+<Line#8>  Iterator<Token<?>> iter=credentials.getAllTokens().iterator();
+<Line#9>  while (iter.hasNext()) {
+<Line#10>    Token<?> token=iter.next();
+<Line#11>    if (token.getKind().equals(AMRMTokenIdentifier.KIND_NAME)) {
+<Line#12>      iter.remove();
+<Line#13>    }
+<Line#14>  }
+<Line#15>  conf.getCredentials().addAll(credentials);
+<Line#16>  appMasterUgi.doAs(new PrivilegedExceptionAction<Object>(){
+<Line#17>    @Override public Object run() throws Exception {
+<Line#18>      appMaster.init(conf);
+<Line#19>      appMaster.start();
+<Line#20>      if (appMaster.errorHappenedShutDown) {
+<Line#21>        throw new IOException("Was asked to shut down.");
+<Line#22>      }
+<Line#23>      return null;
+<Line#24>    }
+<Line#25>  }
+<Line#26>);
+<Line#27>}
+Label: <Line#5> LOG.info("Executing with tokens: {}",credentials.getAllTokens())
+
+Example 2:
+<Line#1>{
+<Line#2>  Map<String,String> hMap=new HashMap<String,String>();
+<Line#3>  hMap.put("HADOOP_WORKERS",workersFile);
+<Line#4>  StringTokenizer strToken;
+<Line#5>  if (operation.equals("suspend")) {
+<Line#6>    strToken=new StringTokenizer(stopCommand," ");
+<Line#7>  }
+<Line#8> else {
+<Line#9>    strToken=new StringTokenizer(resumeCommand," ");
+<Line#10>  }
+<Line#11>  String commandArgs[]=new String[strToken.countTokens() + 1];
+<Line#12>  int i=0;
+<Line#13>  commandArgs[i++]=shellCommand;
+<Line#14>  while (strToken.hasMoreTokens()) {
+<Line#15>    commandArgs[i++]=strToken.nextToken();
+<Line#16>  }
+<Line#17>  String output=Shell.execCommand(hMap,commandArgs);
+<Line#18>  if (output != null && !output.equals("")) {
+<Line#19>    LOG.info(output);
+<Line#20>  }
+<Line#21>}
+Label: <Line#19> LOG.info(output)
+
+Example 3:
+<Line#1>{
+<Line#2>  Thread.setDefaultUncaughtExceptionHandler(new YarnUncaughtExceptionHandler());
+<Line#3>  LOG.debug("Child starting");
+<Line#4>  final JobConf job=new JobConf(MRJobConfig.JOB_CONF_FILE);
+<Line#5>  Limits.init(job);
+<Line#6>  UserGroupInformation.setConfiguration(job);
+<Line#7>  SecurityUtil.setConfiguration(job);
+<Line#8>  String host=args[0];
+<Line#9>  int port=Integer.parseInt(args[1]);
+<Line#10>  final InetSocketAddress address=NetUtils.createSocketAddrForHost(host,port);
+<Line#11>  final TaskAttemptID firstTaskid=TaskAttemptID.forName(args[2]);
+<Line#12>  long jvmIdLong=Long.parseLong(args[3]);
+<Line#13>  JVMId jvmId=new JVMId(firstTaskid.getJobID(),firstTaskid.getTaskType() == TaskType.MAP,jvmIdLong);
+<Line#14>  CallerContext.setCurrent(new CallerContext.Builder("mr_" + firstTaskid.toString()).build());
+<Line#15>  DefaultMetricsSystem.initialize(StringUtils.camelize(firstTaskid.getTaskType().name()) + "Task");
+<Line#16>  Credentials credentials=UserGroupInformation.getCurrentUser().getCredentials();
+<Line#17>  LOG.info("Executing with tokens: {}",credentials.getAllTokens());
+<Line#18>  UserGroupInformation taskOwner=UserGroupInformation.createRemoteUser(firstTaskid.getJobID().toString());
+<Line#19>  Token<JobTokenIdentifier> jt=TokenCache.getJobToken(credentials);
+<Line#20>  SecurityUtil.setTokenService(jt,address);
+<Line#21>  taskOwner.addToken(jt);
+<Line#22>  final TaskUmbilicalProtocol umbilical=taskOwner.doAs(new PrivilegedExceptionAction<TaskUmbilicalProtocol>(){
+<Line#23>    @Override public TaskUmbilicalProtocol run() throws Exception {
+<Line#24>      return (TaskUmbilicalProtocol)RPC.getProxy(TaskUmbilicalProtocol.class,TaskUmbilicalProtocol.versionID,address,job);
+<Line#25>    }
+<Line#26>  }
+<Line#27>);
+<Line#28>  JvmContext context=new JvmContext(jvmId,"-1000");
+<Line#29>  LOG.debug("PID: " + System.getenv().get("JVM_PID"));
+<Line#30>  Task task=null;
+<Line#31>  UserGroupInformation childUGI=null;
+<Line#32>  ScheduledExecutorService logSyncer=null;
+<Line#33>  try {
+<Line#34>    int idleLoopCount=0;
+<Line#35>    JvmTask myTask=null;
+<Line#36>    for (int idle=0; null == myTask; ++idle) {
+<Line#37>      long sleepTimeMilliSecs=Math.min(idle * 500,1500);
+<Line#38>      LOG.info("Sleeping for " + sleepTimeMilliSecs + "ms before retrying again. Got null now.");
+<Line#39>      MILLISECONDS.sleep(sleepTimeMilliSecs);
+<Line#40>      myTask=umbilical.getTask(context);
+<Line#41>    }
+<Line#42>    if (myTask.shouldDie()) {
+<Line#43>      return;
+<Line#44>    }
+<Line#45>    task=myTask.getTask();
+<Line#46>    YarnChild.taskid=task.getTaskID();
+<Line#47>    configureTask(job,task,credentials,jt);
+<Line#48>    String systemPropsToLog=MRApps.getSystemPropertiesToLog(job);
+<Line#49>    if (systemPropsToLog != null) {
+<Line#50>      LOG.info(systemPropsToLog);
+<Line#51>    }
+<Line#52>    JvmMetrics.initSingleton(jvmId.toString(),job.getSessionId());
+<Line#53>    childUGI=UserGroupInformation.createRemoteUser(System.getenv(ApplicationConstants.Environment.USER.toString()));
+<Line#54>    childUGI.addCredentials(credentials);
+<Line#55>    MRApps.setJobClassLoader(job);
+<Line#56>    logSyncer=TaskLog.createLogSyncer();
+<Line#57>    final Task taskFinal=task;
+<Line#58>    childUGI.doAs(new PrivilegedExceptionAction<Object>(){
+<Line#59>      @Override public Object run() throws Exception {
+<Line#60>        setEncryptedSpillKeyIfRequired(taskFinal);
+<Line#61>        FileSystem.get(job).setWorkingDirectory(job.getWorkingDirectory());
+<Line#62>        taskFinal.run(job,umbilical);
+<Line#63>        return null;
+<Line#64>      }
+<Line#65>    }
+<Line#66>);
+<Line#67>  }
+<Line#68> catch (  FSError e) {
+<Line#69>    LOG.error("FSError from child",e);
+<Line#70>    if (!ShutdownHookManager.get().isShutdownInProgress()) {
+<Line#71>      umbilical.fsError(taskid,e.getMessage());
+<Line#72>    }
+<Line#73>  }
+<Line#74>catch (  Exception exception) {
+<Line#75>    LOG.warn("Exception running child : " + StringUtils.stringifyException(exception));
+<Line#76>    try {
+<Line#77>      if (task != null) {
+<Line#78>        if (childUGI == null) {
+<Line#79>          task.taskCleanup(umbilical);
+<Line#80>        }
+<Line#81> else {
+<Line#82>          final Task taskFinal=task;
+<Line#83>          childUGI.doAs(new PrivilegedExceptionAction<Object>(){
+<Line#84>            @Override public Object run() throws Exception {
+<Line#85>              taskFinal.taskCleanup(umbilical);
+<Line#86>              return null;
+<Line#87>            }
+<Line#88>          }
+<Line#89>);
+<Line#90>        }
+<Line#91>      }
+<Line#92>    }
+<Line#93> catch (    Exception e) {
+<Line#94>      LOG.info("Exception cleaning up: " + StringUtils.stringifyException(e));
+<Line#95>    }
+<Line#96>    if (taskid != null) {
+<Line#97>      if (!ShutdownHookManager.get().isShutdownInProgress()) {
+<Line#98>        reportError(exception,task,umbilical);
+<Line#99>      }
+<Line#100>    }
+<Line#101>  }
+<Line#102>catch (  Throwable throwable) {
+<Line#103>    LOG.error("Error running child : " + StringUtils.stringifyException(throwable));
+<Line#104>    if (taskid != null) {
+<Line#105>      if (!ShutdownHookManager.get().isShutdownInProgress()) {
+<Line#106>        Throwable tCause=throwable.getCause();
+<Line#107>        String cause=tCause == null ? throwable.getMessage() : StringUtils.stringifyException(tCause);
+<Line#108>        umbilical.fatalError(taskid,cause,false);
+<Line#109>      }
+<Line#110>    }
+<Line#111>  }
+<Line#112> finally {
+<Line#113>    RPC.stopProxy(umbilical);
+<Line#114>    DefaultMetricsSystem.shutdown();
+<Line#115>    TaskLog.syncLogsShutdown(logSyncer);
+<Line#116>  }
+<Line#117>}
+Label: <Line#3> LOG.debug("Child starting")
+
+Example 4:
+<Line#1>{
+<Line#2>  Thread.setDefaultUncaughtExceptionHandler(new YarnUncaughtExceptionHandler());
+<Line#3>  LOG.debug("Child starting");
+<Line#4>  final JobConf job=new JobConf(MRJobConfig.JOB_CONF_FILE);
+<Line#5>  Limits.init(job);
+<Line#6>  UserGroupInformation.setConfiguration(job);
+<Line#7>  SecurityUtil.setConfiguration(job);
+<Line#8>  String host=args[0];
+<Line#9>  int port=Integer.parseInt(args[1]);
+<Line#10>  final InetSocketAddress address=NetUtils.createSocketAddrForHost(host,port);
+<Line#11>  final TaskAttemptID firstTaskid=TaskAttemptID.forName(args[2]);
+<Line#12>  long jvmIdLong=Long.parseLong(args[3]);
+<Line#13>  JVMId jvmId=new JVMId(firstTaskid.getJobID(),firstTaskid.getTaskType() == TaskType.MAP,jvmIdLong);
+<Line#14>  CallerContext.setCurrent(new CallerContext.Builder("mr_" + firstTaskid.toString()).build());
+<Line#15>  DefaultMetricsSystem.initialize(StringUtils.camelize(firstTaskid.getTaskType().name()) + "Task");
+<Line#16>  Credentials credentials=UserGroupInformation.getCurrentUser().getCredentials();
+<Line#17>  LOG.info("Executing with tokens: {}",credentials.getAllTokens());
+<Line#18>  UserGroupInformation taskOwner=UserGroupInformation.createRemoteUser(firstTaskid.getJobID().toString());
+<Line#19>  Token<JobTokenIdentifier> jt=TokenCache.getJobToken(credentials);
+<Line#20>  SecurityUtil.setTokenService(jt,address);
+<Line#21>  taskOwner.addToken(jt);
+<Line#22>  final TaskUmbilicalProtocol umbilical=taskOwner.doAs(new PrivilegedExceptionAction<TaskUmbilicalProtocol>(){
+<Line#23>    @Override public TaskUmbilicalProtocol run() throws Exception {
+<Line#24>      return (TaskUmbilicalProtocol)RPC.getProxy(TaskUmbilicalProtocol.class,TaskUmbilicalProtocol.versionID,address,job);
+<Line#25>    }
+<Line#26>  }
+<Line#27>);
+<Line#28>  JvmContext context=new JvmContext(jvmId,"-1000");
+<Line#29>  LOG.debug("PID: " + System.getenv().get("JVM_PID"));
+<Line#30>  Task task=null;
+<Line#31>  UserGroupInformation childUGI=null;
+<Line#32>  ScheduledExecutorService logSyncer=null;
+<Line#33>  try {
+<Line#34>    int idleLoopCount=0;
+<Line#35>    JvmTask myTask=null;
+<Line#36>    for (int idle=0; null == myTask; ++idle) {
+<Line#37>      long sleepTimeMilliSecs=Math.min(idle * 500,1500);
+<Line#38>      LOG.info("Sleeping for " + sleepTimeMilliSecs + "ms before retrying again. Got null now.");
+<Line#39>      MILLISECONDS.sleep(sleepTimeMilliSecs);
+<Line#40>      myTask=umbilical.getTask(context);
+<Line#41>    }
+<Line#42>    if (myTask.shouldDie()) {
+<Line#43>      return;
+<Line#44>    }
+<Line#45>    task=myTask.getTask();
+<Line#46>    YarnChild.taskid=task.getTaskID();
+<Line#47>    configureTask(job,task,credentials,jt);
+<Line#48>    String systemPropsToLog=MRApps.getSystemPropertiesToLog(job);
+<Line#49>    if (systemPropsToLog != null) {
+<Line#50>      LOG.info(systemPropsToLog);
+<Line#51>    }
+<Line#52>    JvmMetrics.initSingleton(jvmId.toString(),job.getSessionId());
+<Line#53>    childUGI=UserGroupInformation.createRemoteUser(System.getenv(ApplicationConstants.Environment.USER.toString()));
+<Line#54>    childUGI.addCredentials(credentials);
+<Line#55>    MRApps.setJobClassLoader(job);
+<Line#56>    logSyncer=TaskLog.createLogSyncer();
+<Line#57>    final Task taskFinal=task;
+<Line#58>    childUGI.doAs(new PrivilegedExceptionAction<Object>(){
+<Line#59>      @Override public Object run() throws Exception {
+<Line#60>        setEncryptedSpillKeyIfRequired(taskFinal);
+<Line#61>        FileSystem.get(job).setWorkingDirectory(job.getWorkingDirectory());
+<Line#62>        taskFinal.run(job,umbilical);
+<Line#63>        return null;
+<Line#64>      }
+<Line#65>    }
+<Line#66>);
+<Line#67>  }
+<Line#68> catch (  FSError e) {
+<Line#69>    LOG.error("FSError from child",e);
+<Line#70>    if (!ShutdownHookManager.get().isShutdownInProgress()) {
+<Line#71>      umbilical.fsError(taskid,e.getMessage());
+<Line#72>    }
+<Line#73>  }
+<Line#74>catch (  Exception exception) {
+<Line#75>    LOG.warn("Exception running child : " + StringUtils.stringifyException(exception));
+<Line#76>    try {
+<Line#77>      if (task != null) {
+<Line#78>        if (childUGI == null) {
+<Line#79>          task.taskCleanup(umbilical);
+<Line#80>        }
+<Line#81> else {
+<Line#82>          final Task taskFinal=task;
+<Line#83>          childUGI.doAs(new PrivilegedExceptionAction<Object>(){
+<Line#84>            @Override public Object run() throws Exception {
+<Line#85>              taskFinal.taskCleanup(umbilical);
+<Line#86>              return null;
+<Line#87>            }
+<Line#88>          }
+<Line#89>);
+<Line#90>        }
+<Line#91>      }
+<Line#92>    }
+<Line#93> catch (    Exception e) {
+<Line#94>      LOG.info("Exception cleaning up: " + StringUtils.stringifyException(e));
+<Line#95>    }
+<Line#96>    if (taskid != null) {
+<Line#97>      if (!ShutdownHookManager.get().isShutdownInProgress()) {
+<Line#98>        reportError(exception,task,umbilical);
+<Line#99>      }
+<Line#100>    }
+<Line#101>  }
+<Line#102>catch (  Throwable throwable) {
+<Line#103>    LOG.error("Error running child : " + StringUtils.stringifyException(throwable));
+<Line#104>    if (taskid != null) {
+<Line#105>      if (!ShutdownHookManager.get().isShutdownInProgress()) {
+<Line#106>        Throwable tCause=throwable.getCause();
+<Line#107>        String cause=tCause == null ? throwable.getMessage() : StringUtils.stringifyException(tCause);
+<Line#108>        umbilical.fatalError(taskid,cause,false);
+<Line#109>      }
+<Line#110>    }
+<Line#111>  }
+<Line#112> finally {
+<Line#113>    RPC.stopProxy(umbilical);
+<Line#114>    DefaultMetricsSystem.shutdown();
+<Line#115>    TaskLog.syncLogsShutdown(logSyncer);
+<Line#116>  }
+<Line#117>}
+Label: <Line#17> LOG.info("Executing with tokens: {}",credentials.getAllTokens())
+
+Example 5:
+<Line#1>{
+<Line#2>  Thread.setDefaultUncaughtExceptionHandler(new YarnUncaughtExceptionHandler());
+<Line#3>  LOG.debug("Child starting");
+<Line#4>  final JobConf job=new JobConf(MRJobConfig.JOB_CONF_FILE);
+<Line#5>  Limits.init(job);
+<Line#6>  UserGroupInformation.setConfiguration(job);
+<Line#7>  SecurityUtil.setConfiguration(job);
+<Line#8>  String host=args[0];
+<Line#9>  int port=Integer.parseInt(args[1]);
+<Line#10>  final InetSocketAddress address=NetUtils.createSocketAddrForHost(host,port);
+<Line#11>  final TaskAttemptID firstTaskid=TaskAttemptID.forName(args[2]);
+<Line#12>  long jvmIdLong=Long.parseLong(args[3]);
+<Line#13>  JVMId jvmId=new JVMId(firstTaskid.getJobID(),firstTaskid.getTaskType() == TaskType.MAP,jvmIdLong);
+<Line#14>  CallerContext.setCurrent(new CallerContext.Builder("mr_" + firstTaskid.toString()).build());
+<Line#15>  DefaultMetricsSystem.initialize(StringUtils.camelize(firstTaskid.getTaskType().name()) + "Task");
+<Line#16>  Credentials credentials=UserGroupInformation.getCurrentUser().getCredentials();
+<Line#17>  LOG.info("Executing with tokens: {}",credentials.getAllTokens());
+<Line#18>  UserGroupInformation taskOwner=UserGroupInformation.createRemoteUser(firstTaskid.getJobID().toString());
+<Line#19>  Token<JobTokenIdentifier> jt=TokenCache.getJobToken(credentials);
+<Line#20>  SecurityUtil.setTokenService(jt,address);
+<Line#21>  taskOwner.addToken(jt);
+<Line#22>  final TaskUmbilicalProtocol umbilical=taskOwner.doAs(new PrivilegedExceptionAction<TaskUmbilicalProtocol>(){
+<Line#23>    @Override public TaskUmbilicalProtocol run() throws Exception {
+<Line#24>      return (TaskUmbilicalProtocol)RPC.getProxy(TaskUmbilicalProtocol.class,TaskUmbilicalProtocol.versionID,address,job);
+<Line#25>    }
+<Line#26>  }
+<Line#27>);
+<Line#28>  JvmContext context=new JvmContext(jvmId,"-1000");
+<Line#29>  LOG.debug("PID: " + System.getenv().get("JVM_PID"));
+<Line#30>  Task task=null;
+<Line#31>  UserGroupInformation childUGI=null;
+<Line#32>  ScheduledExecutorService logSyncer=null;
+<Line#33>  try {
+<Line#34>    int idleLoopCount=0;
+<Line#35>    JvmTask myTask=null;
+<Line#36>    for (int idle=0; null == myTask; ++idle) {
+<Line#37>      long sleepTimeMilliSecs=Math.min(idle * 500,1500);
+<Line#38>      LOG.info("Sleeping for " + sleepTimeMilliSecs + "ms before retrying again. Got null now.");
+<Line#39>      MILLISECONDS.sleep(sleepTimeMilliSecs);
+<Line#40>      myTask=umbilical.getTask(context);
+<Line#41>    }
+<Line#42>    if (myTask.shouldDie()) {
+<Line#43>      return;
+<Line#44>    }
+<Line#45>    task=myTask.getTask();
+<Line#46>    YarnChild.taskid=task.getTaskID();
+<Line#47>    configureTask(job,task,credentials,jt);
+<Line#48>    String systemPropsToLog=MRApps.getSystemPropertiesToLog(job);
+<Line#49>    if (systemPropsToLog != null) {
+<Line#50>      LOG.info(systemPropsToLog);
+<Line#51>    }
+<Line#52>    JvmMetrics.initSingleton(jvmId.toString(),job.getSessionId());
+<Line#53>    childUGI=UserGroupInformation.createRemoteUser(System.getenv(ApplicationConstants.Environment.USER.toString()));
+<Line#54>    childUGI.addCredentials(credentials);
+<Line#55>    MRApps.setJobClassLoader(job);
+<Line#56>    logSyncer=TaskLog.createLogSyncer();
+<Line#57>    final Task taskFinal=task;
+<Line#58>    childUGI.doAs(new PrivilegedExceptionAction<Object>(){
+<Line#59>      @Override public Object run() throws Exception {
+<Line#60>        setEncryptedSpillKeyIfRequired(taskFinal);
+<Line#61>        FileSystem.get(job).setWorkingDirectory(job.getWorkingDirectory());
+<Line#62>        taskFinal.run(job,umbilical);
+<Line#63>        return null;
+<Line#64>      }
+<Line#65>    }
+<Line#66>);
+<Line#67>  }
+<Line#68> catch (  FSError e) {
+<Line#69>    LOG.error("FSError from child",e);
+<Line#70>    if (!ShutdownHookManager.get().isShutdownInProgress()) {
+<Line#71>      umbilical.fsError(taskid,e.getMessage());
+<Line#72>    }
+<Line#73>  }
+<Line#74>catch (  Exception exception) {
+<Line#75>    LOG.warn("Exception running child : " + StringUtils.stringifyException(exception));
+<Line#76>    try {
+<Line#77>      if (task != null) {
+<Line#78>        if (childUGI == null) {
+<Line#79>          task.taskCleanup(umbilical);
+<Line#80>        }
+<Line#81> else {
+<Line#82>          final Task taskFinal=task;
+<Line#83>          childUGI.doAs(new PrivilegedExceptionAction<Object>(){
+<Line#84>            @Override public Object run() throws Exception {
+<Line#85>              taskFinal.taskCleanup(umbilical);
+<Line#86>              return null;
+<Line#87>            }
+<Line#88>          }
+<Line#89>);
+<Line#90>        }
+<Line#91>      }
+<Line#92>    }
+<Line#93> catch (    Exception e) {
+<Line#94>      LOG.info("Exception cleaning up: " + StringUtils.stringifyException(e));
+<Line#95>    }
+<Line#96>    if (taskid != null) {
+<Line#97>      if (!ShutdownHookManager.get().isShutdownInProgress()) {
+<Line#98>        reportError(exception,task,umbilical);
+<Line#99>      }
+<Line#100>    }
+<Line#101>  }
+<Line#102>catch (  Throwable throwable) {
+<Line#103>    LOG.error("Error running child : " + StringUtils.stringifyException(throwable));
+<Line#104>    if (taskid != null) {
+<Line#105>      if (!ShutdownHookManager.get().isShutdownInProgress()) {
+<Line#106>        Throwable tCause=throwable.getCause();
+<Line#107>        String cause=tCause == null ? throwable.getMessage() : StringUtils.stringifyException(tCause);
+<Line#108>        umbilical.fatalError(taskid,cause,false);
+<Line#109>      }
+<Line#110>    }
+<Line#111>  }
+<Line#112> finally {
+<Line#113>    RPC.stopProxy(umbilical);
+<Line#114>    DefaultMetricsSystem.shutdown();
+<Line#115>    TaskLog.syncLogsShutdown(logSyncer);
+<Line#116>  }
+<Line#117>}
+Label: <Line#29> LOG.debug("PID: " + System.getenv().get("JVM_PID"))
+

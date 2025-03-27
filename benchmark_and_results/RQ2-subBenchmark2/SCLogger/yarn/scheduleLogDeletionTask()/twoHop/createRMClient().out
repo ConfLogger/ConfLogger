@@ -1,0 +1,3 @@
+@VisibleForTesting protected ApplicationClientProtocol createRMClient() throws IOException {
+  return ClientRMProxy.createRMProxy(getConfig(),ApplicationClientProtocol.class);
+}

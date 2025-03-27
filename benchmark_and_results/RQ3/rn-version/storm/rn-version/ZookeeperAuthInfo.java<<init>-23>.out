@@ -1,0 +1,82 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ZookeeperAuthInfo.java	methodSinagture:	org.apache.storm.utils.ZookeeperAuthInfo.<init>(Ljava/util/Map;)V	methodLines:	23:42
+blockLines:	34:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(eq, to iindex=52) 23,5 Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere[28]20 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,18 @56 exception:19
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere[28]20 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,18 @56 exception:19
+NORMAL <init>:21 = checkcast <Application,Ljava/lang/String>20 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere
+PHI Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere:23 = phi  13,21
+NORMAL <init>:conditional branch(eq, to iindex=52) 23,5 Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ZookeeperAuthInfo.java	methodSinagture:	org.apache.storm.utils.ZookeeperAuthInfo.<init>(Ljava/util/Map;)V	methodLines:	23:42
+blockLines:	28:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(ne, to iindex=31) 13,5 Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere[12]12 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,10 @24 exception:11
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere[12]12 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,10 @24 exception:11
+NORMAL <init>:13 = checkcast <Application,Ljava/lang/String>12 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere
+NORMAL <init>:conditional branch(ne, to iindex=31) 13,5 Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	ZookeeperAuthInfo.java	methodSinagture:	org.apache.storm.utils.ZookeeperAuthInfo.<init>(Ljava/util/Map;)V	methodLines:	23:42
+blockLines:	32:-1
+paras:	null
+TaintedStat:	NORMAL <init>:conditional branch(eq, to iindex=52) 22,5 Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere[23]16 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,14 @44 exception:15
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere[23]16 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,14 @44 exception:15
+NORMAL <init>:17 = checkcast <Application,Ljava/lang/String>16 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere
+PHI Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere:22 = phi  9,17
+NORMAL <init>:conditional branch(eq, to iindex=52) 22,5 Node: < Application, Lorg/apache/storm/utils/ZookeeperAuthInfo, <init>(Ljava/util/Map;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+
+    public ZookeeperAuthInfo(Map<String, Object> conf) {
+        String scheme = (String) conf.get(Config.STORM_ZOOKEEPER_TOPOLOGY_AUTH_SCHEME);
+        String payload = (String) conf.get(Config.STORM_ZOOKEEPER_TOPOLOGY_AUTH_PAYLOAD);
+
+        if (scheme == null || payload == null) {
+            scheme = (String) conf.get(Config.STORM_ZOOKEEPER_AUTH_SCHEME);
+            payload = (String) conf.get(Config.STORM_ZOOKEEPER_AUTH_PAYLOAD);
+        }
+        if (scheme != null) {
+            this.scheme = scheme;
+            if (payload != null) {
+                try {
+                    this.payload = payload.getBytes("UTF-8");
+                } catch (UnsupportedEncodingException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        }
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/zookeeper/ClientZookeeper, mkClientImpl(Ljava/util/Map;Ljava/util/List;Ljava/lang/Object;Ljava/lang/String;Lorg/apache/storm/callback/WatcherCallBack;Ljava/util/Map;Lorg/apache/storm/cluster/DaemonType;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework; > Context: Everywhere, blocks=[BB[SSA:8..10]3 - org.apache.storm.zookeeper.ClientZookeeper.mkClientImpl(Ljava/util/Map;Ljava/util/List;Ljava/lang/Object;Ljava/lang/String;Lorg/apache/storm/callback/WatcherCallBack;Ljava/util/Map;Lorg/apache/storm/cluster/DaemonType;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework;, BB[SSA:3..7]2 - org.apache.storm.zookeeper.ClientZookeeper.mkClientImpl(Ljava/util/Map;Ljava/util/List;Ljava/lang/Object;Ljava/lang/String;Lorg/apache/storm/callback/WatcherCallBack;Ljava/util/Map;Lorg/apache/storm/cluster/DaemonType;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework;, BB[SSA:11..13]4 - org.apache.storm.zookeeper.ClientZookeeper.mkClientImpl(Ljava/util/Map;Ljava/util/List;Ljava/lang/Object;Ljava/lang/String;Lorg/apache/storm/callback/WatcherCallBack;Ljava/util/Map;Lorg/apache/storm/cluster/DaemonType;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework;, BB[SSA:-1..-2]16 - org.apache.storm.zookeeper.ClientZookeeper.mkClientImpl(Ljava/util/Map;Ljava/util/List;Ljava/lang/Object;Ljava/lang/String;Lorg/apache/storm/callback/WatcherCallBack;Ljava/util/Map;Lorg/apache/storm/cluster/DaemonType;)Lorg/apache/storm/shade/org/apache/curator/framework/CuratorFramework;], numberOfBasicBlocks=4, firstLineNumber=306, lastLineNumber=306, firstMethodNumber=304, lastMethodNumber=319, isFirstLineValid=true, methodSrcCode=
+        CuratorFramework fk;
+        if (authConf != null) {
+            fk = CuratorUtils.newCurator(conf, servers, port, root, new ZookeeperAuthInfo(authConf), type.getDefaultZkAcls(conf));
+        } else {
+            fk = CuratorUtils.newCurator(conf, servers, port, root, null, type.getDefaultZkAcls(conf));
+        }
+
+        fk.getCuratorListenable().addListener((unused, e) -> {
+            if (e.getType().equals(CuratorEventType.WATCHED)) {
+                WatchedEvent event = e.getWatchedEvent();
+                watcher.execute(event.getState(), event.getType(), event.getPath());
+            }
+        });
+        LOG.info("Starting ZK Curator");
+        fk.start();
+        return fk;
+    }
+}

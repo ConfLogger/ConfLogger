@@ -1,0 +1,60 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	AuthenticationHelper.java	methodSinagture:	org.apache.zookeeper.server.AuthenticationHelper.initConfigurations()V	methodLines:	52:70
+blockLines:	53:-1
+paras:	null
+TaintedStat:	NORMAL initConfigurations:conditional branch(eq, to iindex=15) 8,9 Node: < Application, Lorg/apache/zookeeper/server/AuthenticationHelper, initConfigurations()V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/AuthenticationHelper, initConfigurations()V > Context: Everywhere[18]12 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 10,4 @38 exception:11
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/AuthenticationHelper, initConfigurations()V > Context: Everywhere[18]12 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; > 10,4 @38 exception:11
+NORMAL initConfigurations:14 = invokestatic < Application, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > 12 @41 exception:13 Node: < Application, Lorg/apache/zookeeper/server/AuthenticationHelper, initConfigurations()V > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL parseBoolean:return 5 Node: < Primordial, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/AuthenticationHelper, initConfigurations()V > Context: Everywhere[3]8 = invokestatic < Application, Ljava/lang/Boolean, parseBoolean(Ljava/lang/String;)Z > 6 @7 exception:7
+NORMAL initConfigurations:conditional branch(eq, to iindex=15) 8,9 Node: < Application, Lorg/apache/zookeeper/server/AuthenticationHelper, initConfigurations()V > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	AuthenticationHelper.java	methodSinagture:	org.apache.zookeeper.server.AuthenticationHelper.initConfigurations()V	methodLines:	52:70
+blockLines:	60:-1
+paras:	null
+TaintedStat:	NORMAL initConfigurations:conditional branch(eq, to iindex=34) 17,18 Node: < Application, Lorg/apache/zookeeper/server/AuthenticationHelper, initConfigurations()V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/AuthenticationHelper, initConfigurations()V > Context: Everywhere[22]17 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 15 @49 exception:16
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/AuthenticationHelper, initConfigurations()V > Context: Everywhere[22]17 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 15 @49 exception:16
+NORMAL initConfigurations:conditional branch(eq, to iindex=34) 17,18 Node: < Application, Lorg/apache/zookeeper/server/AuthenticationHelper, initConfigurations()V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private void initConfigurations() {
+        if (Boolean.parseBoolean(System.getProperty(SESSION_REQUIRE_CLIENT_SASL_AUTH, "false"))) {
+            enforceAuthEnabled = true;
+            enforceAuthSchemes.add(SASL_AUTH_SCHEME);
+        } else {
+            enforceAuthEnabled =
+                Boolean.parseBoolean(System.getProperty(ENFORCE_AUTH_ENABLED, "false"));
+            String enforceAuthSchemesProp = System.getProperty(ENFORCE_AUTH_SCHEMES);
+            if (enforceAuthSchemesProp != null) {
+                Arrays.stream(enforceAuthSchemesProp.split(",")).forEach(s -> {
+                    enforceAuthSchemes.add(s.trim());
+                });
+            }
+        }
+        LOG.info("{} = {}", ENFORCE_AUTH_ENABLED, enforceAuthEnabled);
+        LOG.info("{} = {}", ENFORCE_AUTH_SCHEMES, enforceAuthSchemes);
+        validateConfiguredProperties();
+        saslAuthRequired = enforceAuthEnabled && enforceAuthSchemes.contains(SASL_AUTH_SCHEME);
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/AuthenticationHelper, <init>()V > Context: Everywhere, blocks=[BB[SSA:7..8]5 - org.apache.zookeeper.server.AuthenticationHelper.<init>()V, BB[SSA:6..6]4 - org.apache.zookeeper.server.AuthenticationHelper.<init>()V, BB[SSA:9..9]6 - org.apache.zookeeper.server.AuthenticationHelper.<init>()V, BB[SSA:-1..-2]7 - org.apache.zookeeper.server.AuthenticationHelper.<init>()V], numberOfBasicBlocks=4, firstLineNumber=47, lastLineNumber=50, firstMethodNumber=47, lastMethodNumber=50, isFirstLineValid=false, methodSrcCode=
+
+    public AuthenticationHelper() {
+        initConfigurations();
+    }
+
+}

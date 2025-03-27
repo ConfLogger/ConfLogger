@@ -1,0 +1,27 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ObjectReader.java	methodSinagture:	org.apache.storm.utils.ObjectReader.getString(Ljava/lang/Object;)Ljava/lang/String;	methodLines:	54:58
+blockLines:	55:-1
+paras:	null
+TaintedStat:	NORMAL getString:conditional branch(ne, to iindex=8) 3,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;)Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/container/oci/OciContainerManager, prepare(Ljava/util/Map;)V > Context: Everywhere[24]20 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,18 @58 exception:19
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/container/oci/OciContainerManager, prepare(Ljava/util/Map;)V > Context: Everywhere[24]20 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,18 @58 exception:19
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/container/oci/OciContainerManager, prepare(Ljava/util/Map;)V > Context: Everywhere[25]22 = invokestatic < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;)Ljava/lang/String; > 20 @63 exception:21 v20
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;)Ljava/lang/String; > Context: Everywhere v1
+NORMAL getString:conditional branch(ne, to iindex=8) 3,1 Node: < Application, Lorg/apache/storm/utils/ObjectReader, getString(Ljava/lang/Object;)Ljava/lang/String; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static String getString(Object o) {
+        if (null == o) {
+            throw new IllegalArgumentException("Don't know how to convert null to String");
+        }
+        return o.toString();
+    }
+
+
+====================ctx:=======================

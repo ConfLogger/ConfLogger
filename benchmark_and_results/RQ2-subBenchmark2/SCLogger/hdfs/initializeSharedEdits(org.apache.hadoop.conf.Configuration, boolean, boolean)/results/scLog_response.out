@@ -1,0 +1,8 @@
+<Line#4>:# LOG.info("Initializing generic keys with nsId: " + nsId + " and namenodeId: " + namenodeId);:#
+<Line#14>:# LOG.info("Creating new NNStorage and FSImage instances");:#
+<Line#31>:# LOG.warn("Failed to confirm format of sharedEditsImage");:#
+<Line#39>:# LOG.info("Formatting newSharedStorage with namespace info: " + nsInfo);:#
+<Line#44>:# LOG.info("Closing and initializing journals for write");:#
+<Line#48>:# LOG.info("Copying edit log segments to shared directory");:#
+<Line#56>:# LOG.info("Closing sharedEditsImage");:#
+<Line#65>:# LOG.info("Unlocking all storage directories");:#

@@ -1,0 +1,276 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	QuorumPeer.java	methodSinagture:	org.apache.zookeeper.server.quorum.QuorumPeer.setQuorumVerifier(Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;Z)Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;	methodLines:	1954:1996
+blockLines:	1991:-1
+paras:	null
+TaintedStat:	NORMAL setQuorumVerifier:conditional branch(eq, to iindex=129) 57,7 Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, setQuorumVerifier(Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;Z)Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, setQuorumVerifier(Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;Z)Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier; > Context: Everywhere[115]56 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 50,54 @248 exception:55
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, setQuorumVerifier(Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;Z)Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier; > Context: Everywhere[115]56 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 50,54 @248 exception:55
+NORMAL setQuorumVerifier:57 = checkcast <Application,Lorg/apache/zookeeper/server/quorum/QuorumPeer$QuorumServer>56 <Application,Lorg/apache/zookeeper/server/quorum/QuorumPeer$QuorumServer> Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, setQuorumVerifier(Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;Z)Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier; > Context: Everywhere
+NORMAL setQuorumVerifier:conditional branch(eq, to iindex=129) 57,7 Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, setQuorumVerifier(Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;Z)Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public QuorumVerifier setQuorumVerifier(QuorumVerifier qv, boolean writeToDisk) {
+        synchronized (QV_LOCK) {
+            if ((quorumVerifier != null) && (quorumVerifier.getVersion() >= qv.getVersion())) {
+                // this is normal. For example - server found out about new config through FastLeaderElection gossiping
+                // and then got the same config in UPTODATE message so its already known
+                LOG.debug(
+                    "{} setQuorumVerifier called with known or old config {}. Current version: {}",
+                    getMyId(),
+                    qv.getVersion(),
+                    quorumVerifier.getVersion());
+                return quorumVerifier;
+            }
+            QuorumVerifier prevQV = quorumVerifier;
+            quorumVerifier = qv;
+            if (lastSeenQuorumVerifier == null || (qv.getVersion() > lastSeenQuorumVerifier.getVersion())) {
+                lastSeenQuorumVerifier = qv;
+            }
+
+            if (writeToDisk) {
+                // some tests initialize QuorumPeer without a static config file
+                if (configFilename != null) {
+                    try {
+                        String dynamicConfigFilename = makeDynamicConfigFilename(qv.getVersion());
+                        QuorumPeerConfig.writeDynamicConfig(dynamicConfigFilename, qv, false);
+                        QuorumPeerConfig.editStaticConfig(configFilename, dynamicConfigFilename, needEraseClientInfoFromStaticConfig());
+                    } catch (IOException e) {
+                        LOG.error("Error closing file", e);
+                    }
+                } else {
+                    LOG.info("writeToDisk == true but configFilename == null");
+                }
+            }
+
+            if (qv.getVersion() == lastSeenQuorumVerifier.getVersion()) {
+                QuorumPeerConfig.deleteFile(getNextDynamicConfigFilename());
+            }
+            QuorumServer qs = qv.getAllMembers().get(getMyId());
+            if (qs != null) {
+                setAddrs(qs.addr, qs.electionAddr, qs.clientAddr);
+            }
+            updateObserverMasterList();
+            return prevQV;
+        }
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, processReconfig(Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;Ljava/lang/Long;Ljava/lang/Long;Z)Z > Context: Everywhere, blocks=[BB[SSA:11..15]6 - org.apache.zookeeper.server.quorum.QuorumPeer.processReconfig(Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;Ljava/lang/Long;Ljava/lang/Long;Z)Z, BB[SSA:9..10]5 - org.apache.zookeeper.server.quorum.QuorumPeer.processReconfig(Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;Ljava/lang/Long;Ljava/lang/Long;Z)Z, BB[SSA:16..18]7 - org.apache.zookeeper.server.quorum.QuorumPeer.processReconfig(Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;Ljava/lang/Long;Ljava/lang/Long;Z)Z, BB[SSA:-1..-2]64 - org.apache.zookeeper.server.quorum.QuorumPeer.processReconfig(Lorg/apache/zookeeper/server/quorum/flexible/QuorumVerifier;Ljava/lang/Long;Ljava/lang/Long;Z)Z], numberOfBasicBlocks=4, firstLineNumber=2272, lastLineNumber=2286, firstMethodNumber=2266, lastMethodNumber=2321, isFirstLineValid=true, methodSrcCode=
+    public boolean processReconfig(QuorumVerifier qv, Long suggestedLeaderId, Long zxid, boolean restartLE) {
+        if (!isReconfigEnabled()) {
+            LOG.debug("Reconfig feature is disabled, skip reconfig processing.");
+            return false;
+        }
+
+        InetSocketAddress oldClientAddr = getClientAddress();
+
+        // update last committed quorum verifier, write the new config to disk
+        // and restart leader election if config changed.
+        QuorumVerifier prevQV = setQuorumVerifier(qv, true);
+
+        // There is no log record for the initial config, thus after syncing
+        // with leader
+        // /zookeeper/config is empty! it is also possible that last committed
+        // config is propagated during leader election
+        // without the propagation the corresponding log records.
+        // so we should explicitly do this (this is not necessary when we're
+        // already a Follower/Observer, only
+        // for Learner):
+        initConfigInZKDatabase();
+
+        if (prevQV.getVersion() < qv.getVersion() && !prevQV.equals(qv)) {
+            Map<Long, QuorumServer> newMembers = qv.getAllMembers();
+            updateRemotePeerMXBeans(newMembers);
+            if (restartLE) {
+                restartLeaderElection(prevQV, qv);
+            }
+
+            QuorumServer myNewQS = newMembers.get(getMyId());
+            if (myNewQS != null && myNewQS.clientAddr != null && !myNewQS.clientAddr.equals(oldClientAddr)) {
+                cnxnFactory.reconfigure(myNewQS.clientAddr);
+                updateThreadName();
+            }
+
+            boolean roleChange = updateLearnerType(qv);
+            boolean leaderChange = false;
+            if (suggestedLeaderId != null) {
+                // zxid should be non-null too
+                leaderChange = updateVote(suggestedLeaderId, zxid);
+            } else {
+                long currentLeaderId = getCurrentVote().getId();
+                QuorumServer myleaderInCurQV = prevQV.getVotingMembers().get(currentLeaderId);
+                QuorumServer myleaderInNewQV = qv.getVotingMembers().get(currentLeaderId);
+                leaderChange = (myleaderInCurQV == null
+                                || myleaderInCurQV.addr == null
+                                || myleaderInNewQV == null
+                                || !myleaderInCurQV.addr.equals(myleaderInNewQV.addr));
+                // we don't have a designated leader - need to go into leader
+                // election
+                reconfigFlagClear();
+            }
+
+            return roleChange || leaderChange;
+        }
+        return false;
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeerMain, runFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)V > Context: Everywhere, blocks=[BB[SSA:169..170]95 - org.apache.zookeeper.server.quorum.QuorumPeerMain.runFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)V, BB[SSA:167..168]94 - org.apache.zookeeper.server.quorum.QuorumPeerMain.runFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)V, BB[SSA:171..173]96 - org.apache.zookeeper.server.quorum.QuorumPeerMain.runFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)V], numberOfBasicBlocks=3, firstLineNumber=194, lastLineNumber=195, firstMethodNumber=146, lastMethodNumber=242, isFirstLineValid=true, methodSrcCode=
+        try {
+            ManagedUtil.registerLog4jMBeans();
+        } catch (JMException e) {
+            LOG.warn("Unable to register log4j JMX control", e);
+        }
+
+        LOG.info("Starting quorum peer, myid=" + config.getServerId());
+        final MetricsProvider metricsProvider;
+        try {
+            metricsProvider = MetricsProviderBootstrap.startMetricsProvider(
+                config.getMetricsProviderClassName(),
+                config.getMetricsProviderConfiguration());
+        } catch (MetricsProviderLifeCycleException error) {
+            throw new IOException("Cannot boot MetricsProvider " + config.getMetricsProviderClassName(), error);
+        }
+        try {
+            ServerMetrics.metricsProviderInitialized(metricsProvider);
+            ProviderRegistry.initialize();
+            ServerCnxnFactory cnxnFactory = null;
+            ServerCnxnFactory secureCnxnFactory = null;
+
+            if (config.getClientPortAddress() != null) {
+                cnxnFactory = ServerCnxnFactory.createFactory();
+                cnxnFactory.configure(config.getClientPortAddress(), config.getMaxClientCnxns(), config.getClientPortListenBacklog(), false);
+            }
+
+            if (config.getSecureClientPortAddress() != null) {
+                secureCnxnFactory = ServerCnxnFactory.createFactory();
+                secureCnxnFactory.configure(config.getSecureClientPortAddress(), config.getMaxClientCnxns(), config.getClientPortListenBacklog(), true);
+            }
+
+            quorumPeer = getQuorumPeer();
+            quorumPeer.setTxnFactory(new FileTxnSnapLog(config.getDataLogDir(), config.getDataDir()));
+            quorumPeer.enableLocalSessions(config.areLocalSessionsEnabled());
+            quorumPeer.enableLocalSessionsUpgrading(config.isLocalSessionsUpgradingEnabled());
+            //quorumPeer.setQuorumPeers(config.getAllMembers());
+            quorumPeer.setElectionType(config.getElectionAlg());
+            quorumPeer.setMyid(config.getServerId());
+            quorumPeer.setTickTime(config.getTickTime());
+            quorumPeer.setMinSessionTimeout(config.getMinSessionTimeout());
+            quorumPeer.setMaxSessionTimeout(config.getMaxSessionTimeout());
+            quorumPeer.setInitLimit(config.getInitLimit());
+            quorumPeer.setSyncLimit(config.getSyncLimit());
+            quorumPeer.setConnectToLearnerMasterLimit(config.getConnectToLearnerMasterLimit());
+            quorumPeer.setObserverMasterPort(config.getObserverMasterPort());
+            quorumPeer.setConfigFileName(config.getConfigFilename());
+            quorumPeer.setClientPortListenBacklog(config.getClientPortListenBacklog());
+            quorumPeer.setZKDatabase(new ZKDatabase(quorumPeer.getTxnFactory()));
+            quorumPeer.setQuorumVerifier(config.getQuorumVerifier(), false);
+            if (config.getLastSeenQuorumVerifier() != null) {
+                quorumPeer.setLastSeenQuorumVerifier(config.getLastSeenQuorumVerifier(), false);
+            }
+            quorumPeer.initConfigInZKDatabase();
+            quorumPeer.setCnxnFactory(cnxnFactory);
+            quorumPeer.setSecureCnxnFactory(secureCnxnFactory);
+            quorumPeer.setSslQuorum(config.isSslQuorum());
+            quorumPeer.setUsePortUnification(config.shouldUsePortUnification());
+            quorumPeer.setLearnerType(config.getPeerType());
+            quorumPeer.setSyncEnabled(config.getSyncEnabled());
+            quorumPeer.setQuorumListenOnAllIPs(config.getQuorumListenOnAllIPs());
+            if (config.sslQuorumReloadCertFiles) {
+                quorumPeer.getX509Util().enableCertFileReloading();
+            }
+            quorumPeer.setMultiAddressEnabled(config.isMultiAddressEnabled());
+            quorumPeer.setMultiAddressReachabilityCheckEnabled(config.isMultiAddressReachabilityCheckEnabled());
+            quorumPeer.setMultiAddressReachabilityCheckTimeoutMs(config.getMultiAddressReachabilityCheckTimeoutMs());
+
+            // sets quorum sasl authentication configurations
+            quorumPeer.setQuorumSaslEnabled(config.quorumEnableSasl);
+            if (quorumPeer.isQuorumSaslAuthEnabled()) {
+                quorumPeer.setQuorumServerSaslRequired(config.quorumServerRequireSasl);
+                quorumPeer.setQuorumLearnerSaslRequired(config.quorumLearnerRequireSasl);
+                quorumPeer.setQuorumServicePrincipal(config.quorumServicePrincipal);
+                quorumPeer.setQuorumServerLoginContext(config.quorumServerLoginContext);
+                quorumPeer.setQuorumLearnerLoginContext(config.quorumLearnerLoginContext);
+            }
+            quorumPeer.setQuorumCnxnThreadsSize(config.quorumCnxnThreadsSize);
+            quorumPeer.initialize();
+
+            if (config.jvmPauseMonitorToRun) {
+                quorumPeer.setJvmPauseMonitor(new JvmPauseMonitor(config));
+            }
+
+            quorumPeer.start();
+            ZKAuditProvider.addZKStartStopAuditLog();
+            quorumPeer.join();
+        } catch (InterruptedException e) {
+            // warn, but generally this is ok
+            LOG.warn("Quorum Peer interrupted", e);
+        } finally {
+            try {
+                metricsProvider.stop();
+            } catch (Throwable error) {
+                LOG.warn("Error while stopping metrics", error);
+            }
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/quorum/QuorumPeer, createFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)Lorg/apache/zookeeper/server/quorum/QuorumPeer; > Context: Everywhere, blocks=[BB[SSA:75..76]39 - org.apache.zookeeper.server.quorum.QuorumPeer.createFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)Lorg/apache/zookeeper/server/quorum/QuorumPeer;, BB[SSA:72..74]38 - org.apache.zookeeper.server.quorum.QuorumPeer.createFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)Lorg/apache/zookeeper/server/quorum/QuorumPeer;, BB[SSA:77..79]40 - org.apache.zookeeper.server.quorum.QuorumPeer.createFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)Lorg/apache/zookeeper/server/quorum/QuorumPeer;, BB[SSA:-1..-2]88 - org.apache.zookeeper.server.quorum.QuorumPeer.createFromConfig(Lorg/apache/zookeeper/server/quorum/QuorumPeerConfig;)Lorg/apache/zookeeper/server/quorum/QuorumPeer;], numberOfBasicBlocks=4, firstLineNumber=2677, lastLineNumber=2678, firstMethodNumber=2660, lastMethodNumber=2709, isFirstLineValid=true, methodSrcCode=
+    public static QuorumPeer createFromConfig(QuorumPeerConfig config) throws IOException {
+        QuorumPeer quorumPeer = new QuorumPeer();
+        quorumPeer.setTxnFactory(new FileTxnSnapLog(config.getDataLogDir(), config.getDataDir()));
+        quorumPeer.enableLocalSessions(config.areLocalSessionsEnabled());
+        quorumPeer.enableLocalSessionsUpgrading(config.isLocalSessionsUpgradingEnabled());
+        quorumPeer.setElectionType(config.getElectionAlg());
+        quorumPeer.setMyid(config.getServerId());
+        quorumPeer.setTickTime(config.getTickTime());
+        quorumPeer.setMinSessionTimeout(config.getMinSessionTimeout());
+        quorumPeer.setMaxSessionTimeout(config.getMaxSessionTimeout());
+        quorumPeer.setInitLimit(config.getInitLimit());
+        quorumPeer.setSyncLimit(config.getSyncLimit());
+        quorumPeer.setConnectToLearnerMasterLimit(config.getConnectToLearnerMasterLimit());
+        quorumPeer.setObserverMasterPort(config.getObserverMasterPort());
+        quorumPeer.setConfigFileName(config.getConfigFilename());
+        quorumPeer.setClientPortListenBacklog(config.getClientPortListenBacklog());
+        quorumPeer.setZKDatabase(new ZKDatabase(quorumPeer.getTxnFactory()));
+        quorumPeer.setQuorumVerifier(config.getQuorumVerifier(), false);
+        if (config.getLastSeenQuorumVerifier() != null) {
+            quorumPeer.setLastSeenQuorumVerifier(config.getLastSeenQuorumVerifier(), false);
+        }
+        quorumPeer.initConfigInZKDatabase();
+        quorumPeer.setSslQuorum(config.isSslQuorum());
+        quorumPeer.setUsePortUnification(config.shouldUsePortUnification());
+        quorumPeer.setLearnerType(config.getPeerType());
+        quorumPeer.setSyncEnabled(config.getSyncEnabled());
+        quorumPeer.setQuorumListenOnAllIPs(config.getQuorumListenOnAllIPs());
+        if (config.sslQuorumReloadCertFiles) {
+            quorumPeer.getX509Util().enableCertFileReloading();
+        }
+        quorumPeer.setMultiAddressEnabled(config.isMultiAddressEnabled());
+        quorumPeer.setMultiAddressReachabilityCheckEnabled(config.isMultiAddressReachabilityCheckEnabled());
+        quorumPeer.setMultiAddressReachabilityCheckTimeoutMs(config.getMultiAddressReachabilityCheckTimeoutMs());
+
+        // sets quorum sasl authentication configurations
+        quorumPeer.setQuorumSaslEnabled(config.quorumEnableSasl);
+        if (quorumPeer.isQuorumSaslAuthEnabled()) {
+            quorumPeer.setQuorumServerSaslRequired(config.quorumServerRequireSasl);
+            quorumPeer.setQuorumLearnerSaslRequired(config.quorumLearnerRequireSasl);
+            quorumPeer.setQuorumServicePrincipal(config.quorumServicePrincipal);
+            quorumPeer.setQuorumServerLoginContext(config.quorumServerLoginContext);
+            quorumPeer.setQuorumLearnerLoginContext(config.quorumLearnerLoginContext);
+        }
+        quorumPeer.setQuorumCnxnThreadsSize(config.quorumCnxnThreadsSize);
+
+        if (config.jvmPauseMonitorToRun) {
+            quorumPeer.setJvmPauseMonitor(new JvmPauseMonitor(config));
+        }
+
+        return quorumPeer;
+    }
+}

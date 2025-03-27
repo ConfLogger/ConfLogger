@@ -1,0 +1,325 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> private void scheduleLogDeletionTask() throws IOException {
+<Line#1> Configuration conf = getConfig();
+<Line#2> if (!conf.getBoolean(YarnConfiguration.LOG_AGGREGATION_ENABLED,
+<Line#3> YarnConfiguration.DEFAULT_LOG_AGGREGATION_ENABLED)) {
+<Line#4> // Log aggregation is not enabled so don't bother
+<Line#5> return;
+<Line#6> }
+<Line#7> long retentionSecs = conf.getLong(
+<Line#8> YarnConfiguration.LOG_AGGREGATION_RETAIN_SECONDS,
+<Line#9> YarnConfiguration.DEFAULT_LOG_AGGREGATION_RETAIN_SECONDS);
+<Line#10> if (retentionSecs < 0) {
+<Line#11> return;
+<Line#12> }
+<Line#13> setLogAggCheckIntervalMsecs(retentionSecs);
+<Line#14> task = new LogDeletionTask(conf, retentionSecs, createRMClient());
+<Line#15> timer = new Timer();
+<Line#16> timer.scheduleAtFixedRate(task, 0, checkIntervalMsecs);
+<Line#17> }
+
+Related Context:
+Method A:
+<Line#0> /** 
+<Line#1>  * Create a proxy to the ResourceManager for the specified protocol.
+<Line#2>  * @param configuration Configuration with all the required information.
+<Line#3>  * @param protocol Client protocol for which proxy is being requested.
+<Line#4>  * @param < T > Type of proxy.
+<Line#5>  * @return Proxy to the ResourceManager for the specified client protocol.
+<Line#6>  * @throws IOException
+<Line#7>  */
+<Line#8> public static <T>T createRMProxy(final Configuration configuration,final Class<T> protocol) throws IOException {
+<Line#9>   ClientRMProxy<T> clientRMProxy=new ClientRMProxy<>();
+<Line#10>   return createRMProxy(configuration,protocol,clientRMProxy);
+<Line#11> }
+<Line#12> 
+Method B:
+<Line#0> /** 
+<Line#1>  * Returns the bucket suffix component of the log dir.
+<Line#2>  * @return the bucket suffix which appended to user log dir
+<Line#3>  */
+<Line#4> public static String getBucketSuffix(){
+<Line#5>   return BUCKET_SUFFIX;
+<Line#6> }
+<Line#7> 
+
+Relevant Logging Patterns:
+Example 1:
+File: yarn__doParse-178__.json
+Code:
+<Line#1>{
+<Line#2>  long count=0;
+<Line#3>  TimelineEntities entities=new TimelineEntities();
+<Line#4>  ArrayList<TimelineEntity> entityList=new ArrayList<TimelineEntity>(1);
+<Line#5>  long bytesParsed;
+<Line#6>  long bytesParsedLastBatch=0;
+<Line#7>  boolean postError=false;
+<Line#8>  try {
+<Line#9>    MappingIterator<TimelineEntity> iter=objMapper.readValues(parser,TimelineEntity.class);
+<Line#10>    while (iter.hasNext()) {
+<Line#11>      TimelineEntity entity=iter.next();
+<Line#12>      String etype=entity.getEntityType();
+<Line#13>      String eid=entity.getEntityId();
+<Line#14>      LOG.trace("Read entity {}",etype);
+<Line#15>      ++count;
+<Line#16>      bytesParsed=parser.getCurrentLocation().getCharOffset() + 1;
+<Line#17>      LOG.trace("Parser now at offset {}",bytesParsed);
+<Line#18>      try {
+<Line#19>        LOG.debug("Adding {}({}) to store",eid,etype);
+<Line#20>        entityList.add(entity);
+<Line#21>        entities.setEntities(entityList);
+<Line#22>        TimelinePutResponse response=tdm.postEntities(entities,ugi);
+<Line#23>        for (        TimelinePutResponse.TimelinePutError e : response.getErrors()) {
+<Line#24>          LOG.warn("Error putting entity: {} ({}): {}",e.getEntityId(),e.getEntityType(),e.getErrorCode());
+<Line#25>        }
+<Line#26>        setOffset(getOffset() + bytesParsed - bytesParsedLastBatch);
+<Line#27>        bytesParsedLastBatch=bytesParsed;
+<Line#28>        entityList.clear();
+<Line#29>      }
+<Line#30> catch (      YarnException e) {
+<Line#31>        postError=true;
+<Line#32>        throw new IOException("Error posting entities",e);
+<Line#33>      }
+<Line#34>catch (      IOException e) {
+<Line#35>        postError=true;
+<Line#36>        throw new IOException("Error posting entities",e);
+<Line#37>      }
+<Line#38>    }
+<Line#39>  }
+<Line#40> catch (  IOException e) {
+<Line#41>    if (appCompleted || postError) {
+<Line#42>      throw e;
+<Line#43>    }
+<Line#44>  }
+<Line#45>catch (  RuntimeException e) {
+<Line#46>    if (appCompleted || !(e.getCause() instanceof JsonParseException)) {
+<Line#47>      throw e;
+<Line#48>    }
+<Line#49>  }
+<Line#50>  return count;
+<Line#51>}
+Log: <Line#14>:# LOG.trace("Read entity {}",etype):#
+
+Example 2:
+File: yarn__doParse-178__.json
+Code:
+<Line#1>{
+<Line#2>  long count=0;
+<Line#3>  TimelineEntities entities=new TimelineEntities();
+<Line#4>  ArrayList<TimelineEntity> entityList=new ArrayList<TimelineEntity>(1);
+<Line#5>  long bytesParsed;
+<Line#6>  long bytesParsedLastBatch=0;
+<Line#7>  boolean postError=false;
+<Line#8>  try {
+<Line#9>    MappingIterator<TimelineEntity> iter=objMapper.readValues(parser,TimelineEntity.class);
+<Line#10>    while (iter.hasNext()) {
+<Line#11>      TimelineEntity entity=iter.next();
+<Line#12>      String etype=entity.getEntityType();
+<Line#13>      String eid=entity.getEntityId();
+<Line#14>      LOG.trace("Read entity {}",etype);
+<Line#15>      ++count;
+<Line#16>      bytesParsed=parser.getCurrentLocation().getCharOffset() + 1;
+<Line#17>      LOG.trace("Parser now at offset {}",bytesParsed);
+<Line#18>      try {
+<Line#19>        LOG.debug("Adding {}({}) to store",eid,etype);
+<Line#20>        entityList.add(entity);
+<Line#21>        entities.setEntities(entityList);
+<Line#22>        TimelinePutResponse response=tdm.postEntities(entities,ugi);
+<Line#23>        for (        TimelinePutResponse.TimelinePutError e : response.getErrors()) {
+<Line#24>          LOG.warn("Error putting entity: {} ({}): {}",e.getEntityId(),e.getEntityType(),e.getErrorCode());
+<Line#25>        }
+<Line#26>        setOffset(getOffset() + bytesParsed - bytesParsedLastBatch);
+<Line#27>        bytesParsedLastBatch=bytesParsed;
+<Line#28>        entityList.clear();
+<Line#29>      }
+<Line#30> catch (      YarnException e) {
+<Line#31>        postError=true;
+<Line#32>        throw new IOException("Error posting entities",e);
+<Line#33>      }
+<Line#34>catch (      IOException e) {
+<Line#35>        postError=true;
+<Line#36>        throw new IOException("Error posting entities",e);
+<Line#37>      }
+<Line#38>    }
+<Line#39>  }
+<Line#40> catch (  IOException e) {
+<Line#41>    if (appCompleted || postError) {
+<Line#42>      throw e;
+<Line#43>    }
+<Line#44>  }
+<Line#45>catch (  RuntimeException e) {
+<Line#46>    if (appCompleted || !(e.getCause() instanceof JsonParseException)) {
+<Line#47>      throw e;
+<Line#48>    }
+<Line#49>  }
+<Line#50>  return count;
+<Line#51>}
+Log: <Line#17>:# LOG.trace("Parser now at offset {}",bytesParsed):#
+
+Example 3:
+File: yarn__doParse-178__.json
+Code:
+<Line#1>{
+<Line#2>  long count=0;
+<Line#3>  TimelineEntities entities=new TimelineEntities();
+<Line#4>  ArrayList<TimelineEntity> entityList=new ArrayList<TimelineEntity>(1);
+<Line#5>  long bytesParsed;
+<Line#6>  long bytesParsedLastBatch=0;
+<Line#7>  boolean postError=false;
+<Line#8>  try {
+<Line#9>    MappingIterator<TimelineEntity> iter=objMapper.readValues(parser,TimelineEntity.class);
+<Line#10>    while (iter.hasNext()) {
+<Line#11>      TimelineEntity entity=iter.next();
+<Line#12>      String etype=entity.getEntityType();
+<Line#13>      String eid=entity.getEntityId();
+<Line#14>      LOG.trace("Read entity {}",etype);
+<Line#15>      ++count;
+<Line#16>      bytesParsed=parser.getCurrentLocation().getCharOffset() + 1;
+<Line#17>      LOG.trace("Parser now at offset {}",bytesParsed);
+<Line#18>      try {
+<Line#19>        LOG.debug("Adding {}({}) to store",eid,etype);
+<Line#20>        entityList.add(entity);
+<Line#21>        entities.setEntities(entityList);
+<Line#22>        TimelinePutResponse response=tdm.postEntities(entities,ugi);
+<Line#23>        for (        TimelinePutResponse.TimelinePutError e : response.getErrors()) {
+<Line#24>          LOG.warn("Error putting entity: {} ({}): {}",e.getEntityId(),e.getEntityType(),e.getErrorCode());
+<Line#25>        }
+<Line#26>        setOffset(getOffset() + bytesParsed - bytesParsedLastBatch);
+<Line#27>        bytesParsedLastBatch=bytesParsed;
+<Line#28>        entityList.clear();
+<Line#29>      }
+<Line#30> catch (      YarnException e) {
+<Line#31>        postError=true;
+<Line#32>        throw new IOException("Error posting entities",e);
+<Line#33>      }
+<Line#34>catch (      IOException e) {
+<Line#35>        postError=true;
+<Line#36>        throw new IOException("Error posting entities",e);
+<Line#37>      }
+<Line#38>    }
+<Line#39>  }
+<Line#40> catch (  IOException e) {
+<Line#41>    if (appCompleted || postError) {
+<Line#42>      throw e;
+<Line#43>    }
+<Line#44>  }
+<Line#45>catch (  RuntimeException e) {
+<Line#46>    if (appCompleted || !(e.getCause() instanceof JsonParseException)) {
+<Line#47>      throw e;
+<Line#48>    }
+<Line#49>  }
+<Line#50>  return count;
+<Line#51>}
+Log: <Line#19>:# LOG.debug("Adding {}({}) to store",eid,etype):#
+
+Example 4:
+File: yarn__doParse-178__.json
+Code:
+<Line#1>{
+<Line#2>  long count=0;
+<Line#3>  TimelineEntities entities=new TimelineEntities();
+<Line#4>  ArrayList<TimelineEntity> entityList=new ArrayList<TimelineEntity>(1);
+<Line#5>  long bytesParsed;
+<Line#6>  long bytesParsedLastBatch=0;
+<Line#7>  boolean postError=false;
+<Line#8>  try {
+<Line#9>    MappingIterator<TimelineEntity> iter=objMapper.readValues(parser,TimelineEntity.class);
+<Line#10>    while (iter.hasNext()) {
+<Line#11>      TimelineEntity entity=iter.next();
+<Line#12>      String etype=entity.getEntityType();
+<Line#13>      String eid=entity.getEntityId();
+<Line#14>      LOG.trace("Read entity {}",etype);
+<Line#15>      ++count;
+<Line#16>      bytesParsed=parser.getCurrentLocation().getCharOffset() + 1;
+<Line#17>      LOG.trace("Parser now at offset {}",bytesParsed);
+<Line#18>      try {
+<Line#19>        LOG.debug("Adding {}({}) to store",eid,etype);
+<Line#20>        entityList.add(entity);
+<Line#21>        entities.setEntities(entityList);
+<Line#22>        TimelinePutResponse response=tdm.postEntities(entities,ugi);
+<Line#23>        for (        TimelinePutResponse.TimelinePutError e : response.getErrors()) {
+<Line#24>          LOG.warn("Error putting entity: {} ({}): {}",e.getEntityId(),e.getEntityType(),e.getErrorCode());
+<Line#25>        }
+<Line#26>        setOffset(getOffset() + bytesParsed - bytesParsedLastBatch);
+<Line#27>        bytesParsedLastBatch=bytesParsed;
+<Line#28>        entityList.clear();
+<Line#29>      }
+<Line#30> catch (      YarnException e) {
+<Line#31>        postError=true;
+<Line#32>        throw new IOException("Error posting entities",e);
+<Line#33>      }
+<Line#34>catch (      IOException e) {
+<Line#35>        postError=true;
+<Line#36>        throw new IOException("Error posting entities",e);
+<Line#37>      }
+<Line#38>    }
+<Line#39>  }
+<Line#40> catch (  IOException e) {
+<Line#41>    if (appCompleted || postError) {
+<Line#42>      throw e;
+<Line#43>    }
+<Line#44>  }
+<Line#45>catch (  RuntimeException e) {
+<Line#46>    if (appCompleted || !(e.getCause() instanceof JsonParseException)) {
+<Line#47>      throw e;
+<Line#48>    }
+<Line#49>  }
+<Line#50>  return count;
+<Line#51>}
+Log: <Line#24>:# LOG.warn("Error putting entity: {} ({}): {}",e.getEntityId(),e.getEntityType(),e.getErrorCode()):#
+
+Example 5:
+File: yarn__write-236__.json
+Code:
+<Line#1>{
+<Line#2>  List<File> fileList=new ArrayList<File>(pendingUploadFiles);
+<Line#3>  Collections.sort(fileList);
+<Line#4>  for (  File logFile : fileList) {
+<Line#5>    if (logFile.isDirectory()) {
+<Line#6>      LOG.warn(logFile.getAbsolutePath() + " is a directory. Ignore it.");
+<Line#7>      continue;
+<Line#8>    }
+<Line#9>    FileInputStream in=null;
+<Line#10>    try {
+<Line#11>      in=secureOpenFile(logFile);
+<Line#12>    }
+<Line#13> catch (    IOException e) {
+<Line#14>      logErrorMessage(logFile,e);
+<Line#15>      IOUtils.cleanupWithLogger(LOG,in);
+<Line#16>      continue;
+<Line#17>    }
+<Line#18>    final long fileLength=logFile.length();
+<Line#19>    out.writeUTF(logFile.getName());
+<Line#20>    out.writeUTF(String.valueOf(fileLength));
+<Line#21>    try {
+<Line#22>      byte[] buf=new byte[65535];
+<Line#23>      int len=0;
+<Line#24>      long bytesLeft=fileLength;
+<Line#25>      while ((len=in.read(buf)) != -1) {
+<Line#26>        if (len < bytesLeft) {
+<Line#27>          out.write(buf,0,len);
+<Line#28>          bytesLeft-=len;
+<Line#29>        }
+<Line#30> else {
+<Line#31>          out.write(buf,0,(int)bytesLeft);
+<Line#32>          break;
+<Line#33>        }
+<Line#34>      }
+<Line#35>      long newLength=logFile.length();
+<Line#36>      if (fileLength < newLength) {
+<Line#37>        LOG.warn("Aggregated logs truncated by approximately " + (newLength - fileLength) + " bytes.");
+<Line#38>      }
+<Line#39>      this.uploadedFiles.add(logFile);
+<Line#40>    }
+<Line#41> catch (    IOException e) {
+<Line#42>      String message=logErrorMessage(logFile,e);
+<Line#43>      out.write(message.getBytes(Charset.forName("UTF-8")));
+<Line#44>    }
+<Line#45> finally {
+<Line#46>      IOUtils.cleanupWithLogger(LOG,in);
+<Line#47>    }
+<Line#48>  }
+<Line#49>}
+Log: <Line#6>:# LOG.warn(logFile.getAbsolutePath() + " is a directory. Ignore it."):#

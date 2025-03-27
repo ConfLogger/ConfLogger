@@ -1,0 +1,30 @@
+public Stat setData(String path,byte[] data,int version,long zxid,long time) throws NoNodeException {
+  Stat s=new Stat();
+  DataNode n=nodes.get(path);
+  if (n == null) {
+    throw new NoNodeException();
+  }
+  List<ACL> acl;
+  byte[] lastData;
+synchronized (n) {
+    acl=getACL(n);
+    lastData=n.data;
+    nodes.preChange(path,n);
+    n.data=data;
+    n.stat.setMtime(time);
+    n.stat.setMzxid(zxid);
+    n.stat.setVersion(version);
+    n.copyStat(s);
+    nodes.postChange(path,n);
+  }
+  String lastPrefix=getMaxPrefixWithQuota(path);
+  long bytesDiff=(data == null ? 0 : data.length) - (lastData == null ? 0 : lastData.length);
+  long dataBytes=data == null ? 0 : data.length;
+  if (lastPrefix != null) {
+    updateQuotaStat(lastPrefix,bytesDiff,0);
+  }
+  nodeDataSize.addAndGet(getNodeSize(path,data) - getNodeSize(path,lastData));
+  updateWriteStat(path,dataBytes);
+  dataWatches.triggerWatch(path,EventType.NodeDataChanged,zxid,acl);
+  return s;
+}

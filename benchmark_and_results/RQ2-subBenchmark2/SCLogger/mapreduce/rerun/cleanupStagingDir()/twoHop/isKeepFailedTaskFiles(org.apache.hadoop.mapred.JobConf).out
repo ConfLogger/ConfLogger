@@ -1,0 +1,3 @@
+private boolean isKeepFailedTaskFiles(JobConf conf){
+  return conf.getKeepFailedTaskFiles();
+}

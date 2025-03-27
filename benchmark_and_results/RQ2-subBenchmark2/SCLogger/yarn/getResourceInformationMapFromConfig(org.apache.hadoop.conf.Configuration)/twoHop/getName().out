@@ -1,0 +1,7 @@
+/** 
+ * Get the name for the resource.
+ * @return resource name
+ */
+public String getName(){
+  return name;
+}

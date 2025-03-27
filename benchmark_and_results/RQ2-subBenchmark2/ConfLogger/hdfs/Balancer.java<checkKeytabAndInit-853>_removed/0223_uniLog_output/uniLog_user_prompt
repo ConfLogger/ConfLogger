@@ -1,0 +1,314 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>throws IOException {
+<Line#1>if (conf.getBoolean(DFSConfigKeys.DFS_BALANCER_KEYTAB_ENABLED_KEY,
+<Line#2>DFSConfigKeys.DFS_BALANCER_KEYTAB_ENABLED_DEFAULT)) {
+<Line#3>UserGroupInformation.setConfiguration(conf);
+<Line#4>String addr = conf.get(DFSConfigKeys.DFS_BALANCER_ADDRESS_KEY,
+<Line#5>DFSConfigKeys.DFS_BALANCER_ADDRESS_DEFAULT);
+<Line#6>InetSocketAddress socAddr = NetUtils.createSocketAddr(addr, 0,
+<Line#7>DFSConfigKeys.DFS_BALANCER_ADDRESS_KEY);
+<Line#8>SecurityUtil.login(conf, DFSConfigKeys.DFS_BALANCER_KEYTAB_FILE_KEY,
+<Line#9>DFSConfigKeys.DFS_BALANCER_KERBEROS_PRINCIPAL_KEY,
+<Line#10>socAddr.getHostName());
+<Line#11>}
+<Line#12>}
+
+Example 1:
+<Line#1>{
+<Line#2>  final InetSocketAddress httpAddr=getHttpAddress(conf);
+<Line#3>  final String httpsAddrString=conf.getTrimmed(DFSConfigKeys.DFS_NAMENODE_SECONDARY_HTTPS_ADDRESS_KEY,DFSConfigKeys.DFS_NAMENODE_SECONDARY_HTTPS_ADDRESS_DEFAULT);
+<Line#4>  InetSocketAddress httpsAddr=NetUtils.createSocketAddr(httpsAddrString);
+<Line#5>  HttpServer2.Builder builder=DFSUtil.httpServerTemplateForNNAndJN(conf,httpAddr,httpsAddr,"secondary",DFSConfigKeys.DFS_SECONDARY_NAMENODE_KERBEROS_INTERNAL_SPNEGO_PRINCIPAL_KEY,DFSConfigKeys.DFS_SECONDARY_NAMENODE_KEYTAB_FILE_KEY);
+<Line#6>  final boolean xFrameEnabled=conf.getBoolean(DFSConfigKeys.DFS_XFRAME_OPTION_ENABLED,DFSConfigKeys.DFS_XFRAME_OPTION_ENABLED_DEFAULT);
+<Line#7>  final String xFrameOptionValue=conf.getTrimmed(DFSConfigKeys.DFS_XFRAME_OPTION_VALUE,DFSConfigKeys.DFS_XFRAME_OPTION_VALUE_DEFAULT);
+<Line#8>  builder.configureXFrame(xFrameEnabled).setXFrameOption(xFrameOptionValue);
+<Line#9>  infoServer=builder.build();
+<Line#10>  infoServer.setAttribute("secondary.name.node",this);
+<Line#11>  infoServer.setAttribute("name.system.image",checkpointImage);
+<Line#12>  infoServer.setAttribute(JspHelper.CURRENT_CONF,conf);
+<Line#13>  infoServer.addInternalServlet("imagetransfer",ImageServlet.PATH_SPEC,ImageServlet.class,true);
+<Line#14>  infoServer.start();
+<Line#15>  LOG.info("Web server init done");
+<Line#16>  HttpConfig.Policy policy=DFSUtil.getHttpPolicy(conf);
+<Line#17>  int connIdx=0;
+<Line#18>  if (policy.isHttpEnabled()) {
+<Line#19>    InetSocketAddress httpAddress=infoServer.getConnectorAddress(connIdx++);
+<Line#20>    conf.set(DFSConfigKeys.DFS_NAMENODE_SECONDARY_HTTP_ADDRESS_KEY,NetUtils.getHostPortString(httpAddress));
+<Line#21>  }
+<Line#22>  if (policy.isHttpsEnabled()) {
+<Line#23>    InetSocketAddress httpsAddress=infoServer.getConnectorAddress(connIdx);
+<Line#24>    conf.set(DFSConfigKeys.DFS_NAMENODE_SECONDARY_HTTPS_ADDRESS_KEY,NetUtils.getHostPortString(httpsAddress));
+<Line#25>  }
+<Line#26>}
+Label: <Line#15> LOG.info("Web server init done")
+
+Example 2:
+<Line#1>{
+<Line#2>  this.namesystem=namesystem;
+<Line#3>  datanodeManager=new DatanodeManager(this,namesystem,conf);
+<Line#4>  heartbeatManager=datanodeManager.getHeartbeatManager();
+<Line#5>  this.blockIdManager=new BlockIdManager(this);
+<Line#6>  blocksPerPostpondedRescan=(int)Math.min(Integer.MAX_VALUE,datanodeManager.getBlocksPerPostponedMisreplicatedBlocksRescan());
+<Line#7>  rescannedMisreplicatedBlocks=new ArrayList<Block>(blocksPerPostpondedRescan);
+<Line#8>  startupDelayBlockDeletionInMs=conf.getLong(DFSConfigKeys.DFS_NAMENODE_STARTUP_DELAY_BLOCK_DELETION_SEC_KEY,DFSConfigKeys.DFS_NAMENODE_STARTUP_DELAY_BLOCK_DELETION_SEC_DEFAULT) * 1000L;
+<Line#9>  invalidateBlocks=new InvalidateBlocks(datanodeManager.getBlockInvalidateLimit(),startupDelayBlockDeletionInMs,blockIdManager);
+<Line#10>  markedDeleteQueue=new ConcurrentLinkedQueue<>();
+<Line#11>  blocksMap=new BlocksMap(LightWeightGSet.computeCapacity(2.0,"BlocksMap"));
+<Line#12>  placementPolicies=new BlockPlacementPolicies(conf,datanodeManager.getFSClusterStats(),datanodeManager.getNetworkTopology(),datanodeManager.getHost2DatanodeMap());
+<Line#13>  storagePolicySuite=BlockStoragePolicySuite.createDefaultSuite();
+<Line#14>  pendingReconstruction=new PendingReconstructionBlocks(conf.getInt(DFSConfigKeys.DFS_NAMENODE_RECONSTRUCTION_PENDING_TIMEOUT_SEC_KEY,DFSConfigKeys.DFS_NAMENODE_RECONSTRUCTION_PENDING_TIMEOUT_SEC_DEFAULT) * 1000L);
+<Line#15>  createSPSManager(conf);
+<Line#16>  blockTokenSecretManager=createBlockTokenSecretManager(conf);
+<Line#17>  providedStorageMap=new ProvidedStorageMap(namesystem,this,conf);
+<Line#18>  this.maxCorruptFilesReturned=conf.getInt(DFSConfigKeys.DFS_DEFAULT_MAX_CORRUPT_FILES_RETURNED_KEY,DFSConfigKeys.DFS_DEFAULT_MAX_CORRUPT_FILES_RETURNED);
+<Line#19>  this.defaultReplication=conf.getInt(DFSConfigKeys.DFS_REPLICATION_KEY,DFSConfigKeys.DFS_REPLICATION_DEFAULT);
+<Line#20>  final int maxR=conf.getInt(DFSConfigKeys.DFS_REPLICATION_MAX_KEY,DFSConfigKeys.DFS_REPLICATION_MAX_DEFAULT);
+<Line#21>  final int minR=conf.getInt(DFSConfigKeys.DFS_NAMENODE_REPLICATION_MIN_KEY,DFSConfigKeys.DFS_NAMENODE_REPLICATION_MIN_DEFAULT);
+<Line#22>  if (minR <= 0)   throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_NAMENODE_REPLICATION_MIN_KEY + " = "+ minR+ " <= 0");
+<Line#23>  if (maxR > Short.MAX_VALUE)   throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_REPLICATION_MAX_KEY + " = "+ maxR+ " > "+ Short.MAX_VALUE);
+<Line#24>  if (minR > maxR)   throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_NAMENODE_REPLICATION_MIN_KEY + " = "+ minR+ " > "+ DFSConfigKeys.DFS_REPLICATION_MAX_KEY+ " = "+ maxR);
+<Line#25>  this.minReplication=(short)minR;
+<Line#26>  this.maxReplication=(short)maxR;
+<Line#27>  this.maxReplicationStreams=conf.getInt(DFSConfigKeys.DFS_NAMENODE_REPLICATION_MAX_STREAMS_KEY,DFSConfigKeys.DFS_NAMENODE_REPLICATION_MAX_STREAMS_DEFAULT);
+<Line#28>  this.replicationStreamsHardLimit=conf.getInt(DFSConfigKeys.DFS_NAMENODE_REPLICATION_STREAMS_HARD_LIMIT_KEY,DFSConfigKeys.DFS_NAMENODE_REPLICATION_STREAMS_HARD_LIMIT_DEFAULT);
+<Line#29>  this.blocksInvalidateWorkPct=DFSUtil.getInvalidateWorkPctPerIteration(conf);
+<Line#30>  this.blocksReplWorkMultiplier=DFSUtil.getReplWorkMultiplier(conf);
+<Line#31>  this.redundancyRecheckIntervalMs=conf.getTimeDuration(DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_INTERVAL_SECONDS_KEY,DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_INTERVAL_SECONDS_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#32>  this.encryptDataTransfer=conf.getBoolean(DFSConfigKeys.DFS_ENCRYPT_DATA_TRANSFER_KEY,DFSConfigKeys.DFS_ENCRYPT_DATA_TRANSFER_DEFAULT);
+<Line#33>  this.maxNumBlocksToLog=conf.getLong(DFSConfigKeys.DFS_MAX_NUM_BLOCKS_TO_LOG_KEY,DFSConfigKeys.DFS_MAX_NUM_BLOCKS_TO_LOG_DEFAULT);
+<Line#34>  this.maxLockHoldTime=conf.getTimeDuration(DFSConfigKeys.DFS_NAMENODE_BLOCKREPORT_MAX_LOCK_HOLD_TIME,DFSConfigKeys.DFS_NAMENODE_BLOCKREPORT_MAX_LOCK_HOLD_TIME_DEFAULT,TimeUnit.MILLISECONDS);
+<Line#35>  this.numBlocksPerIteration=conf.getInt(DFSConfigKeys.DFS_BLOCK_MISREPLICATION_PROCESSING_LIMIT,DFSConfigKeys.DFS_BLOCK_MISREPLICATION_PROCESSING_LIMIT_DEFAULT);
+<Line#36>  final int minMaintenanceR=conf.getInt(DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY,DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_DEFAULT);
+<Line#37>  if (minMaintenanceR < 0) {
+<Line#38>    throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY + " = "+ minMaintenanceR+ " < 0");
+<Line#39>  }
+<Line#40>  if (minMaintenanceR > defaultReplication) {
+<Line#41>    throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY + " = "+ minMaintenanceR+ " > "+ DFSConfigKeys.DFS_REPLICATION_KEY+ " = "+ defaultReplication);
+<Line#42>  }
+<Line#43>  this.minReplicationToBeInMaintenance=(short)minMaintenanceR;
+<Line#44>  replQueueResetToHeadThreshold=conf.getInt(DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS,DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS_DEFAULT);
+<Line#45>  if (replQueueResetToHeadThreshold < 0) {
+<Line#46>    LOG.warn("{} is set to {} and it must be >= 0. Resetting to default {}",DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS,replQueueResetToHeadThreshold,DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS_DEFAULT);
+<Line#47>    replQueueResetToHeadThreshold=DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS_DEFAULT;
+<Line#48>  }
+<Line#49>  long heartbeatIntervalSecs=conf.getTimeDuration(DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_KEY,DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_DEFAULT,TimeUnit.SECONDS);
+<Line#50>  long blockRecoveryTimeout=getBlockRecoveryTimeout(heartbeatIntervalSecs);
+<Line#51>  pendingRecoveryBlocks=new PendingRecoveryBlocks(blockRecoveryTimeout);
+<Line#52>  this.blockReportLeaseManager=new BlockReportLeaseManager(conf);
+<Line#53>  bmSafeMode=new BlockManagerSafeMode(this,namesystem,haEnabled,conf);
+<Line#54>  int queueSize=conf.getInt(DFSConfigKeys.DFS_NAMENODE_BLOCKREPORT_QUEUE_SIZE_KEY,DFSConfigKeys.DFS_NAMENODE_BLOCKREPORT_QUEUE_SIZE_DEFAULT);
+<Line#55>  blockReportThread=new BlockReportProcessingThread(queueSize);
+<Line#56>  this.deleteCorruptReplicaImmediately=conf.getBoolean(DFS_NAMENODE_CORRUPT_BLOCK_DELETE_IMMEDIATELY_ENABLED,DFS_NAMENODE_CORRUPT_BLOCK_DELETE_IMMEDIATELY_ENABLED_DEFAULT);
+<Line#57>  LOG.info("defaultReplication         = {}",defaultReplication);
+<Line#58>  LOG.info("maxReplication             = {}",maxReplication);
+<Line#59>  LOG.info("minReplication             = {}",minReplication);
+<Line#60>  LOG.info("maxReplicationStreams      = {}",maxReplicationStreams);
+<Line#61>  LOG.info("redundancyRecheckInterval  = {}ms",redundancyRecheckIntervalMs);
+<Line#62>  LOG.info("encryptDataTransfer        = {}",encryptDataTransfer);
+<Line#63>  LOG.info("maxNumBlocksToLog          = {}",maxNumBlocksToLog);
+<Line#64>}
+Label: <Line#46> LOG.warn("{} is set to {} and it must be >= 0. Resetting to default {}",DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS,replQueueResetToHeadThreshold,DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS_DEFAULT)
+
+Example 3:
+<Line#1>{
+<Line#2>  this.namesystem=namesystem;
+<Line#3>  datanodeManager=new DatanodeManager(this,namesystem,conf);
+<Line#4>  heartbeatManager=datanodeManager.getHeartbeatManager();
+<Line#5>  this.blockIdManager=new BlockIdManager(this);
+<Line#6>  blocksPerPostpondedRescan=(int)Math.min(Integer.MAX_VALUE,datanodeManager.getBlocksPerPostponedMisreplicatedBlocksRescan());
+<Line#7>  rescannedMisreplicatedBlocks=new ArrayList<Block>(blocksPerPostpondedRescan);
+<Line#8>  startupDelayBlockDeletionInMs=conf.getLong(DFSConfigKeys.DFS_NAMENODE_STARTUP_DELAY_BLOCK_DELETION_SEC_KEY,DFSConfigKeys.DFS_NAMENODE_STARTUP_DELAY_BLOCK_DELETION_SEC_DEFAULT) * 1000L;
+<Line#9>  invalidateBlocks=new InvalidateBlocks(datanodeManager.getBlockInvalidateLimit(),startupDelayBlockDeletionInMs,blockIdManager);
+<Line#10>  markedDeleteQueue=new ConcurrentLinkedQueue<>();
+<Line#11>  blocksMap=new BlocksMap(LightWeightGSet.computeCapacity(2.0,"BlocksMap"));
+<Line#12>  placementPolicies=new BlockPlacementPolicies(conf,datanodeManager.getFSClusterStats(),datanodeManager.getNetworkTopology(),datanodeManager.getHost2DatanodeMap());
+<Line#13>  storagePolicySuite=BlockStoragePolicySuite.createDefaultSuite();
+<Line#14>  pendingReconstruction=new PendingReconstructionBlocks(conf.getInt(DFSConfigKeys.DFS_NAMENODE_RECONSTRUCTION_PENDING_TIMEOUT_SEC_KEY,DFSConfigKeys.DFS_NAMENODE_RECONSTRUCTION_PENDING_TIMEOUT_SEC_DEFAULT) * 1000L);
+<Line#15>  createSPSManager(conf);
+<Line#16>  blockTokenSecretManager=createBlockTokenSecretManager(conf);
+<Line#17>  providedStorageMap=new ProvidedStorageMap(namesystem,this,conf);
+<Line#18>  this.maxCorruptFilesReturned=conf.getInt(DFSConfigKeys.DFS_DEFAULT_MAX_CORRUPT_FILES_RETURNED_KEY,DFSConfigKeys.DFS_DEFAULT_MAX_CORRUPT_FILES_RETURNED);
+<Line#19>  this.defaultReplication=conf.getInt(DFSConfigKeys.DFS_REPLICATION_KEY,DFSConfigKeys.DFS_REPLICATION_DEFAULT);
+<Line#20>  final int maxR=conf.getInt(DFSConfigKeys.DFS_REPLICATION_MAX_KEY,DFSConfigKeys.DFS_REPLICATION_MAX_DEFAULT);
+<Line#21>  final int minR=conf.getInt(DFSConfigKeys.DFS_NAMENODE_REPLICATION_MIN_KEY,DFSConfigKeys.DFS_NAMENODE_REPLICATION_MIN_DEFAULT);
+<Line#22>  if (minR <= 0)   throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_NAMENODE_REPLICATION_MIN_KEY + " = "+ minR+ " <= 0");
+<Line#23>  if (maxR > Short.MAX_VALUE)   throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_REPLICATION_MAX_KEY + " = "+ maxR+ " > "+ Short.MAX_VALUE);
+<Line#24>  if (minR > maxR)   throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_NAMENODE_REPLICATION_MIN_KEY + " = "+ minR+ " > "+ DFSConfigKeys.DFS_REPLICATION_MAX_KEY+ " = "+ maxR);
+<Line#25>  this.minReplication=(short)minR;
+<Line#26>  this.maxReplication=(short)maxR;
+<Line#27>  this.maxReplicationStreams=conf.getInt(DFSConfigKeys.DFS_NAMENODE_REPLICATION_MAX_STREAMS_KEY,DFSConfigKeys.DFS_NAMENODE_REPLICATION_MAX_STREAMS_DEFAULT);
+<Line#28>  this.replicationStreamsHardLimit=conf.getInt(DFSConfigKeys.DFS_NAMENODE_REPLICATION_STREAMS_HARD_LIMIT_KEY,DFSConfigKeys.DFS_NAMENODE_REPLICATION_STREAMS_HARD_LIMIT_DEFAULT);
+<Line#29>  this.blocksInvalidateWorkPct=DFSUtil.getInvalidateWorkPctPerIteration(conf);
+<Line#30>  this.blocksReplWorkMultiplier=DFSUtil.getReplWorkMultiplier(conf);
+<Line#31>  this.redundancyRecheckIntervalMs=conf.getTimeDuration(DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_INTERVAL_SECONDS_KEY,DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_INTERVAL_SECONDS_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#32>  this.encryptDataTransfer=conf.getBoolean(DFSConfigKeys.DFS_ENCRYPT_DATA_TRANSFER_KEY,DFSConfigKeys.DFS_ENCRYPT_DATA_TRANSFER_DEFAULT);
+<Line#33>  this.maxNumBlocksToLog=conf.getLong(DFSConfigKeys.DFS_MAX_NUM_BLOCKS_TO_LOG_KEY,DFSConfigKeys.DFS_MAX_NUM_BLOCKS_TO_LOG_DEFAULT);
+<Line#34>  this.maxLockHoldTime=conf.getTimeDuration(DFSConfigKeys.DFS_NAMENODE_BLOCKREPORT_MAX_LOCK_HOLD_TIME,DFSConfigKeys.DFS_NAMENODE_BLOCKREPORT_MAX_LOCK_HOLD_TIME_DEFAULT,TimeUnit.MILLISECONDS);
+<Line#35>  this.numBlocksPerIteration=conf.getInt(DFSConfigKeys.DFS_BLOCK_MISREPLICATION_PROCESSING_LIMIT,DFSConfigKeys.DFS_BLOCK_MISREPLICATION_PROCESSING_LIMIT_DEFAULT);
+<Line#36>  final int minMaintenanceR=conf.getInt(DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY,DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_DEFAULT);
+<Line#37>  if (minMaintenanceR < 0) {
+<Line#38>    throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY + " = "+ minMaintenanceR+ " < 0");
+<Line#39>  }
+<Line#40>  if (minMaintenanceR > defaultReplication) {
+<Line#41>    throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY + " = "+ minMaintenanceR+ " > "+ DFSConfigKeys.DFS_REPLICATION_KEY+ " = "+ defaultReplication);
+<Line#42>  }
+<Line#43>  this.minReplicationToBeInMaintenance=(short)minMaintenanceR;
+<Line#44>  replQueueResetToHeadThreshold=conf.getInt(DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS,DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS_DEFAULT);
+<Line#45>  if (replQueueResetToHeadThreshold < 0) {
+<Line#46>    LOG.warn("{} is set to {} and it must be >= 0. Resetting to default {}",DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS,replQueueResetToHeadThreshold,DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS_DEFAULT);
+<Line#47>    replQueueResetToHeadThreshold=DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS_DEFAULT;
+<Line#48>  }
+<Line#49>  long heartbeatIntervalSecs=conf.getTimeDuration(DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_KEY,DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_DEFAULT,TimeUnit.SECONDS);
+<Line#50>  long blockRecoveryTimeout=getBlockRecoveryTimeout(heartbeatIntervalSecs);
+<Line#51>  pendingRecoveryBlocks=new PendingRecoveryBlocks(blockRecoveryTimeout);
+<Line#52>  this.blockReportLeaseManager=new BlockReportLeaseManager(conf);
+<Line#53>  bmSafeMode=new BlockManagerSafeMode(this,namesystem,haEnabled,conf);
+<Line#54>  int queueSize=conf.getInt(DFSConfigKeys.DFS_NAMENODE_BLOCKREPORT_QUEUE_SIZE_KEY,DFSConfigKeys.DFS_NAMENODE_BLOCKREPORT_QUEUE_SIZE_DEFAULT);
+<Line#55>  blockReportThread=new BlockReportProcessingThread(queueSize);
+<Line#56>  this.deleteCorruptReplicaImmediately=conf.getBoolean(DFS_NAMENODE_CORRUPT_BLOCK_DELETE_IMMEDIATELY_ENABLED,DFS_NAMENODE_CORRUPT_BLOCK_DELETE_IMMEDIATELY_ENABLED_DEFAULT);
+<Line#57>  LOG.info("defaultReplication         = {}",defaultReplication);
+<Line#58>  LOG.info("maxReplication             = {}",maxReplication);
+<Line#59>  LOG.info("minReplication             = {}",minReplication);
+<Line#60>  LOG.info("maxReplicationStreams      = {}",maxReplicationStreams);
+<Line#61>  LOG.info("redundancyRecheckInterval  = {}ms",redundancyRecheckIntervalMs);
+<Line#62>  LOG.info("encryptDataTransfer        = {}",encryptDataTransfer);
+<Line#63>  LOG.info("maxNumBlocksToLog          = {}",maxNumBlocksToLog);
+<Line#64>}
+Label: <Line#57> LOG.info("defaultReplication         = {}",defaultReplication)
+
+Example 4:
+<Line#1>{
+<Line#2>  this.namesystem=namesystem;
+<Line#3>  datanodeManager=new DatanodeManager(this,namesystem,conf);
+<Line#4>  heartbeatManager=datanodeManager.getHeartbeatManager();
+<Line#5>  this.blockIdManager=new BlockIdManager(this);
+<Line#6>  blocksPerPostpondedRescan=(int)Math.min(Integer.MAX_VALUE,datanodeManager.getBlocksPerPostponedMisreplicatedBlocksRescan());
+<Line#7>  rescannedMisreplicatedBlocks=new ArrayList<Block>(blocksPerPostpondedRescan);
+<Line#8>  startupDelayBlockDeletionInMs=conf.getLong(DFSConfigKeys.DFS_NAMENODE_STARTUP_DELAY_BLOCK_DELETION_SEC_KEY,DFSConfigKeys.DFS_NAMENODE_STARTUP_DELAY_BLOCK_DELETION_SEC_DEFAULT) * 1000L;
+<Line#9>  invalidateBlocks=new InvalidateBlocks(datanodeManager.getBlockInvalidateLimit(),startupDelayBlockDeletionInMs,blockIdManager);
+<Line#10>  markedDeleteQueue=new ConcurrentLinkedQueue<>();
+<Line#11>  blocksMap=new BlocksMap(LightWeightGSet.computeCapacity(2.0,"BlocksMap"));
+<Line#12>  placementPolicies=new BlockPlacementPolicies(conf,datanodeManager.getFSClusterStats(),datanodeManager.getNetworkTopology(),datanodeManager.getHost2DatanodeMap());
+<Line#13>  storagePolicySuite=BlockStoragePolicySuite.createDefaultSuite();
+<Line#14>  pendingReconstruction=new PendingReconstructionBlocks(conf.getInt(DFSConfigKeys.DFS_NAMENODE_RECONSTRUCTION_PENDING_TIMEOUT_SEC_KEY,DFSConfigKeys.DFS_NAMENODE_RECONSTRUCTION_PENDING_TIMEOUT_SEC_DEFAULT) * 1000L);
+<Line#15>  createSPSManager(conf);
+<Line#16>  blockTokenSecretManager=createBlockTokenSecretManager(conf);
+<Line#17>  providedStorageMap=new ProvidedStorageMap(namesystem,this,conf);
+<Line#18>  this.maxCorruptFilesReturned=conf.getInt(DFSConfigKeys.DFS_DEFAULT_MAX_CORRUPT_FILES_RETURNED_KEY,DFSConfigKeys.DFS_DEFAULT_MAX_CORRUPT_FILES_RETURNED);
+<Line#19>  this.defaultReplication=conf.getInt(DFSConfigKeys.DFS_REPLICATION_KEY,DFSConfigKeys.DFS_REPLICATION_DEFAULT);
+<Line#20>  final int maxR=conf.getInt(DFSConfigKeys.DFS_REPLICATION_MAX_KEY,DFSConfigKeys.DFS_REPLICATION_MAX_DEFAULT);
+<Line#21>  final int minR=conf.getInt(DFSConfigKeys.DFS_NAMENODE_REPLICATION_MIN_KEY,DFSConfigKeys.DFS_NAMENODE_REPLICATION_MIN_DEFAULT);
+<Line#22>  if (minR <= 0)   throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_NAMENODE_REPLICATION_MIN_KEY + " = "+ minR+ " <= 0");
+<Line#23>  if (maxR > Short.MAX_VALUE)   throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_REPLICATION_MAX_KEY + " = "+ maxR+ " > "+ Short.MAX_VALUE);
+<Line#24>  if (minR > maxR)   throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_NAMENODE_REPLICATION_MIN_KEY + " = "+ minR+ " > "+ DFSConfigKeys.DFS_REPLICATION_MAX_KEY+ " = "+ maxR);
+<Line#25>  this.minReplication=(short)minR;
+<Line#26>  this.maxReplication=(short)maxR;
+<Line#27>  this.maxReplicationStreams=conf.getInt(DFSConfigKeys.DFS_NAMENODE_REPLICATION_MAX_STREAMS_KEY,DFSConfigKeys.DFS_NAMENODE_REPLICATION_MAX_STREAMS_DEFAULT);
+<Line#28>  this.replicationStreamsHardLimit=conf.getInt(DFSConfigKeys.DFS_NAMENODE_REPLICATION_STREAMS_HARD_LIMIT_KEY,DFSConfigKeys.DFS_NAMENODE_REPLICATION_STREAMS_HARD_LIMIT_DEFAULT);
+<Line#29>  this.blocksInvalidateWorkPct=DFSUtil.getInvalidateWorkPctPerIteration(conf);
+<Line#30>  this.blocksReplWorkMultiplier=DFSUtil.getReplWorkMultiplier(conf);
+<Line#31>  this.redundancyRecheckIntervalMs=conf.getTimeDuration(DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_INTERVAL_SECONDS_KEY,DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_INTERVAL_SECONDS_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#32>  this.encryptDataTransfer=conf.getBoolean(DFSConfigKeys.DFS_ENCRYPT_DATA_TRANSFER_KEY,DFSConfigKeys.DFS_ENCRYPT_DATA_TRANSFER_DEFAULT);
+<Line#33>  this.maxNumBlocksToLog=conf.getLong(DFSConfigKeys.DFS_MAX_NUM_BLOCKS_TO_LOG_KEY,DFSConfigKeys.DFS_MAX_NUM_BLOCKS_TO_LOG_DEFAULT);
+<Line#34>  this.maxLockHoldTime=conf.getTimeDuration(DFSConfigKeys.DFS_NAMENODE_BLOCKREPORT_MAX_LOCK_HOLD_TIME,DFSConfigKeys.DFS_NAMENODE_BLOCKREPORT_MAX_LOCK_HOLD_TIME_DEFAULT,TimeUnit.MILLISECONDS);
+<Line#35>  this.numBlocksPerIteration=conf.getInt(DFSConfigKeys.DFS_BLOCK_MISREPLICATION_PROCESSING_LIMIT,DFSConfigKeys.DFS_BLOCK_MISREPLICATION_PROCESSING_LIMIT_DEFAULT);
+<Line#36>  final int minMaintenanceR=conf.getInt(DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY,DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_DEFAULT);
+<Line#37>  if (minMaintenanceR < 0) {
+<Line#38>    throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY + " = "+ minMaintenanceR+ " < 0");
+<Line#39>  }
+<Line#40>  if (minMaintenanceR > defaultReplication) {
+<Line#41>    throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY + " = "+ minMaintenanceR+ " > "+ DFSConfigKeys.DFS_REPLICATION_KEY+ " = "+ defaultReplication);
+<Line#42>  }
+<Line#43>  this.minReplicationToBeInMaintenance=(short)minMaintenanceR;
+<Line#44>  replQueueResetToHeadThreshold=conf.getInt(DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS,DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS_DEFAULT);
+<Line#45>  if (replQueueResetToHeadThreshold < 0) {
+<Line#46>    LOG.warn("{} is set to {} and it must be >= 0. Resetting to default {}",DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS,replQueueResetToHeadThreshold,DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS_DEFAULT);
+<Line#47>    replQueueResetToHeadThreshold=DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS_DEFAULT;
+<Line#48>  }
+<Line#49>  long heartbeatIntervalSecs=conf.getTimeDuration(DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_KEY,DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_DEFAULT,TimeUnit.SECONDS);
+<Line#50>  long blockRecoveryTimeout=getBlockRecoveryTimeout(heartbeatIntervalSecs);
+<Line#51>  pendingRecoveryBlocks=new PendingRecoveryBlocks(blockRecoveryTimeout);
+<Line#52>  this.blockReportLeaseManager=new BlockReportLeaseManager(conf);
+<Line#53>  bmSafeMode=new BlockManagerSafeMode(this,namesystem,haEnabled,conf);
+<Line#54>  int queueSize=conf.getInt(DFSConfigKeys.DFS_NAMENODE_BLOCKREPORT_QUEUE_SIZE_KEY,DFSConfigKeys.DFS_NAMENODE_BLOCKREPORT_QUEUE_SIZE_DEFAULT);
+<Line#55>  blockReportThread=new BlockReportProcessingThread(queueSize);
+<Line#56>  this.deleteCorruptReplicaImmediately=conf.getBoolean(DFS_NAMENODE_CORRUPT_BLOCK_DELETE_IMMEDIATELY_ENABLED,DFS_NAMENODE_CORRUPT_BLOCK_DELETE_IMMEDIATELY_ENABLED_DEFAULT);
+<Line#57>  LOG.info("defaultReplication         = {}",defaultReplication);
+<Line#58>  LOG.info("maxReplication             = {}",maxReplication);
+<Line#59>  LOG.info("minReplication             = {}",minReplication);
+<Line#60>  LOG.info("maxReplicationStreams      = {}",maxReplicationStreams);
+<Line#61>  LOG.info("redundancyRecheckInterval  = {}ms",redundancyRecheckIntervalMs);
+<Line#62>  LOG.info("encryptDataTransfer        = {}",encryptDataTransfer);
+<Line#63>  LOG.info("maxNumBlocksToLog          = {}",maxNumBlocksToLog);
+<Line#64>}
+Label: <Line#58> LOG.info("maxReplication             = {}",maxReplication)
+
+Example 5:
+<Line#1>{
+<Line#2>  this.namesystem=namesystem;
+<Line#3>  datanodeManager=new DatanodeManager(this,namesystem,conf);
+<Line#4>  heartbeatManager=datanodeManager.getHeartbeatManager();
+<Line#5>  this.blockIdManager=new BlockIdManager(this);
+<Line#6>  blocksPerPostpondedRescan=(int)Math.min(Integer.MAX_VALUE,datanodeManager.getBlocksPerPostponedMisreplicatedBlocksRescan());
+<Line#7>  rescannedMisreplicatedBlocks=new ArrayList<Block>(blocksPerPostpondedRescan);
+<Line#8>  startupDelayBlockDeletionInMs=conf.getLong(DFSConfigKeys.DFS_NAMENODE_STARTUP_DELAY_BLOCK_DELETION_SEC_KEY,DFSConfigKeys.DFS_NAMENODE_STARTUP_DELAY_BLOCK_DELETION_SEC_DEFAULT) * 1000L;
+<Line#9>  invalidateBlocks=new InvalidateBlocks(datanodeManager.getBlockInvalidateLimit(),startupDelayBlockDeletionInMs,blockIdManager);
+<Line#10>  markedDeleteQueue=new ConcurrentLinkedQueue<>();
+<Line#11>  blocksMap=new BlocksMap(LightWeightGSet.computeCapacity(2.0,"BlocksMap"));
+<Line#12>  placementPolicies=new BlockPlacementPolicies(conf,datanodeManager.getFSClusterStats(),datanodeManager.getNetworkTopology(),datanodeManager.getHost2DatanodeMap());
+<Line#13>  storagePolicySuite=BlockStoragePolicySuite.createDefaultSuite();
+<Line#14>  pendingReconstruction=new PendingReconstructionBlocks(conf.getInt(DFSConfigKeys.DFS_NAMENODE_RECONSTRUCTION_PENDING_TIMEOUT_SEC_KEY,DFSConfigKeys.DFS_NAMENODE_RECONSTRUCTION_PENDING_TIMEOUT_SEC_DEFAULT) * 1000L);
+<Line#15>  createSPSManager(conf);
+<Line#16>  blockTokenSecretManager=createBlockTokenSecretManager(conf);
+<Line#17>  providedStorageMap=new ProvidedStorageMap(namesystem,this,conf);
+<Line#18>  this.maxCorruptFilesReturned=conf.getInt(DFSConfigKeys.DFS_DEFAULT_MAX_CORRUPT_FILES_RETURNED_KEY,DFSConfigKeys.DFS_DEFAULT_MAX_CORRUPT_FILES_RETURNED);
+<Line#19>  this.defaultReplication=conf.getInt(DFSConfigKeys.DFS_REPLICATION_KEY,DFSConfigKeys.DFS_REPLICATION_DEFAULT);
+<Line#20>  final int maxR=conf.getInt(DFSConfigKeys.DFS_REPLICATION_MAX_KEY,DFSConfigKeys.DFS_REPLICATION_MAX_DEFAULT);
+<Line#21>  final int minR=conf.getInt(DFSConfigKeys.DFS_NAMENODE_REPLICATION_MIN_KEY,DFSConfigKeys.DFS_NAMENODE_REPLICATION_MIN_DEFAULT);
+<Line#22>  if (minR <= 0)   throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_NAMENODE_REPLICATION_MIN_KEY + " = "+ minR+ " <= 0");
+<Line#23>  if (maxR > Short.MAX_VALUE)   throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_REPLICATION_MAX_KEY + " = "+ maxR+ " > "+ Short.MAX_VALUE);
+<Line#24>  if (minR > maxR)   throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_NAMENODE_REPLICATION_MIN_KEY + " = "+ minR+ " > "+ DFSConfigKeys.DFS_REPLICATION_MAX_KEY+ " = "+ maxR);
+<Line#25>  this.minReplication=(short)minR;
+<Line#26>  this.maxReplication=(short)maxR;
+<Line#27>  this.maxReplicationStreams=conf.getInt(DFSConfigKeys.DFS_NAMENODE_REPLICATION_MAX_STREAMS_KEY,DFSConfigKeys.DFS_NAMENODE_REPLICATION_MAX_STREAMS_DEFAULT);
+<Line#28>  this.replicationStreamsHardLimit=conf.getInt(DFSConfigKeys.DFS_NAMENODE_REPLICATION_STREAMS_HARD_LIMIT_KEY,DFSConfigKeys.DFS_NAMENODE_REPLICATION_STREAMS_HARD_LIMIT_DEFAULT);
+<Line#29>  this.blocksInvalidateWorkPct=DFSUtil.getInvalidateWorkPctPerIteration(conf);
+<Line#30>  this.blocksReplWorkMultiplier=DFSUtil.getReplWorkMultiplier(conf);
+<Line#31>  this.redundancyRecheckIntervalMs=conf.getTimeDuration(DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_INTERVAL_SECONDS_KEY,DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_INTERVAL_SECONDS_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#32>  this.encryptDataTransfer=conf.getBoolean(DFSConfigKeys.DFS_ENCRYPT_DATA_TRANSFER_KEY,DFSConfigKeys.DFS_ENCRYPT_DATA_TRANSFER_DEFAULT);
+<Line#33>  this.maxNumBlocksToLog=conf.getLong(DFSConfigKeys.DFS_MAX_NUM_BLOCKS_TO_LOG_KEY,DFSConfigKeys.DFS_MAX_NUM_BLOCKS_TO_LOG_DEFAULT);
+<Line#34>  this.maxLockHoldTime=conf.getTimeDuration(DFSConfigKeys.DFS_NAMENODE_BLOCKREPORT_MAX_LOCK_HOLD_TIME,DFSConfigKeys.DFS_NAMENODE_BLOCKREPORT_MAX_LOCK_HOLD_TIME_DEFAULT,TimeUnit.MILLISECONDS);
+<Line#35>  this.numBlocksPerIteration=conf.getInt(DFSConfigKeys.DFS_BLOCK_MISREPLICATION_PROCESSING_LIMIT,DFSConfigKeys.DFS_BLOCK_MISREPLICATION_PROCESSING_LIMIT_DEFAULT);
+<Line#36>  final int minMaintenanceR=conf.getInt(DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY,DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_DEFAULT);
+<Line#37>  if (minMaintenanceR < 0) {
+<Line#38>    throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY + " = "+ minMaintenanceR+ " < 0");
+<Line#39>  }
+<Line#40>  if (minMaintenanceR > defaultReplication) {
+<Line#41>    throw new IOException("Unexpected configuration parameters: " + DFSConfigKeys.DFS_NAMENODE_MAINTENANCE_REPLICATION_MIN_KEY + " = "+ minMaintenanceR+ " > "+ DFSConfigKeys.DFS_REPLICATION_KEY+ " = "+ defaultReplication);
+<Line#42>  }
+<Line#43>  this.minReplicationToBeInMaintenance=(short)minMaintenanceR;
+<Line#44>  replQueueResetToHeadThreshold=conf.getInt(DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS,DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS_DEFAULT);
+<Line#45>  if (replQueueResetToHeadThreshold < 0) {
+<Line#46>    LOG.warn("{} is set to {} and it must be >= 0. Resetting to default {}",DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS,replQueueResetToHeadThreshold,DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS_DEFAULT);
+<Line#47>    replQueueResetToHeadThreshold=DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_QUEUE_RESTART_ITERATIONS_DEFAULT;
+<Line#48>  }
+<Line#49>  long heartbeatIntervalSecs=conf.getTimeDuration(DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_KEY,DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_DEFAULT,TimeUnit.SECONDS);
+<Line#50>  long blockRecoveryTimeout=getBlockRecoveryTimeout(heartbeatIntervalSecs);
+<Line#51>  pendingRecoveryBlocks=new PendingRecoveryBlocks(blockRecoveryTimeout);
+<Line#52>  this.blockReportLeaseManager=new BlockReportLeaseManager(conf);
+<Line#53>  bmSafeMode=new BlockManagerSafeMode(this,namesystem,haEnabled,conf);
+<Line#54>  int queueSize=conf.getInt(DFSConfigKeys.DFS_NAMENODE_BLOCKREPORT_QUEUE_SIZE_KEY,DFSConfigKeys.DFS_NAMENODE_BLOCKREPORT_QUEUE_SIZE_DEFAULT);
+<Line#55>  blockReportThread=new BlockReportProcessingThread(queueSize);
+<Line#56>  this.deleteCorruptReplicaImmediately=conf.getBoolean(DFS_NAMENODE_CORRUPT_BLOCK_DELETE_IMMEDIATELY_ENABLED,DFS_NAMENODE_CORRUPT_BLOCK_DELETE_IMMEDIATELY_ENABLED_DEFAULT);
+<Line#57>  LOG.info("defaultReplication         = {}",defaultReplication);
+<Line#58>  LOG.info("maxReplication             = {}",maxReplication);
+<Line#59>  LOG.info("minReplication             = {}",minReplication);
+<Line#60>  LOG.info("maxReplicationStreams      = {}",maxReplicationStreams);
+<Line#61>  LOG.info("redundancyRecheckInterval  = {}ms",redundancyRecheckIntervalMs);
+<Line#62>  LOG.info("encryptDataTransfer        = {}",encryptDataTransfer);
+<Line#63>  LOG.info("maxNumBlocksToLog          = {}",maxNumBlocksToLog);
+<Line#64>}
+Label: <Line#59> LOG.info("minReplication             = {}",minReplication)
+

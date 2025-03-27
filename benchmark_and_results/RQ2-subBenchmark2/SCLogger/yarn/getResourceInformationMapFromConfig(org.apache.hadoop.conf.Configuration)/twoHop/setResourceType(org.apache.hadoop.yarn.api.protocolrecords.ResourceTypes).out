@@ -1,0 +1,7 @@
+/** 
+ * Set the resource type.
+ * @param type the resource type
+ */
+public void setResourceType(ResourceTypes type){
+  this.resourceType=type;
+}

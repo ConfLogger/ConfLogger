@@ -1,0 +1,66 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ClientAuthUtils.java	methodSinagture:	org.apache.storm.security.auth.ClientAuthUtils.getPrincipalToLocalPlugin(Ljava/util/Map;)Lorg/apache/storm/security/auth/IPrincipalToLocal;	methodLines:	178:195
+blockLines:	182:-1
+paras:	null
+TaintedStat:	NORMAL getPrincipalToLocalPlugin:conditional branch(ne, to iindex=15) 7,3 Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, getPrincipalToLocalPlugin(Ljava/util/Map;)Lorg/apache/storm/security/auth/IPrincipalToLocal; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, getPrincipalToLocalPlugin(Ljava/util/Map;)Lorg/apache/storm/security/auth/IPrincipalToLocal; > Context: Everywhere[4]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,4 @5 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, getPrincipalToLocalPlugin(Ljava/util/Map;)Lorg/apache/storm/security/auth/IPrincipalToLocal; > Context: Everywhere[4]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 1,4 @5 exception:5
+NORMAL getPrincipalToLocalPlugin:7 = checkcast <Application,Ljava/lang/String>6 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, getPrincipalToLocalPlugin(Ljava/util/Map;)Lorg/apache/storm/security/auth/IPrincipalToLocal; > Context: Everywhere
+NORMAL getPrincipalToLocalPlugin:conditional branch(ne, to iindex=15) 7,3 Node: < Application, Lorg/apache/storm/security/auth/ClientAuthUtils, getPrincipalToLocalPlugin(Ljava/util/Map;)Lorg/apache/storm/security/auth/IPrincipalToLocal; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static IPrincipalToLocal getPrincipalToLocalPlugin(Map<String, Object> topoConf) {
+        IPrincipalToLocal ptol = null;
+        try {
+            String ptolClassname = (String) topoConf.get(Config.STORM_PRINCIPAL_TO_LOCAL_PLUGIN);
+            if (ptolClassname == null) {
+                LOG.warn("No principal to local given {}", Config.STORM_PRINCIPAL_TO_LOCAL_PLUGIN);
+            } else {
+                ptol = ReflectionUtils.newInstance(ptolClassname);
+                //TODO this can only ever be null if someone is doing something odd with mocking
+                // We should really fix the mocking and remove this
+                if (ptol != null) {
+                    ptol.prepare(topoConf);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return ptol;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/blobstore/BlobStoreAclHandler, <init>(Ljava/util/Map;)V > Context: Everywhere, blocks=[BB[SSA:2..4]2 - org.apache.storm.blobstore.BlobStoreAclHandler.<init>(Ljava/util/Map;)V, BB[SSA:0..1]1 - org.apache.storm.blobstore.BlobStoreAclHandler.<init>(Ljava/util/Map;)V, BB[SSA:5..5]3 - org.apache.storm.blobstore.BlobStoreAclHandler.<init>(Ljava/util/Map;)V, BB[SSA:-1..-2]47 - org.apache.storm.blobstore.BlobStoreAclHandler.<init>(Ljava/util/Map;)V], numberOfBasicBlocks=4, firstLineNumber=56, lastLineNumber=57, firstMethodNumber=55, lastMethodNumber=78, isFirstLineValid=true, methodSrcCode=
+
+    public BlobStoreAclHandler(Map<String, Object> conf) {
+        ptol = ClientAuthUtils.getPrincipalToLocalPlugin(conf);
+        if (conf.get(Config.STORM_GROUP_MAPPING_SERVICE_PROVIDER_PLUGIN) != null) {
+            groupMappingServiceProvider = ClientAuthUtils.getGroupMappingServiceProviderPlugin(conf);
+        } else {
+            groupMappingServiceProvider = null;
+        }
+        supervisors = new HashSet<String>();
+        admins = new HashSet<String>();
+        adminsGroups = new HashSet<>();
+        if (conf.containsKey(Config.NIMBUS_SUPERVISOR_USERS)) {
+            supervisors.addAll((List<String>) conf.get(Config.NIMBUS_SUPERVISOR_USERS));
+        }
+        if (conf.containsKey(Config.NIMBUS_ADMINS)) {
+            admins.addAll((List<String>) conf.get(Config.NIMBUS_ADMINS));
+        }
+        if (conf.containsKey(Config.NIMBUS_ADMINS_GROUPS)) {
+            adminsGroups.addAll((List<String>) conf.get(Config.NIMBUS_ADMINS_GROUPS));
+        }
+        if (conf.containsKey(Config.STORM_BLOBSTORE_ACL_VALIDATION_ENABLED)) {
+            doAclValidation = (boolean) conf.get(Config.STORM_BLOBSTORE_ACL_VALIDATION_ENABLED);
+        }
+    }
+
+}

@@ -1,0 +1,3 @@
+public static long makeZxid(long epoch,long counter){
+  return (epoch << 32L) | (counter & 0xffffffffL);
+}

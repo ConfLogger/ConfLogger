@@ -1,0 +1,7 @@
+/** 
+ * Set the maximum allocation for the resource.
+ * @param maximumAllocation the maximum allocation for the resource
+ */
+public void setMaximumAllocation(long maximumAllocation){
+  this.maximumAllocation=maximumAllocation;
+}

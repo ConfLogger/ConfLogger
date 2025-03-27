@@ -1,0 +1,246 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>public boolean clientTunneledAuthenticationInProgress() {
+<Line#1>if (!isSASLConfigured) {
+<Line#2>return false;
+<Line#3>}
+<Line#4>// TODO: Rather than checking a disjunction here, should be a single member
+<Line#5>// variable or method in this class to determine whether the client is
+<Line#6>// configured to use SASL. (see also ZOOKEEPER-1455).
+<Line#7>try {
+<Line#8>if ((clientConfig.getJaasConfKey() != null)
+<Line#9>|| ((Configuration.getConfiguration() != null)
+<Line#10>&& (Configuration.getConfiguration().getAppConfigurationEntry(
+<Line#11>clientConfig.getProperty(
+<Line#12>ZKClientConfig.LOGIN_CONTEXT_NAME_KEY,
+<Line#13>ZKClientConfig.LOGIN_CONTEXT_NAME_KEY_DEFAULT)) != null))) {
+<Line#14>// Client is configured to use a valid login Configuration, so
+<Line#15>// authentication is either in progress, successful, or failed.
+<Line#16>
+<Line#17>// 1. Authentication hasn't finished yet: we must wait for it to do so.
+<Line#18>if (!isComplete() && !isFailed()) {
+<Line#19>return true;
+<Line#20>}
+<Line#21>
+<Line#22>// 2. SASL authentication has succeeded or failed..
+<Line#23>//noinspection RedundantIfStatement
+<Line#24>if (!gotLastPacket) {
+<Line#25>// ..but still in progress, because there is a final SASL
+<Line#26>// message from server which must be received.
+<Line#27>return true;
+<Line#28>}
+<Line#29>}
+<Line#30>// Either client is not configured to use a tunnelled authentication
+<Line#31>// scheme, or tunnelled authentication has completed (successfully or
+<Line#32>// not), and all server SASL messages have been received.
+<Line#33>return false;
+<Line#34>} catch (SecurityException e) {
+<Line#35>// Thrown if the caller does not have permission to retrieve the Configuration.
+<Line#36>// In this case, simply returning false is correct.
+<Line#37>
+<Line#38>return false;
+<Line#39>}
+
+Example 1:
+<Line#1>{
+<Line#2>synchronized (this) {
+<Line#3>    if (killed) {
+<Line#4>      LOG.info("already shutdown {}",localAddress);
+<Line#5>      return;
+<Line#6>    }
+<Line#7>  }
+<Line#8>  LOG.info("shutdown called {}",localAddress);
+<Line#9>  x509Util.close();
+<Line#10>  if (login != null) {
+<Line#11>    login.shutdown();
+<Line#12>  }
+<Line#13>  final EventLoopGroup bossGroup=bootstrap.config().group();
+<Line#14>  final EventLoopGroup workerGroup=bootstrap.config().childGroup();
+<Line#15>  if (parentChannel != null) {
+<Line#16>    ChannelFuture parentCloseFuture=parentChannel.close();
+<Line#17>    if (bossGroup != null) {
+<Line#18>      parentCloseFuture.addListener(future -> {
+<Line#19>        bossGroup.shutdownGracefully();
+<Line#20>      }
+<Line#21>);
+<Line#22>    }
+<Line#23>    closeAll(ServerCnxn.DisconnectReason.SERVER_SHUTDOWN);
+<Line#24>    ChannelGroupFuture allChannelsCloseFuture=allChannels.close();
+<Line#25>    if (workerGroup != null) {
+<Line#26>      allChannelsCloseFuture.addListener(future -> {
+<Line#27>        workerGroup.shutdownGracefully();
+<Line#28>      }
+<Line#29>);
+<Line#30>    }
+<Line#31>  }
+<Line#32> else {
+<Line#33>    if (bossGroup != null) {
+<Line#34>      bossGroup.shutdownGracefully();
+<Line#35>    }
+<Line#36>    if (workerGroup != null) {
+<Line#37>      workerGroup.shutdownGracefully();
+<Line#38>    }
+<Line#39>  }
+<Line#40>  if (zkServer != null) {
+<Line#41>    zkServer.shutdown();
+<Line#42>  }
+<Line#43>synchronized (this) {
+<Line#44>    killed=true;
+<Line#45>    notifyAll();
+<Line#46>  }
+<Line#47>}
+Label: <Line#4> LOG.info("already shutdown {}",localAddress)
+
+Example 2:
+<Line#1>{
+<Line#2>synchronized (this) {
+<Line#3>    if (killed) {
+<Line#4>      LOG.info("already shutdown {}",localAddress);
+<Line#5>      return;
+<Line#6>    }
+<Line#7>  }
+<Line#8>  LOG.info("shutdown called {}",localAddress);
+<Line#9>  x509Util.close();
+<Line#10>  if (login != null) {
+<Line#11>    login.shutdown();
+<Line#12>  }
+<Line#13>  final EventLoopGroup bossGroup=bootstrap.config().group();
+<Line#14>  final EventLoopGroup workerGroup=bootstrap.config().childGroup();
+<Line#15>  if (parentChannel != null) {
+<Line#16>    ChannelFuture parentCloseFuture=parentChannel.close();
+<Line#17>    if (bossGroup != null) {
+<Line#18>      parentCloseFuture.addListener(future -> {
+<Line#19>        bossGroup.shutdownGracefully();
+<Line#20>      }
+<Line#21>);
+<Line#22>    }
+<Line#23>    closeAll(ServerCnxn.DisconnectReason.SERVER_SHUTDOWN);
+<Line#24>    ChannelGroupFuture allChannelsCloseFuture=allChannels.close();
+<Line#25>    if (workerGroup != null) {
+<Line#26>      allChannelsCloseFuture.addListener(future -> {
+<Line#27>        workerGroup.shutdownGracefully();
+<Line#28>      }
+<Line#29>);
+<Line#30>    }
+<Line#31>  }
+<Line#32> else {
+<Line#33>    if (bossGroup != null) {
+<Line#34>      bossGroup.shutdownGracefully();
+<Line#35>    }
+<Line#36>    if (workerGroup != null) {
+<Line#37>      workerGroup.shutdownGracefully();
+<Line#38>    }
+<Line#39>  }
+<Line#40>  if (zkServer != null) {
+<Line#41>    zkServer.shutdown();
+<Line#42>  }
+<Line#43>synchronized (this) {
+<Line#44>    killed=true;
+<Line#45>    notifyAll();
+<Line#46>  }
+<Line#47>}
+Label: <Line#8> LOG.info("shutdown called {}",localAddress)
+
+Example 3:
+<Line#1>{
+<Line#2>  try {
+<Line#3>    if (stopped) {
+<Line#4>      workRequest.cleanup();
+<Line#5>      return;
+<Line#6>    }
+<Line#7>    workRequest.doWork();
+<Line#8>  }
+<Line#9> catch (  Exception e) {
+<Line#10>    LOG.warn("Unexpected exception",e);
+<Line#11>    workRequest.cleanup();
+<Line#12>  }
+<Line#13>}
+Label: <Line#10> LOG.warn("Unexpected exception",e)
+
+Example 4:
+<Line#1>{
+<Line#2>  if (!canShutdown()) {
+<Line#3>    if (fullyShutDown && zkDb != null) {
+<Line#4>      zkDb.clear();
+<Line#5>    }
+<Line#6>    LOG.debug("ZooKeeper server is not running, so not proceeding to shutdown!");
+<Line#7>    return;
+<Line#8>  }
+<Line#9>  LOG.info("shutting down");
+<Line#10>  setState(State.SHUTDOWN);
+<Line#11>  unregisterMetrics();
+<Line#12>  if (requestThrottler != null) {
+<Line#13>    requestThrottler.shutdown();
+<Line#14>  }
+<Line#15>  if (sessionTracker != null) {
+<Line#16>    sessionTracker.shutdown();
+<Line#17>  }
+<Line#18>  if (firstProcessor != null) {
+<Line#19>    firstProcessor.shutdown();
+<Line#20>  }
+<Line#21>  if (jvmPauseMonitor != null) {
+<Line#22>    jvmPauseMonitor.serviceStop();
+<Line#23>  }
+<Line#24>  if (zkDb != null) {
+<Line#25>    if (fullyShutDown) {
+<Line#26>      zkDb.clear();
+<Line#27>    }
+<Line#28> else {
+<Line#29>      try {
+<Line#30>        zkDb.fastForwardDataBase();
+<Line#31>      }
+<Line#32> catch (      IOException e) {
+<Line#33>        LOG.error("Error updating DB",e);
+<Line#34>        zkDb.clear();
+<Line#35>      }
+<Line#36>    }
+<Line#37>  }
+<Line#38>  requestPathMetricsCollector.shutdown();
+<Line#39>  unregisterJMX();
+<Line#40>}
+Label: <Line#6> LOG.debug("ZooKeeper server is not running, so not proceeding to shutdown!")
+
+Example 5:
+<Line#1>{
+<Line#2>  if (!canShutdown()) {
+<Line#3>    if (fullyShutDown && zkDb != null) {
+<Line#4>      zkDb.clear();
+<Line#5>    }
+<Line#6>    LOG.debug("ZooKeeper server is not running, so not proceeding to shutdown!");
+<Line#7>    return;
+<Line#8>  }
+<Line#9>  LOG.info("shutting down");
+<Line#10>  setState(State.SHUTDOWN);
+<Line#11>  unregisterMetrics();
+<Line#12>  if (requestThrottler != null) {
+<Line#13>    requestThrottler.shutdown();
+<Line#14>  }
+<Line#15>  if (sessionTracker != null) {
+<Line#16>    sessionTracker.shutdown();
+<Line#17>  }
+<Line#18>  if (firstProcessor != null) {
+<Line#19>    firstProcessor.shutdown();
+<Line#20>  }
+<Line#21>  if (jvmPauseMonitor != null) {
+<Line#22>    jvmPauseMonitor.serviceStop();
+<Line#23>  }
+<Line#24>  if (zkDb != null) {
+<Line#25>    if (fullyShutDown) {
+<Line#26>      zkDb.clear();
+<Line#27>    }
+<Line#28> else {
+<Line#29>      try {
+<Line#30>        zkDb.fastForwardDataBase();
+<Line#31>      }
+<Line#32> catch (      IOException e) {
+<Line#33>        LOG.error("Error updating DB",e);
+<Line#34>        zkDb.clear();
+<Line#35>      }
+<Line#36>    }
+<Line#37>  }
+<Line#38>  requestPathMetricsCollector.shutdown();
+<Line#39>  unregisterJMX();
+<Line#40>}
+Label: <Line#9> LOG.info("shutting down")
+

@@ -1,0 +1,7 @@
+Based on the provided code and context, here is a logging statement inserted using the given format:
+
+```java
+<Line#24>:# LOG.debug("Processing resource type: {}, units: {}, type: {}, min: {}, max: {}", resourceName, resourceUnits, resourceTypeName, minimumAllocation, maximumAllocation):#
+```
+
+This logging statement is designed to provide detailed information about each resource type being processed, including its name, units, type, minimum allocation, and maximum allocation. This can be particularly useful for debugging configuration issues or understanding the resource configurations being applied.

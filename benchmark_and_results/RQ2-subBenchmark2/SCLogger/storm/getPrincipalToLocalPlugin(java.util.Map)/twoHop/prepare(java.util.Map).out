@@ -1,0 +1,5 @@
+/** 
+ * Invoked once immediately after construction.
+ * @param topoConf Storm configuration
+ */
+void prepare(Map<String,Object> topoConf);

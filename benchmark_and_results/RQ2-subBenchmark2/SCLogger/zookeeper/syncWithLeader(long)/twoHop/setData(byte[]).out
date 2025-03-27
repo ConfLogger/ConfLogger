@@ -1,0 +1,3 @@
+public void setData(byte[] m_){
+  data=m_;
+}

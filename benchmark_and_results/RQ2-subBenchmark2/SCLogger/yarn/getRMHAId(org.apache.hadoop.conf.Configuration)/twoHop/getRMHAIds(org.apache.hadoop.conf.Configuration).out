@@ -1,0 +1,7 @@
+/** 
+ * @param conf Configuration. Please use getRMHAIds to check.
+ * @return RM Ids on success
+ */
+public static Collection<String> getRMHAIds(Configuration conf){
+  return conf.getStringCollection(YarnConfiguration.RM_HA_IDS);
+}

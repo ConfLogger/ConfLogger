@@ -1,0 +1,6 @@
+<Line#0>:# LOG.debug("Checking if class is not null: {}", clazz);:#
+<Line#1>:# LOG.trace("Creating new instance of class with ReflectionUtils: {}", clazz);:#
+<Line#4>:# LOG.trace("Creating new instance of ResourceCalculatorPlugin");:#
+<Line#6>:# LOG.warn("UnsupportedOperationException encountered while creating new instance of ResourceCalculatorPlugin");:#
+<Line#8>:# LOG.error("Throwable encountered while creating new instance of ResourceCalculatorPlugin", t);:#
+<Line#10>:# LOG.warn("Returning null as no instance could be created");:#

@@ -1,0 +1,17 @@
+public static List<InetSocketAddress> getAddressesList(URI uri) throws IOException {
+  String authority=uri.getAuthority();
+  Preconditions.checkArgument(authority != null && !authority.isEmpty(),"URI has no authority: " + uri);
+  String[] parts=StringUtils.split(authority,';');
+  for (int i=0; i < parts.length; i++) {
+    parts[i]=parts[i].trim();
+  }
+  List<InetSocketAddress> addrs=Lists.newArrayList();
+  for (  String addr : parts) {
+    InetSocketAddress isa=NetUtils.createSocketAddr(addr,DFSConfigKeys.DFS_JOURNALNODE_RPC_PORT_DEFAULT);
+    if (isa.isUnresolved()) {
+      throw new UnknownHostException(addr);
+    }
+    addrs.add(isa);
+  }
+  return addrs;
+}

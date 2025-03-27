@@ -1,0 +1,317 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>Mover(NameNodeConnector nnc, Configuration conf, AtomicInteger retryCount,
+<Line#1>Map<Long, Set<DatanodeInfo>> excludedPinnedBlocks) {
+<Line#2>final long movedWinWidth = conf.getLong(
+<Line#3>DFSConfigKeys.DFS_MOVER_MOVEDWINWIDTH_KEY,
+<Line#4>DFSConfigKeys.DFS_MOVER_MOVEDWINWIDTH_DEFAULT);
+<Line#5>final int moverThreads = conf.getInt(
+<Line#6>DFSConfigKeys.DFS_MOVER_MOVERTHREADS_KEY,
+<Line#7>DFSConfigKeys.DFS_MOVER_MOVERTHREADS_DEFAULT);
+<Line#8>final int maxConcurrentMovesPerNode = conf.getInt(
+<Line#9>DFSConfigKeys.DFS_DATANODE_BALANCE_MAX_NUM_CONCURRENT_MOVES_KEY,
+<Line#10>DFSConfigKeys.DFS_DATANODE_BALANCE_MAX_NUM_CONCURRENT_MOVES_DEFAULT);
+<Line#11>final int maxNoMoveInterval = conf.getInt(
+<Line#12>DFSConfigKeys.DFS_MOVER_MAX_NO_MOVE_INTERVAL_KEY,
+<Line#13>DFSConfigKeys.DFS_MOVER_MAX_NO_MOVE_INTERVAL_DEFAULT);
+<Line#14>final int maxAttempts = conf.getInt(
+<Line#15>DFSConfigKeys.DFS_MOVER_RETRY_MAX_ATTEMPTS_KEY,
+<Line#16>DFSConfigKeys.DFS_MOVER_RETRY_MAX_ATTEMPTS_DEFAULT);
+<Line#17>if (maxAttempts >= 0) {
+<Line#18>this.retryMaxAttempts = maxAttempts;
+<Line#19>} else {
+<Line#20>this.retryMaxAttempts = DFSConfigKeys.DFS_MOVER_RETRY_MAX_ATTEMPTS_DEFAULT;
+<Line#21>}
+<Line#22>this.retryCount = retryCount;
+<Line#23>this.dispatcher = new Dispatcher(nnc, Collections.<String> emptySet(),
+<Line#24>Collections.<String> emptySet(), movedWinWidth, moverThreads, 0,
+<Line#25>maxConcurrentMovesPerNode, maxNoMoveInterval, conf);
+<Line#26>this.storages = new StorageMap();
+<Line#27>this.targetPaths = nnc.getTargetPaths();
+<Line#28>this.blockStoragePolicies = new BlockStoragePolicy[1 <<
+<Line#29>BlockStoragePolicySuite.ID_BIT_LENGTH];
+<Line#30>this.excludedPinnedBlocks = excludedPinnedBlocks;
+<Line#31>}
+
+Example 1:
+<Line#1>{
+<Line#2>  this.fsRunning=true;
+<Line#3>  this.datanode=datanode;
+<Line#4>  this.dataStorage=storage;
+<Line#5>  this.conf=conf;
+<Line#6>  this.smallBufferSize=DFSUtilClient.getSmallBufferSize(conf);
+<Line#7>  this.datasetRWLock=new InstrumentedReadWriteLock(conf.getBoolean(DFSConfigKeys.DFS_DATANODE_LOCK_FAIR_KEY,DFSConfigKeys.DFS_DATANODE_LOCK_FAIR_DEFAULT),"FsDatasetRWLock",LOG,conf.getTimeDuration(DFSConfigKeys.DFS_LOCK_SUPPRESS_WARNING_INTERVAL_KEY,DFSConfigKeys.DFS_LOCK_SUPPRESS_WARNING_INTERVAL_DEFAULT,TimeUnit.MILLISECONDS),conf.getTimeDuration(DFSConfigKeys.DFS_DATANODE_LOCK_REPORTING_THRESHOLD_MS_KEY,DFSConfigKeys.DFS_DATANODE_LOCK_REPORTING_THRESHOLD_MS_DEFAULT,TimeUnit.MILLISECONDS));
+<Line#8>  this.datasetWriteLock=new AutoCloseableLock(datasetRWLock.writeLock());
+<Line#9>  boolean enableRL=conf.getBoolean(DFSConfigKeys.DFS_DATANODE_LOCK_READ_WRITE_ENABLED_KEY,DFSConfigKeys.DFS_DATANODE_LOCK_READ_WRITE_ENABLED_DEFAULT);
+<Line#10>  if (enableRL) {
+<Line#11>    LOG.info("The datanode lock is a read write lock");
+<Line#12>    this.datasetReadLock=new AutoCloseableLock(datasetRWLock.readLock());
+<Line#13>  }
+<Line#14> else {
+<Line#15>    LOG.info("The datanode lock is an exclusive write lock");
+<Line#16>    this.datasetReadLock=this.datasetWriteLock;
+<Line#17>  }
+<Line#18>  this.datasetWriteLockCondition=datasetWriteLock.newCondition();
+<Line#19>  volFailuresTolerated=datanode.getDnConf().getVolFailuresTolerated();
+<Line#20>  Collection<StorageLocation> dataLocations=DataNode.getStorageLocations(conf);
+<Line#21>  List<VolumeFailureInfo> volumeFailureInfos=getInitialVolumeFailureInfos(dataLocations,storage);
+<Line#22>  volsConfigured=datanode.getDnConf().getVolsConfigured();
+<Line#23>  int volsFailed=volumeFailureInfos.size();
+<Line#24>  if (volFailuresTolerated < DataNode.MAX_VOLUME_FAILURE_TOLERATED_LIMIT || volFailuresTolerated >= volsConfigured) {
+<Line#25>    throw new HadoopIllegalArgumentException("Invalid value configured for " + "dfs.datanode.failed.volumes.tolerated - " + volFailuresTolerated + ". Value configured is either less than maxVolumeFailureLimit or greater than "+ "to the number of configured volumes ("+ volsConfigured+ ").");
+<Line#26>  }
+<Line#27>  if (volFailuresTolerated == DataNode.MAX_VOLUME_FAILURE_TOLERATED_LIMIT) {
+<Line#28>    if (volsConfigured == volsFailed) {
+<Line#29>      throw new DiskErrorException("Too many failed volumes - " + "current valid volumes: " + storage.getNumStorageDirs() + ", volumes configured: "+ volsConfigured+ ", volumes failed: "+ volsFailed+ ", volume failures tolerated: "+ volFailuresTolerated);
+<Line#30>    }
+<Line#31>  }
+<Line#32> else {
+<Line#33>    if (volsFailed > volFailuresTolerated) {
+<Line#34>      throw new DiskErrorException("Too many failed volumes - " + "current valid volumes: " + storage.getNumStorageDirs() + ", volumes configured: "+ volsConfigured+ ", volumes failed: "+ volsFailed+ ", volume failures tolerated: "+ volFailuresTolerated);
+<Line#35>    }
+<Line#36>  }
+<Line#37>  storageMap=new ConcurrentHashMap<String,DatanodeStorage>();
+<Line#38>  volumeMap=new ReplicaMap(datasetReadLock,datasetWriteLock);
+<Line#39>  ramDiskReplicaTracker=RamDiskReplicaTracker.getInstance(conf,this);
+<Line#40>  @SuppressWarnings("unchecked") final VolumeChoosingPolicy<FsVolumeImpl> blockChooserImpl=ReflectionUtils.newInstance(conf.getClass(DFSConfigKeys.DFS_DATANODE_FSDATASET_VOLUME_CHOOSING_POLICY_KEY,RoundRobinVolumeChoosingPolicy.class,VolumeChoosingPolicy.class),conf);
+<Line#41>  volumes=new FsVolumeList(volumeFailureInfos,datanode.getBlockScanner(),blockChooserImpl,datanode.getDiskMetrics());
+<Line#42>  asyncDiskService=new FsDatasetAsyncDiskService(datanode,this);
+<Line#43>  asyncLazyPersistService=new RamDiskAsyncLazyPersistService(datanode,conf);
+<Line#44>  deletingBlock=new HashMap<String,Set<Long>>();
+<Line#45>  for (int idx=0; idx < storage.getNumStorageDirs(); idx++) {
+<Line#46>    addVolume(storage.getStorageDir(idx));
+<Line#47>  }
+<Line#48>  setupAsyncLazyPersistThreads();
+<Line#49>  cacheManager=new FsDatasetCache(this);
+<Line#50>  if (ramDiskReplicaTracker.numReplicasNotPersisted() > 0 || datanode.getDnConf().getMaxLockedMemory() > 0) {
+<Line#51>    lazyWriter=new Daemon(new LazyWriter(conf));
+<Line#52>    lazyWriter.start();
+<Line#53>  }
+<Line#54> else {
+<Line#55>    lazyWriter=null;
+<Line#56>  }
+<Line#57>  registerMBean(datanode.getDatanodeUuid());
+<Line#58>  MetricsSystem ms=DefaultMetricsSystem.instance();
+<Line#59>  ms.register("FSDatasetState","FSDatasetState",this);
+<Line#60>  localFS=FileSystem.getLocal(conf);
+<Line#61>  blockPinningEnabled=conf.getBoolean(DFSConfigKeys.DFS_DATANODE_BLOCK_PINNING_ENABLED,DFSConfigKeys.DFS_DATANODE_BLOCK_PINNING_ENABLED_DEFAULT);
+<Line#62>  maxDataLength=conf.getInt(CommonConfigurationKeys.IPC_MAXIMUM_DATA_LENGTH,CommonConfigurationKeys.IPC_MAXIMUM_DATA_LENGTH_DEFAULT);
+<Line#63>}
+Label: <Line#11> LOG.info("The datanode lock is a read write lock")
+
+Example 2:
+<Line#1>{
+<Line#2>  this.fsRunning=true;
+<Line#3>  this.datanode=datanode;
+<Line#4>  this.dataStorage=storage;
+<Line#5>  this.conf=conf;
+<Line#6>  this.smallBufferSize=DFSUtilClient.getSmallBufferSize(conf);
+<Line#7>  this.datasetRWLock=new InstrumentedReadWriteLock(conf.getBoolean(DFSConfigKeys.DFS_DATANODE_LOCK_FAIR_KEY,DFSConfigKeys.DFS_DATANODE_LOCK_FAIR_DEFAULT),"FsDatasetRWLock",LOG,conf.getTimeDuration(DFSConfigKeys.DFS_LOCK_SUPPRESS_WARNING_INTERVAL_KEY,DFSConfigKeys.DFS_LOCK_SUPPRESS_WARNING_INTERVAL_DEFAULT,TimeUnit.MILLISECONDS),conf.getTimeDuration(DFSConfigKeys.DFS_DATANODE_LOCK_REPORTING_THRESHOLD_MS_KEY,DFSConfigKeys.DFS_DATANODE_LOCK_REPORTING_THRESHOLD_MS_DEFAULT,TimeUnit.MILLISECONDS));
+<Line#8>  this.datasetWriteLock=new AutoCloseableLock(datasetRWLock.writeLock());
+<Line#9>  boolean enableRL=conf.getBoolean(DFSConfigKeys.DFS_DATANODE_LOCK_READ_WRITE_ENABLED_KEY,DFSConfigKeys.DFS_DATANODE_LOCK_READ_WRITE_ENABLED_DEFAULT);
+<Line#10>  if (enableRL) {
+<Line#11>    LOG.info("The datanode lock is a read write lock");
+<Line#12>    this.datasetReadLock=new AutoCloseableLock(datasetRWLock.readLock());
+<Line#13>  }
+<Line#14> else {
+<Line#15>    LOG.info("The datanode lock is an exclusive write lock");
+<Line#16>    this.datasetReadLock=this.datasetWriteLock;
+<Line#17>  }
+<Line#18>  this.datasetWriteLockCondition=datasetWriteLock.newCondition();
+<Line#19>  volFailuresTolerated=datanode.getDnConf().getVolFailuresTolerated();
+<Line#20>  Collection<StorageLocation> dataLocations=DataNode.getStorageLocations(conf);
+<Line#21>  List<VolumeFailureInfo> volumeFailureInfos=getInitialVolumeFailureInfos(dataLocations,storage);
+<Line#22>  volsConfigured=datanode.getDnConf().getVolsConfigured();
+<Line#23>  int volsFailed=volumeFailureInfos.size();
+<Line#24>  if (volFailuresTolerated < DataNode.MAX_VOLUME_FAILURE_TOLERATED_LIMIT || volFailuresTolerated >= volsConfigured) {
+<Line#25>    throw new HadoopIllegalArgumentException("Invalid value configured for " + "dfs.datanode.failed.volumes.tolerated - " + volFailuresTolerated + ". Value configured is either less than maxVolumeFailureLimit or greater than "+ "to the number of configured volumes ("+ volsConfigured+ ").");
+<Line#26>  }
+<Line#27>  if (volFailuresTolerated == DataNode.MAX_VOLUME_FAILURE_TOLERATED_LIMIT) {
+<Line#28>    if (volsConfigured == volsFailed) {
+<Line#29>      throw new DiskErrorException("Too many failed volumes - " + "current valid volumes: " + storage.getNumStorageDirs() + ", volumes configured: "+ volsConfigured+ ", volumes failed: "+ volsFailed+ ", volume failures tolerated: "+ volFailuresTolerated);
+<Line#30>    }
+<Line#31>  }
+<Line#32> else {
+<Line#33>    if (volsFailed > volFailuresTolerated) {
+<Line#34>      throw new DiskErrorException("Too many failed volumes - " + "current valid volumes: " + storage.getNumStorageDirs() + ", volumes configured: "+ volsConfigured+ ", volumes failed: "+ volsFailed+ ", volume failures tolerated: "+ volFailuresTolerated);
+<Line#35>    }
+<Line#36>  }
+<Line#37>  storageMap=new ConcurrentHashMap<String,DatanodeStorage>();
+<Line#38>  volumeMap=new ReplicaMap(datasetReadLock,datasetWriteLock);
+<Line#39>  ramDiskReplicaTracker=RamDiskReplicaTracker.getInstance(conf,this);
+<Line#40>  @SuppressWarnings("unchecked") final VolumeChoosingPolicy<FsVolumeImpl> blockChooserImpl=ReflectionUtils.newInstance(conf.getClass(DFSConfigKeys.DFS_DATANODE_FSDATASET_VOLUME_CHOOSING_POLICY_KEY,RoundRobinVolumeChoosingPolicy.class,VolumeChoosingPolicy.class),conf);
+<Line#41>  volumes=new FsVolumeList(volumeFailureInfos,datanode.getBlockScanner(),blockChooserImpl,datanode.getDiskMetrics());
+<Line#42>  asyncDiskService=new FsDatasetAsyncDiskService(datanode,this);
+<Line#43>  asyncLazyPersistService=new RamDiskAsyncLazyPersistService(datanode,conf);
+<Line#44>  deletingBlock=new HashMap<String,Set<Long>>();
+<Line#45>  for (int idx=0; idx < storage.getNumStorageDirs(); idx++) {
+<Line#46>    addVolume(storage.getStorageDir(idx));
+<Line#47>  }
+<Line#48>  setupAsyncLazyPersistThreads();
+<Line#49>  cacheManager=new FsDatasetCache(this);
+<Line#50>  if (ramDiskReplicaTracker.numReplicasNotPersisted() > 0 || datanode.getDnConf().getMaxLockedMemory() > 0) {
+<Line#51>    lazyWriter=new Daemon(new LazyWriter(conf));
+<Line#52>    lazyWriter.start();
+<Line#53>  }
+<Line#54> else {
+<Line#55>    lazyWriter=null;
+<Line#56>  }
+<Line#57>  registerMBean(datanode.getDatanodeUuid());
+<Line#58>  MetricsSystem ms=DefaultMetricsSystem.instance();
+<Line#59>  ms.register("FSDatasetState","FSDatasetState",this);
+<Line#60>  localFS=FileSystem.getLocal(conf);
+<Line#61>  blockPinningEnabled=conf.getBoolean(DFSConfigKeys.DFS_DATANODE_BLOCK_PINNING_ENABLED,DFSConfigKeys.DFS_DATANODE_BLOCK_PINNING_ENABLED_DEFAULT);
+<Line#62>  maxDataLength=conf.getInt(CommonConfigurationKeys.IPC_MAXIMUM_DATA_LENGTH,CommonConfigurationKeys.IPC_MAXIMUM_DATA_LENGTH_DEFAULT);
+<Line#63>}
+Label: <Line#15> LOG.info("The datanode lock is an exclusive write lock")
+
+Example 3:
+<Line#1>{
+<Line#2>  final long sleeptime=conf.getTimeDuration(DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_KEY,DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS) * 2 + conf.getTimeDuration(DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_INTERVAL_SECONDS_KEY,DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_INTERVAL_SECONDS_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#3>  AtomicInteger retryCount=new AtomicInteger(0);
+<Line#4>  Map<Long,Set<DatanodeInfo>> excludedPinnedBlocks=new HashMap<>();
+<Line#5>  LOG.info("namenodes = " + namenodes);
+<Line#6>  checkKeytabAndInit(conf);
+<Line#7>  List<NameNodeConnector> connectors=Collections.emptyList();
+<Line#8>  try {
+<Line#9>    connectors=NameNodeConnector.newNameNodeConnectors(namenodes,Mover.class.getSimpleName(),HdfsServerConstants.MOVER_ID_PATH,conf,NameNodeConnector.DEFAULT_MAX_IDLE_ITERATIONS);
+<Line#10>    while (connectors.size() > 0) {
+<Line#11>      Collections.shuffle(connectors);
+<Line#12>      Iterator<NameNodeConnector> iter=connectors.iterator();
+<Line#13>      while (iter.hasNext()) {
+<Line#14>        NameNodeConnector nnc=iter.next();
+<Line#15>        final Mover m=new Mover(nnc,conf,retryCount,excludedPinnedBlocks);
+<Line#16>        final ExitStatus r=m.run();
+<Line#17>        if (r == ExitStatus.SUCCESS) {
+<Line#18>          IOUtils.cleanupWithLogger(LOG,nnc);
+<Line#19>          iter.remove();
+<Line#20>        }
+<Line#21> else         if (r != ExitStatus.IN_PROGRESS) {
+<Line#22>          if (r == ExitStatus.NO_MOVE_PROGRESS) {
+<Line#23>            System.err.println("Failed to move some blocks after " + m.retryMaxAttempts + " retries. Exiting...");
+<Line#24>          }
+<Line#25> else           if (r == ExitStatus.NO_MOVE_BLOCK) {
+<Line#26>            System.err.println("Some blocks can't be moved. Exiting...");
+<Line#27>          }
+<Line#28> else {
+<Line#29>            System.err.println("Mover failed. Exiting with status " + r + "... ");
+<Line#30>          }
+<Line#31>          return r.getExitCode();
+<Line#32>        }
+<Line#33>      }
+<Line#34>      Thread.sleep(sleeptime);
+<Line#35>    }
+<Line#36>    System.out.println("Mover Successful: all blocks satisfy" + " the specified storage policy. Exiting...");
+<Line#37>    return ExitStatus.SUCCESS.getExitCode();
+<Line#38>  }
+<Line#39>  finally {
+<Line#40>    for (    NameNodeConnector nnc : connectors) {
+<Line#41>      IOUtils.cleanupWithLogger(LOG,nnc);
+<Line#42>    }
+<Line#43>  }
+<Line#44>}
+Label: <Line#5> LOG.info("namenodes = " + namenodes)
+
+Example 4:
+<Line#1>{
+<Line#2>  final long sleeptime=conf.getTimeDuration(DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_KEY,DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS) * 2 + conf.getTimeDuration(DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_INTERVAL_SECONDS_KEY,DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_INTERVAL_SECONDS_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#3>  LOG.info("namenodes  = " + namenodes);
+<Line#4>  LOG.info("parameters = " + p);
+<Line#5>  LOG.info("included nodes = " + p.getIncludedNodes());
+<Line#6>  LOG.info("excluded nodes = " + p.getExcludedNodes());
+<Line#7>  LOG.info("source nodes = " + p.getSourceNodes());
+<Line#8>  checkKeytabAndInit(conf);
+<Line#9>  System.out.println("Time Stamp               Iteration#" + "  Bytes Already Moved  Bytes Left To Move  Bytes Being Moved" + "  NameNode");
+<Line#10>  List<NameNodeConnector> connectors=Collections.emptyList();
+<Line#11>  try {
+<Line#12>    connectors=NameNodeConnector.newNameNodeConnectors(namenodes,nsIds,Balancer.class.getSimpleName(),BALANCER_ID_PATH,conf,p.getMaxIdleIteration());
+<Line#13>    boolean done=false;
+<Line#14>    for (int iteration=0; !done; iteration++) {
+<Line#15>      done=true;
+<Line#16>      Collections.shuffle(connectors);
+<Line#17>      for (      NameNodeConnector nnc : connectors) {
+<Line#18>        if (p.getBlockPools().size() == 0 || p.getBlockPools().contains(nnc.getBlockpoolID())) {
+<Line#19>          final Balancer b=new Balancer(nnc,p,conf);
+<Line#20>          final Result r=b.runOneIteration();
+<Line#21>          r.print(iteration,nnc,System.out);
+<Line#22>          b.resetData(conf);
+<Line#23>          if (r.exitStatus == ExitStatus.IN_PROGRESS) {
+<Line#24>            done=false;
+<Line#25>          }
+<Line#26> else           if (r.exitStatus != ExitStatus.SUCCESS) {
+<Line#27>            return r.exitStatus.getExitCode();
+<Line#28>          }
+<Line#29>        }
+<Line#30> else {
+<Line#31>          LOG.info("Skipping blockpool " + nnc.getBlockpoolID());
+<Line#32>        }
+<Line#33>        if (done) {
+<Line#34>          System.out.println("The cluster is balanced. Exiting...");
+<Line#35>        }
+<Line#36>      }
+<Line#37>      if (!done) {
+<Line#38>        Thread.sleep(sleeptime);
+<Line#39>      }
+<Line#40>    }
+<Line#41>  }
+<Line#42>  finally {
+<Line#43>    for (    NameNodeConnector nnc : connectors) {
+<Line#44>      IOUtils.cleanupWithLogger(LOG,nnc);
+<Line#45>    }
+<Line#46>  }
+<Line#47>  return ExitStatus.SUCCESS.getExitCode();
+<Line#48>}
+Label: <Line#3> LOG.info("namenodes  = " + namenodes)
+
+Example 5:
+<Line#1>{
+<Line#2>  final long sleeptime=conf.getTimeDuration(DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_KEY,DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS) * 2 + conf.getTimeDuration(DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_INTERVAL_SECONDS_KEY,DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_INTERVAL_SECONDS_DEFAULT,TimeUnit.SECONDS,TimeUnit.MILLISECONDS);
+<Line#3>  LOG.info("namenodes  = " + namenodes);
+<Line#4>  LOG.info("parameters = " + p);
+<Line#5>  LOG.info("included nodes = " + p.getIncludedNodes());
+<Line#6>  LOG.info("excluded nodes = " + p.getExcludedNodes());
+<Line#7>  LOG.info("source nodes = " + p.getSourceNodes());
+<Line#8>  checkKeytabAndInit(conf);
+<Line#9>  System.out.println("Time Stamp               Iteration#" + "  Bytes Already Moved  Bytes Left To Move  Bytes Being Moved" + "  NameNode");
+<Line#10>  List<NameNodeConnector> connectors=Collections.emptyList();
+<Line#11>  try {
+<Line#12>    connectors=NameNodeConnector.newNameNodeConnectors(namenodes,nsIds,Balancer.class.getSimpleName(),BALANCER_ID_PATH,conf,p.getMaxIdleIteration());
+<Line#13>    boolean done=false;
+<Line#14>    for (int iteration=0; !done; iteration++) {
+<Line#15>      done=true;
+<Line#16>      Collections.shuffle(connectors);
+<Line#17>      for (      NameNodeConnector nnc : connectors) {
+<Line#18>        if (p.getBlockPools().size() == 0 || p.getBlockPools().contains(nnc.getBlockpoolID())) {
+<Line#19>          final Balancer b=new Balancer(nnc,p,conf);
+<Line#20>          final Result r=b.runOneIteration();
+<Line#21>          r.print(iteration,nnc,System.out);
+<Line#22>          b.resetData(conf);
+<Line#23>          if (r.exitStatus == ExitStatus.IN_PROGRESS) {
+<Line#24>            done=false;
+<Line#25>          }
+<Line#26> else           if (r.exitStatus != ExitStatus.SUCCESS) {
+<Line#27>            return r.exitStatus.getExitCode();
+<Line#28>          }
+<Line#29>        }
+<Line#30> else {
+<Line#31>          LOG.info("Skipping blockpool " + nnc.getBlockpoolID());
+<Line#32>        }
+<Line#33>        if (done) {
+<Line#34>          System.out.println("The cluster is balanced. Exiting...");
+<Line#35>        }
+<Line#36>      }
+<Line#37>      if (!done) {
+<Line#38>        Thread.sleep(sleeptime);
+<Line#39>      }
+<Line#40>    }
+<Line#41>  }
+<Line#42>  finally {
+<Line#43>    for (    NameNodeConnector nnc : connectors) {
+<Line#44>      IOUtils.cleanupWithLogger(LOG,nnc);
+<Line#45>    }
+<Line#46>  }
+<Line#47>  return ExitStatus.SUCCESS.getExitCode();
+<Line#48>}
+Label: <Line#4> LOG.info("parameters = " + p)
+

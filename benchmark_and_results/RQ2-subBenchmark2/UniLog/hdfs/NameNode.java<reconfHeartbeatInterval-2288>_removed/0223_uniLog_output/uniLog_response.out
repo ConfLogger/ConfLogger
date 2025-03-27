@@ -1,0 +1,35 @@
+To add a log level and log verbosity message to the provided code, we need to identify a suitable location within the method where logging would be beneficial. Given the context, it makes sense to log the changes made to the heartbeat interval. We can add an informational log message right after the heartbeat interval is set, similar to the examples provided.
+
+Here is how you can modify the code:
+
+```java
+<Line#0>throws ReconfigurationException {
+<Line#1>namesystem.writeLock();
+<Line#2>try {
+<Line#3>if (newVal == null) {
+<Line#4>// set to default
+<Line#5>datanodeManager.setHeartbeatInterval(DFS_HEARTBEAT_INTERVAL_DEFAULT);
+<Line#6>LOG.info("RECONFIGURE* set heartbeatInterval to default: {}", DFS_HEARTBEAT_INTERVAL_DEFAULT); // Added log message
+<Line#7>return String.valueOf(DFS_HEARTBEAT_INTERVAL_DEFAULT);
+<Line#8>} else {
+<Line#9>long newInterval = getConf()
+<Line#10>.getTimeDurationHelper(DFS_HEARTBEAT_INTERVAL_KEY,
+<Line#11>newVal, TimeUnit.SECONDS);
+<Line#12>datanodeManager.setHeartbeatInterval(newInterval);
+<Line#13>LOG.info("RECONFIGURE* changed heartbeatInterval to {}", newInterval); // Added log message
+<Line#14>return String.valueOf(datanodeManager.getHeartbeatInterval());
+<Line#15>}
+<Line#16>} catch (NumberFormatException nfe) {
+<Line#17>throw new ReconfigurationException(property, newVal, getConf().get(
+<Line#18>property), nfe);
+<Line#19>} finally {
+<Line#20>namesystem.writeUnlock();
+<Line#21>}
+<Line#22>}
+```
+
+In this modification:
+- After setting the heartbeat interval to the default value, an informational log message is added at `<Line#6>`.
+- After updating the heartbeat interval to the new value, another informational log message is added at `<Line#13>`. 
+
+These messages will help in tracking changes to the heartbeat interval during reconfiguration.

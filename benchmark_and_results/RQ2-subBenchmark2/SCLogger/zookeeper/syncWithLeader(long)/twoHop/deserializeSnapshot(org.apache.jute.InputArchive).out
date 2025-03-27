@@ -1,0 +1,10 @@
+/** 
+ * deserialize a snapshot from an input archive
+ * @param ia the input archive you want to deserialize from
+ * @throws IOException
+ */
+public void deserializeSnapshot(InputArchive ia) throws IOException {
+  clear();
+  SerializeUtils.deserializeSnapshot(getDataTree(),ia,getSessionWithTimeOuts());
+  initialized=true;
+}

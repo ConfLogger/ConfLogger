@@ -1,0 +1,29 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	SubtopologyBolt.java	methodSinagture:	org.apache.storm.trident.planner.SubtopologyBolt.execute(Lorg/apache/storm/trident/topology/BatchInfo;Lorg/apache/storm/tuple/Tuple;)V	methodLines:	163:170
+blockLines:	166:-1
+paras:	null
+TaintedStat:	NORMAL execute:conditional branch(ne, to iindex=19) 10,11 Node: < Application, Lorg/apache/storm/trident/planner/SubtopologyBolt, execute(Lorg/apache/storm/trident/topology/BatchInfo;Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/trident/planner/SubtopologyBolt, execute(Lorg/apache/storm/trident/topology/BatchInfo;Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere[6]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,6 @12 exception:8
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/trident/planner/SubtopologyBolt, execute(Lorg/apache/storm/trident/topology/BatchInfo;Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere[6]9 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 7,6 @12 exception:8
+NORMAL execute:10 = checkcast <Application,Lorg/apache/storm/trident/planner/SubtopologyBolt$InitialReceiver>9 <Application,Lorg/apache/storm/trident/planner/SubtopologyBolt$InitialReceiver> Node: < Application, Lorg/apache/storm/trident/planner/SubtopologyBolt, execute(Lorg/apache/storm/trident/topology/BatchInfo;Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere
+NORMAL execute:conditional branch(ne, to iindex=19) 10,11 Node: < Application, Lorg/apache/storm/trident/planner/SubtopologyBolt, execute(Lorg/apache/storm/trident/topology/BatchInfo;Lorg/apache/storm/tuple/Tuple;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public void execute(BatchInfo batchInfo, Tuple tuple) {
+        String sourceStream = tuple.getSourceStreamId();
+        InitialReceiver ir = roots.get(sourceStream);
+        if (ir == null) {
+            throw new RuntimeException("Received unexpected tuple " + tuple.toString());
+        }
+        ir.receive((ProcessorContext) batchInfo.state, tuple);
+    }
+
+
+
+====================ctx:=======================

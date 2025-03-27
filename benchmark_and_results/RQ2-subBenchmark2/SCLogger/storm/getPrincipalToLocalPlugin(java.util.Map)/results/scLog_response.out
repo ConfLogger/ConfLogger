@@ -1,0 +1,6 @@
+<Line#2>:# LOG.debug("Attempting to get PrincipalToLocal plugin with topoConf: {}", topoConf);:#
+<Line#4>:# LOG.debug("PrincipalToLocal classname is null");:#
+<Line#7>:# LOG.debug("Creating new instance of PrincipalToLocal with classname: {}", ptolClassname);:#
+<Line#10>:# LOG.debug("Preparing PrincipalToLocal with topoConf: {}", topoConf);:#
+<Line#15>:# LOG.error("Exception occurred while getting PrincipalToLocal plugin", e);:#
+<Line#17>:# LOG.debug("Returning PrincipalToLocal: {}", ptol);:#

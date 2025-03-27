@@ -1,0 +1,30 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	TransferDrainer.java	methodSinagture:	org.apache.storm.utils.TransferDrainer.add(Lorg/apache/storm/messaging/TaskMessage;)V	methodLines:	34:42
+blockLines:	37:-1
+paras:	null
+TaintedStat:	NORMAL add:conditional branch(ne, to iindex=24) 11,12 Node: < Application, Lorg/apache/storm/utils/TransferDrainer, add(Lorg/apache/storm/messaging/TaskMessage;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/TransferDrainer, add(Lorg/apache/storm/messaging/TaskMessage;)V > Context: Everywhere[7]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 6,8 @13 exception:9
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/TransferDrainer, add(Lorg/apache/storm/messaging/TaskMessage;)V > Context: Everywhere[7]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 6,8 @13 exception:9
+NORMAL add:11 = checkcast <Application,Ljava/util/ArrayList>10 <Application,Ljava/util/ArrayList> Node: < Application, Lorg/apache/storm/utils/TransferDrainer, add(Lorg/apache/storm/messaging/TaskMessage;)V > Context: Everywhere
+NORMAL add:conditional branch(ne, to iindex=24) 11,12 Node: < Application, Lorg/apache/storm/utils/TransferDrainer, add(Lorg/apache/storm/messaging/TaskMessage;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public void add(TaskMessage taskMsg) {
+        int destId = taskMsg.task();
+        ArrayList<TaskMessage> msgs = bundles.get(destId);
+        if (msgs == null) {
+            msgs = new ArrayList<>();
+            bundles.put(destId, msgs);
+        }
+        msgs.add(taskMsg);
+    }
+
+
+
+====================ctx:=======================

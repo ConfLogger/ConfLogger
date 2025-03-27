@@ -1,0 +1,309 @@
+Insert a logging statement to the following code using <API>. Format: <Line#X>:# <Statement>:#
+
+Target Code:
+<Line#0> private static double parseDecayFactor(String ns, Configuration conf) {
+<Line#1> double factor = conf.getDouble(ns + "." +
+<Line#2> IPC_FCQ_DECAYSCHEDULER_FACTOR_KEY, 0.0);
+<Line#3> if (factor == 0.0) {
+<Line#4> factor = conf.getDouble(ns + "." +
+<Line#5> IPC_SCHEDULER_DECAYSCHEDULER_FACTOR_KEY,
+<Line#6> IPC_SCHEDULER_DECAYSCHEDULER_FACTOR_DEFAULT);
+<Line#7> } else if ((factor > 0.0) && (factor < 1)) {
+<Line#8> ;
+<Line#9> }
+<Line#10> if (factor <= 0 || factor >= 1) {
+<Line#11> throw new IllegalArgumentException("Decay Factor " +
+<Line#12> "must be between 0 and 1");
+<Line#13> }
+<Line#14> 
+<Line#15> return factor;
+<Line#16> }
+
+Relevant Logging Patterns:
+Example 1:
+File: hcommon__createRawDecoderWithFallback-193__.json
+Code:
+<Line#1>{
+<Line#2>  String[] coders=getRawCoderNames(conf,codecName);
+<Line#3>  for (  String rawCoderName : coders) {
+<Line#4>    try {
+<Line#5>      if (rawCoderName != null) {
+<Line#6>        RawErasureCoderFactory fact=createRawCoderFactory(rawCoderName,codecName);
+<Line#7>        return fact.createDecoder(coderOptions);
+<Line#8>      }
+<Line#9>    }
+<Line#10> catch (    LinkageError|Exception e) {
+<Line#11>      if (LOG.isDebugEnabled()) {
+<Line#12>        LOG.debug("Failed to create raw erasure decoder " + rawCoderName + ", fallback to next codec if possible",e);
+<Line#13>      }
+<Line#14>    }
+<Line#15>  }
+<Line#16>  throw new IllegalArgumentException("Fail to create raw erasure " + "decoder with given codec: " + codecName);
+<Line#17>}
+Log: <Line#12>:# LOG.debug("Failed to create raw erasure decoder " + rawCoderName + ", fallback to next codec if possible",e):#
+
+Example 2:
+File: hcommon__logUserInfo-1920__.json
+Code:
+<Line#1>{
+<Line#2>  if (log.isDebugEnabled()) {
+<Line#3>    log.debug(caption + " UGI: " + ugi);
+<Line#4>    for (    Token<?> token : ugi.getTokens()) {
+<Line#5>      log.debug("+token:" + token);
+<Line#6>    }
+<Line#7>  }
+<Line#8>}
+Log: <Line#3>:# log.debug(caption + " UGI: " + ugi):#
+
+Example 3:
+File: hcommon__logUserInfo-1920__.json
+Code:
+<Line#1>{
+<Line#2>  if (log.isDebugEnabled()) {
+<Line#3>    log.debug(caption + " UGI: " + ugi);
+<Line#4>    for (    Token<?> token : ugi.getTokens()) {
+<Line#5>      log.debug("+token:" + token);
+<Line#6>    }
+<Line#7>  }
+<Line#8>}
+Log: <Line#5>:# log.debug("+token:" + token):#
+
+Example 4:
+File: hcommon__runParallel-375__.json
+Code:
+<Line#1>{
+<Line#2>  final Queue<I> succeeded=new ConcurrentLinkedQueue<>();
+<Line#3>  final Queue<Exception> exceptions=new ConcurrentLinkedQueue<>();
+<Line#4>  final AtomicBoolean taskFailed=new AtomicBoolean(false);
+<Line#5>  final AtomicBoolean abortFailed=new AtomicBoolean(false);
+<Line#6>  final AtomicBoolean revertFailed=new AtomicBoolean(false);
+<Line#7>  List<Future<?>> futures=new ArrayList<>();
+<Line#8>  ioStatisticsContext=IOStatisticsContext.getCurrentIOStatisticsContext();
+<Line#9>  IOException iteratorIOE=null;
+<Line#10>  final RemoteIterator<I> iterator=this.items;
+<Line#11>  try {
+<Line#12>    while (iterator.hasNext()) {
+<Line#13>      final I item=iterator.next();
+<Line#14>      futures.add(service.submit(() -> {
+<Line#15>        setStatisticsContext();
+<Line#16>        try {
+<Line#17>          if (!(stopOnFailure && taskFailed.get())) {
+<Line#18>            boolean threw=true;
+<Line#19>            try {
+<Line#20>              LOG.debug("Executing task");
+<Line#21>              task.run(item);
+<Line#22>              succeeded.add(item);
+<Line#23>              LOG.debug("Task succeeded");
+<Line#24>              threw=false;
+<Line#25>            }
+<Line#26> catch (            Exception e) {
+<Line#27>              taskFailed.set(true);
+<Line#28>              exceptions.add(e);
+<Line#29>              LOG.info("Task failed {}",e.toString());
+<Line#30>              LOG.debug("Task failed",e);
+<Line#31>              if (onFailure != null) {
+<Line#32>                try {
+<Line#33>                  onFailure.run(item,e);
+<Line#34>                }
+<Line#35> catch (                Exception failException) {
+<Line#36>                  LOG.warn("Failed to clean up on failure",e);
+<Line#37>                }
+<Line#38>              }
+<Line#39>            }
+<Line#40> finally {
+<Line#41>              if (threw) {
+<Line#42>                taskFailed.set(true);
+<Line#43>              }
+<Line#44>            }
+<Line#45>          }
+<Line#46> else           if (abortTask != null) {
+<Line#47>            if (stopAbortsOnFailure && abortFailed.get()) {
+<Line#48>              return;
+<Line#49>            }
+<Line#50>            boolean failed=true;
+<Line#51>            try {
+<Line#52>              LOG.info("Aborting task");
+<Line#53>              abortTask.run(item);
+<Line#54>              failed=false;
+<Line#55>            }
+<Line#56> catch (            Exception e) {
+<Line#57>              LOG.error("Failed to abort task",e);
+<Line#58>            }
+<Line#59> finally {
+<Line#60>              if (failed) {
+<Line#61>                abortFailed.set(true);
+<Line#62>              }
+<Line#63>            }
+<Line#64>          }
+<Line#65>        }
+<Line#66>  finally {
+<Line#67>          resetStatisticsContext();
+<Line#68>        }
+<Line#69>      }
+<Line#70>));
+<Line#71>    }
+<Line#72>  }
+<Line#73> catch (  IOException e) {
+<Line#74>    LOG.debug("IOException when iterating through {}",iterator,e);
+<Line#75>    iteratorIOE=e;
+<Line#76>    taskFailed.set(true);
+<Line#77>  }
+<Line#78>  waitFor(futures,sleepInterval);
+<Line#79>  int futureCount=futures.size();
+<Line#80>  futures.clear();
+<Line#81>  if (taskFailed.get() && revertTask != null) {
+<Line#82>    LOG.info("Reverting all {} succeeded tasks from {} futures",succeeded.size(),futureCount);
+<Line#83>    for (    final I item : succeeded) {
+<Line#84>      futures.add(service.submit(() -> {
+<Line#85>        if (stopRevertsOnFailure && revertFailed.get()) {
+<Line#86>          return;
+<Line#87>        }
+<Line#88>        boolean failed=true;
+<Line#89>        setStatisticsContext();
+<Line#90>        try {
+<Line#91>          revertTask.run(item);
+<Line#92>          failed=false;
+<Line#93>        }
+<Line#94> catch (        Exception e) {
+<Line#95>          LOG.error("Failed to revert task",e);
+<Line#96>        }
+<Line#97> finally {
+<Line#98>          if (failed) {
+<Line#99>            revertFailed.set(true);
+<Line#100>          }
+<Line#101>          resetStatisticsContext();
+<Line#102>        }
+<Line#103>      }
+<Line#104>));
+<Line#105>    }
+<Line#106>    waitFor(futures,sleepInterval);
+<Line#107>  }
+<Line#108>  if (!suppressExceptions && !exceptions.isEmpty()) {
+<Line#109>    TaskPool.<E>throwOne(exceptions);
+<Line#110>  }
+<Line#111>  if (iteratorIOE != null) {
+<Line#112>    throw iteratorIOE;
+<Line#113>  }
+<Line#114>  return !taskFailed.get();
+<Line#115>}
+Log: <Line#20>:# LOG.debug("Executing task"):#
+
+Example 5:
+File: hcommon__runParallel-375__.json
+Code:
+<Line#1>{
+<Line#2>  final Queue<I> succeeded=new ConcurrentLinkedQueue<>();
+<Line#3>  final Queue<Exception> exceptions=new ConcurrentLinkedQueue<>();
+<Line#4>  final AtomicBoolean taskFailed=new AtomicBoolean(false);
+<Line#5>  final AtomicBoolean abortFailed=new AtomicBoolean(false);
+<Line#6>  final AtomicBoolean revertFailed=new AtomicBoolean(false);
+<Line#7>  List<Future<?>> futures=new ArrayList<>();
+<Line#8>  ioStatisticsContext=IOStatisticsContext.getCurrentIOStatisticsContext();
+<Line#9>  IOException iteratorIOE=null;
+<Line#10>  final RemoteIterator<I> iterator=this.items;
+<Line#11>  try {
+<Line#12>    while (iterator.hasNext()) {
+<Line#13>      final I item=iterator.next();
+<Line#14>      futures.add(service.submit(() -> {
+<Line#15>        setStatisticsContext();
+<Line#16>        try {
+<Line#17>          if (!(stopOnFailure && taskFailed.get())) {
+<Line#18>            boolean threw=true;
+<Line#19>            try {
+<Line#20>              LOG.debug("Executing task");
+<Line#21>              task.run(item);
+<Line#22>              succeeded.add(item);
+<Line#23>              LOG.debug("Task succeeded");
+<Line#24>              threw=false;
+<Line#25>            }
+<Line#26> catch (            Exception e) {
+<Line#27>              taskFailed.set(true);
+<Line#28>              exceptions.add(e);
+<Line#29>              LOG.info("Task failed {}",e.toString());
+<Line#30>              LOG.debug("Task failed",e);
+<Line#31>              if (onFailure != null) {
+<Line#32>                try {
+<Line#33>                  onFailure.run(item,e);
+<Line#34>                }
+<Line#35> catch (                Exception failException) {
+<Line#36>                  LOG.warn("Failed to clean up on failure",e);
+<Line#37>                }
+<Line#38>              }
+<Line#39>            }
+<Line#40> finally {
+<Line#41>              if (threw) {
+<Line#42>                taskFailed.set(true);
+<Line#43>              }
+<Line#44>            }
+<Line#45>          }
+<Line#46> else           if (abortTask != null) {
+<Line#47>            if (stopAbortsOnFailure && abortFailed.get()) {
+<Line#48>              return;
+<Line#49>            }
+<Line#50>            boolean failed=true;
+<Line#51>            try {
+<Line#52>              LOG.info("Aborting task");
+<Line#53>              abortTask.run(item);
+<Line#54>              failed=false;
+<Line#55>            }
+<Line#56> catch (            Exception e) {
+<Line#57>              LOG.error("Failed to abort task",e);
+<Line#58>            }
+<Line#59> finally {
+<Line#60>              if (failed) {
+<Line#61>                abortFailed.set(true);
+<Line#62>              }
+<Line#63>            }
+<Line#64>          }
+<Line#65>        }
+<Line#66>  finally {
+<Line#67>          resetStatisticsContext();
+<Line#68>        }
+<Line#69>      }
+<Line#70>));
+<Line#71>    }
+<Line#72>  }
+<Line#73> catch (  IOException e) {
+<Line#74>    LOG.debug("IOException when iterating through {}",iterator,e);
+<Line#75>    iteratorIOE=e;
+<Line#76>    taskFailed.set(true);
+<Line#77>  }
+<Line#78>  waitFor(futures,sleepInterval);
+<Line#79>  int futureCount=futures.size();
+<Line#80>  futures.clear();
+<Line#81>  if (taskFailed.get() && revertTask != null) {
+<Line#82>    LOG.info("Reverting all {} succeeded tasks from {} futures",succeeded.size(),futureCount);
+<Line#83>    for (    final I item : succeeded) {
+<Line#84>      futures.add(service.submit(() -> {
+<Line#85>        if (stopRevertsOnFailure && revertFailed.get()) {
+<Line#86>          return;
+<Line#87>        }
+<Line#88>        boolean failed=true;
+<Line#89>        setStatisticsContext();
+<Line#90>        try {
+<Line#91>          revertTask.run(item);
+<Line#92>          failed=false;
+<Line#93>        }
+<Line#94> catch (        Exception e) {
+<Line#95>          LOG.error("Failed to revert task",e);
+<Line#96>        }
+<Line#97> finally {
+<Line#98>          if (failed) {
+<Line#99>            revertFailed.set(true);
+<Line#100>          }
+<Line#101>          resetStatisticsContext();
+<Line#102>        }
+<Line#103>      }
+<Line#104>));
+<Line#105>    }
+<Line#106>    waitFor(futures,sleepInterval);
+<Line#107>  }
+<Line#108>  if (!suppressExceptions && !exceptions.isEmpty()) {
+<Line#109>    TaskPool.<E>throwOne(exceptions);
+<Line#110>  }
+<Line#111>  if (iteratorIOE != null) {
+<Line#112>    throw iteratorIOE;
+<Line#113>  }
+<Line#114>  return !taskFailed.get();
+<Line#115>}
+Log: <Line#23>:# LOG.debug("Task succeeded"):#

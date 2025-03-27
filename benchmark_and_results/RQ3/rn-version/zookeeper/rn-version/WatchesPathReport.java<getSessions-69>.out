@@ -1,0 +1,24 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	WatchesPathReport.java	methodSinagture:	org.apache.zookeeper.server.watch.WatchesPathReport.getSessions(Ljava/lang/String;)Ljava/util/Set;	methodLines:	69:71
+blockLines:	71:-1
+paras:	null
+TaintedStat:	NORMAL getSessions:conditional branch(eq, to iindex=12) 7,8 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchesPathReport, getSessions(Ljava/lang/String;)Ljava/util/Set; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchesPathReport, getSessions(Ljava/lang/String;)Ljava/util/Set; > Context: Everywhere[3]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,2 @5 exception:5
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchesPathReport, getSessions(Ljava/lang/String;)Ljava/util/Set; > Context: Everywhere[3]6 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 4,2 @5 exception:5
+NORMAL getSessions:7 = checkcast <Application,Ljava/util/Set>6 <Application,Ljava/util/Set> Node: < Application, Lorg/apache/zookeeper/server/watch/WatchesPathReport, getSessions(Ljava/lang/String;)Ljava/util/Set; > Context: Everywhere
+NORMAL getSessions:conditional branch(eq, to iindex=12) 7,8 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchesPathReport, getSessions(Ljava/lang/String;)Ljava/util/Set; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public Set<Long> getSessions(String path) {
+        Set<Long> s = path2Ids.get(path);
+        return s != null ? Collections.unmodifiableSet(s) : null;
+    }
+
+
+====================ctx:=======================

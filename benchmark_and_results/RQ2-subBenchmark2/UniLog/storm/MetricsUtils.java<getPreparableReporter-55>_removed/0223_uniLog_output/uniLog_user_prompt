@@ -1,0 +1,80 @@
+select <line#> and insert log level and Log verbosity message after <line#>
+
+Query: Target method code:
+<Line#0>private static PreparableReporter getPreparableReporter(String clazz) {
+<Line#1>PreparableReporter reporter = null;
+<Line#2>if (clazz != null) {
+<Line#3>reporter = (PreparableReporter) ReflectionUtils.newInstance(clazz);
+<Line#4>}
+<Line#5>return reporter;
+<Line#6>}
+
+Example 1:
+<Line#1>{
+<Line#2>  if (reporter != null) {
+<Line#3>    LOG.debug("Stopping...");
+<Line#4>    reporter.report();
+<Line#5>    reporter.stop();
+<Line#6>  }
+<Line#7> else {
+<Line#8>    throw new IllegalStateException("Attempt to stop without preparing " + getClass().getSimpleName());
+<Line#9>  }
+<Line#10>}
+Label: <Line#3> LOG.debug("Stopping...")
+
+Example 2:
+<Line#1>{
+<Line#2>  if (reporter != null) {
+<Line#3>    LOG.debug("Stopping...");
+<Line#4>    reporter.report();
+<Line#5>    reporter.stop();
+<Line#6>  }
+<Line#7> else {
+<Line#8>    throw new IllegalStateException("Attempt to stop without preparing " + getClass().getSimpleName());
+<Line#9>  }
+<Line#10>}
+Label: <Line#3> LOG.debug("Stopping...")
+
+Example 3:
+<Line#1>{
+<Line#2>  if (reporter != null) {
+<Line#3>    LOG.debug("Starting...");
+<Line#4>    reporter.start(reportingPeriod,reportingPeriodUnit);
+<Line#5>  }
+<Line#6> else {
+<Line#7>    throw new IllegalStateException("Attempt to start without preparing " + getClass().getSimpleName());
+<Line#8>  }
+<Line#9>}
+Label: <Line#3> LOG.debug("Starting...")
+
+Example 4:
+<Line#1>{
+<Line#2>  String clazz=(String)conf.get(DaemonConfig.NIMBUS_TOPOLOGY_ACTION_NOTIFIER_PLUGIN);
+<Line#3>  ITopologyActionNotifierPlugin ret=null;
+<Line#4>  if (clazz != null && !clazz.isEmpty()) {
+<Line#5>    ret=ReflectionUtils.newInstance(clazz);
+<Line#6>    try {
+<Line#7>      ret.prepare(conf);
+<Line#8>    }
+<Line#9> catch (    Exception e) {
+<Line#10>      LOG.warn("Ignoring exception, Could not initialize {}",clazz,e);
+<Line#11>      ret=null;
+<Line#12>    }
+<Line#13>  }
+<Line#14>  return ret;
+<Line#15>}
+Label: <Line#10> LOG.warn("Ignoring exception, Could not initialize {}",clazz,e)
+
+Example 5:
+<Line#1>{
+<Line#2>  String clazz=(String)reporterConfig.get("class");
+<Line#3>  LOG.info("Attempting to instantiate reporter class: {}",clazz);
+<Line#4>  StormReporter reporter=ReflectionUtils.newInstance(clazz);
+<Line#5>  if (reporter != null) {
+<Line#6>    reporter.prepare(this,topoConf,reporterConfig);
+<Line#7>    reporter.start();
+<Line#8>    reporters.add(reporter);
+<Line#9>  }
+<Line#10>}
+Label: <Line#3> LOG.info("Attempting to instantiate reporter class: {}",clazz)
+

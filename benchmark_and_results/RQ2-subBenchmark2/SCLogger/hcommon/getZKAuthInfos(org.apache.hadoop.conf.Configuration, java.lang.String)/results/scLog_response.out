@@ -1,0 +1,4 @@
+<Line#4>:# LOG.debug("Attempting to resolve configuration indirection for " + configKey);:#
+<Line#6>:# LOG.debug("Configuration resolved for " + configKey);:#
+<Line#9>:# LOG.debug("No configuration found for " + configKey);:#
+<Line#12>:# LOG.error("Failed to parse configuration for " + configKey, e);:#

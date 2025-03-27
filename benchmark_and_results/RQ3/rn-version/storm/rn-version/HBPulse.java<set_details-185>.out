@@ -1,0 +1,82 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	HBPulse.java	methodSinagture:	org.apache.storm.generated.HBPulse.set_details([B)V	methodLines:	185:187
+blockLines:	186:-1
+paras:	null
+TaintedStat:	NORMAL set_details:conditional branch(ne, to iindex=7) 2,4 Node: < Application, Lorg/apache/storm/generated/HBPulse, set_details([B)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/pacemaker/Pacemaker, getPulse(Ljava/lang/String;Z)Lorg/apache/storm/generated/HBMessage; > Context: Everywhere[6]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,2 @9 exception:9
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/pacemaker/Pacemaker, getPulse(Ljava/lang/String;Z)Lorg/apache/storm/generated/HBMessage; > Context: Everywhere[6]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,2 @9 exception:9
+NORMAL getPulse:11 = checkcast <Primordial,[B>10 <Primordial,[B> Node: < Application, Lorg/apache/storm/pacemaker/Pacemaker, getPulse(Ljava/lang/String;Z)Lorg/apache/storm/generated/HBMessage; > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/pacemaker/Pacemaker, getPulse(Ljava/lang/String;Z)Lorg/apache/storm/generated/HBMessage; > Context: Everywhere[35]invokevirtual < Application, Lorg/apache/storm/generated/HBPulse, set_details([B)V > 22,11 @70 exception:25 v11
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/generated/HBPulse, set_details([B)V > Context: Everywhere v2
+NORMAL set_details:conditional branch(ne, to iindex=7) 2,4 Node: < Application, Lorg/apache/storm/generated/HBPulse, set_details([B)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+  public void set_details(byte[] details) {
+    this.details = details == null ? (java.nio.ByteBuffer)null   : java.nio.ByteBuffer.wrap(details.clone());
+  }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/cluster/PaceMakerStateStorage, set_worker_hb(Ljava/lang/String;[BLjava/util/List;)V > Context: Everywhere, blocks=[BB[SSA:9..11]5 - org.apache.storm.cluster.PaceMakerStateStorage.set_worker_hb(Ljava/lang/String;[BLjava/util/List;)V, BB[SSA:5..8]4 - org.apache.storm.cluster.PaceMakerStateStorage.set_worker_hb(Ljava/lang/String;[BLjava/util/List;)V, BB[SSA:12..12]6 - org.apache.storm.cluster.PaceMakerStateStorage.set_worker_hb(Ljava/lang/String;[BLjava/util/List;)V, BB[SSA:-1..-2]31 - org.apache.storm.cluster.PaceMakerStateStorage.set_worker_hb(Ljava/lang/String;[BLjava/util/List;)V], numberOfBasicBlocks=4, firstLineNumber=123, lastLineNumber=126, firstMethodNumber=119, lastMethodNumber=144, isFirstLineValid=true, methodSrcCode=
+    public void set_worker_hb(String path, byte[] data, List<ACL> acls) {
+        int retry = maxRetries;
+        while (true) {
+            try {
+                HBPulse hbPulse = new HBPulse();
+                hbPulse.set_id(path);
+                hbPulse.set_details(data);
+                HBMessage message = new HBMessage(HBServerMessageType.SEND_PULSE, HBMessageData.pulse(hbPulse));
+                HBMessage response = pacemakerClientPool.send(message);
+                if (response.get_type() != HBServerMessageType.SEND_PULSE_RESPONSE) {
+                    throw new WrappedHBExecutionException("Invalid Response Type");
+                }
+                LOG.debug("Successful set_worker_hb");
+                break;
+            } catch (HBExecutionException | PacemakerConnectionException e) {
+                if (retry <= 0) {
+                    throw new RuntimeException(e);
+                }
+                retry--;
+                LOG.error("{} Failed to set_worker_hb. Will make {} more attempts.", e.getMessage(), retry);
+            } catch (InterruptedException e) {
+                LOG.debug("set_worker_hb got interrupted: {}", e);
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/generated/HBPulse, setFieldValue(Lorg/apache/storm/generated/HBPulse$_Fields;Ljava/lang/Object;)V > Context: Everywhere, blocks=[BB[SSA:29..29]15 - org.apache.storm.generated.HBPulse.setFieldValue(Lorg/apache/storm/generated/HBPulse$_Fields;Ljava/lang/Object;)V, BB[SSA:26..28]14 - org.apache.storm.generated.HBPulse.setFieldValue(Lorg/apache/storm/generated/HBPulse$_Fields;Ljava/lang/Object;)V, BB[SSA:30..30]16 - org.apache.storm.generated.HBPulse.setFieldValue(Lorg/apache/storm/generated/HBPulse$_Fields;Ljava/lang/Object;)V, BB[SSA:-1..-2]20 - org.apache.storm.generated.HBPulse.setFieldValue(Lorg/apache/storm/generated/HBPulse$_Fields;Ljava/lang/Object;)V], numberOfBasicBlocks=4, firstLineNumber=224, lastLineNumber=224, firstMethodNumber=209, lastMethodNumber=232, isFirstLineValid=true, methodSrcCode=
+  public void setFieldValue(_Fields field, @org.apache.storm.thrift.annotation.Nullable java.lang.Object value) {
+    switch (field) {
+    case ID:
+      if (value == null) {
+        unset_id();
+      } else {
+        set_id((java.lang.String)value);
+      }
+      break;
+
+    case DETAILS:
+      if (value == null) {
+        unset_details();
+      } else {
+        if (value instanceof byte[]) {
+          set_details((byte[])value);
+        } else {
+          set_details((java.nio.ByteBuffer)value);
+        }
+      }
+      break;
+
+    }
+  }
+
+}

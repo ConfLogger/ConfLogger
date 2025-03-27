@@ -1,0 +1,81 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	WatchManager.java	methodSinagture:	org.apache.zookeeper.server.watch.WatchManager.addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z	methodLines:	75:109
+blockLines:	101:-1
+paras:	null
+TaintedStat:	NORMAL addWatch:conditional branch(eq, to iindex=83) 38,36 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere[56]35 = invokeinterface < Application, Ljava/util/Map, getOrDefault(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; > 32,2,33 @120 exception:34
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere[56]35 = invokeinterface < Application, Ljava/util/Map, getOrDefault(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; > 32,2,33 @120 exception:34
+NORMAL addWatch:36 = checkcast <Application,Lorg/apache/zookeeper/server/watch/WatchStats>35 <Application,Lorg/apache/zookeeper/server/watch/WatchStats> Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+NORMAL addWatch:conditional branch(eq, to iindex=83) 38,36 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	WatchManager.java	methodSinagture:	org.apache.zookeeper.server.watch.WatchManager.addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z	methodLines:	75:109
+blockLines:	82:-1
+paras:	null
+TaintedStat:	NORMAL addWatch:conditional branch(ne, to iindex=30) 12,13 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere[13]11 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 9,2 @25 exception:10
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere[13]11 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 9,2 @25 exception:10
+NORMAL addWatch:12 = checkcast <Application,Ljava/util/Set>11 <Application,Ljava/util/Set> Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+NORMAL addWatch:conditional branch(ne, to iindex=30) 12,13 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	WatchManager.java	methodSinagture:	org.apache.zookeeper.server.watch.WatchManager.addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z	methodLines:	75:109
+blockLines:	92:-1
+paras:	null
+TaintedStat:	NORMAL addWatch:conditional branch(ne, to iindex=53) 26,13 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere[37]25 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 23,3 @77 exception:24
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere[37]25 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 23,3 @77 exception:24
+NORMAL addWatch:26 = checkcast <Application,Ljava/util/Map>25 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+NORMAL addWatch:conditional branch(ne, to iindex=53) 26,13 Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;Lorg/apache/zookeeper/server/watch/WatcherMode;)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public synchronized boolean addWatch(String path, Watcher watcher, WatcherMode watcherMode) {
+        if (isDeadWatcher(watcher)) {
+            LOG.debug("Ignoring addWatch with closed cnxn");
+            return false;
+        }
+
+        Set<Watcher> list = watchTable.get(path);
+        if (list == null) {
+            // don't waste memory if there are few watches on a node
+            // rehash when the 4th entry is added, doubling size thereafter
+            // seems like a good compromise
+            list = new HashSet<>(4);
+            watchTable.put(path, list);
+        }
+        list.add(watcher);
+
+        Map<String, WatchStats> paths = watch2Paths.get(watcher);
+        if (paths == null) {
+            // cnxns typically have many watches, so use default cap here
+            paths = new HashMap<>();
+            watch2Paths.put(watcher, paths);
+        }
+
+        WatchStats stats = paths.getOrDefault(path, WatchStats.NONE);
+        WatchStats newStats = stats.addMode(watcherMode);
+
+        if (newStats != stats) {
+            paths.put(path, newStats);
+            if (watcherMode.isRecursive()) {
+                ++recursiveWatchQty;
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/watch/WatchManager, addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;)Z > Context: Everywhere, blocks=[BB[SSA:0..4]1 - org.apache.zookeeper.server.watch.WatchManager.addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;)Z, BB[SSA:-1..-2]0 - org.apache.zookeeper.server.watch.WatchManager.addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;)Z, BB[SSA:5..5]2 - org.apache.zookeeper.server.watch.WatchManager.addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;)Z, BB[SSA:-1..-2]3 - org.apache.zookeeper.server.watch.WatchManager.addWatch(Ljava/lang/String;Lorg/apache/zookeeper/Watcher;)Z], numberOfBasicBlocks=4, firstLineNumber=70, lastLineNumber=71, firstMethodNumber=70, lastMethodNumber=71, isFirstLineValid=false, methodSrcCode=
+    public boolean addWatch(String path, Watcher watcher) {
+        return addWatch(path, watcher, WatcherMode.DEFAULT_WATCHER_MODE);
+    }
+}

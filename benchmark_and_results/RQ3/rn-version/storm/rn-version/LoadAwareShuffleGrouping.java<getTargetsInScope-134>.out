@@ -1,0 +1,81 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	LoadAwareShuffleGrouping.java	methodSinagture:	org.apache.storm.grouping.LoadAwareShuffleGrouping.getTargetsInScope(Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;)Ljava/util/List;	methodLines:	134:144
+blockLines:	137:-1
+paras:	null
+TaintedStat:	NORMAL getTargetsInScope:conditional branch(eq, to iindex=17) 10,9 Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, getTargetsInScope(Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;)Ljava/util/List; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, getTargetsInScope(Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;)Ljava/util/List; > Context: Everywhere[7]8 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 6,2 @13 exception:7
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, getTargetsInScope(Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;)Ljava/util/List; > Context: Everywhere[7]8 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 6,2 @13 exception:7
+NORMAL getTargetsInScope:9 = checkcast <Application,Ljava/util/List>8 <Application,Ljava/util/List> Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, getTargetsInScope(Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;)Ljava/util/List; > Context: Everywhere
+NORMAL getTargetsInScope:conditional branch(eq, to iindex=17) 10,9 Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, getTargetsInScope(Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;)Ljava/util/List; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private List<Integer> getTargetsInScope(LocalityScope scope) {
+        List<Integer> rets = new ArrayList<>();
+        List<Integer> targetInScope = localityGroup.get(scope);
+        if (null != targetInScope) {
+            rets.addAll(targetInScope);
+        }
+        LocalityScope downgradeScope = LocalityScope.downgrade(scope);
+        if (downgradeScope != scope) {
+            rets.addAll(getTargetsInScope(downgradeScope));
+        }
+        return rets;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, getTargetsInScope(Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;)Ljava/util/List; > Context: Everywhere, blocks=[BB[SSA:23..26]11 - org.apache.storm.grouping.LoadAwareShuffleGrouping.getTargetsInScope(Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;)Ljava/util/List;, BB[SSA:19..22]10 - org.apache.storm.grouping.LoadAwareShuffleGrouping.getTargetsInScope(Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;)Ljava/util/List;, BB[SSA:27..27]12 - org.apache.storm.grouping.LoadAwareShuffleGrouping.getTargetsInScope(Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;)Ljava/util/List;, BB[SSA:-1..-2]15 - org.apache.storm.grouping.LoadAwareShuffleGrouping.getTargetsInScope(Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;)Ljava/util/List;], numberOfBasicBlocks=4, firstLineNumber=140, lastLineNumber=142, firstMethodNumber=134, lastMethodNumber=144, isFirstLineValid=true, methodSrcCode=
+    private List<Integer> getTargetsInScope(LocalityScope scope) {
+        List<Integer> rets = new ArrayList<>();
+        List<Integer> targetInScope = localityGroup.get(scope);
+        if (null != targetInScope) {
+            rets.addAll(targetInScope);
+        }
+        LocalityScope downgradeScope = LocalityScope.downgrade(scope);
+        if (downgradeScope != scope) {
+            rets.addAll(getTargetsInScope(downgradeScope));
+        }
+        return rets;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/grouping/LoadAwareShuffleGrouping, transition(Lorg/apache/storm/grouping/LoadMapping;)Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope; > Context: Everywhere, blocks=[BB[SSA:3..3]2 - org.apache.storm.grouping.LoadAwareShuffleGrouping.transition(Lorg/apache/storm/grouping/LoadMapping;)Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;, BB[SSA:0..2]1 - org.apache.storm.grouping.LoadAwareShuffleGrouping.transition(Lorg/apache/storm/grouping/LoadMapping;)Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;, BB[SSA:4..6]3 - org.apache.storm.grouping.LoadAwareShuffleGrouping.transition(Lorg/apache/storm/grouping/LoadMapping;)Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;, BB[SSA:-1..-2]45 - org.apache.storm.grouping.LoadAwareShuffleGrouping.transition(Lorg/apache/storm/grouping/LoadMapping;)Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;, BB[SSA:62..65]33 - org.apache.storm.grouping.LoadAwareShuffleGrouping.transition(Lorg/apache/storm/grouping/LoadMapping;)Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;, BB[SSA:61..61]32 - org.apache.storm.grouping.LoadAwareShuffleGrouping.transition(Lorg/apache/storm/grouping/LoadMapping;)Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;, BB[SSA:66..68]34 - org.apache.storm.grouping.LoadAwareShuffleGrouping.transition(Lorg/apache/storm/grouping/LoadMapping;)Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;, BB[SSA:-1..-2]45 - org.apache.storm.grouping.LoadAwareShuffleGrouping.transition(Lorg/apache/storm/grouping/LoadMapping;)Lorg/apache/storm/grouping/LoadAwareShuffleGrouping$LocalityScope;], numberOfBasicBlocks=8, firstLineNumber=168, lastLineNumber=170, firstMethodNumber=147, lastMethodNumber=178, isFirstLineValid=true, methodSrcCode=
+    private LocalityScope transition(LoadMapping load) {
+        List<Integer> targetInScope = getTargetsInScope(currentScope);
+        if (targetInScope.isEmpty()) {
+            LocalityScope upScope = LocalityScope.upgrade(currentScope);
+            if (upScope == currentScope) {
+                throw new RuntimeException("The current scope " + currentScope + " has no target tasks.");
+            }
+            currentScope = upScope;
+            return transition(load);
+        }
+
+        if (null == load) {
+            return currentScope;
+        }
+
+        double avg = targetInScope.stream().mapToDouble((key) -> load.get(key)).average().getAsDouble();
+
+        LocalityScope nextScope = currentScope;
+        if (avg > higherBound) {
+            nextScope = LocalityScope.upgrade(currentScope);
+        } else {
+            LocalityScope lowerScope = LocalityScope.downgrade(currentScope);
+            List<Integer> lowerTargets = getTargetsInScope(lowerScope);
+            if (!lowerTargets.isEmpty()) {
+                double lowerAvg = lowerTargets.stream().mapToDouble((key) -> load.get(key)).average().getAsDouble();
+                if (lowerAvg < lowerBound) {
+                    nextScope = lowerScope;
+                }
+            }
+        }
+
+        return nextScope;
+    }
+}

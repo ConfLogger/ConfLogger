@@ -1,0 +1,91 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ReferenceCountedACLCache.java	methodSinagture:	org.apache.zookeeper.server.ReferenceCountedACLCache.addUsage(Ljava/lang/Long;)V	methodLines:	168:184
+blockLines:	179:-1
+paras:	null
+TaintedStat:	NORMAL addUsage:conditional branch(ne, to iindex=37) 15,16 Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, addUsage(Ljava/lang/Long;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, addUsage(Ljava/lang/Long;)V > Context: Everywhere[21]14 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 12,2 @42 exception:13
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, addUsage(Ljava/lang/Long;)V > Context: Everywhere[21]14 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 12,2 @42 exception:13
+NORMAL addUsage:15 = checkcast <Application,Ljava/util/concurrent/atomic/AtomicLong>14 <Application,Ljava/util/concurrent/atomic/AtomicLong> Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, addUsage(Ljava/lang/Long;)V > Context: Everywhere
+NORMAL addUsage:conditional branch(ne, to iindex=37) 15,16 Node: < Application, Lorg/apache/zookeeper/server/ReferenceCountedACLCache, addUsage(Ljava/lang/Long;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public synchronized void addUsage(Long acl) {
+        if (acl == OPEN_UNSAFE_ACL_ID) {
+            return;
+        }
+
+        if (!longKeyMap.containsKey(acl)) {
+            LOG.info("Ignoring acl {} as it does not exist in the cache", acl);
+            return;
+        }
+
+        AtomicLong count = referenceCounter.get(acl);
+        if (count == null) {
+            referenceCounter.put(acl, new AtomicLongWithEquals(1));
+        } else {
+            count.incrementAndGet();
+        }
+    }
+
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/server/DataTree, deserialize(Lorg/apache/jute/InputArchive;Ljava/lang/String;)V > Context: Everywhere, blocks=[BB[SSA:45..45]21 - org.apache.zookeeper.server.DataTree.deserialize(Lorg/apache/jute/InputArchive;Ljava/lang/String;)V, BB[SSA:43..44]20 - org.apache.zookeeper.server.DataTree.deserialize(Lorg/apache/jute/InputArchive;Ljava/lang/String;)V, BB[SSA:46..47]22 - org.apache.zookeeper.server.DataTree.deserialize(Lorg/apache/jute/InputArchive;Ljava/lang/String;)V], numberOfBasicBlocks=3, firstLineNumber=1361, lastLineNumber=1362, firstMethodNumber=1350, lastMethodNumber=1399, isFirstLineValid=true, methodSrcCode=
+    public void deserialize(InputArchive ia, String tag) throws IOException {
+        aclCache.deserialize(ia);
+        nodes.clear();
+        pTrie.clear();
+        nodeDataSize.set(0);
+        String path = ia.readString("path");
+        while (!"/".equals(path)) {
+            DataNode node = new DataNode();
+            ia.readRecord(node, "node");
+            nodes.put(path, node);
+            synchronized (node) {
+                aclCache.addUsage(node.acl);
+            }
+            int lastSlash = path.lastIndexOf('/');
+            if (lastSlash == -1) {
+                root = node;
+            } else {
+                String parentPath = path.substring(0, lastSlash);
+                DataNode parent = nodes.get(parentPath);
+                if (parent == null) {
+                    throw new IOException(
+                            "Invalid Datatree, unable to find parent " + parentPath + " of path " + path);
+                }
+                parent.addChild(path.substring(lastSlash + 1));
+                long owner = node.stat.getEphemeralOwner();
+                EphemeralType ephemeralType = EphemeralType.get(owner);
+                if (ephemeralType == EphemeralType.CONTAINER) {
+                    containers.add(path);
+                } else if (ephemeralType == EphemeralType.TTL) {
+                    ttls.add(path);
+                } else if (owner != 0) {
+                    HashSet<String> list = ephemerals.computeIfAbsent(owner, k -> new HashSet<>());
+                    list.add(path);
+                }
+            }
+            path = ia.readString("path");
+        }
+        // have counted digest for root node with "", ignore here to avoid
+        // counting twice for root node
+        nodes.putWithoutDigest("/", root);
+
+        nodeDataSize.set(approximateDataSize());
+
+        // we are done with deserializing the datatree
+        // update the quotas - create path trie
+        // and also update the stat nodes
+        setupQuota();
+
+        aclCache.purgeUnused();
+    }
+
+}

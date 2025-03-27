@@ -1,0 +1,27 @@
+To insert a log level and log verbosity message into the provided target method code, we need to identify a suitable place where logging would be meaningful. Based on the examples, logging is often used to provide information about the execution state or to capture exceptions. In this case, we can insert logging to indicate that a check is being performed on the worker's resource requirements. Here's how you could insert a log statement:
+
+```java
+<Line#0>boolean oneExecutorPerWorker = (Boolean) topoConf.getOrDefault(Config.TOPOLOGY_RAS_ONE_EXECUTOR_PER_WORKER, false);
+<Line#1>boolean oneComponentPerWorker = (Boolean) topoConf.getOrDefault(Config.TOPOLOGY_RAS_ONE_COMPONENT_PER_WORKER, false);
+<Line#2>
+<Line#3>double topologyWorkerMaxHeapSize =
+<Line#4>ObjectReader.getDouble(topoConf.get(Config.TOPOLOGY_WORKER_MAX_HEAP_SIZE_MB));
+<Line#5>
+<Line#6>int numOfAckerExecutorsPerWorker = ObjectReader.getInt(topoConf.get(Config.TOPOLOGY_RAS_ACKER_EXECUTORS_PER_WORKER));
+<Line#7>double maxTopoExecMem = getMaxExecutorMemoryUsageForTopo(topology, topoConf);
+<Line#8>double ackerExecMem = getAckerExecutorMemoryUsageForTopo(topology, topoConf);
+<Line#9>double minMemReqForWorker = maxTopoExecMem + ackerExecMem * numOfAckerExecutorsPerWorker;
+<Line#10>
+<Line#11>// A worker need to have enough resources for a bigest topo executor + topology.acker.executors.per.worker ackers
+<Line#12>LOG.info("Checking if worker has enough resources: maxHeapSize={}, minMemReqForWorker={}", topologyWorkerMaxHeapSize, minMemReqForWorker);
+<Line#13>if (!oneExecutorPerWorker
+<Line#14>&& !oneComponentPerWorker
+<Line#15>&& topologyWorkerMaxHeapSize < minMemReqForWorker) {
+<Line#16>
+<Line#17>}
+<Line#18>}
+```
+
+**Label: <Line#12> LOG.info("Checking if worker has enough resources: maxHeapSize={}, minMemReqForWorker={}", topologyWorkerMaxHeapSize, minMemReqForWorker);**
+
+In this insertion, a log statement is added before the `if` condition to provide information about the resource check being performed. The log level `info` is used here because it is informative and not indicative of an error or warning state.

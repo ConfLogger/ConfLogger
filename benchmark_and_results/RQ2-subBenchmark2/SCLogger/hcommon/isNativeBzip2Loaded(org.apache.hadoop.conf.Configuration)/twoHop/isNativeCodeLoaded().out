@@ -1,0 +1,7 @@
+/** 
+ * Check if native-hadoop code is loaded for this platform.
+ * @return <code>true</code> if native-hadoop is loaded, else <code>false</code>
+ */
+public static boolean isNativeCodeLoaded(){
+  return nativeCodeLoaded;
+}

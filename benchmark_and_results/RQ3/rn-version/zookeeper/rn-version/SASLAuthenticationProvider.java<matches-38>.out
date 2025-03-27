@@ -1,0 +1,26 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	SASLAuthenticationProvider.java	methodSinagture:	org.apache.zookeeper.server.auth.SASLAuthenticationProvider.matches(Ljava/lang/String;Ljava/lang/String;)Z	methodLines:	38:43
+blockLines:	43:-1
+paras:	null
+TaintedStat:	NORMAL matches:conditional branch(eq, to iindex=25) 13,14 Node: < Application, Lorg/apache/zookeeper/server/auth/SASLAuthenticationProvider, matches(Ljava/lang/String;Ljava/lang/String;)Z > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/SASLAuthenticationProvider, matches(Ljava/lang/String;Ljava/lang/String;)Z > Context: Everywhere[13]13 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 11 @21 exception:12
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/server/auth/SASLAuthenticationProvider, matches(Ljava/lang/String;Ljava/lang/String;)Z > Context: Everywhere[13]13 = invokestatic < Application, Ljava/lang/System, getProperty(Ljava/lang/String;)Ljava/lang/String; > 11 @21 exception:12
+NORMAL matches:conditional branch(eq, to iindex=25) 13,14 Node: < Application, Lorg/apache/zookeeper/server/auth/SASLAuthenticationProvider, matches(Ljava/lang/String;Ljava/lang/String;)Z > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public boolean matches(String id, String aclExpr) {
+        if ((id.equals("super") || id.equals(aclExpr))) {
+            return true;
+        }
+        String readAccessUser = System.getProperty("zookeeper.letAnySaslUserDoX");
+        return readAccessUser != null && aclExpr.equals(readAccessUser);
+    }
+
+
+====================ctx:=======================

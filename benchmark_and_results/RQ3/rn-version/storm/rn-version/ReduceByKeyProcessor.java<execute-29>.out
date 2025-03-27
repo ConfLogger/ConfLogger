@@ -1,0 +1,28 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	ReduceByKeyProcessor.java	methodSinagture:	org.apache.storm.streams.processors.ReduceByKeyProcessor.execute(Lorg/apache/storm/streams/Pair;)V	methodLines:	29:36
+blockLines:	33:-1
+paras:	null
+TaintedStat:	NORMAL execute:conditional branch(ne, to iindex=16) 10,11 Node: < Application, Lorg/apache/storm/streams/processors/ReduceByKeyProcessor, execute(Lorg/apache/storm/streams/Pair;)V > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/streams/processors/ReduceByKeyProcessor, execute(Lorg/apache/storm/streams/Pair;)V > Context: Everywhere[9]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,5 @15 exception:9
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/streams/processors/ReduceByKeyProcessor, execute(Lorg/apache/storm/streams/Pair;)V > Context: Everywhere[9]10 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 8,5 @15 exception:9
+NORMAL execute:conditional branch(ne, to iindex=16) 10,11 Node: < Application, Lorg/apache/storm/streams/processors/ReduceByKeyProcessor, execute(Lorg/apache/storm/streams/Pair;)V > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public void execute(Pair<K, V> input) {
+        K key = input.getFirst();
+        V val = input.getSecond();
+        V agg = state.get(key);
+        final V res = (agg == null) ? val : reducer.apply(agg, val);
+        state.put(key, res);
+        mayBeForwardAggUpdate(() -> Pair.of(key, res));
+    }
+
+
+
+====================ctx:=======================

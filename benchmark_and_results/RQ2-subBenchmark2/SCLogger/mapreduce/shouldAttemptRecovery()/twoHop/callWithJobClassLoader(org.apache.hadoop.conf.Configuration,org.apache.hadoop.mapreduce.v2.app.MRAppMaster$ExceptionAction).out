@@ -1,0 +1,3 @@
+public MRAppMaster(ApplicationAttemptId applicationAttemptId,ContainerId containerId,String nmHost,int nmPort,int nmHttpPort,long appSubmitTime){
+  this(applicationAttemptId,containerId,nmHost,nmPort,nmHttpPort,SystemClock.getInstance(),appSubmitTime);
+}

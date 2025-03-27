@@ -1,0 +1,80 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	AuditEvent.java	methodSinagture:	org.apache.zookeeper.audit.AuditEvent.toString()Ljava/lang/String;	methodLines:	64:87
+blockLines:	82:-1
+paras:	null
+TaintedStat:	NORMAL toString:conditional branch(le, to iindex=57) 38,13 Node: < Application, Lorg/apache/zookeeper/audit/AuditEvent, toString()Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/audit/AuditEvent, toString()Ljava/lang/String; > Context: Everywhere[20]18 = invokeinterface < Application, Ljava/util/Map$Entry, getKey()Ljava/lang/Object; > 16 @47 exception:17
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/audit/AuditEvent, toString()Ljava/lang/String; > Context: Everywhere[20]18 = invokeinterface < Application, Ljava/util/Map$Entry, getKey()Ljava/lang/Object; > 16 @47 exception:17
+NORMAL toString:[null]: 19 = checkcast <Application,Ljava/lang/String>18 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/zookeeper/audit/AuditEvent, toString()Ljava/lang/String; > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/zookeeper/audit/AuditEvent, toString()Ljava/lang/String; > Context: Everywhere[42]29 = invokevirtual < Application, Ljava/lang/StringBuilder, append(Ljava/lang/String;)Ljava/lang/StringBuilder; > 3,19 @94 exception:28 v19
+PARAM_CALLEE:Node: < Primordial, Ljava/lang/StringBuilder, append(Ljava/lang/String;)Ljava/lang/StringBuilder; > Context: Everywhere v2
+PARAM_CALLER:Node: < Primordial, Ljava/lang/StringBuilder, append(Ljava/lang/String;)Ljava/lang/StringBuilder; > Context: Everywhere[2]5 = invokespecial < Primordial, Ljava/lang/AbstractStringBuilder, append(Ljava/lang/String;)Ljava/lang/AbstractStringBuilder; > 1,2 @2 exception:4 v2
+PARAM_CALLEE:Node: < Primordial, Ljava/lang/AbstractStringBuilder, append(Ljava/lang/String;)Ljava/lang/AbstractStringBuilder; > Context: Everywhere v2
+NORMAL append:6 = invokevirtual < Primordial, Ljava/lang/String, length()I > 2 @10 exception:5 Node: < Primordial, Ljava/lang/AbstractStringBuilder, append(Ljava/lang/String;)Ljava/lang/AbstractStringBuilder; > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/String, length()I > Context: Everywhere
+NORMAL length:return 7 Node: < Primordial, Ljava/lang/String, length()I > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/String, length()I > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Primordial, Ljava/math/BigInteger, toString(Ljava/math/BigInteger;Ljava/lang/StringBuilder;II)V > Context: Everywhere[10]41 = invokevirtual < Primordial, Ljava/lang/String, length()I > 39 @19 exception:40
+NORMAL toString:conditional branch(ge, to iindex=32) 41,4 Node: < Primordial, Ljava/math/BigInteger, toString(Ljava/math/BigInteger;Ljava/lang/StringBuilder;II)V > Context: Everywhere
+NORMAL toString:43 = invokevirtual < Primordial, Ljava/lang/StringBuilder, length()I > 2 @27 exception:42 Node: < Primordial, Ljava/math/BigInteger, toString(Ljava/math/BigInteger;Ljava/lang/StringBuilder;II)V > Context: Everywhere
+METHOD_ENTRY:Node: < Primordial, Ljava/lang/StringBuilder, length()I > Context: Everywhere
+NORMAL length:return 4 Node: < Primordial, Ljava/lang/StringBuilder, length()I > Context: Everywhere
+NORMAL_RET_CALLEE:Node: < Primordial, Ljava/lang/StringBuilder, length()I > Context: Everywhere
+NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/audit/AuditEvent, toString()Ljava/lang/String; > Context: Everywhere[50]38 = invokevirtual < Application, Ljava/lang/StringBuilder, length()I > 3 @112 exception:37
+NORMAL toString:conditional branch(le, to iindex=57) 38,13 Node: < Application, Lorg/apache/zookeeper/audit/AuditEvent, toString()Ljava/lang/String; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	AuditEvent.java	methodSinagture:	org.apache.zookeeper.audit.AuditEvent.toString()Ljava/lang/String;	methodLines:	64:87
+blockLines:	70:-1
+paras:	null
+TaintedStat:	NORMAL toString:conditional branch(eq, to iindex=48) 23,22 Node: < Application, Lorg/apache/zookeeper/audit/AuditEvent, toString()Ljava/lang/String; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/audit/AuditEvent, toString()Ljava/lang/String; > Context: Everywhere[24]21 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 16 @59 exception:20
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/zookeeper/audit/AuditEvent, toString()Ljava/lang/String; > Context: Everywhere[24]21 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 16 @59 exception:20
+NORMAL toString:[null]: 22 = checkcast <Application,Ljava/lang/String>21 <Application,Ljava/lang/String> Node: < Application, Lorg/apache/zookeeper/audit/AuditEvent, toString()Ljava/lang/String; > Context: Everywhere
+NORMAL toString:conditional branch(eq, to iindex=48) 23,22 Node: < Application, Lorg/apache/zookeeper/audit/AuditEvent, toString()Ljava/lang/String; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
+        boolean first = true;
+        for (Map.Entry<String, String> entry : logEntries.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (null != value) {
+                // if first field then no need to add the tabs
+                if (first) {
+                    first = false;
+                } else {
+                    buffer.append(PAIR_SEPARATOR);
+                }
+                buffer.append(key).append(KEY_VAL_SEPARATOR)
+                        .append(value);
+            }
+        }
+        //add result field
+        if (buffer.length() > 0) {
+            buffer.append(PAIR_SEPARATOR);
+        }
+        buffer.append("result").append(KEY_VAL_SEPARATOR)
+                .append(result.name().toLowerCase());
+        return buffer.toString();
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/zookeeper/audit/Slf4jAuditLogger, logAuditEvent(Lorg/apache/zookeeper/audit/AuditEvent;)V > Context: Everywhere, blocks=[BB[SSA:4..6]3 - org.apache.zookeeper.audit.Slf4jAuditLogger.logAuditEvent(Lorg/apache/zookeeper/audit/AuditEvent;)V, BB[SSA:2..3]2 - org.apache.zookeeper.audit.Slf4jAuditLogger.logAuditEvent(Lorg/apache/zookeeper/audit/AuditEvent;)V, BB[SSA:7..7]4 - org.apache.zookeeper.audit.Slf4jAuditLogger.logAuditEvent(Lorg/apache/zookeeper/audit/AuditEvent;)V, BB[SSA:-1..-2]9 - org.apache.zookeeper.audit.Slf4jAuditLogger.logAuditEvent(Lorg/apache/zookeeper/audit/AuditEvent;)V, BB[SSA:9..11]6 - org.apache.zookeeper.audit.Slf4jAuditLogger.logAuditEvent(Lorg/apache/zookeeper/audit/AuditEvent;)V, BB[SSA:2..3]2 - org.apache.zookeeper.audit.Slf4jAuditLogger.logAuditEvent(Lorg/apache/zookeeper/audit/AuditEvent;)V, BB[SSA:12..12]7 - org.apache.zookeeper.audit.Slf4jAuditLogger.logAuditEvent(Lorg/apache/zookeeper/audit/AuditEvent;)V, BB[SSA:-1..-2]9 - org.apache.zookeeper.audit.Slf4jAuditLogger.logAuditEvent(Lorg/apache/zookeeper/audit/AuditEvent;)V], numberOfBasicBlocks=8, firstLineNumber=32, lastLineNumber=35, firstMethodNumber=31, lastMethodNumber=37, isFirstLineValid=true, methodSrcCode=
+    public void logAuditEvent(AuditEvent auditEvent) {
+        if (auditEvent.getResult() == Result.FAILURE) {
+            LOG.error(auditEvent.toString());
+        } else {
+            LOG.info(auditEvent.toString());
+        }
+    }
+}
+}

@@ -1,0 +1,3 @@
+@VisibleForTesting protected FileSystem getFileSystem(Configuration conf) throws IOException {
+  return getRemoteRootLogDir().getFileSystem(conf);
+}

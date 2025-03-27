@@ -1,0 +1,193 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	Utils.java	methodSinagture:	org.apache.storm.utils.Utils.reverseMap(Ljava/util/Map;)Ljava/util/HashMap;	methodLines:	772:787
+blockLines:	781:-1
+paras:	null
+TaintedStat:	NORMAL reverseMap:conditional branch(ne, to iindex=45) 22,5 Node: < Application, Lorg/apache/storm/utils/Utils, reverseMap(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/Utils, reverseMap(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere[29]21 = invokevirtual < Application, Ljava/util/HashMap, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,19 @64 exception:20
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/utils/Utils, reverseMap(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere[29]21 = invokevirtual < Application, Ljava/util/HashMap, get(Ljava/lang/Object;)Ljava/lang/Object; > 3,19 @64 exception:20
+NORMAL reverseMap:22 = checkcast <Application,Ljava/util/List>21 <Application,Ljava/util/List> Node: < Application, Lorg/apache/storm/utils/Utils, reverseMap(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere
+NORMAL reverseMap:conditional branch(ne, to iindex=45) 22,5 Node: < Application, Lorg/apache/storm/utils/Utils, reverseMap(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	Utils.java	methodSinagture:	org.apache.storm.utils.Utils.reverseMap(Ljava/util/Map;)Ljava/util/HashMap;	methodLines:	772:787
+blockLines:	777:-1
+paras:	null
+TaintedStat:	NORMAL reverseMap:conditional branch(eq, to iindex=50) 11,12 Node: < Application, Lorg/apache/storm/utils/Utils, reverseMap(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, lockingMkAssignments(Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Map;)V > Context: Everywhere[50]38 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 33 @117 exception:37
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, lockingMkAssignments(Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Map;)V > Context: Everywhere[50]38 = invokeinterface < Application, Ljava/util/Map$Entry, getValue()Ljava/lang/Object; > 33 @117 exception:37
+NORMAL lockingMkAssignments:39 = checkcast <Application,Ljava/util/Map>38 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, lockingMkAssignments(Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Map;)V > Context: Everywhere
+PHI Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, lockingMkAssignments(Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Map;)V > Context: Everywhere:43 = phi  39,41
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, lockingMkAssignments(Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Map;)V > Context: Everywhere[136]84 = invokestatic < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, changedExecutors(Ljava/util/Map;Ljava/util/Map;)Ljava/util/List; > 82,43 @332 exception:83 v43
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, changedExecutors(Ljava/util/Map;Ljava/util/Map;)Ljava/util/List; > Context: Everywhere v2
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, changedExecutors(Ljava/util/Map;Ljava/util/Map;)Ljava/util/List; > Context: Everywhere[71]51 = invokestatic < Application, Lorg/apache/storm/utils/Utils, reverseMap(Ljava/util/Map;)Ljava/util/HashMap; > 2 @174 exception:50 v2
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/Utils, reverseMap(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere v1
+NORMAL reverseMap:conditional branch(ne, to iindex=9) 1,5 Node: < Application, Lorg/apache/storm/utils/Utils, reverseMap(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere
+NORMAL reverseMap:conditional branch(eq, to iindex=50) 11,12 Node: < Application, Lorg/apache/storm/utils/Utils, reverseMap(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	Utils.java	methodSinagture:	org.apache.storm.utils.Utils.reverseMap(Ljava/util/Map;)Ljava/util/HashMap;	methodLines:	772:787
+blockLines:	774:-1
+paras:	null
+TaintedStat:	NORMAL reverseMap:conditional branch(ne, to iindex=9) 1,5 Node: < Application, Lorg/apache/storm/utils/Utils, reverseMap(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, lockingMkAssignments(Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Map;)V > Context: Everywhere[90]63 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,36 @220 exception:62
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, lockingMkAssignments(Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Map;)V > Context: Everywhere[90]63 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 2,36 @220 exception:62
+NORMAL lockingMkAssignments:64 = checkcast <Application,Lorg/apache/storm/generated/Assignment>63 <Application,Lorg/apache/storm/generated/Assignment> Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, lockingMkAssignments(Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Map;)V > Context: Everywhere
+NORMAL lockingMkAssignments:conditional branch(eq, to iindex=134) 64,40 Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, lockingMkAssignments(Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Map;)V > Context: Everywhere
+PHI Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, lockingMkAssignments(Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Map;)V > Context: Everywhere:82 = phi  40,81
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, lockingMkAssignments(Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Map;)V > Context: Everywhere[136]84 = invokestatic < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, changedExecutors(Ljava/util/Map;Ljava/util/Map;)Ljava/util/List; > 82,43 @332 exception:83 v82
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, changedExecutors(Ljava/util/Map;Ljava/util/Map;)Ljava/util/List; > Context: Everywhere v1
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/daemon/nimbus/Nimbus, changedExecutors(Ljava/util/Map;Ljava/util/Map;)Ljava/util/List; > Context: Everywhere[8]6 = invokestatic < Application, Lorg/apache/storm/utils/Utils, reverseMap(Ljava/util/Map;)Ljava/util/HashMap; > 1 @15 exception:5 v1
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/utils/Utils, reverseMap(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere v1
+NORMAL reverseMap:conditional branch(ne, to iindex=9) 1,5 Node: < Application, Lorg/apache/storm/utils/Utils, reverseMap(Ljava/util/Map;)Ljava/util/HashMap; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    public static <K, V> HashMap<V, List<K>> reverseMap(Map<K, V> map) {
+        HashMap<V, List<K>> rtn = new HashMap<V, List<K>>();
+        if (map == null) {
+            return rtn;
+        }
+        for (Map.Entry<K, V> entry : map.entrySet()) {
+            K key = entry.getKey();
+            V val = entry.getValue();
+            List<K> list = rtn.get(val);
+            if (list == null) {
+                list = new ArrayList<K>();
+                rtn.put(entry.getValue(), list);
+            }
+            list.add(key);
+        }
+        return rtn;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/worker/WorkerState, workerOutboundTasks()Ljava/util/Set; > Context: Everywhere, blocks=[BB[SSA:49..49]28 - org.apache.storm.daemon.worker.WorkerState.workerOutboundTasks()Ljava/util/Set;, BB[SSA:46..48]27 - org.apache.storm.daemon.worker.WorkerState.workerOutboundTasks()Ljava/util/Set;, BB[SSA:50..50]29 - org.apache.storm.daemon.worker.WorkerState.workerOutboundTasks()Ljava/util/Set;, BB[SSA:-1..-2]45 - org.apache.storm.daemon.worker.WorkerState.workerOutboundTasks()Ljava/util/Set;], numberOfBasicBlocks=4, firstLineNumber=784, lastLineNumber=786, firstMethodNumber=775, lastMethodNumber=791, isFirstLineValid=true, methodSrcCode=
+    private Set<Integer> workerOutboundTasks() {
+        WorkerTopologyContext context = getWorkerTopologyContext();
+        Set<String> components = new HashSet<>();
+        for (Integer taskId : localTaskIds) {
+            for (Map<String, Grouping> value : context.getTargets(context.getComponentId(taskId)).values()) {
+                components.addAll(value.keySet());
+            }
+        }
+
+        Set<Integer> outboundTasks = new HashSet<>();
+
+        for (Map.Entry<String, List<Integer>> entry : Utils.reverseMap(taskToComponent).entrySet()) {
+            if (components.contains(entry.getKey())) {
+                outboundTasks.addAll(entry.getValue());
+            }
+        }
+        return outboundTasks;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/cluster/StormClusterStateImpl, executorBeats(Ljava/lang/String;Ljava/util/Map;)Ljava/util/Map; > Context: Everywhere, blocks=[BB[SSA:3..5]3 - org.apache.storm.cluster.StormClusterStateImpl.executorBeats(Ljava/lang/String;Ljava/util/Map;)Ljava/util/Map;, BB[SSA:1..2]2 - org.apache.storm.cluster.StormClusterStateImpl.executorBeats(Ljava/lang/String;Ljava/util/Map;)Ljava/util/Map;, BB[SSA:6..8]4 - org.apache.storm.cluster.StormClusterStateImpl.executorBeats(Ljava/lang/String;Ljava/util/Map;)Ljava/util/Map;, BB[SSA:-1..-2]46 - org.apache.storm.cluster.StormClusterStateImpl.executorBeats(Ljava/lang/String;Ljava/util/Map;)Ljava/util/Map;], numberOfBasicBlocks=4, firstLineNumber=408, lastLineNumber=412, firstMethodNumber=407, lastMethodNumber=425, isFirstLineValid=true, methodSrcCode=
+    public Map<ExecutorInfo, ExecutorBeat> executorBeats(String stormId, Map<List<Long>, NodeInfo> executorNodePort) {
+        Map<ExecutorInfo, ExecutorBeat> executorWhbs = new HashMap<>();
+
+        Map<NodeInfo, List<List<Long>>> nodePortExecutors = Utils.reverseMap(executorNodePort);
+
+        for (Map.Entry<NodeInfo, List<List<Long>>> entry : nodePortExecutors.entrySet()) {
+
+            String node = entry.getKey().get_node();
+            Long port = entry.getKey().get_port_iterator().next();
+            ClusterWorkerHeartbeat whb = getWorkerHeartbeat(stormId, node, port);
+            List<ExecutorInfo> executorInfoList = new ArrayList<>();
+            for (List<Long> list : entry.getValue()) {
+                executorInfoList.add(new ExecutorInfo(list.get(0).intValue(), list.get(list.size() - 1).intValue()));
+            }
+            if (whb != null) {
+                executorWhbs.putAll(ClusterUtils.convertExecutorBeats(executorInfoList, whb));
+            }
+        }
+        return executorWhbs;
+    }
+}
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/daemon/worker/WorkerState, <init>(Ljava/util/Map;Lorg/apache/storm/messaging/IContext;Ljava/lang/String;Ljava/lang/String;Ljava/util/function/Supplier;ILjava/lang/String;Ljava/util/Map;Lorg/apache/storm/cluster/IStateStorage;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Collection;Lorg/apache/storm/metrics2/StormMetricRegistry;Lorg/apache/storm/generated/Credentials;)V > Context: Everywhere, blocks=[BB[SSA:300..300]148 - org.apache.storm.daemon.worker.WorkerState.<init>(Ljava/util/Map;Lorg/apache/storm/messaging/IContext;Ljava/lang/String;Ljava/lang/String;Ljava/util/function/Supplier;ILjava/lang/String;Ljava/util/Map;Lorg/apache/storm/cluster/IStateStorage;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Collection;Lorg/apache/storm/metrics2/StormMetricRegistry;Lorg/apache/storm/generated/Credentials;)V, BB[SSA:297..299]147 - org.apache.storm.daemon.worker.WorkerState.<init>(Ljava/util/Map;Lorg/apache/storm/messaging/IContext;Ljava/lang/String;Ljava/lang/String;Ljava/util/function/Supplier;ILjava/lang/String;Ljava/util/Map;Lorg/apache/storm/cluster/IStateStorage;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Collection;Lorg/apache/storm/metrics2/StormMetricRegistry;Lorg/apache/storm/generated/Credentials;)V, BB[SSA:301..301]149 - org.apache.storm.daemon.worker.WorkerState.<init>(Ljava/util/Map;Lorg/apache/storm/messaging/IContext;Ljava/lang/String;Ljava/lang/String;Ljava/util/function/Supplier;ILjava/lang/String;Ljava/util/Map;Lorg/apache/storm/cluster/IStateStorage;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Collection;Lorg/apache/storm/metrics2/StormMetricRegistry;Lorg/apache/storm/generated/Credentials;)V, BB[SSA:-1..-2]225 - org.apache.storm.daemon.worker.WorkerState.<init>(Ljava/util/Map;Lorg/apache/storm/messaging/IContext;Ljava/lang/String;Ljava/lang/String;Ljava/util/function/Supplier;ILjava/lang/String;Ljava/util/Map;Lorg/apache/storm/cluster/IStateStorage;Lorg/apache/storm/cluster/IStormClusterState;Ljava/util/Collection;Lorg/apache/storm/metrics2/StormMetricRegistry;Lorg/apache/storm/generated/Credentials;)V], numberOfBasicBlocks=4, firstLineNumber=216, lastLineNumber=249, firstMethodNumber=171, lastMethodNumber=249, isFirstLineValid=true, methodSrcCode=
+            Credentials initialCredentials) throws IOException,
+            InvalidTopologyException {
+        this.metricRegistry = metricRegistry;
+        this.autoCredentials = autoCredentials;
+        this.credentialsAtom = new AtomicReference(initialCredentials);
+        this.conf = conf;
+        this.supervisorIfaceSupplier = supervisorIfaceSupplier;
+        this.mqContext = (null != mqContext) ? mqContext :
+                TransportFactory.makeContext(topologyConf, metricRegistry);
+        this.topologyId = topologyId;
+        this.assignmentId = assignmentId;
+        this.port = port;
+        this.workerId = workerId;
+        this.stateStorage = stateStorage;
+        this.stormClusterState = stormClusterState;
+        this.localExecutors =
+            new HashSet<>(readWorkerExecutors(assignmentId, port, getLocalAssignment(this.stormClusterState, topologyId)));
+        this.isWorkerActive = new CountDownLatch(1);
+        this.isTopologyActive = new AtomicBoolean(false);
+        this.stormComponentToDebug = new AtomicReference<>();
+        this.topology = ConfigUtils.readSupervisorTopology(conf, topologyId, AdvancedFSOps.make(conf));
+        this.taskToComponent = StormCommon.stormTaskInfo(topology, topologyConf);
+        this.executorReceiveQueueMap = mkReceiveQueueMap(topologyConf, localExecutors, taskToComponent);
+        this.localTaskIds = new ArrayList<>();
+        this.taskToExecutorQueue = new HashMap<>();
+        this.blobToLastKnownVersion = new ConcurrentHashMap<>();
+        for (Map.Entry<List<Long>, JCQueue> entry : executorReceiveQueueMap.entrySet()) {
+            List<Integer> taskIds = StormCommon.executorIdToTasks(entry.getKey());
+            for (Integer taskId : taskIds) {
+                this.taskToExecutorQueue.put(taskId, entry.getValue());
+            }
+            this.localTaskIds.addAll(taskIds);
+        }
+        Collections.sort(localTaskIds);
+        this.topologyConf = topologyConf;
+        this.systemTopology = StormCommon.systemTopology(topologyConf, topology);
+        this.componentToStreamToFields = new HashMap<>();
+        for (String c : ThriftTopologyUtils.getComponentIds(systemTopology)) {
+            Map<String, Fields> streamToFields = new HashMap<>();
+            for (Map.Entry<String, StreamInfo> stream :
+                ThriftTopologyUtils.getComponentCommon(systemTopology, c).get_streams().entrySet()) {
+                streamToFields.put(stream.getKey(), new Fields(stream.getValue().get_output_fields()));
+            }
+            componentToStreamToFields.put(c, streamToFields);
+        }
+        this.componentToSortedTasks = Utils.reverseMap(taskToComponent);
+        this.componentToSortedTasks.values().forEach(Collections::sort);
+        this.endpointSocketLock = new ReentrantReadWriteLock();
+        this.cachedNodeToPortSocket = new AtomicReference<>(new HashMap<>());
+        this.cachedTaskToNodePort = new AtomicReference<>(new HashMap<>());
+        this.cachedNodeToHost = new AtomicReference<>(new HashMap<>());
+        this.suicideCallback = Utils.mkSuicideFn();
+        this.uptime = Utils.makeUptimeComputer();
+        this.defaultSharedResources = makeDefaultResources();
+        this.userSharedResources = makeUserResources();
+        this.loadMapping = new LoadMapping();
+        this.assignmentVersions = new AtomicReference<>(new HashMap<>());
+        this.outboundTasks = workerOutboundTasks();
+        this.trySerializeLocal = topologyConf.containsKey(Config.TOPOLOGY_TESTING_ALWAYS_TRY_SERIALIZE)
+                                 && (Boolean) topologyConf.get(Config.TOPOLOGY_TESTING_ALWAYS_TRY_SERIALIZE);
+        if (trySerializeLocal) {
+            LOG.warn("WILL TRY TO SERIALIZE ALL TUPLES (Turn off {} for production", Config.TOPOLOGY_TESTING_ALWAYS_TRY_SERIALIZE);
+        }
+        int maxTaskId = getMaxTaskId(componentToSortedTasks);
+        this.workerTransfer = new WorkerTransfer(this, topologyConf, maxTaskId);
+
+        this.bpTracker = new BackPressureTracker(workerId, taskToExecutorQueue, metricRegistry, taskToComponent);
+        this.deserializedWorkerHooks = deserializeWorkerHooks();
+        LOG.info("Registering IConnectionCallbacks for {}:{}", assignmentId, port);
+        IConnectionCallback cb = new DeserializingConnectionCallback(topologyConf,
+            getWorkerTopologyContext(),
+            this::transferLocalBatch);
+        Supplier<Object> newConnectionResponse = () -> {
+            BackPressureStatus bpStatus = bpTracker.getCurrStatus();
+            LOG.info("Sending BackPressure status to new client. BPStatus: {}", bpStatus);
+            return bpStatus;
+        };
+        this.receiver = this.mqContext.bind(topologyId, port, cb, newConnectionResponse);
+    }
+
+}

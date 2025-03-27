@@ -1,0 +1,72 @@
+====================TaintedSinkInfo:=======================
+-------------TaintedSinkInfo----------
+fileName:	BoltExecutorStats.java	methodSinagture:	org.apache.storm.stats.BoltExecutorStats.getOr0(Ljava/util/Map;Ljava/lang/Object;)Ljava/lang/Number;	methodLines:	98:107
+blockLines:	99:-1
+paras:	null
+TaintedStat:	NORMAL getOr0:conditional branch(ne, to iindex=6) 1,4 Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, getOr0(Ljava/util/Map;Ljava/lang/Object;)Ljava/lang/Number; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere[18]21 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 19,12 @35 exception:20
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere[18]21 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 19,12 @35 exception:20
+NORMAL calculateCapacity:22 = checkcast <Application,Ljava/util/Map>21 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere[60]45 = invokestatic < Application, Lorg/apache/storm/stats/BoltExecutorStats, getOr0(Ljava/util/Map;Ljava/lang/Object;)Ljava/lang/Number; > 22,39 @138 exception:44 v22
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, getOr0(Ljava/util/Map;Ljava/lang/Object;)Ljava/lang/Number; > Context: Everywhere v1
+NORMAL getOr0:conditional branch(ne, to iindex=6) 1,4 Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, getOr0(Ljava/util/Map;Ljava/lang/Object;)Ljava/lang/Number; > Context: Everywhere
+
+-------------TaintedSinkInfo----------
+fileName:	BoltExecutorStats.java	methodSinagture:	org.apache.storm.stats.BoltExecutorStats.getOr0(Ljava/util/Map;Ljava/lang/Object;)Ljava/lang/Number;	methodLines:	98:107
+blockLines:	104:-1
+paras:	null
+TaintedStat:	NORMAL getOr0:conditional branch(ne, to iindex=17) 7,4 Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, getOr0(Ljava/util/Map;Ljava/lang/Object;)Ljava/lang/Number; > Context: Everywhere
+Source:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere[10]14 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 11,12 @16 exception:13
+Tainted Path:	NORMAL_RET_CALLER:Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere[10]14 = invokeinterface < Application, Ljava/util/Map, get(Ljava/lang/Object;)Ljava/lang/Object; > 11,12 @16 exception:13
+NORMAL calculateCapacity:15 = checkcast <Application,Ljava/util/Map>14 <Application,Ljava/util/Map> Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere
+PARAM_CALLER:Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere[55]41 = invokestatic < Application, Lorg/apache/storm/stats/BoltExecutorStats, getOr0(Ljava/util/Map;Ljava/lang/Object;)Ljava/lang/Number; > 15,39 @126 exception:40 v15
+PARAM_CALLEE:Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, getOr0(Ljava/util/Map;Ljava/lang/Object;)Ljava/lang/Number; > Context: Everywhere v1
+NORMAL getOr0:conditional branch(ne, to iindex=6) 1,4 Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, getOr0(Ljava/util/Map;Ljava/lang/Object;)Ljava/lang/Number; > Context: Everywhere
+NORMAL getOr0:conditional branch(ne, to iindex=17) 7,4 Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, getOr0(Ljava/util/Map;Ljava/lang/Object;)Ljava/lang/Number; > Context: Everywhere
+
+
+
+====================ExtendedBlocks:=======================
+
+
+====================MethodSrc:=======================
+    private static Number getOr0(Map m, Object k) {
+        if (m == null) {
+            return 0;
+        }
+
+        Number n = (Number) m.get(k);
+        if (n == null) {
+            return 0;
+        }
+        return n;
+    }
+
+
+====================ctx:=======================
+CtxCodeBlock{node=Node: < Application, Lorg/apache/storm/stats/BoltExecutorStats, calculateCapacity(J)D > Context: Everywhere, blocks=[BB[SSA:52..55]25 - org.apache.storm.stats.BoltExecutorStats.calculateCapacity(J)D, BB[SSA:50..51]24 - org.apache.storm.stats.BoltExecutorStats.calculateCapacity(J)D, BB[SSA:56..56]26 - org.apache.storm.stats.BoltExecutorStats.calculateCapacity(J)D, BB[SSA:-1..-2]33 - org.apache.storm.stats.BoltExecutorStats.calculateCapacity(J)D, BB[SSA:57..60]27 - org.apache.storm.stats.BoltExecutorStats.calculateCapacity(J)D, BB[SSA:56..56]26 - org.apache.storm.stats.BoltExecutorStats.calculateCapacity(J)D, BB[SSA:61..61]28 - org.apache.storm.stats.BoltExecutorStats.calculateCapacity(J)D, BB[SSA:-1..-2]33 - org.apache.storm.stats.BoltExecutorStats.calculateCapacity(J)D], numberOfBasicBlocks=8, firstLineNumber=88, lastLineNumber=89, firstMethodNumber=73, lastMethodNumber=95, isFirstLineValid=true, methodSrcCode=
+    private double calculateCapacity(long workerUptimeSecs) {
+        if (workerUptimeSecs > 0) {
+            Map<String, Double> execAvg = valueStat(this.getExecuteLatencies()).get(MultiCountStat.TEN_MIN_IN_SECONDS_STR);
+            Map<String, Long> exec = valueStat(this.getExecuted()).get(MultiCountStat.TEN_MIN_IN_SECONDS_STR);
+
+            Set<Object> allKeys = new HashSet<>();
+            if (execAvg != null) {
+                allKeys.addAll(execAvg.keySet());
+            }
+            if (exec != null) {
+                allKeys.addAll(exec.keySet());
+            }
+
+            double totalAvg = 0;
+            for (Object k : allKeys) {
+                double avg = getOr0(execAvg, k).doubleValue();
+                long cnt = getOr0(exec, k).longValue();
+                totalAvg += avg * cnt;
+            }
+
+            return totalAvg / (Math.min(workerUptimeSecs, MultiCountStat.TEN_MIN_IN_SECONDS) * 1000);
+        }
+        return 0.0;
+    }
+}
